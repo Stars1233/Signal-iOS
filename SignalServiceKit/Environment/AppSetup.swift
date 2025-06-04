@@ -126,9 +126,16 @@ public class AppSetup {
 
         let tsConstants = TSConstants.shared
 
+        let remoteConfig: [String: String] = if LibsignalUserDefaults.readShouldEnforceMinTlsVersion(from: appContext.appUserDefaults()) {
+            // The actual value does not matter as long as the key is present
+            ["enforceMinimumTls": "true"]
+        } else {
+            [:]
+        }
         let libsignalNet = Net(
             env: TSConstants.isUsingProductionService ? .production : .staging,
-            userAgent: HttpHeaders.userAgentHeaderValueSignalIos
+            userAgent: HttpHeaders.userAgentHeaderValueSignalIos,
+            remoteConfig: remoteConfig
         )
 
         let recipientDatabaseTable = RecipientDatabaseTable()
@@ -160,10 +167,8 @@ public class AppSetup {
 
         let schedulers = DispatchQueueSchedulers()
 
-        let appExpiry = AppExpiryImpl(
-            dateProvider: dateProvider,
+        let appExpiry = AppExpiry(
             appVersion: appVersion,
-            schedulers: schedulers
         )
 
         let db = databaseStorage
@@ -552,6 +557,7 @@ public class AppSetup {
             networkManager: networkManager,
             notificationPresenter: notificationPresenter,
             pniProtocolStore: pniProtocolStore,
+            profileManager: profileManager,
             recipientDatabaseTable: recipientDatabaseTable,
             recipientFetcher: recipientFetcher,
             recipientIdFinder: recipientIdFinder,
@@ -896,7 +902,6 @@ public class AppSetup {
             accountManager: tsAccountManager,
             appExpiry: appExpiry,
             appReadiness: appReadiness,
-            currentCallProvider: currentCallProvider,
             db: db,
             libsignalNet: libsignalNet,
             registrationStateChangeManager: registrationStateChangeManager,
@@ -1325,6 +1330,24 @@ public class AppSetup {
             tsAccountManager: tsAccountManager
         )
 
+        let groupMessageProcessorManager = GroupMessageProcessorManager()
+
+        let receiptSender = ReceiptSender(
+            appReadiness: appReadiness,
+            recipientDatabaseTable: recipientDatabaseTable
+        )
+
+        let messageFetcherJob = MessageFetcherJob(appReadiness: appReadiness)
+
+        let backgroundMessageFetcherFactory = BackgroundMessageFetcherFactory(
+            chatConnectionManager: chatConnectionManager,
+            groupMessageProcessorManager: groupMessageProcessorManager,
+            messageFetcherJob: messageFetcherJob,
+            messageProcessor: messageProcessor,
+            messageSender: messageSender,
+            receiptSender: receiptSender,
+        )
+
         let dependenciesBridge = DependenciesBridge(
             accountAttributesUpdater: accountAttributesUpdater,
             adHocCallRecordManager: adHocCallRecordManager,
@@ -1342,6 +1365,7 @@ public class AppSetup {
             audioWaveformManager: audioWaveformManager,
             authorMergeHelper: authorMergeHelper,
             avatarDefaultColorManager: avatarDefaultColorManager,
+            backgroundMessageFetcherFactory: backgroundMessageFetcherFactory,
             backupArchiveErrorPresenter: backupArchiveErrorPresenter,
             backupArchiveManager: backupArchiveManager,
             backupAttachmentDownloadManager: backupAttachmentDownloadManager,
@@ -1474,18 +1498,12 @@ public class AppSetup {
             )
         )
         let messageDecrypter = OWSMessageDecrypter(appReadiness: appReadiness)
-        let groupMessageProcessorManager = GroupMessageProcessorManager()
-        let receiptSender = ReceiptSender(
-            appReadiness: appReadiness,
-            recipientDatabaseTable: recipientDatabaseTable
-        )
         let stickerManager = StickerManager(
             appReadiness: appReadiness,
             dateProvider: dateProvider
         )
         let sskPreferences = SSKPreferences()
         let groupV2Updates = testDependencies.groupV2Updates ?? GroupV2UpdatesImpl(appReadiness: appReadiness)
-        let messageFetcherJob = MessageFetcherJob(appReadiness: appReadiness)
         let paymentsCurrencies = testDependencies.paymentsCurrencies ?? PaymentsCurrenciesImpl(appReadiness: appReadiness)
         let spamChallengeResolver = SpamChallengeResolver(appReadiness: appReadiness)
         let phoneNumberUtil = PhoneNumberUtil()
@@ -1727,6 +1745,14 @@ extension AppSetup.FinalContinuation {
         // reloaded here. In practice, some caches exist but aren't used by the
         // NSE, or they are used but behave properly even if they're not reloaded.
         self.sskEnvironment.warmCaches(appReadiness: self.appReadiness)
+
+        self.appReadiness.runNowOrWhenAppDidBecomeReadySync {
+            self.dependenciesBridge.chatConnectionManager.updateCanOpenWebSocket()
+        }
+
+        self.appReadiness.runNowOrWhenAppDidBecomeReadySync {
+            self.dependenciesBridge.appExpiry.refreshExpirationTimer()
+        }
 
         if self.didRunLaunchTasks {
             return

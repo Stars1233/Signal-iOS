@@ -183,7 +183,7 @@ class NotificationService: UNNotificationServiceExtension {
 
     @MainActor
     private func fetchAndProcessMessages(logger: NSELogger) async -> UNNotificationContent {
-        if DependenciesBridge.shared.appExpiry.isExpired {
+        if DependenciesBridge.shared.appExpiry.isExpired(now: Date()) {
             Logger.warn("Not processing notifications for expired application.")
             return UNMutableNotificationContent()
         }
@@ -197,12 +197,7 @@ class NotificationService: UNNotificationServiceExtension {
 
             try await SSKEnvironment.shared.messageFetcherJobRef.fetchViaRest()
 
-            let backgroundMessageFetcher = BackgroundMessageFetcher(
-                messageFetcherJob: SSKEnvironment.shared.messageFetcherJobRef,
-                messageProcessor: SSKEnvironment.shared.messageProcessorRef,
-                messageSender: SSKEnvironment.shared.messageSenderRef,
-                receiptSender: SSKEnvironment.shared.receiptSenderRef,
-            )
+            let backgroundMessageFetcher = DependenciesBridge.shared.backgroundMessageFetcherFactory.buildFetcher()
 
             try await backgroundMessageFetcher.waitForFetchingProcessingAndSideEffects()
         } catch is CancellationError {

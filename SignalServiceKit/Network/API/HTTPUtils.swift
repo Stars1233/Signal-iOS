@@ -113,45 +113,36 @@ public class HTTPUtils {
     }
     #endif
 
-    // This DRYs up handling of main service errors
-    // so that REST and websocket errors are handled
-    // in the same way.
     public static func preprocessMainServiceHTTPError(
-        request: TSRequest,
         requestUrl: URL,
         responseStatus: Int,
         responseHeaders: HttpHeaders,
         responseData: Data?
-    ) -> OWSHTTPError {
+    ) async -> OWSHTTPError {
         let httpError = HTTPUtils.buildServiceError(
-            request: request,
             requestUrl: requestUrl,
             responseStatus: responseStatus,
             responseHeaders: responseHeaders,
             responseData: responseData
         )
 
-        applyHTTPError(httpError)
-
-#if TESTABLE_BUILD
-        HTTPUtils.logCurl(for: request)
-#endif
+        await applyHTTPError(httpError)
 
         return httpError
     }
 
     // This DRYs up handling of main service errors so that
     // REST and websocket errors are handled in the same way.
-    public static func applyHTTPError(_ httpError: OWSHTTPError) {
+    public static func applyHTTPError(_ httpError: OWSHTTPError) async {
 
         if httpError.isNetworkConnectivityError {
             OutageDetection.shared.reportConnectionFailure()
         }
 
-        if httpError.responseStatusCode == AppExpiryImpl.appExpiredStatusCode {
+        if httpError.responseStatusCode == AppExpiry.appExpiredStatusCode {
             let appExpiry = DependenciesBridge.shared.appExpiry
             let db = DependenciesBridge.shared.db
-            appExpiry.setHasAppExpiredAtCurrentVersion(db: db)
+            await appExpiry.setHasAppExpiredAtCurrentVersion(db: db)
         }
     }
 
@@ -169,7 +160,6 @@ public class HTTPUtils {
     }
 
     private static func buildServiceError(
-        request: TSRequest,
         requestUrl: URL,
         responseStatus: Int,
         responseHeaders: HttpHeaders,
@@ -246,6 +236,15 @@ public extension Error {
 
     var isNetworkFailureOrTimeout: Bool {
         HTTPUtils.isNetworkFailureOrTimeout(forError: self)
+    }
+
+    var is5xxServiceResponse: Bool {
+        switch self as? OWSHTTPError {
+        case .serviceResponse(let serviceResponse):
+            return serviceResponse.is5xx
+        case nil, .invalidAppState, .invalidRequest, .wrappedFailure, .networkFailure:
+            return false
+        }
     }
 
     func hasFatalHttpStatusCode() -> Bool {

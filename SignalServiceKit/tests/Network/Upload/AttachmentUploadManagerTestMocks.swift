@@ -59,7 +59,7 @@ class _AttachmentUploadManager_NetworkManagerMock: NetworkManager {
 
     var performRequestBlock: ((TSRequest, Bool) -> Promise<HTTPResponse>)?
 
-    override func asyncRequest(_ request: TSRequest, canUseWebSocket: Bool = true) async throws -> any HTTPResponse {
+    override func asyncRequest(_ request: TSRequest, canUseWebSocket: Bool = true, retryPolicy: RetryPolicy = .dont) async throws -> any HTTPResponse {
         return try await performRequestBlock!(request, canUseWebSocket).awaitable()
     }
 
@@ -87,12 +87,15 @@ public class _AttachmentUploadManager_OWSURLSessionMock: BaseOWSURLSessionMock {
 }
 
 class _AttachmentUploadManager_ChatConnectionManagerMock: ChatConnectionManager {
+    func updateCanOpenWebSocket() {}
     var hasEmptiedInitialQueue: Bool { true }
     var identifiedConnectionState: OWSChatConnectionState { .open }
     func waitForIdentifiedConnectionToOpen() async throws { }
+    func waitUntilIdentifiedConnectionShouldBeClosed() async throws { fatalError() }
     func shouldWaitForSocketToMakeRequest(connectionType: OWSChatConnectionType) -> Bool { true }
+    func requestConnections() -> [OWSChatConnection.ConnectionToken] { [] }
     func makeRequest(_ request: TSRequest) async throws -> HTTPResponse { fatalError() }
-    func didReceivePush() { }
+    func waitForDisconnectIfClosed() async {}
 }
 
 class _AttachmentUploadManager_BackupKeyMaterialMock: BackupKeyMaterial {

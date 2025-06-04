@@ -618,6 +618,7 @@
 		505347F92DA08548004AF0B5 /* DeviceSleepManagerImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 505347F82DA08548004AF0B5 /* DeviceSleepManagerImpl.swift */; };
 		50552C2A2BAB8E7D00815474 /* AuthCredentialManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50552C292BAB8E7D00815474 /* AuthCredentialManager.swift */; };
 		50552C2C2BAB8E8500815474 /* AuthCredentialStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50552C2B2BAB8E8500815474 /* AuthCredentialStore.swift */; };
+		5056B3BF2DEED72800F55320 /* MonotonicDateTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5056B3BE2DEED72800F55320 /* MonotonicDateTest.swift */; };
 		50597BBA2B97C38C004681E1 /* SignalAccountStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50597BB92B97C38C004681E1 /* SignalAccountStore.swift */; };
 		50597BBC2B97C449004681E1 /* UsernameLookupRecordStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50597BBB2B97C449004681E1 /* UsernameLookupRecordStore.swift */; };
 		50597BBF2B97D629004681E1 /* SearchableNameFinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50597BBE2B97D629004681E1 /* SearchableNameFinder.swift */; };
@@ -2497,6 +2498,7 @@
 		D93EDC042AE9E3CD0004BDD9 /* DonationSettingsViewController+MySupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D93EDC032AE9E3CD0004BDD9 /* DonationSettingsViewController+MySupport.swift */; };
 		D93F4D5A2D800DD20042926C /* AvatarDefaultColorManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D93F4D552D7FAC3C0042926C /* AvatarDefaultColorManager.swift */; };
 		D93F4D5D2D801D750042926C /* AvatarDefaultColorManagerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D93F4D5C2D801D700042926C /* AvatarDefaultColorManagerTest.swift */; };
+		D93FA5BF2DE77E470013879E /* BackupEnablingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D93FA5BE2DE77E440013879E /* BackupEnablingManager.swift */; };
 		D941863C2ACE252D002FE2D3 /* CallRecordLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = D941863B2ACE252D002FE2D3 /* CallRecordLogger.swift */; };
 		D943F3EF2892F89B008C0C8B /* NSELogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = D943F3EE2892F89B008C0C8B /* NSELogger.swift */; };
 		D94441312D55956B005B2A54 /* UUIDv7.swift in Sources */ = {isa = PBXBuildFile; fileRef = D94441302D559567005B2A54 /* UUIDv7.swift */; };
@@ -3059,7 +3061,6 @@
 		F90B731D2926AFCF0027318D /* DonationViewsUtil+WaitForSubscriptionJob.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90B731C2926AFCF0027318D /* DonationViewsUtil+WaitForSubscriptionJob.swift */; };
 		F90B7BC02912B8E000F50A59 /* DonationUtilitiesTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F96B66B42912B8C8004FFFAA /* DonationUtilitiesTest.swift */; };
 		F90B7BC12912B90100F50A59 /* DonateViewControllerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F96B66B22912B8B7004FFFAA /* DonateViewControllerTest.swift */; };
-		F90E4AAC29F0798C00F54191 /* MockAppExpiry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90E4AAB29F0798C00F54191 /* MockAppExpiry.swift */; };
 		F915A76C29CB669800EB6F68 /* AccountDataReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = F915A76B29CB669800EB6F68 /* AccountDataReport.swift */; };
 		F915A76E29CB6B4E00EB6F68 /* AccountDataReportRequestFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = F915A76D29CB6B4E00EB6F68 /* AccountDataReportRequestFactory.swift */; };
 		F915A77029CB6D4C00EB6F68 /* ShareActivityUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = F915A76F29CB6D4C00EB6F68 /* ShareActivityUtil.swift */; };
@@ -4530,6 +4531,7 @@
 		50552C2B2BAB8E8500815474 /* AuthCredentialStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthCredentialStore.swift; sourceTree = "<group>"; };
 		50552C2D2BAC066A00815474 /* CallLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallLink.swift; sourceTree = "<group>"; };
 		50552C302BAC079A00815474 /* CallLinkTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallLinkTest.swift; sourceTree = "<group>"; };
+		5056B3BE2DEED72800F55320 /* MonotonicDateTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonotonicDateTest.swift; sourceTree = "<group>"; };
 		50597BB92B97C38C004681E1 /* SignalAccountStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalAccountStore.swift; sourceTree = "<group>"; };
 		50597BBB2B97C449004681E1 /* UsernameLookupRecordStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsernameLookupRecordStore.swift; sourceTree = "<group>"; };
 		50597BBE2B97D629004681E1 /* SearchableNameFinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchableNameFinder.swift; sourceTree = "<group>"; };
@@ -6416,6 +6418,7 @@
 		D93EDC032AE9E3CD0004BDD9 /* DonationSettingsViewController+MySupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DonationSettingsViewController+MySupport.swift"; sourceTree = "<group>"; };
 		D93F4D552D7FAC3C0042926C /* AvatarDefaultColorManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarDefaultColorManager.swift; sourceTree = "<group>"; };
 		D93F4D5C2D801D700042926C /* AvatarDefaultColorManagerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarDefaultColorManagerTest.swift; sourceTree = "<group>"; };
+		D93FA5BE2DE77E440013879E /* BackupEnablingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupEnablingManager.swift; sourceTree = "<group>"; };
 		D941863B2ACE252D002FE2D3 /* CallRecordLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallRecordLogger.swift; sourceTree = "<group>"; };
 		D943F3EE2892F89B008C0C8B /* NSELogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSELogger.swift; sourceTree = "<group>"; };
 		D94441302D559567005B2A54 /* UUIDv7.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUIDv7.swift; sourceTree = "<group>"; };
@@ -7002,7 +7005,6 @@
 		F908C67A29F08E4E00C3EFC4 /* AppExpiryTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppExpiryTest.swift; sourceTree = "<group>"; };
 		F90B731A2926A0840027318D /* DonationViewsUtil+PaymentInProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DonationViewsUtil+PaymentInProgressView.swift"; sourceTree = "<group>"; };
 		F90B731C2926AFCF0027318D /* DonationViewsUtil+WaitForSubscriptionJob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DonationViewsUtil+WaitForSubscriptionJob.swift"; sourceTree = "<group>"; };
-		F90E4AAB29F0798C00F54191 /* MockAppExpiry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockAppExpiry.swift; sourceTree = "<group>"; };
 		F915A76B29CB669800EB6F68 /* AccountDataReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountDataReport.swift; sourceTree = "<group>"; };
 		F915A76D29CB6B4E00EB6F68 /* AccountDataReportRequestFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountDataReportRequestFactory.swift; sourceTree = "<group>"; };
 		F915A76F29CB6D4C00EB6F68 /* ShareActivityUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareActivityUtil.swift; sourceTree = "<group>"; };
@@ -8941,6 +8943,14 @@
 				F5C80FA12BE3F29F0028F76D /* RTCIceServerFetcherTest.swift */,
 			);
 			path = Calls;
+			sourceTree = "<group>";
+		};
+		5056B3BD2DEED70F00F55320 /* DateProvider */ = {
+			isa = PBXGroup;
+			children = (
+				5056B3BE2DEED72800F55320 /* MonotonicDateTest.swift */,
+			);
+			path = DateProvider;
 			sourceTree = "<group>";
 		};
 		50597BBD2B97D624004681E1 /* Search */ = {
@@ -12425,6 +12435,7 @@
 			isa = PBXGroup;
 			children = (
 				D97C9FF12DD3FB7200191CE2 /* BackupDisablingManager.swift */,
+				D93FA5BE2DE77E440013879E /* BackupEnablingManager.swift */,
 				D951F5302D9B236100C5EBF3 /* BackupSettingsViewController.swift */,
 				D9680CF22DBB0B28005DD5BE /* ChooseBackupPlanViewController.swift */,
 			);
@@ -13474,6 +13485,7 @@
 				50E0198E2CC2491A0063EA48 /* Concurrency */,
 				F9426205289B1B5500460798 /* Contacts */,
 				501AD1C22AF17A0B001B796A /* Curve25519 */,
+				5056B3BD2DEED70F00F55320 /* DateProvider */,
 				F94261C7289B1B5300460798 /* Devices */,
 				F908AA7B28CE628700472E68 /* Fixtures */,
 				5075C21529CA1ED500A260D2 /* GroupMembers */,
@@ -14424,7 +14436,6 @@
 				F9C5CB90289453B200548EEE /* FakeContactsManager.swift */,
 				F94BFA9428EBB0D800A5F34E /* FakeMessageSender.swift */,
 				F9C5CB84289453B200548EEE /* FakeStorageServiceManager.swift */,
-				F90E4AAB29F0798C00F54191 /* MockAppExpiry.swift */,
 				F9C5CB96289453B200548EEE /* MockKeychainStorage.swift */,
 				F9C57FAC28E5F1E2001D3596 /* MockSSKEnvironment.swift */,
 				F9C5CB88289453B200548EEE /* NoopPendingReadReceiptRecorder.swift */,
@@ -16666,6 +16677,7 @@
 				B95A765C2B76C5BB00AA7E97 /* AvatarViewPresentationContextProvider.swift in Sources */,
 				66485EB02CCC515A00B8613F /* BackupArchiveInternalErrorViewController.swift in Sources */,
 				D97C9FF22DD3FB7E00191CE2 /* BackupDisablingManager.swift in Sources */,
+				D93FA5BF2DE77E470013879E /* BackupEnablingManager.swift in Sources */,
 				D951F5312D9B236700C5EBF3 /* BackupSettingsViewController.swift in Sources */,
 				32E035242739059C0081EE11 /* BadgeCollectionView.swift in Sources */,
 				32E03522273901710081EE11 /* BadgeConfigurationViewController.swift in Sources */,
@@ -17956,7 +17968,6 @@
 				F9C5CD7B289453B300548EEE /* MobileCoinHelper.swift in Sources */,
 				72345D202B9A2035000237B3 /* MobileCoinHelperMinimal.swift in Sources */,
 				664657352AC370670099DE1C /* MockAccountAttributesUpdater.swift in Sources */,
-				F90E4AAC29F0798C00F54191 /* MockAppExpiry.swift in Sources */,
 				668B24182BBB663400EB60C4 /* MockAttachment.swift in Sources */,
 				663D02E12C06E2F400350632 /* MockAttachmentReference.swift in Sources */,
 				669572FE2C1A1E050092B755 /* MockAttachmentThumbnailService.swift in Sources */,
@@ -18732,6 +18743,7 @@
 				6633B3932BACF3EB003AFF60 /* MessageStickerSerializationTest.swift in Sources */,
 				500BAD822C519F3600B4CD7F /* MessageTimestampGeneratorTest.swift in Sources */,
 				F942624C289B1B5500460798 /* ModelReadCacheTest.swift in Sources */,
+				5056B3BF2DEED72800F55320 /* MonotonicDateTest.swift in Sources */,
 				5079F3C22DA47554008430EC /* NotificationPreconditionTest.swift in Sources */,
 				F9426256289B1B5500460798 /* NSData+ImageTest.swift in Sources */,
 				D979CC3A2AD3964E006AAC49 /* Numbers+Random.swift in Sources */,

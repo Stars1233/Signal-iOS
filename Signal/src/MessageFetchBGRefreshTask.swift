@@ -27,8 +27,8 @@ public class MessageFetchBGRefreshTask {
             return nil
         }
         let value = MessageFetchBGRefreshTask(
+            backgroundMessageFetcherFactory: DependenciesBridge.shared.backgroundMessageFetcherFactory,
             dateProvider: { Date() },
-            messageFetcherJob: SSKEnvironment.shared.messageFetcherJobRef,
             ows2FAManager: SSKEnvironment.shared.ows2FAManagerRef,
             tsAccountManager: DependenciesBridge.shared.tsAccountManager
         )
@@ -39,19 +39,19 @@ public class MessageFetchBGRefreshTask {
     // Must be kept in sync with the value in info.plist.
     private static let taskIdentifier = "MessageFetchBGRefreshTask"
 
+    private let backgroundMessageFetcherFactory: BackgroundMessageFetcherFactory
     private let dateProvider: DateProvider
-    private let messageFetcherJob: MessageFetcherJob
     private let ows2FAManager: OWS2FAManager
     private let tsAccountManager: TSAccountManager
 
     private init(
+        backgroundMessageFetcherFactory: BackgroundMessageFetcherFactory,
         dateProvider: @escaping DateProvider,
-        messageFetcherJob: MessageFetcherJob,
         ows2FAManager: OWS2FAManager,
         tsAccountManager: TSAccountManager
     ) {
+        self.backgroundMessageFetcherFactory = backgroundMessageFetcherFactory
         self.dateProvider = dateProvider
-        self.messageFetcherJob = messageFetcherJob
         self.ows2FAManager = ows2FAManager
         self.tsAccountManager = tsAccountManager
     }
@@ -62,7 +62,7 @@ public class MessageFetchBGRefreshTask {
             using: nil,
             launchHandler: { task in
                 appReadiness.runNowOrWhenAppDidBecomeReadyAsync {
-                    Self.getShared(appReadiness: appReadiness)!.performTask(task, appReadiness: appReadiness)
+                    Self.getShared(appReadiness: appReadiness)!.performTask(task)
                 }
             }
         )
@@ -103,26 +103,19 @@ public class MessageFetchBGRefreshTask {
         }
     }
 
-    private func performTask(_ task: BGTask, appReadiness: AppReadiness) {
+    private func performTask(_ task: BGTask) {
         Logger.info("performing background fetch")
         Task {
+            let backgroundMessageFetcher = self.backgroundMessageFetcherFactory.buildFetcher()
             let result = await Result {
                 try await withCooperativeTimeout(seconds: 27) {
-                    try await appReadiness.waitForAppReady()
-                    await self.messageFetcherJob.startFetchingViaWebSocket()
-                    let backgroundMessageFetcher = BackgroundMessageFetcher(
-                        messageFetcherJob: SSKEnvironment.shared.messageFetcherJobRef,
-                        messageProcessor: SSKEnvironment.shared.messageProcessorRef,
-                        messageSender: SSKEnvironment.shared.messageSenderRef,
-                        receiptSender: SSKEnvironment.shared.receiptSenderRef,
-                    )
+                    await backgroundMessageFetcher.start()
                     try await backgroundMessageFetcher.waitForFetchingProcessingAndSideEffects()
                 }
             }
-            if appReadiness.isAppReady {
-                // Schedule the next run now.
-                self.scheduleTask()
-            }
+            await backgroundMessageFetcher.stopAndWaitBeforeSuspending()
+            // Schedule the next run now.
+            self.scheduleTask()
             do {
                 try result.get()
                 Logger.info("success")

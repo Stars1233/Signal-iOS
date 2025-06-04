@@ -5,25 +5,116 @@
 
 import Foundation
 
-public class BackgroundMessageFetcher {
+public struct BackgroundMessageFetcherFactory {
+    private let chatConnectionManager: any ChatConnectionManager
+    private let groupMessageProcessorManager: GroupMessageProcessorManager
     private let messageFetcherJob: MessageFetcherJob
     private let messageProcessor: MessageProcessor
     private let messageSender: MessageSender
     private let receiptSender: ReceiptSender
 
     public init(
+        chatConnectionManager: any ChatConnectionManager,
+        groupMessageProcessorManager: GroupMessageProcessorManager,
         messageFetcherJob: MessageFetcherJob,
         messageProcessor: MessageProcessor,
         messageSender: MessageSender,
         receiptSender: ReceiptSender,
     ) {
+        self.chatConnectionManager = chatConnectionManager
+        self.groupMessageProcessorManager = groupMessageProcessorManager
         self.messageFetcherJob = messageFetcherJob
         self.messageProcessor = messageProcessor
         self.messageSender = messageSender
         self.receiptSender = receiptSender
     }
 
+    public func buildFetcher() -> BackgroundMessageFetcher {
+        return BackgroundMessageFetcher(
+            chatConnectionManager: self.chatConnectionManager,
+            groupMessageProcessorManager: self.groupMessageProcessorManager,
+            messageFetcherJob: self.messageFetcherJob,
+            messageProcessor: self.messageProcessor,
+            messageSender: self.messageSender,
+            receiptSender: self.receiptSender,
+        )
+    }
+}
+
+public actor BackgroundMessageFetcher {
+    private let chatConnectionManager: any ChatConnectionManager
+    private let groupMessageProcessorManager: GroupMessageProcessorManager
+    private let messageFetcherJob: MessageFetcherJob
+    private let messageProcessor: MessageProcessor
+    private let messageSender: MessageSender
+    private let receiptSender: ReceiptSender
+
+    fileprivate init(
+        chatConnectionManager: any ChatConnectionManager,
+        groupMessageProcessorManager: GroupMessageProcessorManager,
+        messageFetcherJob: MessageFetcherJob,
+        messageProcessor: MessageProcessor,
+        messageSender: MessageSender,
+        receiptSender: ReceiptSender,
+    ) {
+        self.chatConnectionManager = chatConnectionManager
+        self.groupMessageProcessorManager = groupMessageProcessorManager
+        self.messageFetcherJob = messageFetcherJob
+        self.messageProcessor = messageProcessor
+        self.messageSender = messageSender
+        self.receiptSender = receiptSender
+    }
+
+    private var connectionTokens = [OWSChatConnection.ConnectionToken]()
+
+    public func start() async {
+        self.connectionTokens = chatConnectionManager.requestConnections()
+        await self.groupMessageProcessorManager.startAllProcessors()
+    }
+
+    public func reset() {
+        self.connectionTokens.forEach { $0.releaseConnection() }
+        self.connectionTokens = []
+    }
+
+    /// Waits until message processing has reached an "idle" state.
+    ///
+    /// - Throws: An error when canceled or if the connection closes and won't
+    /// immediately try to re-open.
     public func waitForFetchingProcessingAndSideEffects() async throws {
+        try await withCooperativeRace(
+            { try await self._waitForFetchingProcessingAndSideEffects() },
+            { try await self.waitUntilSocketShouldBeClosedIfCanUseSockets() },
+        )
+    }
+
+    /// Waits until `deadline`.
+    ///
+    /// - Throws: An error when canceled or if the connection closes and won't
+    /// immediately try to re-open.
+    public func waitUntil(deadline: MonotonicDate) async throws {
+        let now = MonotonicDate()
+        if now < deadline {
+            try await withCooperativeRace(
+                { try await Task.sleep(nanoseconds: (deadline - now).nanoseconds) },
+                { try await self.waitUntilSocketShouldBeClosedIfCanUseSockets() },
+            )
+        }
+    }
+
+    private func waitUntilSocketShouldBeClosedIfCanUseSockets() async throws {
+        if OWSChatConnection.canAppUseSocketsToMakeRequests {
+            try await self.chatConnectionManager.waitUntilIdentifiedConnectionShouldBeClosed()
+            // We wanted to wait for things to happen, but we can't wait, so throw.
+            throw OWSGenericError("Should be closed.")
+        } else {
+            // Just wait until this is canceled -- the socket will always be closed.
+            let continuation = CancellableContinuation<Void>()
+            return try await continuation.wait()
+        }
+    }
+
+    private func _waitForFetchingProcessingAndSideEffects() async throws {
         try await messageProcessor.waitForFetchingAndProcessing()
 
         // Wait for these in parallel.
@@ -45,5 +136,18 @@ public class BackgroundMessageFetcher {
 
         // Finally, wait for any notifications to finish posting
         try await NotificationPresenterImpl.waitForPendingNotifications()
+    }
+
+    public func stopAndWaitBeforeSuspending() async {
+        // Release the connections and wait for them to close.
+        self.reset()
+        await chatConnectionManager.waitForDisconnectIfClosed()
+
+        // Wait for notifications that are already scheduled to be posted.
+        do {
+            try await NotificationPresenterImpl.waitForPendingNotifications()
+        } catch {
+            owsFailDebug("\(error)")
+        }
     }
 }

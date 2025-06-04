@@ -176,7 +176,7 @@ public class OWSURLSession: OWSURLSessionProtocol {
     }
 
     public func performRequest(request: URLRequest, ignoreAppExpiry: Bool) async throws -> any HTTPResponse {
-        if !ignoreAppExpiry && DependenciesBridge.shared.appExpiry.isExpired {
+        if !ignoreAppExpiry && DependenciesBridge.shared.appExpiry.isExpired(now: Date()) {
             throw OWSGenericError("App is expired.")
         }
 
@@ -188,7 +188,7 @@ public class OWSURLSession: OWSURLSessionProtocol {
             return DataTaskState(progressSource: nil, completion: $0)
         })
 
-        return try handleDataResult(
+        return try await handleDataResult(
             urlResponse: urlResponse,
             responseData: responseData,
             originalRequest: task.originalRequest,
@@ -289,13 +289,13 @@ public class OWSURLSession: OWSURLSessionProtocol {
         )
     }
 
-    private func handleDataResult(urlResponse: URLResponse?, responseData: Data, originalRequest: URLRequest?, requestConfig: RequestConfig) throws -> HTTPResponse {
-        let httpUrlResponse = try handleResult(urlResponse: urlResponse, responseData: responseData, originalRequest: originalRequest, requestConfig: requestConfig)
+    private func handleDataResult(urlResponse: URLResponse?, responseData: Data, originalRequest: URLRequest?, requestConfig: RequestConfig) async throws -> HTTPResponse {
+        let httpUrlResponse = try await handleResult(urlResponse: urlResponse, responseData: responseData, originalRequest: originalRequest, requestConfig: requestConfig)
         return HTTPResponseImpl.build(requestUrl: requestConfig.requestUrl, httpUrlResponse: httpUrlResponse, bodyData: responseData)
     }
 
-    private func handleDownloadResult(urlResponse: URLResponse?, downloadUrl: URL, originalRequest: URLRequest?, requestConfig: RequestConfig) throws -> OWSUrlDownloadResponse {
-        let httpUrlResponse = try handleResult(urlResponse: urlResponse, responseData: nil, originalRequest: originalRequest, requestConfig: requestConfig)
+    private func handleDownloadResult(urlResponse: URLResponse?, downloadUrl: URL, originalRequest: URLRequest?, requestConfig: RequestConfig) async throws -> OWSUrlDownloadResponse {
+        let httpUrlResponse = try await handleResult(urlResponse: urlResponse, responseData: nil, originalRequest: originalRequest, requestConfig: requestConfig)
         return OWSUrlDownloadResponse(httpUrlResponse: httpUrlResponse, downloadUrl: downloadUrl)
     }
 
@@ -313,9 +313,9 @@ public class OWSURLSession: OWSURLSessionProtocol {
         return .wrappedFailure(error)
     }
 
-    private func handleResult(urlResponse: URLResponse?, responseData: Data?, originalRequest: URLRequest?, requestConfig: RequestConfig) throws -> HTTPURLResponse {
+    private func handleResult(urlResponse: URLResponse?, responseData: Data?, originalRequest: URLRequest?, requestConfig: RequestConfig) async throws -> HTTPURLResponse {
         if requestConfig.shouldHandleRemoteDeprecation {
-            handleRemoteDeprecation(inResponse: urlResponse)
+            await handleRemoteDeprecation(inResponse: urlResponse)
         }
 
         guard let httpUrlResponse = urlResponse as? HTTPURLResponse else {
@@ -357,14 +357,14 @@ public class OWSURLSession: OWSURLSessionProtocol {
         return httpUrlResponse
     }
 
-    private func handleRemoteDeprecation(inResponse response: URLResponse?) {
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == AppExpiryImpl.appExpiredStatusCode else {
+    private func handleRemoteDeprecation(inResponse response: URLResponse?) async {
+        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == AppExpiry.appExpiredStatusCode else {
             return
         }
 
         let appExpiry = DependenciesBridge.shared.appExpiry
         let db = DependenciesBridge.shared.db
-        appExpiry.setHasAppExpiredAtCurrentVersion(db: db)
+        await appExpiry.setHasAppExpiredAtCurrentVersion(db: db)
     }
 
     private func isResponseTooLarge(bytesReceived: Int64, bytesExpected: Int64) -> Bool {
@@ -403,7 +403,7 @@ public class OWSURLSession: OWSURLSessionProtocol {
 
     public func performRequest(_ rawRequest: TSRequest) async throws -> any HTTPResponse {
         let appExpiry = DependenciesBridge.shared.appExpiry
-        guard !appExpiry.isExpired else {
+        guard !appExpiry.isExpired(now: Date()) else {
             Logger.warn("App is expired.")
             throw OWSHTTPError.invalidAppState
         }
@@ -477,7 +477,7 @@ public class OWSURLSession: OWSURLSessionProtocol {
         progress: OWSProgressSource?,
         taskBlock: () -> URLSessionUploadTask
     ) async throws -> HTTPResponse {
-        if !ignoreAppExpiry && DependenciesBridge.shared.appExpiry.isExpired {
+        if !ignoreAppExpiry && DependenciesBridge.shared.appExpiry.isExpired(now: Date()) {
             throw OWSGenericError("App is expired.")
         }
 
@@ -493,7 +493,7 @@ public class OWSURLSession: OWSURLSessionProtocol {
         } catch {
             throw handleError(error, originalRequest: task.originalRequest, requestConfig: requestConfig)
         }
-        return try handleDataResult(
+        return try await handleDataResult(
             urlResponse: urlResponse,
             responseData: responseData,
             originalRequest: task.originalRequest,
@@ -507,7 +507,7 @@ public class OWSURLSession: OWSURLSessionProtocol {
         taskBlock: () -> URLSessionDownloadTask
     ) async throws -> OWSUrlDownloadResponse {
         let appExpiry = DependenciesBridge.shared.appExpiry
-        if appExpiry.isExpired {
+        if appExpiry.isExpired(now: Date()) {
             throw OWSGenericError("App is expired.")
         }
 
@@ -518,7 +518,7 @@ public class OWSURLSession: OWSURLSessionProtocol {
             return DownloadTaskState(progressSource: progress, completion: $0)
         })
 
-        return try handleDownloadResult(
+        return try await handleDownloadResult(
             urlResponse: urlResponse,
             downloadUrl: downloadUrl,
             originalRequest: task.originalRequest,
