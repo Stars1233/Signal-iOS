@@ -13,7 +13,9 @@ public class DeviceProvisioningURL {
     /// scoped specifically to provisioning to communicate between the primary
     /// and secondary device.
     public enum Capability: String {
-        case linknsync = "backup3"
+        // Will be removed soon
+        case legacy_linknsync = "backup3"
+        case linknsync = "backup4"
     }
 
     public let linkType: LinkType
@@ -110,7 +112,7 @@ public class DeviceProvisioningURL {
     }
 
     private static func encodePublicKey(_ publicKey: PublicKey) throws -> String {
-        let base64PubKey: String = Data(publicKey.serialize()).base64EncodedString()
+        let base64PubKey: String = publicKey.serialize().base64EncodedString()
         guard let encodedPubKey = base64PubKey.encodeURIComponent else {
             throw OWSAssertionError("Failed to url encode query params")
         }

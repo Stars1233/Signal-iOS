@@ -41,12 +41,6 @@ public class MessageSender {
         SwiftSingletons.register(self)
     }
 
-    private let pendingTasks = PendingTasks()
-
-    public func waitForPendingMessages() async throws {
-        try await pendingTasks.waitForPendingTasks()
-    }
-
     // MARK: - Creating Signal Protocol Sessions
 
     private func containsValidSession(for serviceId: ServiceId, deviceId: DeviceId, tx: DBReadTransaction) throws -> Bool {
@@ -231,7 +225,8 @@ public class MessageSender {
                 for: protocolAddress,
                 sessionStore: DependenciesBridge.shared.signalProtocolStoreManager.signalProtocolStore(for: .aci).sessionStore,
                 identityStore: identityManager.libSignalStore(for: .aci, tx: transaction),
-                context: transaction
+                context: transaction,
+                usePqRatchet: false
             )
         } catch SignalError.untrustedIdentity(_), IdentityManagerError.identityKeyMismatchForOutgoingMessage {
             Logger.warn("Found untrusted identity for \(serviceId)")
@@ -361,35 +356,22 @@ public class MessageSender {
         return true
     }
 
-    // MARK: - Sending Attachments
-
-    public func sendTransientContactSyncAttachment(
-        dataSource: DataSource,
-        localThread: TSContactThread
-    ) async throws {
-        let uploadResult = try await DependenciesBridge.shared.attachmentUploadManager.uploadTransientAttachment(
-            dataSource: dataSource
-        )
-        let message = SSKEnvironment.shared.databaseStorageRef.read { tx in
-            return OWSSyncContactsMessage(uploadedAttachment: uploadResult, localThread: localThread, tx: tx)
-        }
-        let preparedMessage = PreparedOutgoingMessage.preprepared(contactSyncMessage: message)
-        let result = await Result { try await sendMessage(preparedMessage) }
-        try result.get()
-    }
-
     // MARK: - Constructing Message Sends
 
     public func sendMessage(_ preparedOutgoingMessage: PreparedOutgoingMessage) async throws {
+        do {
+            Logger.info("Sending \(preparedOutgoingMessage)")
+            try await _sendMessage(preparedOutgoingMessage)
+        } catch {
+            Logger.warn("Couldn't send \(preparedOutgoingMessage); there may also be individual send failures, but the overall failure is: \(error)")
+            throw error
+        }
+    }
+
+    private func _sendMessage(_ preparedOutgoingMessage: PreparedOutgoingMessage) async throws {
         await SSKEnvironment.shared.databaseStorageRef.awaitableWrite { tx in
             preparedOutgoingMessage.updateAllUnsentRecipientsAsSending(tx: tx)
         }
-
-        Logger.info("Sending \(preparedOutgoingMessage)")
-
-        // We create a PendingTask so we can block on flushing all current message sends.
-        let pendingTask = pendingTasks.buildPendingTask()
-        defer { pendingTask.complete() }
 
         try await withThrowingTaskGroup(of: Void.self) { taskGroup in
             let uploadOperations = SSKEnvironment.shared.databaseStorageRef.read { tx in
@@ -430,8 +412,11 @@ public class MessageSender {
                 // Only try to update the signed prekey; updating it is sufficient to
                 // re-enable message sending.
                 return Task {
+                    defer {
+                        // If this succeeds, or if we hit an error, allow another attempt.
+                        self.pendingPreKeyRotation.set(nil)
+                    }
                     try await self.preKeyManager.rotateSignedPreKeysIfNeeded().value
-                    self.pendingPreKeyRotation.set(nil)
                 }
             }
             return nil
@@ -589,7 +574,7 @@ public class MessageSender {
         if !areAttachmentsUploadedWithSneakyTransaction(for: message) {
             throw OWSUnretryableMessageSenderError()
         }
-        if DependenciesBridge.shared.appExpiry.isExpired {
+        if DependenciesBridge.shared.appExpiry.isExpired(now: Date()) {
             throw AppExpiredError()
         }
         if DependenciesBridge.shared.tsAccountManager.registrationStateWithMaybeSneakyTransaction.isRegistered.negated {
@@ -964,11 +949,11 @@ public class MessageSender {
         guard let combinedRecord else {
             return nil
         }
-        let combinedEndorsement = try GroupSendEndorsement(contents: [UInt8](combinedRecord.endorsement))
+        let combinedEndorsement = try GroupSendEndorsement(contents: combinedRecord.endorsement)
 
         var individualEndorsements = [ServiceId: GroupSendEndorsement]()
         for record in try groupSendEndorsementStore.fetchIndividualEndorsements(groupThreadId: threadId, tx: tx) {
-            let endorsement = try GroupSendEndorsement(contents: [UInt8](record.endorsement))
+            let endorsement = try GroupSendEndorsement(contents: record.endorsement)
             let recipient = DependenciesBridge.shared.recipientDatabaseTable.fetchRecipient(rowId: record.recipientId, tx: tx)
             guard let recipient else {
                 throw OWSAssertionError("Missing Recipient that must exist.")
@@ -1758,7 +1743,7 @@ public class MessageSender {
                 messageType = .unknown
             }
 
-            serializedMessage = Data(result.serialize())
+            serializedMessage = result.serialize()
         }
 
         // We had better have a session after encrypting for this recipient!
@@ -1812,11 +1797,11 @@ public class MessageSender {
                 context: transaction
             )
 
-            serializedMessage = Data(outerBytes)
+            serializedMessage = outerBytes
             messageType = .unidentifiedSender
 
         } else {
-            serializedMessage = Data(plaintext.serialize())
+            serializedMessage = plaintext.serialize()
             messageType = .plaintextContent
         }
 

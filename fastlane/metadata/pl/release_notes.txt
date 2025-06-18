@@ -1,1 +1,1 @@
-• Zdarzyło Ci się kiedyś wkleić załącznik do czatu, po czym zdecydować, że jednak go nie wyślesz? Naprawiliśmy błąd, który powodował, że czasem w takich sytuacjach otwierało się okno wyboru obrazów. Wysłać czy nie wysłać – teraz możesz zmieniać zdanie do woli.
+• Message status indicators (sent, delivered, etc.) are now supported by the iOS VoiceOver feature in order to improve accessibility for blind and low-vision individuals.

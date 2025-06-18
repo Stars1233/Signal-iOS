@@ -1,1 +1,1 @@
-• Bir eklentiyi sohbete yapıştırdıktan sonra resim seçicinin açılmasına neden olan bir hatayı düzelttik.
+• Message status indicators (sent, delivered, etc.) are now supported by the iOS VoiceOver feature in order to improve accessibility for blind and low-vision individuals.

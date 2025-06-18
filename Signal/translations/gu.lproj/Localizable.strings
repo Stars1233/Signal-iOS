@@ -514,6 +514,69 @@
 /* Text used as placeholder in backup key text view. */
 "BACKUP_KEY_PLACEHOLDER" = "બેકઅપ કી";
 
+/* Title of button to tap if you forgot your backup key. */
+"BACKUP_KEY_REMINDER_FORGOT_KEY" = "Forgot key?";
+
+/* Action text for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_MEGAPHONE_ACTION" = "Verify";
+
+/* Body for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_MEGAPHONE_BODY" = "We'll occasionally ask you to verify your key to ensure you still know it";
+
+/* Title for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_MEGAPHONE_TITLE" = "Verify your Backup Key";
+
+/* Snooze text for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_NOT_NOW_ACTION" = "Not Now";
+
+/* Toast indicating that the Backup Key was correct. */
+"BACKUP_KEY_REMINDER_SUCCESSFUL_TOAST" = "Backup key correct. Keep your key safe.";
+
+/* Body for a sheet warning users to their 'Backup Key' safe. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_KEEP_KEY_SAFE_SHEET_BODY" = "જો તમે તમારી કી ગુમાવશો તો Signal તમારું બેકઅપ રિસ્ટોર કરવામાં તમારી મદદ કરી શકશે નહીં. તેને કોઈ સલામત અને સુરક્ષિત જગ્યાએ સંગ્રહિત કરો અને તેને અન્ય લોકો સાથે શેર કરશો નહીં.";
+
+/* Title for a sheet warning users to their 'Backup Key' safe. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_KEEP_KEY_SAFE_SHEET_TITLE" = "તમારી કીને સુરક્ષિત રાખો";
+
+/* Title for a button offering to let users see their 'Backup Key'. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_SEE_KEY_AGAIN_BUTTON_TITLE" = "કી ફરીથી જુઓ";
+
+/* Subtitle for a view asking users to confirm their 'Backup Key'. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_SUBTITLE" = "તમે હમણાં જ રેકોર્ડ કરેલી બેકઅપ કી દાખલ કરો";
+
+/* Title for a view asking users to confirm their 'Backup Key'. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_TITLE" = "તમારી બેકઅપ કી કન્ફર્મ કરો";
+
+/* Bullet point on a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_BULLET_1" = "એન્ડ-ટૂ-એન્ડ એન્ક્રિપ્ટેડ";
+
+/* Bullet point on a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_BULLET_2" = "વૈકલ્પિક, હંમેશા";
+
+/* Bullet point on a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_BULLET_3" = "તમારા બેકઅપને કોઈ પણ સમયે ડિલીટ કરો";
+
+/* Subtitle for a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_SUBTITLE" = "તમારા મેસેજ અને મીડિયાનો Signalની સુરક્ષિત, એન્ડ-ટૂ-એન્ડ એન્ક્રિપ્ટેડ સ્ટોરેજ સેવા વડે બેકઅપ લો. જ્યારે તમે નવો ફોન મેળવો અથવા Signalને ફરીથી ઇન્સ્ટોલ કરો ત્યારે ક્યારેય કોઈ મેસેજ ગુમાવશો નહીં.";
+
+/* Title for a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_TITLE" = "Signal બેકઅપ";
+
+/* Subtitle for a view introducing the 'Backup Key' during an onboarding flow. */
+"BACKUP_ONBOARDING_KEY_INTRO_SUBTITLE" = "Your backup key is a 64-character code that lets you restore your backup when you re-install Signal.\n\nIf you forget your key, you will not be able to restore your backup. Signal cannot help you recover your backup.";
+
+/* Title for a view introducing the 'Backup Key' during an onboarding flow. */
+"BACKUP_ONBOARDING_KEY_INTRO_TITLE" = "તમારી બેકઅપ કી";
+
+/* Title for a button allowing users to copy their 'Backup Key' to the clipboard. */
+"BACKUP_RECORD_KEY_COPY_TO_CLIPBOARD_BUTTON_TITLE" = "ક્લિપબોર્ડમાં કૉપિ કરો";
+
+/* Subtitle for a view allowing users to record their 'Backup Key'. */
+"BACKUP_RECORD_KEY_SUBTITLE" = "તમારા એકાઉન્ટ અને ડેટાને રિકવર કરવા માટે આ કી જરૂરી છે. આ કીને કોઈ સુરક્ષિત જગ્યાએ સ્ટોર કરો. જો તમે તેને ગુમાવો છો, તો તમે તમારું એકાઉન્ટ રિકવર કરી શકશો નહીં.";
+
+/* Title for a view allowing users to record their 'Backup Key'. */
+"BACKUP_RECORD_KEY_TITLE" = "તમારી બેકઅપ કીને રેકોર્ડ કરો";
+
 /* Title for a button allowing users to upgrade from a free to paid backup plan. */
 "BACKUP_SETTINGS_BACKUP_PLAN_FREE_ACTION_BUTTON_TITLE" = "અપગ્રેડ કરો";
 
@@ -560,19 +623,19 @@
 "BACKUP_SETTINGS_BACKUPS_DISABLED_SECTION_FOOTER" = "બેકઅપ બંધ કરવામાં આવ્યા છે અને તમારો ડેટા Signalની સુરક્ષિત સ્ટોરેજ સેવામાંથી ડિલીટ કરવામાં આવ્યો છે.";
 
 /* Message for a view indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_MESSAGE" = "An error occurred. Please contact support.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_MESSAGE" = "એક ભૂલ આવી. કૃપા કરીને સપોર્ટનો સંપર્ક કરો.";
 
 /* Header for a menu section related to settings for when disabling Backups encountered an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "An error occurred when deleting your data from Signal's secure storage service.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "Signalની સુરક્ષિત સ્ટોરેજ સેવામાંથી તમારો ડેટા ડિલીટ કરતી વખતે એક ભૂલ આવી.";
 
 /* Title for a view indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_TITLE" = "Failed to Delete Backup";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_TITLE" = "બેકઅપ ડિલીટ કરવાનું નિષ્ફળ થયું";
 
 /* Description for a progress view tracking Backups being disabled. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_PROGRESS_VIEW_DESCRIPTION" = "Deleting Backup...";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_PROGRESS_VIEW_DESCRIPTION" = "બેકઅપ ડિલીટ કરી રહ્યા છીએ...";
 
 /* Header for a menu section related to disabling Backups. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "Backups have been turned off and your data will be deleted from Signal's secure storage service.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "બેકઅપ બંધ કરવામાં આવ્યા છે અને તમારો ડેટા Signalની સુરક્ષિત સ્ટોરેજ સેવામાંથી ડિલીટ કરવામાં આવશે.";
 
 /* Header for a menu section related to settings for when Backups are enabled. */
 "BACKUP_SETTINGS_BACKUPS_ENABLED_SECTION_HEADER" = "બેકઅપની વિગતો";
@@ -584,13 +647,13 @@
 "BACKUP_SETTINGS_DISABLE_BACKUPS_BUTTON_TITLE" = "બંધ કરો અને બેકઅપ ડિલીટ કરો";
 
 /* Message shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "An error occurred when deleting your data from Signal's secure storage service.";
+"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "Signalની સુરક્ષિત સ્ટોરેજ સેવામાંથી તમારો ડેટા ડિલીટ કરતી વખતે એક ભૂલ આવી.";
 
 /* Title shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_TITLE" = "Failed to Delete Backup";
+"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_TITLE" = "બેકઅપ ડિલીટ કરવાનું નિષ્ફળ થયું";
 
 /* Message shown in an action sheet when the user tries to disable Backups, but is not registered. */
-"BACKUP_SETTINGS_DISABLING_ERROR_NOT_REGISTERED" = "You must be registered to disable Backups.";
+"BACKUP_SETTINGS_DISABLING_ERROR_NOT_REGISTERED" = "બેકઅપને અક્ષમ કરવા માટે તમે રજીસ્ટર કરાવેલું હોવું આવશ્યક છે.";
 
 /* Text describing that a user's backup will be automatically performed daily. */
 "BACKUP_SETTINGS_ENABLED_BACKUP_FREQUENCY_DAILY" = "દૈનિક";
@@ -2336,10 +2399,10 @@
 "DISAPPEARING_MESSAGES_CUSTOM_TIME" = "કસ્ટમ સમય";
 
 /* Title for a picker for the unit of time to use for disappearing messages. */
-"DISAPPEARING_MESSAGES_CUSTOM_TIME_UNIT_PICKER" = "Unit";
+"DISAPPEARING_MESSAGES_CUSTOM_TIME_UNIT_PICKER" = "એકમ";
 
 /* Title for a picker for the amount of time, in a given unit, to use for disappearing messages. */
-"DISAPPEARING_MESSAGES_CUSTOM_TIME_VALUE_PICKER" = "Value";
+"DISAPPEARING_MESSAGES_CUSTOM_TIME_VALUE_PICKER" = "મૂલ્ય";
 
 /* The unit for a number of days */
 "DISAPPEARING_MESSAGES_DAYS" = "દિવસો";
@@ -2869,6 +2932,12 @@
 /* Call setup status label */
 "END_CALL_UNCATEGORIZED_FAILURE" = "કૉલ નિષ્ફળ ગયો";
 
+/* Label explaining that an entered 'Backup Key' is incorrect. */
+"ENTER_ACCOUNT_ENTROPY_POOL_VIEW_INCORRECT_AEP_LABEL" = "ખોટી બેકઅપ કી";
+
+/* Label explaining that an entered 'Backup Key' is malformed. */
+"ENTER_ACCOUNT_ENTROPY_POOL_VIEW_MALFORMED_AEP_LABEL" = "અમાન્ય બેકઅપ કી";
+
 /* Error indicating that a message could not be forwarded. */
 "ERROR_COULD_NOT_FORWARD_MESSAGES_1" = "મેસેજ ફોરવર્ડ ન કરી શક્યા.";
 
@@ -3214,6 +3283,9 @@
 /* Button to leave a group call */
 "GROUP_CALL_LEAVE_BUTTON" = "કૉલ છોડી દો";
 
+/* Title for a 'done' button on a sheet showing the group call members list */
+"GROUP_CALL_MEMBER_LIST_DONE_BUTTON_TITLE" = "Done";
+
 /* Title for the section of the group call member list which displays the list of all members in the call. */
 "GROUP_CALL_MEMBER_LIST_IN_CALL_SECTION_HEADER" = "કૉલમાં છે";
 
@@ -3446,7 +3518,7 @@
 "GROUP_IS_ANNOUNCEMENT_ONLY_ENABLED_BY_REMOTE_USER_FORMAT" = "%1$@એ ફક્ત એડમિનને મેસેજ મોકલવાની મંજૂરી આપવા માટે ગ્રુપ સેટિંગ્સ બદલ્યા.";
 
 /* Subtitle indicating that the local user has been blocked from joining the group */
-"GROUP_LINK_ACTION_SHEET_VIEW_BLOCKED_FROM_JOINING_SUBTITLE" = "તમે ગ્રુપ લિંક દ્વારા આ ગ્રુપમાં જોડાઈ શકતા નથી કારણ કે એક એડમિને તમને દૂર કર્યા.";
+"GROUP_LINK_ACTION_SHEET_VIEW_BLOCKED_FROM_JOINING_SUBTITLE" = "તમે ગ્રૂપ લિંક દ્વારા આ ગ્રૂપમાં જોડાઈ શકતા નથી કારણ કે એક એડમિને તમને દૂર કર્યા. ગ્રૂપમાં પાછા ઉમેરાવા માટે એડમિનનો સંપર્ક કરો.";
 
 /* Title indicating that you cannot join a group in the 'group invite link' action sheet. */
 "GROUP_LINK_ACTION_SHEET_VIEW_CANNOT_JOIN_GROUP_TITLE" = "ગ્રુપમાં જોડાઈ શકતા નથી";
@@ -5230,6 +5302,9 @@
 /* The body for the skip restore 'choice' option */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_BODY" = "તમારા મેસેજ અને મીડિયાને ટ્રાન્સફર કર્યા વિના ચાલુ રાખો";
 
+/* The title for a less-prominent skip restore 'choice' option */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_SMALL_TITLE" = "Skip restore";
+
 /* The title for the skip restore 'choice' option */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_TITLE" = "ટ્રાન્સફર કર્યા વગર રજીસ્ટર કરો";
 
@@ -5258,7 +5333,7 @@
 "ONBOARDING_CONFIRM_BACKUP_RESTORE_CONFIRM_ACTION" = "બેકઅપ રિસ્ટોર કરો";
 
 /* Description for form confirming restore from backup. */
-"ONBOARDING_CONFIRM_BACKUP_RESTORE_DESCRIPTION" = "તમારું છેલ્લું બેકઅપ %1$@ના રોજ %2$@ વાગ્યે બનાવવામાં આવ્યું હતું. જો તમારી પાસે હજી પણ તમારું જૂનું ડિવાઇસ હોય, તો તમે નવું બેકઅપ બનાવી શકો છો. [જુઓ કેવી રીતે](https://signal.org)";
+"ONBOARDING_CONFIRM_BACKUP_RESTORE_DESCRIPTION" = "તમારું છેલ્લું બેકઅપ %1$@ના રોજ %2$@ વાગ્યે બનાવવામાં આવ્યું હતું. તમારા બેકઅપની સાઇઝ %3$@ છે";
 
 /* Text for action button to explore other options. */
 "ONBOARDING_CONFIRM_BACKUP_RESTORE_MORE_OPTIONS_ACTION" = "વધુ વિકલ્પો";
@@ -8957,7 +9032,7 @@
 "VOICE_MESSAGE_CANCEL_INSTRUCTIONS" = "રદ કરવા માટે સ્લાઇડ કરો";
 
 /* Filename for voice messages. */
-"VOICE_MESSAGE_FILE_NAME" = "Signal";
+"VOICE_MESSAGE_FILE_NAME" = "signal";
 
 /* Message for the tooltip indicating the 'voice message' needs to be held to be held down to record. */
 "VOICE_MESSAGE_TOO_SHORT_TOOLTIP" = "રેકોર્ડ કરવા માટે દબાવો અને હોલ્ડ કરો.";

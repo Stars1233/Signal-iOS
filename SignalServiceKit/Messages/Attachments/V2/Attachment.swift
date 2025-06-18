@@ -43,6 +43,10 @@ public class Attachment {
     /// this field should be set to nil (but should just be ignored regardless).
     public let originalAttachmentIdForQuotedReply: Attachment.IDType?
 
+    /// Validated Sha256 hash of the plaintext of the media content. Used to deduplicate incoming media.
+    /// Nonnull if downloaded OR possibly if restored from a backup (which we trust to have validated).
+    public let sha256ContentHash: Data?
+
     /// MediaName used for backups (but assigned even if backups disabled).
     /// Nonnull if downloaded OR if restored from a backup.
     public let mediaName: String?
@@ -81,6 +85,9 @@ public class Attachment {
     public struct StreamInfo {
         /// Sha256 hash of the plaintext of the media content. Used to deduplicate incoming media.
         public let sha256ContentHash: Data
+
+        /// MediaName used for backups (but assigned even if backups disabled).
+        public let mediaName: String
 
         /// Byte count of the encrypted fullsize resource
         public let encryptedByteCount: UInt32
@@ -124,13 +131,9 @@ public class Attachment {
         /// Provided by the sender of incoming attachments.
         public let unencryptedByteCount: UInt32?
 
-        /// SHA256Hash(iv + cyphertext + hmac),
-        /// (iv + cyphertext + hmac) is the thing we actually upload to the CDN server, which uses
-        /// the ``TransitTierInfo.encryptionKey`` field.
-        ///
         /// Generated locally for outgoing attachments.
         /// For incoming attachments, taken off the service proto. If validation fails, the download is rejected.
-        public let digestSHA256Ciphertext: Data
+        public let integrityCheck: AttachmentIntegrityCheck
 
         /// Incremental mac info used for streaming, if available. Only set for streamable types.
         public let incrementalMacInfo: IncrementalMacInfo?
@@ -151,13 +154,11 @@ public class Attachment {
         /// Provided by the sender of incoming attachments.
         public let unencryptedByteCount: UInt32
 
-        /// SHA256Hash(iv + cyphertext + hmac),
-        /// (iv + cyphertext + hmac) is the thing we actually upload to the CDN server, which uses
-        /// the ``TransitTierInfo.encryptionKey`` field.
+        /// Sha256 hash of the plaintext of the media content.
         ///
-        /// Equivalent to `StreamInfo.digestSHA256Ciphertext`, but may be available
+        /// Equivalent to `StreamInfo.sha256ContentHash`, but may be available
         /// if the rest of `StreamInfo` is unavailable (e.g. after a restore).
-        public let digestSHA256Ciphertext: Data
+        public let sha256ContentHash: Data
 
         /// Incremental mac info used for streaming, if available. Only set for streamable mime types.
         public let incrementalMacInfo: IncrementalMacInfo?
@@ -211,12 +212,14 @@ public class Attachment {
         self.mimeType = record.mimeType
         self.encryptionKey = record.encryptionKey
         self.originalAttachmentIdForQuotedReply = record.originalAttachmentIdForQuotedReply
+        self.sha256ContentHash = record.sha256ContentHash
         self.mediaName = record.mediaName
         self.localRelativeFilePathThumbnail = record.localRelativeFilePathThumbnail
         self.lastFullscreenViewTimestamp = record.lastFullscreenViewTimestamp
 
         self.streamInfo = StreamInfo(
             sha256ContentHash: record.sha256ContentHash,
+            mediaName: record.mediaName,
             encryptedByteCount: record.encryptedByteCount,
             unencryptedByteCount: record.unencryptedByteCount,
             contentType: contentType,
@@ -230,6 +233,7 @@ public class Attachment {
             encryptionKey: record.transitEncryptionKey,
             unencryptedByteCount: record.transitUnencryptedByteCount,
             digestSHA256Ciphertext: record.transitDigestSHA256Ciphertext,
+            sha256ContentHash: record.sha256ContentHash,
             lastDownloadAttemptTimestamp: record.lastTransitDownloadAttemptTimestamp,
             incrementalMac: record.transitTierIncrementalMac,
             incrementalMacChunkSize: record.transitTierIncrementalMacChunkSize
@@ -237,7 +241,7 @@ public class Attachment {
         self.mediaTierInfo = MediaTierInfo(
             cdnNumber: record.mediaTierCdnNumber,
             unencryptedByteCount: record.mediaTierUnencryptedByteCount ?? record.unencryptedByteCount,
-            digestSHA256Ciphertext: record.mediaTierDigestSHA256Ciphertext ?? record.digestSHA256Ciphertext,
+            sha256ContentHash: record.sha256ContentHash,
             uploadEra: record.mediaTierUploadEra,
             lastDownloadAttemptTimestamp: record.lastMediaTierDownloadAttemptTimestamp,
             incrementalMac: record.mediaTierIncrementalMac,
@@ -278,11 +282,14 @@ public class Attachment {
         return AttachmentBackupThumbnail(attachment: self)
     }
 
-    public static func mediaName(digestSHA256Ciphertext: Data) -> String {
-        // We use the hexadecimal-encoded digest as the media name.
+    public static func mediaName(sha256ContentHash: Data, encryptionKey: Data) -> String {
+        // We use the hexadecimal-encoded [plaintext hash | encryptionKey] as the media name.
         // This ensures media name collisions occur only between the
         // same attachment contents encrypted with the same key.
-        return digestSHA256Ciphertext.hexadecimalString
+        var mediaName = Data()
+        mediaName.append(sha256ContentHash)
+        mediaName.append(encryptionKey)
+        return mediaName.hexadecimalString
     }
 
     /// Unencrypted byte count on CDN of the fullsize attachment _before_ encryption and padding,
@@ -318,6 +325,10 @@ public class Attachment {
         if
             // We have a prior upload
             let transitTierInfo,
+            // That upload includes a digest (if we restore from a backup
+            // with no digest, we can't forward that transit tier info
+            // even though we know about it and its maybe recent).
+            case .digestSHA256Ciphertext = transitTierInfo.integrityCheck,
             // And we are still in the window to reuse it
             dateProvider().timeIntervalSince(
                 Date(millisecondsSince1970: transitTierInfo.uploadTimestamp)
@@ -329,7 +340,7 @@ public class Attachment {
                     cdnKey: transitTierInfo.cdnKey,
                     cdnNumber: transitTierInfo.cdnNumber,
                     key: transitTierInfo.encryptionKey,
-                    digest: transitTierInfo.digestSHA256Ciphertext,
+                    digest: stream.encryptedFileSha256Digest,
                     // Okay to fall back to our local data length even if the original sender
                     // didn't include it; we now know it from the local file.
                     plaintextDataLength: transitTierInfo.unencryptedByteCount ?? metadata.plaintextDataLength,
@@ -359,6 +370,7 @@ public class Attachment {
 private extension Attachment.StreamInfo {
     init?(
         sha256ContentHash: Data?,
+        mediaName: String?,
         encryptedByteCount: UInt32?,
         unencryptedByteCount: UInt32?,
         contentType: Attachment.ContentType?,
@@ -367,15 +379,18 @@ private extension Attachment.StreamInfo {
     ) {
         guard
             let sha256ContentHash,
+            let mediaName,
             let encryptedByteCount,
             let unencryptedByteCount,
             let contentType,
             let digestSHA256Ciphertext,
             let localRelativeFilePath
         else {
+            // sha256ContentHash and mediaName might still be set
+            // if we don't have a stream. The other columns must either
+            // all be set or none set.
             owsAssertDebug(
-                sha256ContentHash == nil
-                && encryptedByteCount == nil
+                encryptedByteCount == nil
                 && unencryptedByteCount == nil
                 && contentType == nil
                 && localRelativeFilePath == nil,
@@ -384,6 +399,7 @@ private extension Attachment.StreamInfo {
             return nil
         }
         self.sha256ContentHash = sha256ContentHash
+        self.mediaName = mediaName
         self.encryptedByteCount = encryptedByteCount
         self.unencryptedByteCount = unencryptedByteCount
         self.contentType = contentType
@@ -400,17 +416,31 @@ private extension Attachment.TransitTierInfo {
         encryptionKey: Data?,
         unencryptedByteCount: UInt32?,
         digestSHA256Ciphertext: Data?,
+        sha256ContentHash: Data?,
         lastDownloadAttemptTimestamp: UInt64?,
         incrementalMac: Data?,
         incrementalMacChunkSize: UInt32?
     ) {
+        let integrityCheck: AttachmentIntegrityCheck?
+        if let digestSHA256Ciphertext {
+            // This is slightly load-bearing but we want to use digest if we
+            // have it because we can only _send_ attachments with digests.
+            // Other mechanisms will ensure we never get to the send flow
+            // without first doing a transit tier upload that sets the
+            // digest, so we just have to ensure we _read_ that digest here
+            // instead of the plaintext hash.
+            integrityCheck = .digestSHA256Ciphertext(digestSHA256Ciphertext)
+        } else if let sha256ContentHash {
+            integrityCheck = .sha256ContentHash(sha256ContentHash)
+        } else {
+            integrityCheck = nil
+        }
         guard
             let cdnNumber,
             let cdnKey,
             let uploadTimestamp,
             let encryptionKey,
-            let unencryptedByteCount,
-            let digestSHA256Ciphertext
+            let integrityCheck
         else {
             owsAssertDebug(
                 cdnNumber == nil
@@ -429,7 +459,7 @@ private extension Attachment.TransitTierInfo {
         self.lastDownloadAttemptTimestamp = lastDownloadAttemptTimestamp
         self.encryptionKey = encryptionKey
         self.unencryptedByteCount = unencryptedByteCount
-        self.digestSHA256Ciphertext = digestSHA256Ciphertext
+        self.integrityCheck = integrityCheck
         if let incrementalMac, let incrementalMacChunkSize {
             self.incrementalMacInfo = .init(mac: incrementalMac, chunkSize: incrementalMacChunkSize)
         } else {
@@ -446,7 +476,7 @@ private extension Attachment.MediaTierInfo {
     init?(
         cdnNumber: UInt32?,
         unencryptedByteCount: UInt32?,
-        digestSHA256Ciphertext: Data?,
+        sha256ContentHash: Data?,
         uploadEra: String?,
         lastDownloadAttemptTimestamp: UInt64?,
         incrementalMac: Data?,
@@ -455,7 +485,7 @@ private extension Attachment.MediaTierInfo {
         guard
             let uploadEra,
             let unencryptedByteCount,
-            let digestSHA256Ciphertext
+            let sha256ContentHash
         else {
             owsAssertDebug(
                 uploadEra == nil,
@@ -465,7 +495,7 @@ private extension Attachment.MediaTierInfo {
         }
         self.cdnNumber = cdnNumber
         self.unencryptedByteCount = unencryptedByteCount
-        self.digestSHA256Ciphertext = digestSHA256Ciphertext
+        self.sha256ContentHash = sha256ContentHash
         self.uploadEra = uploadEra
         self.lastDownloadAttemptTimestamp = lastDownloadAttemptTimestamp
         if let incrementalMac, let incrementalMacChunkSize {

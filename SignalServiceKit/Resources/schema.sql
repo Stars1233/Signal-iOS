@@ -1241,7 +1241,6 @@ CREATE
                 NULL
                 ,"transitUnencryptedByteCount" INTEGER
                 ,"mediaTierUnencryptedByteCount" INTEGER
-                ,"mediaTierDigestSHA256Ciphertext" BLOB
                 ,"mediaTierIncrementalMac" BLOB
                 ,"mediaTierIncrementalMacChunkSize" INTEGER
                 ,"transitTierIncrementalMac" BLOB
@@ -1676,18 +1675,6 @@ CREATE
 
 CREATE
     TABLE
-        IF NOT EXISTS "BackupAttachmentDownloadQueue" (
-            "id" INTEGER PRIMARY KEY AUTOINCREMENT
-            ,"attachmentRowId" INTEGER NOT NULL UNIQUE REFERENCES "Attachment"("id"
-        )
-            ON DELETE
-                CASCADE
-                ,"timestamp" INTEGER
-)
-;
-
-CREATE
-    TABLE
         IF NOT EXISTS "AttachmentUploadRecord" (
             "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL
             ,"sourceType" INTEGER NOT NULL
@@ -1726,26 +1713,6 @@ CREATE
         )
             ON DELETE
                 CASCADE
-)
-;
-
-CREATE
-    TABLE
-        IF NOT EXISTS "BackupAttachmentUploadQueue" (
-            "id" INTEGER PRIMARY KEY AUTOINCREMENT
-            ,"attachmentRowId" INTEGER NOT NULL UNIQUE REFERENCES "Attachment"("id"
-        )
-            ON DELETE
-                CASCADE
-                ,"sourceType" INTEGER NOT NULL
-                ,"timestamp" INTEGER
-)
-;
-
-CREATE
-    INDEX "index_BackupAttachmentUploadQueue_on_sourceType_timestamp"
-        ON "BackupAttachmentUploadQueue"("sourceType"
-    ,"timestamp"
 )
 ;
 
@@ -2316,5 +2283,80 @@ CREATE
 CREATE
     INDEX "StoryRecipient_on_recipientId"
         ON "StoryRecipient"("recipientId"
+)
+;
+
+CREATE
+    TABLE
+        IF NOT EXISTS "BackupAttachmentUploadQueue" (
+            "id" INTEGER PRIMARY KEY AUTOINCREMENT
+            ,"attachmentRowId" INTEGER NOT NULL REFERENCES "Attachment"("id"
+        )
+            ON DELETE
+                CASCADE
+                ,"maxOwnerTimestamp" INTEGER
+                ,"estimatedByteCount" INTEGER NOT NULL
+                ,"isFullsize" BOOLEAN NOT NULL
+)
+;
+
+CREATE
+    INDEX "index_BackupAttachmentUploadQueue_on_attachmentRowId"
+        ON "BackupAttachmentUploadQueue"("attachmentRowId"
+)
+;
+
+CREATE
+    INDEX "index_BackupAttachmentUploadQueue_on_maxOwnerTimestamp_isFullsize"
+        ON "BackupAttachmentUploadQueue"("maxOwnerTimestamp"
+    ,"isFullsize"
+)
+;
+
+CREATE
+    TABLE
+        IF NOT EXISTS "BackupAttachmentDownloadQueue" (
+            "id" INTEGER PRIMARY KEY AUTOINCREMENT
+            ,"attachmentRowId" INTEGER NOT NULL REFERENCES "Attachment"("id"
+        )
+            ON DELETE
+                CASCADE
+                ,"isThumbnail" BOOLEAN NOT NULL
+                ,"maxOwnerTimestamp" INTEGER
+                ,"canDownloadFromMediaTier" BOOLEAN NOT NULL
+                ,"minRetryTimestamp" INTEGER NOT NULL
+                ,"numRetries" INTEGER NOT NULL DEFAULT 0
+                ,"state" INTEGER
+                ,"estimatedByteCount" INTEGER NOT NULL
+)
+;
+
+CREATE
+    INDEX "index_BackupAttachmentDownloadQueue_on_attachmentRowId"
+        ON "BackupAttachmentDownloadQueue"("attachmentRowId"
+)
+;
+
+CREATE
+    INDEX "index_BackupAttachmentDownloadQueue_on_state_isThumbnail_minRetryTimestamp"
+        ON "BackupAttachmentDownloadQueue"("state"
+    ,"isThumbnail"
+    ,"minRetryTimestamp"
+)
+;
+
+CREATE
+    INDEX "index_BackupAttachmentDownloadQueue_on_isThumbnail_canDownloadFromMediaTier_state_maxOwnerTimestamp"
+        ON "BackupAttachmentDownloadQueue"("isThumbnail"
+    ,"canDownloadFromMediaTier"
+    ,"state"
+    ,"maxOwnerTimestamp"
+)
+;
+
+CREATE
+    INDEX "index_BackupAttachmentDownloadQueue_on_state_estimatedByteCount"
+        ON "BackupAttachmentDownloadQueue"("state"
+    ,"estimatedByteCount"
 )
 ;

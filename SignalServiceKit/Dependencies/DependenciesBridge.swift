@@ -61,13 +61,13 @@ public class DependenciesBridge {
     public let audioWaveformManager: AudioWaveformManager
     public let authorMergeHelper: AuthorMergeHelper
     public let avatarDefaultColorManager: AvatarDefaultColorManager
+    public let backgroundMessageFetcherFactory: BackgroundMessageFetcherFactory
     public let backupArchiveErrorPresenter: BackupArchiveErrorPresenter
     public let backupArchiveManager: BackupArchiveManager
     public let backupAttachmentDownloadManager: BackupAttachmentDownloadManager
     public let backupAttachmentDownloadProgress: BackupAttachmentDownloadProgress
     public let backupAttachmentDownloadStore: BackupAttachmentDownloadStore
     public let backupAttachmentQueueStatusManager: BackupAttachmentQueueStatusManager
-    public let backupAttachmentUploadManager: BackupAttachmentUploadManager
     public let backupAttachmentUploadProgress: BackupAttachmentUploadProgress
     public let backupIdManager: BackupIdManager
     public let backupKeyMaterial: BackupKeyMaterial
@@ -188,13 +188,13 @@ public class DependenciesBridge {
         audioWaveformManager: AudioWaveformManager,
         authorMergeHelper: AuthorMergeHelper,
         avatarDefaultColorManager: AvatarDefaultColorManager,
+        backgroundMessageFetcherFactory: BackgroundMessageFetcherFactory,
         backupArchiveErrorPresenter: BackupArchiveErrorPresenter,
         backupArchiveManager: BackupArchiveManager,
         backupAttachmentDownloadManager: BackupAttachmentDownloadManager,
         backupAttachmentDownloadProgress: BackupAttachmentDownloadProgress,
         backupAttachmentDownloadStore: BackupAttachmentDownloadStore,
         backupAttachmentQueueStatusManager: BackupAttachmentQueueStatusManager,
-        backupAttachmentUploadManager: BackupAttachmentUploadManager,
         backupAttachmentUploadProgress: BackupAttachmentUploadProgress,
         backupIdManager: BackupIdManager,
         backupKeyMaterial: BackupKeyMaterial,
@@ -314,13 +314,13 @@ public class DependenciesBridge {
         self.audioWaveformManager = audioWaveformManager
         self.authorMergeHelper = authorMergeHelper
         self.avatarDefaultColorManager = avatarDefaultColorManager
+        self.backgroundMessageFetcherFactory = backgroundMessageFetcherFactory
         self.backupArchiveErrorPresenter = backupArchiveErrorPresenter
         self.backupArchiveManager = backupArchiveManager
         self.backupAttachmentDownloadManager = backupAttachmentDownloadManager
         self.backupAttachmentDownloadProgress = backupAttachmentDownloadProgress
         self.backupAttachmentDownloadStore = backupAttachmentDownloadStore
         self.backupAttachmentQueueStatusManager = backupAttachmentQueueStatusManager
-        self.backupAttachmentUploadManager = backupAttachmentUploadManager
         self.backupAttachmentUploadProgress = backupAttachmentUploadProgress
         self.backupIdManager = backupIdManager
         self.backupKeyMaterial = backupKeyMaterial

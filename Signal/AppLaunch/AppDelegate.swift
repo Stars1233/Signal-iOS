@@ -8,6 +8,7 @@ import GRDB
 import Intents
 import SignalServiceKit
 import SignalUI
+import UIKit
 import WebRTC
 
 enum LaunchPreflightError {
@@ -110,11 +111,15 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationWillResignActive(_ application: UIApplication) {
         AssertIsOnMainThread()
 
+        Logger.warn("")
+
         if didAppLaunchFail {
             return
         }
 
-        Logger.warn("")
+        appReadiness.runNowOrWhenAppDidBecomeReadySync {
+            self.refreshConnection(isAppActive: false)
+        }
 
         clearAppropriateNotificationsAndRestoreBadgeCount()
 
@@ -315,6 +320,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         attachmentValidationRunner.registerBGProcessingTask(appReadiness: appReadiness)
 
         let databaseMigratorRunner = LazyDatabaseMigratorRunner(
+            backgroundMessageFetcherFactory: { DependenciesBridge.shared.backgroundMessageFetcherFactory },
             databaseStorage: databaseStorage,
             remoteConfigManager: { SSKEnvironment.shared.remoteConfigManagerRef },
             tsAccountManager: { DependenciesBridge.shared.tsAccountManager }
@@ -508,13 +514,14 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
             name: .nseDidReceiveNotification,
             queue: DispatchQueue.global(qos: .userInitiated)
         ) { token in
-            // Immediately let the NSE know we will handle this notification so that it
-            // does not attempt to process messages while we are active.
-            DarwinNotificationCenter.postNotification(name: .mainAppHandledNotification)
-
             appReadiness.runNowOrWhenAppDidBecomeReadySync {
-                Task {
-                    await SSKEnvironment.shared.messageFetcherJobRef.startFetchingViaWebSocket()
+                DispatchQueue.global(qos: .userInitiated).async {
+                    let chatConnectionManager = DependenciesBridge.shared.chatConnectionManager
+                    if chatConnectionManager.shouldWaitForSocketToMakeRequest(connectionType: .identified) {
+                        // Immediately let the NSE know we will handle this notification so that it
+                        // does not attempt to process messages while we are active.
+                        DarwinNotificationCenter.postNotification(name: .mainAppHandledNotification)
+                    }
                 }
             }
         }
@@ -730,10 +737,8 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         // Fetch messages as soon as possible after launching. In particular, when
         // launching from the background, without this, we end up waiting some extra
         // seconds before receiving an actionable push notification.
-        if tsRegistrationState.isRegistered {
-            Task {
-                await SSKEnvironment.shared.messageFetcherJobRef.startFetchingViaWebSocket()
-            }
+        if !appContext.isMainAppAndActive {
+            self.refreshConnection(isAppActive: false)
         }
 
         if tsRegistrationState.isRegistered {
@@ -1274,11 +1279,13 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
             }
         }
 
+        refreshConnection(isAppActive: true)
+
         // Every time we become active...
         if tsRegistrationState.isRegistered {
             // TODO: Should we run this immediately even if we would like to process already decrypted envelopes handed to us by the NSE?
             Task {
-                await SSKEnvironment.shared.messageFetcherJobRef.startFetchingViaWebSocket()
+                await SSKEnvironment.shared.groupMessageProcessorManagerRef.startAllProcessors()
             }
 
             // At this point, potentially lengthy DB locking migrations could be running.
@@ -1301,6 +1308,57 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         // [UIApplicationDelegate applicationDidBecomeActive:] is complete.
         let identityManager = DependenciesBridge.shared.identityManager
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { identityManager.tryToSyncQueuedVerificationStates() }
+    }
+
+    // MARK: - Connections & Fetching
+
+    /// Tokens to keep the web socket open when the app is in the foreground.
+    private var activeConnectionTokens = [OWSChatConnection.ConnectionToken]()
+
+    /// A background fetching task that keeps the web socket open while the app
+    /// is in the background.
+    private var backgroundFetchHandle: BackgroundTaskHandle?
+
+    private func refreshConnection(isAppActive: Bool) {
+        let chatConnectionManager = DependenciesBridge.shared.chatConnectionManager
+
+        let oldActiveConnectionTokens = self.activeConnectionTokens
+        if isAppActive {
+            // If we're active, open a connection.
+            self.activeConnectionTokens = chatConnectionManager.requestConnections(shouldReconnectIfConnectedElsewhere: true)
+            oldActiveConnectionTokens.forEach { $0.releaseConnection() }
+
+            // We're back in the foreground. We've passed off connection management to
+            // the foreground logic, so just tear it down without waiting for anything.
+            self.backgroundFetchHandle?.interrupt()
+            self.backgroundFetchHandle = nil
+        } else {
+            let backgroundFetcher = DependenciesBridge.shared.backgroundMessageFetcherFactory.buildFetcher(useWebSocket: true)
+            self.activeConnectionTokens = []
+            self.backgroundFetchHandle?.interrupt()
+            let startDate = MonotonicDate()
+            self.backgroundFetchHandle = UIApplication.shared.beginBackgroundTask(
+                backgroundBlock: {
+                    do {
+                        await backgroundFetcher.start()
+                        oldActiveConnectionTokens.forEach { $0.releaseConnection() }
+                        // This will usually be limited to 30 seconds rather than 3 minutes.
+                        try await backgroundFetcher.waitUntil(deadline: startDate.adding(180))
+                    } catch {
+                        // We were canceled, either because we entered the foreground or our
+                        // background execution time expired.
+                    }
+                },
+                completionHandler: { result in
+                    switch result {
+                    case .finished, .interrupted:
+                        await backgroundFetcher.reset()
+                    case .expired:
+                        await backgroundFetcher.stopAndWaitBeforeSuspending()
+                    }
+                },
+            )
+        }
     }
 
     // MARK: - Orientation
@@ -1397,20 +1455,17 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                 Logger.info("Ignoring remote notification; user is not registered.")
                 return
             }
+            let backgroundMessageFetcher = DependenciesBridge.shared.backgroundMessageFetcherFactory.buildFetcher(useWebSocket: true)
+            await backgroundMessageFetcher.start()
+            let result = await Result(catching: {
+                // If the main app gets woken to process messages in the background, check
+                // for any pending NSE requests to fulfill.
+                async let _ = SSKEnvironment.shared.syncManagerRef.syncAllContactsIfFullSyncRequested().awaitable()
 
-            await SSKEnvironment.shared.messageFetcherJobRef.startFetchingViaWebSocket()
-
-            // If the main app gets woken to process messages in the background, check
-            // for any pending NSE requests to fulfill.
-            async let _ = SSKEnvironment.shared.syncManagerRef.syncAllContactsIfFullSyncRequested().awaitable()
-
-            let backgroundMessageFetcher = BackgroundMessageFetcher(
-                messageFetcherJob: SSKEnvironment.shared.messageFetcherJobRef,
-                messageProcessor: SSKEnvironment.shared.messageProcessorRef,
-                messageSender: SSKEnvironment.shared.messageSenderRef,
-                receiptSender: SSKEnvironment.shared.receiptSenderRef,
-            )
-            try await backgroundMessageFetcher.waitForFetchingProcessingAndSideEffects()
+                try await backgroundMessageFetcher.waitForFetchingProcessingAndSideEffects()
+            })
+            await backgroundMessageFetcher.stopAndWaitBeforeSuspending()
+            try result.get()
         }
     }
 

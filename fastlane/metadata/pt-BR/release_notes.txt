@@ -1,1 +1,1 @@
-• Corrigimos um erro em que o seletor de imagens era aberto após colar um anexo em uma conversa e cancelar o envio. 
+• Message status indicators (sent, delivered, etc.) are now supported by the iOS VoiceOver feature in order to improve accessibility for blind and low-vision individuals.

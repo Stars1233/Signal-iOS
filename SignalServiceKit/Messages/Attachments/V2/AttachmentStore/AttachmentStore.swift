@@ -147,6 +147,16 @@ public protocol AttachmentStore {
         tx: DBWriteTransaction
     ) throws
 
+    func removeMediaTierInfo(
+        forAttachmentId id: Attachment.IDType,
+        tx: DBWriteTransaction
+    ) throws
+
+    func removeThumbnailMediaTierInfo(
+        forAttachmentId id: Attachment.IDType,
+        tx: DBWriteTransaction
+    ) throws
+
     /// Update an attachment after revalidating.
     func updateAttachment(
         _ attachment: Attachment,
@@ -156,14 +166,18 @@ public protocol AttachmentStore {
         tx: DBWriteTransaction
     ) throws
 
-    /// Update an attachment when we have a media name collision.
-    /// Call this IFF the existing attachment has a media name but not stream info
+    /// Update an attachment when we have a media name or plaintext hash collision.
+    /// Call this IFF the existing attachment has a media name/plaintext hash but not stream info
     /// (if it was restored from a backup), but the new copy has stream
     /// info that we should keep by merging into the existing attachment.
     func merge(
         streamInfo: Attachment.StreamInfo,
         into attachment: Attachment,
+        encryptionKey: Data,
         validatedMimeType: String,
+        transitTierInfo: Attachment.TransitTierInfo?,
+        mediaTierInfo: Attachment.MediaTierInfo?,
+        thumbnailMediaTierInfo: Attachment.ThumbnailMediaTierInfo?,
         tx: DBWriteTransaction
     ) throws
 

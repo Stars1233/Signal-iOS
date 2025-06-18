@@ -126,9 +126,16 @@ public class AppSetup {
 
         let tsConstants = TSConstants.shared
 
+        let remoteConfig: [String: String] = if LibsignalUserDefaults.readShouldEnforceMinTlsVersion(from: appContext.appUserDefaults()) {
+            // The actual value does not matter as long as the key is present
+            ["enforceMinimumTls": "true"]
+        } else {
+            [:]
+        }
         let libsignalNet = Net(
             env: TSConstants.isUsingProductionService ? .production : .staging,
-            userAgent: HttpHeaders.userAgentHeaderValueSignalIos
+            userAgent: HttpHeaders.userAgentHeaderValueSignalIos,
+            remoteConfig: remoteConfig
         )
 
         let recipientDatabaseTable = RecipientDatabaseTable()
@@ -160,10 +167,8 @@ public class AppSetup {
 
         let schedulers = DispatchQueueSchedulers()
 
-        let appExpiry = AppExpiryImpl(
-            dateProvider: dateProvider,
+        let appExpiry = AppExpiry(
             appVersion: appVersion,
-            schedulers: schedulers
         )
 
         let db = databaseStorage
@@ -265,7 +270,7 @@ public class AppSetup {
 
         let authCredentialStore = AuthCredentialStore()
 
-        let callLinkPublicParams = try! GenericServerPublicParams(contents: [UInt8](tsConstants.callLinkPublicParams))
+        let callLinkPublicParams = try! GenericServerPublicParams(contents: tsConstants.callLinkPublicParams)
         let authCredentialManager = AuthCredentialManagerImpl(
             authCredentialStore: authCredentialStore,
             callLinkPublicParams: callLinkPublicParams,
@@ -292,9 +297,14 @@ public class AppSetup {
         let storyStore = StoryStoreImpl()
 
         let audioWaveformManager = AudioWaveformManagerImpl()
+
+        let attachmentStore = AttachmentStoreImpl()
+
         let orphanedAttachmentCleaner = OrphanedAttachmentCleanerImpl(db: databaseStorage)
         let attachmentContentValidator = AttachmentContentValidatorImpl(
+            attachmentStore: attachmentStore,
             audioWaveformManager: audioWaveformManager,
+            db: db,
             orphanedAttachmentCleaner: orphanedAttachmentCleaner
         )
 
@@ -365,7 +375,6 @@ public class AppSetup {
             networkManager: networkManager
         )
 
-        let attachmentStore = AttachmentStoreImpl()
         let orphanedAttachmentStore = OrphanedAttachmentStoreImpl()
         let attachmentUploadStore = AttachmentUploadStoreImpl(attachmentStore: attachmentStore)
         let attachmentDownloadStore = AttachmentDownloadStoreImpl(dateProvider: dateProvider)
@@ -411,6 +420,7 @@ public class AppSetup {
             backupAttachmentDownloadStore: backupAttachmentDownloadStore,
             backupAttachmentUploadStore: backupAttachmentUploadStore,
             backupSettingsStore: backupSettingsStore,
+            dateProvider: dateProvider,
             db: db,
             deviceBatteryLevelManager: deviceBatteryLevelManager,
             reachabilityManager: reachabilityManager,
@@ -440,12 +450,35 @@ public class AppSetup {
             db: db
         )
 
+        let backupAttachmentDownloadProgress = BackupAttachmentDownloadProgress(
+            appContext: appContext,
+            appReadiness: appReadiness,
+            backupAttachmentDownloadStore: backupAttachmentDownloadStore,
+            backupSettingsStore: backupSettingsStore,
+            dateProvider: dateProvider,
+            db: db,
+            remoteConfigProvider: remoteConfigManager
+        )
+
+        let backupAttachmentUploadScheduler = BackupAttachmentUploadSchedulerImpl(
+            attachmentStore: attachmentStore,
+            backupAttachmentUploadStore: backupAttachmentUploadStore,
+            backupSubscriptionManager: backupSubscriptionManager,
+            dateProvider: dateProvider,
+            interactionStore: interactionStore,
+        )
+
         let backupListMediaManager = BackupListMediaManagerImpl(
             attachmentStore: attachmentStore,
             attachmentUploadStore: attachmentUploadStore,
+            backupAttachmentDownloadProgress: backupAttachmentDownloadProgress,
             backupAttachmentDownloadStore: backupAttachmentDownloadStore,
+            backupAttachmentUploadProgress: backupAttachmentUploadProgress,
+            backupAttachmentUploadScheduler: backupAttachmentUploadScheduler,
+            backupAttachmentUploadStore: backupAttachmentUploadStore,
             backupKeyMaterial: backupKeyMaterial,
             backupRequestManager: backupRequestManager,
+            backupSettingsStore: backupSettingsStore,
             backupSubscriptionManager: backupSubscriptionManager,
             dateProvider: dateProvider,
             db: db,
@@ -454,11 +487,13 @@ public class AppSetup {
             tsAccountManager: tsAccountManager
         )
 
-        let backupAttachmentUploadManager = BackupAttachmentUploadManagerImpl(
+        let backupAttachmentUploadQueueRunner = BackupAttachmentUploadQueueRunnerImpl(
             appReadiness: appReadiness,
             attachmentStore: attachmentStore,
             attachmentUploadManager: attachmentUploadManager,
+            backupAttachmentUploadScheduler: backupAttachmentUploadScheduler,
             backupAttachmentUploadStore: backupAttachmentUploadStore,
+            backupKeyMaterial: backupKeyMaterial,
             backupListMediaManager: backupListMediaManager,
             backupRequestManager: backupRequestManager,
             backupSettingsStore: backupSettingsStore,
@@ -476,7 +511,8 @@ public class AppSetup {
             attachmentDownloadStore: attachmentDownloadStore,
             attachmentStore: attachmentStore,
             attachmentValidator: attachmentContentValidator,
-            backupAttachmentUploadManager: backupAttachmentUploadManager,
+            backupAttachmentUploadQueueRunner: backupAttachmentUploadQueueRunner,
+            backupAttachmentUploadScheduler: backupAttachmentUploadScheduler,
             backupKeyMaterial: backupKeyMaterial,
             backupRequestManager: backupRequestManager,
             currentCallProvider: currentCallProvider,
@@ -498,7 +534,8 @@ public class AppSetup {
         let attachmentManager = AttachmentManagerImpl(
             attachmentDownloadManager: attachmentDownloadManager,
             attachmentStore: attachmentStore,
-            backupAttachmentUploadManager: backupAttachmentUploadManager,
+            backupAttachmentUploadQueueRunner: backupAttachmentUploadQueueRunner,
+            backupAttachmentUploadScheduler: backupAttachmentUploadScheduler,
             dateProvider: dateProvider,
             orphanedAttachmentCleaner: orphanedAttachmentCleaner,
             orphanedAttachmentStore: orphanedAttachmentStore,
@@ -552,6 +589,7 @@ public class AppSetup {
             networkManager: networkManager,
             notificationPresenter: notificationPresenter,
             pniProtocolStore: pniProtocolStore,
+            profileManager: profileManager,
             recipientDatabaseTable: recipientDatabaseTable,
             recipientFetcher: recipientFetcher,
             recipientIdFinder: recipientIdFinder,
@@ -896,7 +934,6 @@ public class AppSetup {
             accountManager: tsAccountManager,
             appExpiry: appExpiry,
             appReadiness: appReadiness,
-            currentCallProvider: currentCallProvider,
             db: db,
             libsignalNet: libsignalNet,
             registrationStateChangeManager: registrationStateChangeManager,
@@ -1021,16 +1058,6 @@ public class AppSetup {
             storageServiceManager: storageServiceManager,
             threadRemover: threadRemover,
             threadStore: threadStore
-        )
-
-        let backupAttachmentDownloadProgress = BackupAttachmentDownloadProgress(
-            appContext: appContext,
-            appReadiness: appReadiness,
-            backupAttachmentDownloadStore: backupAttachmentDownloadStore,
-            backupSettingsStore: backupSettingsStore,
-            dateProvider: dateProvider,
-            db: db,
-            remoteConfigProvider: remoteConfigManager
         )
 
         let backupAttachmentDownloadManager = testDependencies.backupAttachmentDownloadManager
@@ -1176,7 +1203,7 @@ public class AppSetup {
             avatarFetcher: backupArchiveAvatarFetcher,
             backupArchiveErrorPresenter: backupArchiveErrorPresenter,
             backupAttachmentDownloadManager: backupAttachmentDownloadManager,
-            backupAttachmentUploadManager: backupAttachmentUploadManager,
+            backupAttachmentUploadQueueRunner: backupAttachmentUploadQueueRunner,
             backupRequestManager: backupRequestManager,
             backupSettingsStore: backupSettingsStore,
             backupSubscriptionManager: backupSubscriptionManager,
@@ -1325,6 +1352,24 @@ public class AppSetup {
             tsAccountManager: tsAccountManager
         )
 
+        let groupMessageProcessorManager = GroupMessageProcessorManager()
+
+        let receiptSender = ReceiptSender(
+            appReadiness: appReadiness,
+            recipientDatabaseTable: recipientDatabaseTable
+        )
+
+        let messageFetcherJob = MessageFetcherJob(appReadiness: appReadiness)
+
+        let backgroundMessageFetcherFactory = BackgroundMessageFetcherFactory(
+            chatConnectionManager: chatConnectionManager,
+            groupMessageProcessorManager: groupMessageProcessorManager,
+            messageFetcherJob: messageFetcherJob,
+            messageProcessor: messageProcessor,
+            messageSenderJobQueue: messageSenderJobQueue,
+            receiptSender: receiptSender,
+        )
+
         let dependenciesBridge = DependenciesBridge(
             accountAttributesUpdater: accountAttributesUpdater,
             adHocCallRecordManager: adHocCallRecordManager,
@@ -1342,13 +1387,13 @@ public class AppSetup {
             audioWaveformManager: audioWaveformManager,
             authorMergeHelper: authorMergeHelper,
             avatarDefaultColorManager: avatarDefaultColorManager,
+            backgroundMessageFetcherFactory: backgroundMessageFetcherFactory,
             backupArchiveErrorPresenter: backupArchiveErrorPresenter,
             backupArchiveManager: backupArchiveManager,
             backupAttachmentDownloadManager: backupAttachmentDownloadManager,
             backupAttachmentDownloadProgress: backupAttachmentDownloadProgress,
             backupAttachmentDownloadStore: backupAttachmentDownloadStore,
             backupAttachmentQueueStatusManager: backupAttachmentQueueStatusManager,
-            backupAttachmentUploadManager: backupAttachmentUploadManager,
             backupAttachmentUploadProgress: backupAttachmentUploadProgress,
             backupIdManager: backupIdManager,
             backupKeyMaterial: backupKeyMaterial,
@@ -1474,18 +1519,12 @@ public class AppSetup {
             )
         )
         let messageDecrypter = OWSMessageDecrypter(appReadiness: appReadiness)
-        let groupMessageProcessorManager = GroupMessageProcessorManager()
-        let receiptSender = ReceiptSender(
-            appReadiness: appReadiness,
-            recipientDatabaseTable: recipientDatabaseTable
-        )
         let stickerManager = StickerManager(
             appReadiness: appReadiness,
             dateProvider: dateProvider
         )
         let sskPreferences = SSKPreferences()
         let groupV2Updates = testDependencies.groupV2Updates ?? GroupV2UpdatesImpl(appReadiness: appReadiness)
-        let messageFetcherJob = MessageFetcherJob(appReadiness: appReadiness)
         let paymentsCurrencies = testDependencies.paymentsCurrencies ?? PaymentsCurrenciesImpl(appReadiness: appReadiness)
         let spamChallengeResolver = SpamChallengeResolver(appReadiness: appReadiness)
         let phoneNumberUtil = PhoneNumberUtil()
@@ -1727,6 +1766,14 @@ extension AppSetup.FinalContinuation {
         // reloaded here. In practice, some caches exist but aren't used by the
         // NSE, or they are used but behave properly even if they're not reloaded.
         self.sskEnvironment.warmCaches(appReadiness: self.appReadiness)
+
+        self.appReadiness.runNowOrWhenAppDidBecomeReadySync {
+            self.dependenciesBridge.chatConnectionManager.updateCanOpenWebSocket()
+        }
+
+        self.appReadiness.runNowOrWhenAppDidBecomeReadySync {
+            self.dependenciesBridge.appExpiry.refreshExpirationTimer()
+        }
 
         if self.didRunLaunchTasks {
             return

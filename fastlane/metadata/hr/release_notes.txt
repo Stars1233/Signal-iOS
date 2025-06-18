@@ -1,1 +1,1 @@
-• Ispravili smo programsku pogrešku koja je povremeno uzrokovala pokretanje alata za odabir slike nakon lijepljenja privitka u razgovor.
+• Message status indicators (sent, delivered, etc.) are now supported by the iOS VoiceOver feature in order to improve accessibility for blind and low-vision individuals.

@@ -1,1 +1,1 @@
-• Вікно вибору зображень більше не відкриватиметься, якщо ви вставили файл у чат, а потім передумали його надсилати. Змінювати рішення — це нормально, тож ми виправили цю помилку.
+• Message status indicators (sent, delivered, etc.) are now supported by the iOS VoiceOver feature in order to improve accessibility for blind and low-vision individuals.

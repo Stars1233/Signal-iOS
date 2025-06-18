@@ -42,7 +42,7 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
     private let avatarFetcher: BackupArchiveAvatarFetcher
     private let backupArchiveErrorPresenter: BackupArchiveErrorPresenter
     private let backupAttachmentDownloadManager: BackupAttachmentDownloadManager
-    private let backupAttachmentUploadManager: BackupAttachmentUploadManager
+    private let backupAttachmentUploadQueueRunner: BackupAttachmentUploadQueueRunner
     private let backupRequestManager: BackupRequestManager
     private let backupSettingsStore: BackupSettingsStore
     private let backupSubscriptionManager: BackupSubscriptionManager
@@ -81,7 +81,7 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
         avatarFetcher: BackupArchiveAvatarFetcher,
         backupArchiveErrorPresenter: BackupArchiveErrorPresenter,
         backupAttachmentDownloadManager: BackupAttachmentDownloadManager,
-        backupAttachmentUploadManager: BackupAttachmentUploadManager,
+        backupAttachmentUploadQueueRunner: BackupAttachmentUploadQueueRunner,
         backupRequestManager: BackupRequestManager,
         backupSettingsStore: BackupSettingsStore,
         backupSubscriptionManager: BackupSubscriptionManager,
@@ -117,7 +117,7 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
         self.avatarFetcher = avatarFetcher
         self.backupArchiveErrorPresenter = backupArchiveErrorPresenter
         self.backupAttachmentDownloadManager = backupAttachmentDownloadManager
-        self.backupAttachmentUploadManager = backupAttachmentUploadManager
+        self.backupAttachmentUploadQueueRunner = backupAttachmentUploadQueueRunner
         self.backupRequestManager = backupRequestManager
         self.backupSettingsStore = backupSettingsStore
         self.backupStickerPackDownloadStore = backupStickerPackDownloadStore
@@ -166,6 +166,19 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
         return tmpFileUrl
     }
 
+    public func backupCdnInfo(
+        localIdentifiers: LocalIdentifiers,
+        auth: ChatServiceAuth
+    ) async throws -> AttachmentDownloads.CdnInfo {
+        let backupAuth = try await backupRequestManager.fetchBackupServiceAuth(
+            for: .messages,
+            localAci: localIdentifiers.aci,
+            auth: auth
+        )
+        let metadata = try await backupRequestManager.fetchBackupRequestMetadata(auth: backupAuth)
+        return try await attachmentDownloadManager.backupCdnInfo(metadata: metadata)
+    }
+
     public func uploadEncryptedBackup(
         metadata: Upload.EncryptedBackupUploadMetadata,
         registeredBackupIDToken: BackupIdManager.RegisteredBackupIDToken,
@@ -178,7 +191,14 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
             auth: auth
         )
         let form = try await backupRequestManager.fetchBackupUploadForm(auth: backupAuth)
-        return try await attachmentUploadManager.uploadBackup(localUploadMetadata: metadata, form: form)
+        let result = try await attachmentUploadManager.uploadBackup(localUploadMetadata: metadata, form: form)
+
+        await db.awaitableWrite { tx in
+            BackupSettingsStore().setLastBackupDate(dateProvider(), tx: tx)
+            BackupSettingsStore().setLastBackupSizeBytes(UInt64(metadata.encryptedDataLength), tx: tx)
+        }
+
+        return result
     }
 
     // MARK: - Export
@@ -189,30 +209,8 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
         backupPurpose: MessageBackupPurpose,
         progress progressSink: OWSProgressSink?
     ) async throws -> Upload.EncryptedBackupUploadMetadata {
-        let includedContentFilter = BackupArchive.ArchivingContext.IncludedContentFilter(
-            minExpirationTimeMs: {
-                switch backupPurpose {
-                case .deviceTransfer:
-                    // Don't exclude any messages in "device transfer" backups,
-                    // i.e. Link'n'Syncs.
-                    return 0
-                case .remoteBackup:
-                    // Skip messages with timers of less than a day.
-                    return .dayInMs
-                }
-            }(),
-            minRemainingTimeUntilExpirationMs: {
-                switch backupPurpose {
-                case .deviceTransfer:
-                    // Don't exclude any messages in "device transfer" backups,
-                    // i.e. Link'n'Syncs.
-                    return 0
-                case .remoteBackup:
-                    // Skip messages with less than a day before they'll expire.
-                    return .dayInMs
-                }
-            }(),
-            shouldIncludePin: true
+        let includedContentFilter = BackupArchive.IncludedContentFilter(
+            backupPurpose: backupPurpose
         )
 
         return try await _exportBackup(
@@ -244,11 +242,9 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
 
         // For the integration tests, don't filter out any content. The premise
         // of the tests is to verify that round-tripping a Backup file is
-        // idempotent.
-        let includedContentFilter = BackupArchive.ArchivingContext.IncludedContentFilter(
-            minExpirationTimeMs: 0,
-            minRemainingTimeUntilExpirationMs: 0,
-            shouldIncludePin: true
+        // idempotent. The device transfer purpose includes everything.
+        let includedContentFilter = BackupArchive.IncludedContentFilter(
+            backupPurpose: .deviceTransfer
         )
 
         return try await _exportBackup(
@@ -269,7 +265,7 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
     private func _exportBackup<OutputStreamMetadata>(
         localIdentifiers: LocalIdentifiers,
         backupPurpose: MessageBackupPurpose,
-        includedContentFilter: BackupArchive.ArchivingContext.IncludedContentFilter,
+        includedContentFilter: BackupArchive.IncludedContentFilter,
         progressSink: OWSProgressSink?,
         benchTitle: String,
         openOutputStreamBlock: (
@@ -349,7 +345,7 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
         outputStream stream: BackupArchiveProtoOutputStream,
         localIdentifiers: LocalIdentifiers,
         backupPurpose: MessageBackupPurpose,
-        includedContentFilter: BackupArchive.ArchivingContext.IncludedContentFilter,
+        includedContentFilter: BackupArchive.IncludedContentFilter,
         currentAppVersion: String,
         firstAppVersion: String,
         memorySampler: MemorySampler,
@@ -404,7 +400,6 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
             let currentBackupAttachmentUploadEra = backupSubscriptionManager.getUploadEra(tx: tx)
 
             let customChatColorContext = BackupArchive.CustomChatColorArchivingContext(
-                backupAttachmentUploadManager: backupAttachmentUploadManager,
                 bencher: bencher,
                 currentBackupAttachmentUploadEra: currentBackupAttachmentUploadEra,
                 currentBackupPlan: currentBackupPlan,
@@ -446,7 +441,6 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
             }
 
             let recipientArchivingContext = BackupArchive.RecipientArchivingContext(
-                backupAttachmentUploadManager: backupAttachmentUploadManager,
                 bencher: bencher,
                 currentBackupAttachmentUploadEra: currentBackupAttachmentUploadEra,
                 currentBackupPlan: currentBackupPlan,
@@ -524,7 +518,6 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
             }
 
             let chatArchivingContext = BackupArchive.ChatArchivingContext(
-                backupAttachmentUploadManager: backupAttachmentUploadManager,
                 bencher: bencher,
                 currentBackupAttachmentUploadEra: currentBackupAttachmentUploadEra,
                 currentBackupPlan: currentBackupPlan,
@@ -563,7 +556,6 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
             }
 
             let archivingContext = BackupArchive.ArchivingContext(
-                backupAttachmentUploadManager: backupAttachmentUploadManager,
                 bencher: bencher,
                 currentBackupAttachmentUploadEra: currentBackupAttachmentUploadEra,
                 currentBackupPlan: currentBackupPlan,
@@ -601,13 +593,7 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
 
             try stream.closeFileStream()
 
-            tx.addSyncCompletion { [backupAttachmentUploadManager] in
-                Task {
-                    // TODO: [Backups] this needs to talk to the banner at the top of the chat
-                    // list to show progress.
-                    try await backupAttachmentUploadManager.backUpAllAttachments()
-                }
-            }
+            backupAttachmentUploadQueueRunner.backUpAllAttachmentsAfterTxCommits(tx: tx)
 
             Logger.info("Finished exporting backup")
             bencher.logResults()
@@ -630,7 +616,7 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
         backupInfo.currentAppVersion = currentAppVersion
         backupInfo.firstAppVersion = firstAppVersion
 
-        backupInfo.mediaRootBackupKey = localStorage.getOrGenerateMediaRootBackupKey(tx: tx).serialize().asData
+        backupInfo.mediaRootBackupKey = localStorage.getOrGenerateMediaRootBackupKey(tx: tx).serialize()
 
         switch stream.writeHeader(backupInfo) {
         case .success:
@@ -653,14 +639,18 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
     public func importEncryptedBackup(
         fileUrl: URL,
         localIdentifiers: LocalIdentifiers,
+        isPrimaryDevice: Bool,
         backupKey: BackupKey,
+        backupPurpose: MessageBackupPurpose,
         progress progressSink: OWSProgressSink?
     ) async throws {
         try await _importBackup(
             fileUrl: fileUrl,
             localIdentifiers: localIdentifiers,
+            isPrimaryDevice: isPrimaryDevice,
             progressSink: progressSink,
             benchTitle: "Import encrypted Backup",
+            backupPurpose: backupPurpose,
             openInputStreamBlock: { fileUrl, frameRestoreProgress, tx in
                 return encryptedStreamProvider.openEncryptedInputFileStream(
                     fileUrl: fileUrl,
@@ -676,6 +666,8 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
     public func importPlaintextBackup(
         fileUrl: URL,
         localIdentifiers: LocalIdentifiers,
+        isPrimaryDevice: Bool,
+        backupPurpose: MessageBackupPurpose,
         progress progressSink: OWSProgressSink?
     ) async throws {
         guard FeatureFlags.Backups.fileAlpha else {
@@ -686,8 +678,10 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
         try await _importBackup(
             fileUrl: fileUrl,
             localIdentifiers: localIdentifiers,
+            isPrimaryDevice: isPrimaryDevice,
             progressSink: progressSink,
             benchTitle: "Import plaintext Backup",
+            backupPurpose: backupPurpose,
             openInputStreamBlock: { fileUrl, frameRestoreProgress, _ in
                 return plaintextStreamProvider.openPlaintextInputFileStream(
                     fileUrl: fileUrl,
@@ -700,8 +694,10 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
     private func _importBackup(
         fileUrl: URL,
         localIdentifiers: LocalIdentifiers,
+        isPrimaryDevice: Bool,
         progressSink: OWSProgressSink?,
         benchTitle: String,
+        backupPurpose: MessageBackupPurpose,
         openInputStreamBlock: (
             URL,
             BackupArchiveImportFramesProgress?,
@@ -765,6 +761,8 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
                         return try self._importBackup(
                             inputStream: inputStream,
                             localIdentifiers: localIdentifiers,
+                            isPrimaryDevice: isPrimaryDevice,
+                            backupPurpose: backupPurpose,
                             recreateIndexesProgress: recreateIndexesProgress,
                             memorySampler: memorySampler,
                             tx: tx
@@ -789,6 +787,8 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
     private func _importBackup(
         inputStream stream: BackupArchiveProtoInputStream,
         localIdentifiers: LocalIdentifiers,
+        isPrimaryDevice: Bool,
+        backupPurpose: MessageBackupPurpose,
         recreateIndexesProgress: BackupArchiveImportRecreateIndexesProgress?,
         memorySampler: MemorySampler,
         tx: DBWriteTransaction
@@ -858,7 +858,7 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
                 throw BackupImportError.unsupportedVersion
             }
             do {
-                localStorage.setMediaRootBackupKey(try BackupKey(contents: Array(backupInfo.mediaRootBackupKey)), tx: tx)
+                localStorage.setMediaRootBackupKey(try BackupKey(contents: backupInfo.mediaRootBackupKey), tx: tx)
             } catch {
                 frameErrors.append(LoggableErrorAndProto(
                     error: BackupArchive.RestoreFrameError.restoreFrameError(
@@ -883,38 +883,47 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
                 init(
                     localIdentifiers: LocalIdentifiers,
                     startTimestampMs: UInt64,
+                    isPrimaryDevice: Bool,
                     currentRemoteConfig: RemoteConfig,
+                    backupPurpose: MessageBackupPurpose,
                     tx: DBWriteTransaction
                 ) {
                     accountData = BackupArchive.AccountDataRestoringContext(
                         startTimestampMs: startTimestampMs,
+                        isPrimaryDevice: isPrimaryDevice,
                         currentRemoteConfig: currentRemoteConfig,
+                        backupPurpose: backupPurpose,
                         tx: tx
                     )
                     customChatColor = BackupArchive.CustomChatColorRestoringContext(
                         startTimestampMs: startTimestampMs,
+                        isPrimaryDevice: isPrimaryDevice,
                         accountDataContext: accountData,
                         tx: tx
                     )
                     recipient = BackupArchive.RecipientRestoringContext(
                         localIdentifiers: localIdentifiers,
                         startTimestampMs: startTimestampMs,
+                        isPrimaryDevice: isPrimaryDevice,
                         tx: tx
                     )
                     chat = BackupArchive.ChatRestoringContext(
                         customChatColorContext: customChatColor,
                         recipientContext: recipient,
                         startTimestampMs: startTimestampMs,
+                        isPrimaryDevice: isPrimaryDevice,
                         tx: tx
                     )
                     chatItem = BackupArchive.ChatItemRestoringContext(
                         chatContext: chat,
                         recipientContext: recipient,
                         startTimestampMs: startTimestampMs,
+                        isPrimaryDevice: isPrimaryDevice,
                         tx: tx
                     )
                     stickerPack = BackupArchive.RestoringContext(
                         startTimestampMs: startTimestampMs,
+                        isPrimaryDevice: isPrimaryDevice,
                         tx: tx
                     )
                 }
@@ -922,7 +931,9 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
             let contexts = Contexts(
                 localIdentifiers: localIdentifiers,
                 startTimestampMs: startTimestampMs,
+                isPrimaryDevice: isPrimaryDevice,
                 currentRemoteConfig: currentRemoteConfig,
+                backupPurpose: backupPurpose,
                 tx: tx
             )
 

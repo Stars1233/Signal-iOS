@@ -1,1 +1,1 @@
-• We hebben een fout opgelost waardoor de fotokiezer werd geopend nadat een bijlage in een chat was geplakt en vervolgens werd besloten deze niet te verzenden.
+• Message status indicators (sent, delivered, etc.) are now supported by the iOS VoiceOver feature in order to improve accessibility for blind and low-vision individuals.

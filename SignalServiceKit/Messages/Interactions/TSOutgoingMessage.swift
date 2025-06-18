@@ -401,7 +401,7 @@ public extension TSOutgoingMessage {
 
         let builder = SSKProtoPniSignatureMessage.builder()
         builder.setPni(pni.rawUUID.data)
-        builder.setSignature(Data(signature))
+        builder.setSignature(signature)
         return builder.buildInfallibly()
     }
 
@@ -506,13 +506,17 @@ extension TSOutgoingMessage {
             )
         } ?? []
         return attachments.compactMap { attachment in
-            guard let pointer = attachment.attachment.asTransitTierPointer() else {
+            guard
+                let pointer = attachment.attachment.asTransitTierPointer(),
+                case let .digestSHA256Ciphertext(digestSHA256Ciphertext) = pointer.info.integrityCheck
+            else {
                 owsFailDebug("Generating proto for non-uploaded attachment!")
                 return nil
             }
             return DependenciesBridge.shared.attachmentManager.buildProtoForSending(
                 from: attachment.reference,
-                pointer: pointer
+                pointer: pointer,
+                digestSHA256Ciphertext: digestSHA256Ciphertext
             )
         }
     }

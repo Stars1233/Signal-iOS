@@ -7,14 +7,22 @@ import Foundation
 public import LibSignalClient
 
 public protocol ChatConnectionManager {
+    func updateCanOpenWebSocket()
     func waitForIdentifiedConnectionToOpen() async throws
+    /// Waits until we're no longer trying to open a web socket.
+    ///
+    /// - Note: If an existing socket gets interrupted but we'll try to
+    /// re-connect, this will keep waiting. In other words, this waits until we
+    /// are no longer capable of opening a socket (e.g., we are deregistered,
+    /// all connection tokens are released).
+    func waitUntilIdentifiedConnectionShouldBeClosed() async throws
     var identifiedConnectionState: OWSChatConnectionState { get }
-    var hasEmptiedInitialQueue: Bool { get }
+    var hasEmptiedInitialQueue: Bool { get async }
 
     func shouldWaitForSocketToMakeRequest(connectionType: OWSChatConnectionType) -> Bool
+    func requestConnections(shouldReconnectIfConnectedElsewhere: Bool) -> [OWSChatConnection.ConnectionToken]
+    func waitForDisconnectIfClosed() async
     func makeRequest(_ request: TSRequest) async throws -> HTTPResponse
-
-    func didReceivePush()
 }
 
 public class ChatConnectionManagerImpl: ChatConnectionManager {
@@ -22,27 +30,10 @@ public class ChatConnectionManagerImpl: ChatConnectionManager {
     private let connectionUnidentified: OWSChatConnection
     private var connections: [OWSChatConnection] { [ connectionIdentified, connectionUnidentified ]}
 
-    public init(accountManager: TSAccountManager, appExpiry: AppExpiry, appReadiness: AppReadiness, currentCallProvider: any CurrentCallProvider, db: any DB, libsignalNet: Net, registrationStateChangeManager: RegistrationStateChangeManager, userDefaults: UserDefaults) {
+    public init(accountManager: TSAccountManager, appExpiry: AppExpiry, appReadiness: AppReadiness, db: any DB, libsignalNet: Net, registrationStateChangeManager: RegistrationStateChangeManager, userDefaults: UserDefaults) {
         AssertIsOnMainThread()
-        if userDefaults.bool(forKey: Self.shouldUseLibsignalForIdentifiedDefaultsKey) {
-            connectionIdentified = OWSAuthConnectionUsingLibSignal(libsignalNet: libsignalNet, accountManager: accountManager, appExpiry: appExpiry, appReadiness: appReadiness, currentCallProvider: currentCallProvider, db: db, registrationStateChangeManager: registrationStateChangeManager)
-        } else {
-            connectionIdentified = OWSChatConnectionUsingSSKWebSocket(
-                type: .identified,
-                accountManager: accountManager,
-                appExpiry: appExpiry,
-                appReadiness: appReadiness,
-                currentCallProvider: currentCallProvider,
-                db: db,
-                registrationStateChangeManager: registrationStateChangeManager
-            )
-        }
-
-        if userDefaults.bool(forKey: Self.shouldUseLibsignalForUnidentifiedDefaultsKey) {
-            connectionUnidentified = OWSUnauthConnectionUsingLibSignal(libsignalNet: libsignalNet, accountManager: accountManager, appExpiry: appExpiry, appReadiness: appReadiness, currentCallProvider: currentCallProvider, db: db, registrationStateChangeManager: registrationStateChangeManager)
-        } else {
-            connectionUnidentified = OWSChatConnectionUsingSSKWebSocket(type: .unidentified, accountManager: accountManager, appExpiry: appExpiry, appReadiness: appReadiness, currentCallProvider: currentCallProvider, db: db, registrationStateChangeManager: registrationStateChangeManager)
-        }
+        self.connectionIdentified = OWSAuthConnectionUsingLibSignal(libsignalNet: libsignalNet, accountManager: accountManager, appExpiry: appExpiry, appReadiness: appReadiness, db: db, registrationStateChangeManager: registrationStateChangeManager)
+        self.connectionUnidentified = OWSUnauthConnectionUsingLibSignal(libsignalNet: libsignalNet, accountManager: accountManager, appExpiry: appExpiry, appReadiness: appReadiness, db: db, registrationStateChangeManager: registrationStateChangeManager)
 
         SwiftSingletons.register(self)
     }
@@ -56,52 +47,47 @@ public class ChatConnectionManagerImpl: ChatConnectionManager {
         }
     }
 
-    public func shouldWaitForSocketToMakeRequest(connectionType: OWSChatConnectionType) -> Bool {
-        connection(ofType: connectionType).shouldSocketBeOpen
+    public func updateCanOpenWebSocket() {
+        for connection in connections {
+            connection.updateCanOpenWebSocket()
+        }
     }
 
-    public typealias RequestSuccess = OWSChatConnection.RequestSuccess
-    public typealias RequestFailure = OWSChatConnection.RequestFailure
+    public func shouldWaitForSocketToMakeRequest(connectionType: OWSChatConnectionType) -> Bool {
+        return connection(ofType: connectionType).canOpenWebSocket
+    }
 
     public func waitForIdentifiedConnectionToOpen() async throws {
         owsAssertBeta(OWSChatConnection.canAppUseSocketsToMakeRequests)
         try await self.connectionIdentified.waitForOpen()
     }
 
-    private func waitForSocketToOpenIfItShouldBeOpen(
-        connectionType: OWSChatConnectionType
-    ) async {
-        let connection = self.connection(ofType: connectionType)
-        guard connection.shouldSocketBeOpen else {
-            // The socket wants to be open, but isn't.
-            // Proceed even though we will probably fail.
-            return
+    public func waitUntilIdentifiedConnectionShouldBeClosed() async throws {
+        owsAssertBeta(OWSChatConnection.canAppUseSocketsToMakeRequests)
+        try await self.connectionIdentified.waitUntilSocketShouldBeClosed()
+    }
+
+    public func requestConnections(shouldReconnectIfConnectedElsewhere: Bool) -> [OWSChatConnection.ConnectionToken] {
+        return [
+            connectionIdentified.requestConnection(shouldReconnectIfConnectedElsewhere: shouldReconnectIfConnectedElsewhere),
+            connectionUnidentified.requestConnection(shouldReconnectIfConnectedElsewhere: shouldReconnectIfConnectedElsewhere),
+        ]
+    }
+
+    public func waitForDisconnectIfClosed() async {
+        await withTaskGroup { taskGroup in
+            for connection in connections {
+                taskGroup.addTask { await connection.waitForDisconnectIfClosed() }
+            }
+            await taskGroup.waitForAll()
         }
-        // After 30 seconds, we try anyways. We'll probably fail.
-        let maxWaitInterval: TimeInterval = 30 * .second
-        _ = try? await withCooperativeTimeout(
-            seconds: maxWaitInterval,
-            operation: { try await connection.waitForOpen() }
-        )
     }
 
     // This method can be called from any thread.
     public func makeRequest(_ request: TSRequest) async throws -> HTTPResponse {
         let connectionType = try request.auth.connectionType
 
-        // Request that the websocket open to make this request, if necessary.
-        let unsubmittedRequestToken = connection(ofType: connectionType).makeUnsubmittedRequestToken()
-
-        await self.waitForSocketToOpenIfItShouldBeOpen(connectionType: connectionType)
-
-        return try await connection(ofType: connectionType).makeRequest(request, unsubmittedRequestToken: unsubmittedRequestToken)
-    }
-
-    // This method can be called from any thread.
-    public func didReceivePush() {
-        for connection in connections {
-            connection.didReceivePush()
-        }
+        return try await connection(ofType: connectionType).makeRequest(request)
     }
 
     public var identifiedConnectionState: OWSChatConnectionState {
@@ -109,39 +95,9 @@ public class ChatConnectionManagerImpl: ChatConnectionManager {
     }
 
     public var hasEmptiedInitialQueue: Bool {
-        connectionIdentified.hasEmptiedInitialQueue
-    }
-
-    // MARK: -
-
-    private static var shouldUseLibsignalForUnidentifiedDefaultsKey: String = "UseLibsignalForUnidentifiedWebsocket"
-
-    /// We cache this in UserDefaults because it's used too early to access the RemoteConfig object.
-    ///
-    /// It also makes it possible to override the setting in Xcode via the Scheme settings:
-    /// add the arguments "-UseLibsignalForUnidentifiedWebsocket YES" to the invocation of the app.
-    static func saveShouldUseLibsignalForUnidentifiedWebsocket(
-        _ shouldUseLibsignalForUnidentifiedWebsocket: Bool,
-        in defaults: UserDefaults
-    ) {
-        defaults.set(shouldUseLibsignalForUnidentifiedWebsocket, forKey: shouldUseLibsignalForUnidentifiedDefaultsKey)
-    }
-
-    private static var shouldUseLibsignalForIdentifiedDefaultsKey: String = "UseLibsignalForIdentifiedWebsocket"
-
-    static var shouldUseLibsignalForIdentifiedWebsocket: Bool {
-        CurrentAppContext().appUserDefaults().bool(forKey: shouldUseLibsignalForIdentifiedDefaultsKey)
-    }
-
-    /// We cache this in UserDefaults because it's used too early to access the RemoteConfig object.
-    ///
-    /// It also makes it possible to override the setting in Xcode via the Scheme settings:
-    /// add the arguments "-UseLibsignalForIdentifiedWebsocket YES" to the invocation of the app.
-    static func saveShouldUseLibsignalForIdentifiedWebsocket(
-        _ shouldUseLibsignalForIdentifiedWebsocket: Bool,
-        in defaults: UserDefaults
-    ) {
-        defaults.set(shouldUseLibsignalForIdentifiedWebsocket, forKey: shouldUseLibsignalForIdentifiedDefaultsKey)
+        get async {
+            return await connectionIdentified.hasEmptiedInitialQueue
+        }
     }
 }
 
@@ -151,9 +107,15 @@ public class ChatConnectionManagerMock: ChatConnectionManager {
 
     public init() {}
 
+    public func updateCanOpenWebSocket() {
+    }
+
     public var hasEmptiedInitialQueue: Bool = false
 
     public func waitForIdentifiedConnectionToOpen() async throws {
+    }
+
+    public func waitUntilIdentifiedConnectionShouldBeClosed() async throws {
     }
 
     public var identifiedConnectionState: OWSChatConnectionState = .closed
@@ -164,16 +126,19 @@ public class ChatConnectionManagerMock: ChatConnectionManager {
         return shouldWaitForSocketToMakeRequestPerType[connectionType] ?? true
     }
 
+    public func requestConnections(shouldReconnectIfConnectedElsewhere: Bool) -> [OWSChatConnection.ConnectionToken] {
+        return []
+    }
+
+    public func waitForDisconnectIfClosed() async {
+    }
+
     public var requestHandler: (_ request: TSRequest) async throws -> HTTPResponse = { _ in
         fatalError("must override for tests")
     }
 
     public func makeRequest(_ request: TSRequest) async throws -> HTTPResponse {
         return try await requestHandler(request)
-    }
-
-    public func didReceivePush() {
-        // Do nothing
     }
 }
 

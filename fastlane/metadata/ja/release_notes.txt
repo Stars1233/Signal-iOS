@@ -1,1 +1,1 @@
-•添付ファイルをチャットに貼り付けた後に、画像ピッカーが開いてしまう不具合を修正しました。
+• Message status indicators (sent, delivered, etc.) are now supported by the iOS VoiceOver feature in order to improve accessibility for blind and low-vision individuals.

@@ -1,1 +1,1 @@
-• Kami telah membetulkan pepijat yang menyebabkan pemilih imej terbuka selepas menampal lampiran dalam perbualan.
+• Message status indicators (sent, delivered, etc.) are now supported by the iOS VoiceOver feature in order to improve accessibility for blind and low-vision individuals.

@@ -4,7 +4,7 @@
 //
 
 import Foundation
-import LibSignalClient
+public import LibSignalClient
 public import SignalRingRTC
 import SwiftProtobuf
 
@@ -23,7 +23,7 @@ public protocol StorageServiceManager {
 
     func recordPendingUpdates(updatedRecipientUniqueIds: [RecipientUniqueId])
     func recordPendingUpdates(updatedAddresses: [SignalServiceAddress])
-    func recordPendingUpdates(updatedGroupV2MasterKeys: [Data])
+    func recordPendingUpdates(updatedGroupV2MasterKeys: [GroupMasterKey])
     func recordPendingUpdates(updatedStoryDistributionListIds: [Data])
     func recordPendingUpdates(callLinkRootKeys: [CallLinkRootKey])
     func recordPendingLocalAccountUpdates()
@@ -83,7 +83,7 @@ extension StorageServiceManager {
                 owsFailDebug("Missing master key: \(error)")
                 return
             }
-            recordPendingUpdates(updatedGroupV2MasterKeys: [ masterKey.serialize().asData ])
+            recordPendingUpdates(updatedGroupV2MasterKeys: [masterKey])
         } else {
             owsFailDebug("How did we end up with pending updates to a V1 group?")
         }
@@ -484,9 +484,8 @@ public class StorageServiceManagerImpl: NSObject, StorageServiceManager {
         }
     }
 
-    @objc
-    public func recordPendingUpdates(updatedGroupV2MasterKeys: [Data]) {
-        updatePendingMutations { $0.updatedGroupV2MasterKeys.formUnion(updatedGroupV2MasterKeys) }
+    public func recordPendingUpdates(updatedGroupV2MasterKeys: [GroupMasterKey]) {
+        updatePendingMutations { $0.updatedGroupV2MasterKeys.formUnion(updatedGroupV2MasterKeys.map { $0.serialize() }) }
     }
 
     @objc
@@ -1260,7 +1259,7 @@ class StorageServiceOperation {
                         owsFailDebug("Invalid group model \(error).")
                         return
                     }
-                    createRecord(localId: masterKey.serialize().asData, stateUpdater: groupV2Updater)
+                    createRecord(localId: masterKey.serialize(), stateUpdater: groupV2Updater)
                 } else if let storyThread = thread as? TSPrivateStoryThread {
                     guard let distributionListId = storyThread.distributionListIdentifier else {
                         owsFailDebug("Missing distribution list id for story thread \(thread.logString)")

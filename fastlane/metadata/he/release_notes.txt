@@ -1,1 +1,1 @@
-• תיקנו באג שלפעמים גרם לבורר התמונות להיפתח לאחר הדבקת קובץ מצורף לתוך צ׳אט.
+• Message status indicators (sent, delivered, etc.) are now supported by the iOS VoiceOver feature in order to improve accessibility for blind and low-vision individuals.

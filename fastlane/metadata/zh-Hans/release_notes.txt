@@ -1,1 +1,1 @@
-• 我们修复了一个漏洞，该漏洞会在用户将附件粘贴到聊天后无故打开图片选择器。
+• Message status indicators (sent, delivered, etc.) are now supported by the iOS VoiceOver feature in order to improve accessibility for blind and low-vision individuals.

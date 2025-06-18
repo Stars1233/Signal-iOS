@@ -61,7 +61,9 @@ public enum FeatureFlags {
 
     public static let useNewConversationLoadIndex = true
 
-    public static let libsignalForChat = true
+    public static let libsignalEnforceMinTlsVersion = false
+
+    public static let notificationServiceWebSocket = build.includes(.internal)
 }
 
 // MARK: -

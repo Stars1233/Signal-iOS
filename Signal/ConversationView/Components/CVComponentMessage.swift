@@ -466,6 +466,7 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
             chatColorView.configure(value: self.bubbleChatColor,
                                     referenceView: componentDelegate.view,
                                     bubbleConfig: bubbleConfig)
+            chatColorView.dimmerDimsBackgroundOnly = true
             outerBubbleView = chatColorView
         }
 
@@ -525,6 +526,7 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
                             // to reflect the bubble view state.
                             bubbleViewPartner.updateLayers()
                         }
+                        outerBubbleView?.dimmerDimsBackgroundOnly = false
                     }
                 } else {
                     owsFailDebug("Invalid component.")
@@ -1299,13 +1301,17 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
         }
         contents.append(timestampText)
 
+        if let footerAccessibilityLabel = standaloneFooter?.footerAccessibilityLabel {
+            contents.append(footerAccessibilityLabel)
+        }
+
         elements.append(contents.joined(separator: ", "))
 
         // NOTE: In the interest of keeping the accessibility label short,
         // we do not include information that is usually presented in the
         // following components:
         //
-        // * footer (message send status, disappearing message status).
+        // * footer (disappearing message status).
         //   We _do_ include time but not date. Dates are in the date headers.
         // * senderName
         // * senderAvatar
@@ -2224,6 +2230,13 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
             for swipeToReplyWrapper in swipeToReplyWrappers {
                 swipeToReplyWrapper.layer.removeAllAnimations()
             }
+        }
+
+        // MARK: - Flashing Message Bubble
+
+        func performMessageBubbleHighlightAnimation() {
+            chatColorView.dimmingColor = Theme.isDarkThemeEnabled ? .ows_whiteAlpha25 : .ows_blackAlpha25
+            chatColorView.performDimmingAnimation(stepDuration: 0.4)
         }
     }
 

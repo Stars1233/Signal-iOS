@@ -1,1 +1,1 @@
-• On a tous le droit de changer d'avis : le sélecteur d'images ne s'affichera donc plus par erreur lorsque vous collez une pièce jointe dans une conversation et décidez finalement de ne pas l'envoyer.
+• Message status indicators (sent, delivered, etc.) are now supported by the iOS VoiceOver feature in order to improve accessibility for blind and low-vision individuals.

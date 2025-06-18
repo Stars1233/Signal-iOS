@@ -14,10 +14,10 @@ public struct GroupV2Params {
 
     public init(groupSecretParams: GroupSecretParams) throws {
         self.groupSecretParams = groupSecretParams
-        self.groupSecretParamsData = groupSecretParams.serialize().asData
+        self.groupSecretParamsData = groupSecretParams.serialize()
         let groupPublicParams = try groupSecretParams.getPublicParams()
         self.groupPublicParams = groupPublicParams
-        self.groupPublicParamsData = groupPublicParams.serialize().asData
+        self.groupPublicParamsData = groupPublicParams.serialize()
     }
 }
 
@@ -25,7 +25,7 @@ public struct GroupV2Params {
 
 public extension TSGroupModelV2 {
     func groupV2Params() throws -> GroupV2Params {
-        return try GroupV2Params(groupSecretParams: try GroupSecretParams(contents: [UInt8](secretParamsData)))
+        return try GroupV2Params(groupSecretParams: try GroupSecretParams(contents: secretParamsData))
     }
 }
 
@@ -47,7 +47,7 @@ public extension GroupV2Params {
 
     fileprivate func encryptBlob(_ plaintext: Data) throws -> Data {
         let clientZkGroupCipher = ClientZkGroupCipher(groupSecretParams: groupSecretParams)
-        let ciphertext = try clientZkGroupCipher.encryptBlob(plaintext: [UInt8](plaintext)).asData
+        let ciphertext = try clientZkGroupCipher.encryptBlob(plaintext: plaintext)
         assert(ciphertext != plaintext)
         assert(!ciphertext.isEmpty)
 
@@ -70,7 +70,7 @@ public extension GroupV2Params {
         }
 
         let clientZkGroupCipher = ClientZkGroupCipher(groupSecretParams: groupSecretParams)
-        let plaintext = try clientZkGroupCipher.decryptBlob(blobCiphertext: [UInt8](ciphertext)).asData
+        let plaintext = try clientZkGroupCipher.decryptBlob(blobCiphertext: ciphertext)
         assert(ciphertext != plaintext)
 
         if plaintext.count <= Self.decryptedBlobCacheMaxItemSize {
@@ -87,7 +87,7 @@ public extension GroupV2Params {
     }
 
     func serviceId(for userId: Data) throws -> ServiceId {
-        let uuidCiphertext = try UuidCiphertext(contents: [UInt8](userId))
+        let uuidCiphertext = try UuidCiphertext(contents: userId)
         return try serviceId(for: uuidCiphertext)
     }
 
@@ -98,17 +98,13 @@ public extension GroupV2Params {
         return aci
     }
 
-    private static var maxGroupSize: Int {
-        return Int(RemoteConfig.current.groupsV2MaxGroupSizeHardLimit)
-    }
-
     private static let decryptedServiceIdCache = LRUCache<Data, ServiceId>(
-        maxSize: Self.maxGroupSize,
-        nseMaxSize: Self.maxGroupSize
+        maxSize: Int(RemoteConfig.current.maxGroupSizeHardLimit),
+        nseMaxSize: Int(RemoteConfig.current.maxGroupSizeHardLimit),
     )
 
     func serviceId(for uuidCiphertext: UuidCiphertext) throws -> ServiceId {
-        let cacheKey = (uuidCiphertext.serialize().asData + groupSecretParamsData)
+        let cacheKey = (uuidCiphertext.serialize() + groupSecretParamsData)
         if let plaintext = Self.decryptedServiceIdCache.object(forKey: cacheKey) {
             return plaintext
         }
@@ -123,7 +119,7 @@ public extension GroupV2Params {
     func userId(for serviceId: ServiceId) throws -> Data {
         let clientZkGroupCipher = ClientZkGroupCipher(groupSecretParams: self.groupSecretParams)
         let uuidCiphertext = try clientZkGroupCipher.encrypt(serviceId)
-        let userId = uuidCiphertext.serialize().asData
+        let userId = uuidCiphertext.serialize()
 
         let cacheKey = (userId + groupSecretParamsData)
         Self.decryptedServiceIdCache.setObject(serviceId, forKey: cacheKey)
@@ -131,18 +127,20 @@ public extension GroupV2Params {
         return userId
     }
 
-    private static let decryptedProfileKeyCache = LRUCache<Data, Data>(maxSize: Self.maxGroupSize,
-                                                                       nseMaxSize: Self.maxGroupSize)
+    private static let decryptedProfileKeyCache = LRUCache<Data, Data>(
+        maxSize: Int(RemoteConfig.current.maxGroupSizeHardLimit),
+        nseMaxSize: Int(RemoteConfig.current.maxGroupSizeHardLimit),
+    )
 
     func profileKey(forProfileKeyCiphertext profileKeyCiphertext: ProfileKeyCiphertext, aci: Aci) throws -> Data {
-        let cacheKey = (profileKeyCiphertext.serialize().asData + aci.serviceIdBinary + groupSecretParamsData)
+        let cacheKey = (profileKeyCiphertext.serialize() + aci.serviceIdBinary + groupSecretParamsData)
         if let plaintext = Self.decryptedProfileKeyCache.object(forKey: cacheKey) {
             return plaintext
         }
 
         let clientZkGroupCipher = ClientZkGroupCipher(groupSecretParams: self.groupSecretParams)
         let profileKey = try clientZkGroupCipher.decryptProfileKey(profileKeyCiphertext: profileKeyCiphertext, userId: aci)
-        let plaintext = profileKey.serialize().asData
+        let plaintext = profileKey.serialize()
 
         Self.decryptedProfileKeyCache.setObject(plaintext, forKey: cacheKey)
         return plaintext

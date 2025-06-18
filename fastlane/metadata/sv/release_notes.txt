@@ -1,1 +1,1 @@
-• Vi har åtgärdat ett fel som kunde leda till att bildväljaren öppnades efter att en bilaga klistrats in i en chatt.
+• Message status indicators (sent, delivered, etc.) are now supported by the iOS VoiceOver feature in order to improve accessibility for blind and low-vision individuals.

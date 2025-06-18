@@ -1,1 +1,1 @@
-• Всегда можно передумать, поэтому мы исправили ошибку, из-за которой меню изображений открывалось после того, как вы помещали вложение в чат, а затем решали его не отправлять.
+• Message status indicators (sent, delivered, etc.) are now supported by the iOS VoiceOver feature in order to improve accessibility for blind and low-vision individuals.

@@ -514,6 +514,69 @@
 /* Text used as placeholder in backup key text view. */
 "BACKUP_KEY_PLACEHOLDER" = "बॅकअप की";
 
+/* Title of button to tap if you forgot your backup key. */
+"BACKUP_KEY_REMINDER_FORGOT_KEY" = "Forgot key?";
+
+/* Action text for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_MEGAPHONE_ACTION" = "Verify";
+
+/* Body for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_MEGAPHONE_BODY" = "We'll occasionally ask you to verify your key to ensure you still know it";
+
+/* Title for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_MEGAPHONE_TITLE" = "Verify your Backup Key";
+
+/* Snooze text for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_NOT_NOW_ACTION" = "Not Now";
+
+/* Toast indicating that the Backup Key was correct. */
+"BACKUP_KEY_REMINDER_SUCCESSFUL_TOAST" = "Backup key correct. Keep your key safe.";
+
+/* Body for a sheet warning users to their 'Backup Key' safe. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_KEEP_KEY_SAFE_SHEET_BODY" = "आपण जर आपली की गमावल्यास आपणाला आपला बॅकअप पुनर्संचयित करण्यात Signal आपणाला मदत करू शकणार नाही. त्याला कोठेतरी सुरक्षित आणि संरक्षित संग्रहित करून ठेवा, आणि ती इतरांसोबत शेअर करू नका.";
+
+/* Title for a sheet warning users to their 'Backup Key' safe. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_KEEP_KEY_SAFE_SHEET_TITLE" = "आपली की सुरक्षित ठेवा";
+
+/* Title for a button offering to let users see their 'Backup Key'. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_SEE_KEY_AGAIN_BUTTON_TITLE" = "की पुन्हा पहा";
+
+/* Subtitle for a view asking users to confirm their 'Backup Key'. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_SUBTITLE" = "तुम्ही नुकतीच नोंदवलेली बॅकअप की प्रविष्ट करा";
+
+/* Title for a view asking users to confirm their 'Backup Key'. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_TITLE" = "तुमची बॅकअप की निश्चित करा";
+
+/* Bullet point on a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_BULLET_1" = "एंड-टू-एंड कूटबद्ध केलेले";
+
+/* Bullet point on a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_BULLET_2" = "वैकल्पिक, नेहमी";
+
+/* Bullet point on a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_BULLET_3" = "आपला बॅकअप कधीही हटवा";
+
+/* Subtitle for a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_SUBTITLE" = "Signal ची सुरक्षित, एंड-टू-एंड कूटबद्ध केलेली संग्रहण सेवा वापरून आपले संदेश आणि मीडिया यांचा बॅकअप घ्या. तुम्हाला नवा फोन मिळाल्यावर किंवा Signal पुन्हा इन्स्टॉल केल्यावर एकही संदेश गमावू नका.";
+
+/* Title for a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_TITLE" = "Signal बॅकअप";
+
+/* Subtitle for a view introducing the 'Backup Key' during an onboarding flow. */
+"BACKUP_ONBOARDING_KEY_INTRO_SUBTITLE" = "Your backup key is a 64-character code that lets you restore your backup when you re-install Signal.\n\nIf you forget your key, you will not be able to restore your backup. Signal cannot help you recover your backup.";
+
+/* Title for a view introducing the 'Backup Key' during an onboarding flow. */
+"BACKUP_ONBOARDING_KEY_INTRO_TITLE" = "आपली बॅकअप की";
+
+/* Title for a button allowing users to copy their 'Backup Key' to the clipboard. */
+"BACKUP_RECORD_KEY_COPY_TO_CLIPBOARD_BUTTON_TITLE" = "क्लिपबोर्ड वर कॉपी करा";
+
+/* Subtitle for a view allowing users to record their 'Backup Key'. */
+"BACKUP_RECORD_KEY_SUBTITLE" = "ही की आपले अकाऊंट आणि डेटा पुर्नप्राप्त करण्यासाठी आवश्यक आहे. ही की कोठेतरी सुरक्षित ठेवा. आपण जी ती गहाळ केल्यास, आपण आपले अकाऊंट पुर्नप्राप्त करू शकणार नाही.";
+
+/* Title for a view allowing users to record their 'Backup Key'. */
+"BACKUP_RECORD_KEY_TITLE" = "आपली बॅकअप कि नोंद करा";
+
 /* Title for a button allowing users to upgrade from a free to paid backup plan. */
 "BACKUP_SETTINGS_BACKUP_PLAN_FREE_ACTION_BUTTON_TITLE" = "श्रेणीसुधारणा करा";
 
@@ -560,19 +623,19 @@
 "BACKUP_SETTINGS_BACKUPS_DISABLED_SECTION_FOOTER" = "बॅकअप बंद करण्यात आलेले आहेत आणि आपला डेटा Signal च्या सुरक्षित संग्रहण सेवेमधून हटवण्यात आला आहे.";
 
 /* Message for a view indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_MESSAGE" = "An error occurred. Please contact support.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_MESSAGE" = "एक त्रुटी उद्भवली. कृपया सपोर्टशी संंपर्क साधा.";
 
 /* Header for a menu section related to settings for when disabling Backups encountered an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "An error occurred when deleting your data from Signal's secure storage service.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "Signal च्या सुरक्षित संग्रहण सेवेमधून तुमचा डेटा हटवताना त्रुटी उद्भवली.";
 
 /* Title for a view indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_TITLE" = "Failed to Delete Backup";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_TITLE" = "बॅकअप हटवता आला नाही";
 
 /* Description for a progress view tracking Backups being disabled. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_PROGRESS_VIEW_DESCRIPTION" = "Deleting Backup...";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_PROGRESS_VIEW_DESCRIPTION" = "बॅकअप हटवत आहोत...";
 
 /* Header for a menu section related to disabling Backups. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "Backups have been turned off and your data will be deleted from Signal's secure storage service.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "बॅकअप्स बंद करण्यात आलेले आहेत आणि आपला डेटा Signal च्या सुरक्षित संग्रहण सेवेमधून हटवण्यात आला आहे.";
 
 /* Header for a menu section related to settings for when Backups are enabled. */
 "BACKUP_SETTINGS_BACKUPS_ENABLED_SECTION_HEADER" = "बॅकअप तपशील";
@@ -584,13 +647,13 @@
 "BACKUP_SETTINGS_DISABLE_BACKUPS_BUTTON_TITLE" = "बंद करा आणि बॅकअप हटवा";
 
 /* Message shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "An error occurred when deleting your data from Signal's secure storage service.";
+"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "Signal च्या सुरक्षित संग्रहण सेवेमधून तुमचा डेटा हटवताना त्रुटी उद्भवली.";
 
 /* Title shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_TITLE" = "Failed to Delete Backup";
+"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_TITLE" = "बॅकअप हटवता आला नाही";
 
 /* Message shown in an action sheet when the user tries to disable Backups, but is not registered. */
-"BACKUP_SETTINGS_DISABLING_ERROR_NOT_REGISTERED" = "You must be registered to disable Backups.";
+"BACKUP_SETTINGS_DISABLING_ERROR_NOT_REGISTERED" = "बॅकअप बंद करण्यासाठी तुम्ही नोंदणी केलेली असणे आवश्यक आहे.";
 
 /* Text describing that a user's backup will be automatically performed daily. */
 "BACKUP_SETTINGS_ENABLED_BACKUP_FREQUENCY_DAILY" = "दैनिक";
@@ -2336,10 +2399,10 @@
 "DISAPPEARING_MESSAGES_CUSTOM_TIME" = "कस्टम वेळ";
 
 /* Title for a picker for the unit of time to use for disappearing messages. */
-"DISAPPEARING_MESSAGES_CUSTOM_TIME_UNIT_PICKER" = "Unit";
+"DISAPPEARING_MESSAGES_CUSTOM_TIME_UNIT_PICKER" = "एकक";
 
 /* Title for a picker for the amount of time, in a given unit, to use for disappearing messages. */
-"DISAPPEARING_MESSAGES_CUSTOM_TIME_VALUE_PICKER" = "Value";
+"DISAPPEARING_MESSAGES_CUSTOM_TIME_VALUE_PICKER" = "मूल्य";
 
 /* The unit for a number of days */
 "DISAPPEARING_MESSAGES_DAYS" = "दिवस";
@@ -2869,6 +2932,12 @@
 /* Call setup status label */
 "END_CALL_UNCATEGORIZED_FAILURE" = "कॉल अयशस्वी झाला";
 
+/* Label explaining that an entered 'Backup Key' is incorrect. */
+"ENTER_ACCOUNT_ENTROPY_POOL_VIEW_INCORRECT_AEP_LABEL" = "चुकीची बॅकअप की";
+
+/* Label explaining that an entered 'Backup Key' is malformed. */
+"ENTER_ACCOUNT_ENTROPY_POOL_VIEW_MALFORMED_AEP_LABEL" = "अवैध बॅकअप की";
+
 /* Error indicating that a message could not be forwarded. */
 "ERROR_COULD_NOT_FORWARD_MESSAGES_1" = "संदेश अग्रेषित करू शकलो नाही.";
 
@@ -3214,6 +3283,9 @@
 /* Button to leave a group call */
 "GROUP_CALL_LEAVE_BUTTON" = "कॉल सोडा";
 
+/* Title for a 'done' button on a sheet showing the group call members list */
+"GROUP_CALL_MEMBER_LIST_DONE_BUTTON_TITLE" = "Done";
+
 /* Title for the section of the group call member list which displays the list of all members in the call. */
 "GROUP_CALL_MEMBER_LIST_IN_CALL_SECTION_HEADER" = "कॉल मध्ये";
 
@@ -3446,7 +3518,7 @@
 "GROUP_IS_ANNOUNCEMENT_ONLY_ENABLED_BY_REMOTE_USER_FORMAT" = "फक्त प्रशासकांना संदेश पाठवण्याची अनुमती देण्यासाठी %1$@ ने गट सेटिंग बदलल्या.";
 
 /* Subtitle indicating that the local user has been blocked from joining the group */
-"GROUP_LINK_ACTION_SHEET_VIEW_BLOCKED_FROM_JOINING_SUBTITLE" = "प्रशासकाने आपल्याला काढून टाकले असल्यामुळे, आपण ग्रुप लिंकद्वारे या ग्रुपमध्ये सामील होऊ शकत नाही.";
+"GROUP_LINK_ACTION_SHEET_VIEW_BLOCKED_FROM_JOINING_SUBTITLE" = "ॲडमिन ने आपल्याला काढून टाकले असल्यामुळे आपण ग्रुप लिंकद्वारे या ग्रुपमध्ये सामील होऊ शकत नाही. ग्रूपमध्ये पुन्हा सामील होण्यासाठी एखाद्या ॲडमिन शी संंपर्क साधा.";
 
 /* Title indicating that you cannot join a group in the 'group invite link' action sheet. */
 "GROUP_LINK_ACTION_SHEET_VIEW_CANNOT_JOIN_GROUP_TITLE" = "गटात सामील होऊ शकत नाही";
@@ -5230,6 +5302,9 @@
 /* The body for the skip restore 'choice' option */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_BODY" = "आपले संदेश आणि मिडीया स्थानांतरित न करता सुरू ठेवा";
 
+/* The title for a less-prominent skip restore 'choice' option */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_SMALL_TITLE" = "Skip restore";
+
 /* The title for the skip restore 'choice' option */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_TITLE" = "स्थानांतरित न करता नोंदणी करा";
 
@@ -5258,7 +5333,7 @@
 "ONBOARDING_CONFIRM_BACKUP_RESTORE_CONFIRM_ACTION" = "बॅकअप पुनर्स्थापित करा";
 
 /* Description for form confirming restore from backup. */
-"ONBOARDING_CONFIRM_BACKUP_RESTORE_DESCRIPTION" = "आपला शेवटचा बॅकअप %1$@ रोजी %2$@ वाजता घेतला होता. तुमच्याकडे तुमचा जुना डिव्हाईस असेल तर तुम्ही नवीन बॅकअप तयार करू शकता. [कसा ते पाहा](https://signal.org)";
+"ONBOARDING_CONFIRM_BACKUP_RESTORE_DESCRIPTION" = "आपला शेवटचा बॅकअप %1$@ रोजी %2$@ वाजता घेतला होता. आपल्या बॅकअपचे माप %3$@ आहे";
 
 /* Text for action button to explore other options. */
 "ONBOARDING_CONFIRM_BACKUP_RESTORE_MORE_OPTIONS_ACTION" = "अधिक पर्याय";
@@ -6359,40 +6434,40 @@
 "REACTION_DETAIL_ALL_FORMAT" = "सर्व · %1$@";
 
 /* notification body. Embeds {{reaction emoji}} */
-"REACTION_INCOMING_NOTIFICATION_BODY_FORMAT" = "आपल्या संदेशाला %1$@ प्रतिक्रिया दिली";
+"REACTION_INCOMING_NOTIFICATION_BODY_FORMAT" = "%1$@ अशी प्रतिक्रिया तुमच्या संदेशाला दिली";
 
 /* notification body. Embeds {{reaction emoji}} */
-"REACTION_INCOMING_NOTIFICATION_TO_ALBUM_BODY_FORMAT" = "आपल्या अल्बमला %1$@ प्रतिक्रिया दिली";
+"REACTION_INCOMING_NOTIFICATION_TO_ALBUM_BODY_FORMAT" = "%1$@ अशी प्रतिक्रिया तुमच्या अल्बमला दिली";
 
 /* notification body. Embeds {{reaction emoji}} */
-"REACTION_INCOMING_NOTIFICATION_TO_AUDIO_BODY_FORMAT" = "आपल्या ऑडिओला %1$@ प्रतिक्रिया दिली";
+"REACTION_INCOMING_NOTIFICATION_TO_AUDIO_BODY_FORMAT" = "%1$@ अशी प्रतिक्रिया तुमच्या ऑडिओला दिली";
 
 /* notification body. Embeds {{reaction emoji}} */
-"REACTION_INCOMING_NOTIFICATION_TO_CONTACT_SHARE_BODY_FORMAT" = "आपल्या संपर्क सामायिकरणावर %1$@ प्रतिक्रिया दिली";
+"REACTION_INCOMING_NOTIFICATION_TO_CONTACT_SHARE_BODY_FORMAT" = "%1$@ अशी प्रतिक्रिया तुम्ही शेअर केलेल्या संपर्कावर दिली";
 
 /* notification body. Embeds {{reaction emoji}} */
-"REACTION_INCOMING_NOTIFICATION_TO_FILE_BODY_FORMAT" = "आपल्या फाइलवर %1$@ प्रतिक्रिया दिली";
+"REACTION_INCOMING_NOTIFICATION_TO_FILE_BODY_FORMAT" = "%1$@ अशी प्रतिक्रिया तुमच्या फाईलवर दिली";
 
 /* notification body. Embeds {{reaction emoji}} */
-"REACTION_INCOMING_NOTIFICATION_TO_GIF_BODY_FORMAT" = "आपल्या GIF ला %1$@ प्रतिक्रिया दिली";
+"REACTION_INCOMING_NOTIFICATION_TO_GIF_BODY_FORMAT" = "%1$@ अशी प्रतिक्रिया तुमच्या GIF ला दिली";
 
 /* notification body. Embeds {{reaction emoji}} */
-"REACTION_INCOMING_NOTIFICATION_TO_PHOTO_BODY_FORMAT" = "आपल्या फोटोला %1$@ प्रतिक्रिया दिली";
+"REACTION_INCOMING_NOTIFICATION_TO_PHOTO_BODY_FORMAT" = "%1$@ अशी प्रतिक्रिया तुमच्या फोटोला दिली";
 
 /* notification body. Embeds {{reaction emoji}} */
-"REACTION_INCOMING_NOTIFICATION_TO_STICKER_MESSAGE_BODY_FORMAT" = "आपल्या स्टिकरला %1$@ प्रतिक्रिया दिली";
+"REACTION_INCOMING_NOTIFICATION_TO_STICKER_MESSAGE_BODY_FORMAT" = "%1$@ अशी प्रतिक्रिया तुमच्या स्टिकरला दिली";
 
 /* notification body. Embeds {{reaction emoji}} and {{body text}} */
-"REACTION_INCOMING_NOTIFICATION_TO_TEXT_MESSAGE_BODY_FORMAT" = "\"%2$@\" :ला %1$@ प्रतिक्रिया दिली";
+"REACTION_INCOMING_NOTIFICATION_TO_TEXT_MESSAGE_BODY_FORMAT" = "%1$@ अशी प्रतिक्रिया \"%2$@\"ला दिली";
 
 /* notification body. Embeds {{reaction emoji}} */
-"REACTION_INCOMING_NOTIFICATION_TO_VIDEO_BODY_FORMAT" = "आपल्या व्हिडिओवर %1$@ प्रतिक्रिया दिली";
+"REACTION_INCOMING_NOTIFICATION_TO_VIDEO_BODY_FORMAT" = "%1$@ अशी प्रतिक्रिया तुमच्या व्हिडिओवर दिली";
 
 /* notification body. Embeds {{reaction emoji}} */
-"REACTION_INCOMING_NOTIFICATION_TO_VIEW_ONCE_MESSAGE_BODY_FORMAT" = "आपल्या एकदा-बघा व्हिडिओवर %1$@ प्रतिक्रिया दिली";
+"REACTION_INCOMING_NOTIFICATION_TO_VIEW_ONCE_MESSAGE_BODY_FORMAT" = "%1$@ अशी प्रतिक्रिया तुमच्या एकदा-बघा मीडियावर दिली";
 
 /* notification body. Embeds {{reaction emoji}} */
-"REACTION_INCOMING_NOTIFICATION_TO_VOICE_MESSAGE_BODY_FORMAT" = "आपल्या व्हॉईस संदेशाला %1$@ प्रतिक्रिया दिली";
+"REACTION_INCOMING_NOTIFICATION_TO_VOICE_MESSAGE_BODY_FORMAT" = "%1$@ अशी प्रतिक्रिया तुमच्या व्हॉईस संदेशाला दिली";
 
 /* Pressing this button marks a thread as read */
 "READ_ACTION" = "वाचले";
@@ -8258,16 +8333,16 @@
 "STORY_PRIVACY_TITLE" = "स्टोरीची गोपनीयता";
 
 /* inbox and notification text for a reaction to a story authored by the local user. Embeds {{reaction emoji}} */
-"STORY_REACTION_LOCAL_AUTHOR_PREVIEW_FORMAT" = "%1$@ नी आपल्या स्टोरी वर प्रतिक्रिया दिली";
+"STORY_REACTION_LOCAL_AUTHOR_PREVIEW_FORMAT" = "%1$@ अशी प्रतिक्रिया तुमच्या स्टोरीवर दिली";
 
 /* quote text for a reaction to a story by the user (the header on the bubble says \"You\"). Embeds {{reaction emoji}} */
-"STORY_REACTION_QUOTE_FORMAT_SECOND_PERSON" = "एका स्टोरी वर %1$@ नी प्रतिक्रिया दिली";
+"STORY_REACTION_QUOTE_FORMAT_SECOND_PERSON" = "%1$@ अशी प्रतिक्रिया एका स्टोरीवर दिली";
 
 /* quote text for a reaction to a story by some other user (the header on the bubble says their name, e.g. \"Bob\"). Embeds {{reaction emoji}} */
-"STORY_REACTION_QUOTE_FORMAT_THIRD_PERSON" = "एका स्टोरी वर %1$@ नी प्रतिक्रिया दिली";
+"STORY_REACTION_QUOTE_FORMAT_THIRD_PERSON" = "%1$@ अशी प्रतिक्रिया एका स्टोरीवर दिली";
 
 /* inbox and notification text for a reaction to a story authored by another user. Embeds {{ %1$@ reaction emoji, %2$@ story author name }} */
-"STORY_REACTION_REMOTE_AUTHOR_PREVIEW_FORMAT" = "%2$@ च्या स्टोरीवर %1$@ प्रतिक्रिया दिली";
+"STORY_REACTION_REMOTE_AUTHOR_PREVIEW_FORMAT" = "%1$@ अशी प्रतिक्रिया %2$@च्या स्टोरीवर दिली";
 
 /* Button for replying to a story with no existing replies. */
 "STORY_REPLY_BUTTON" = "प्रत्युत्तर द्या";
@@ -8957,7 +9032,7 @@
 "VOICE_MESSAGE_CANCEL_INSTRUCTIONS" = "रद्द करण्यासाठी स्लाइड करा";
 
 /* Filename for voice messages. */
-"VOICE_MESSAGE_FILE_NAME" = "Signal";
+"VOICE_MESSAGE_FILE_NAME" = "signal";
 
 /* Message for the tooltip indicating the 'voice message' needs to be held to be held down to record. */
 "VOICE_MESSAGE_TOO_SHORT_TOOLTIP" = "रेकॉर्ड करण्यासाठी दाबा आणि धरून ठेवा.";

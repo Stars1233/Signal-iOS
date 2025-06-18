@@ -63,14 +63,11 @@ public class GroupsV2OutgoingChanges {
     public private(set) var newAvatarUrlPath: String?
     private var shouldUpdateAvatar = false
 
-    private var membersToAdd = [ServiceId]()
+    public private(set) var membersToAdd = [ServiceId]()
     // Full, pending profile key or pending request members to remove.
     private var membersToRemove = [ServiceId]()
     private var membersToChangeRole = [Aci: TSGroupMemberRole]()
     private var invalidInvitesToRemove = [Data: InvalidInvite]()
-
-    // Banning
-    private var membersToBan = [Aci]()
 
     // These access properties should only be set if the value is changing.
     private var accessForMembers: GroupV2Access?
@@ -138,11 +135,6 @@ public class GroupsV2OutgoingChanges {
     public func removeMember(_ serviceId: ServiceId) {
         owsAssertDebug(!membersToRemove.contains(serviceId))
         membersToRemove.append(serviceId)
-    }
-
-    public func addBannedMember(_ aci: Aci) {
-        owsAssertDebug(!membersToBan.contains(aci))
-        membersToBan.append(aci)
     }
 
     public func changeRoleForMember(_ aci: Aci, role: TSGroupMemberRole) {
@@ -313,9 +305,9 @@ public class GroupsV2OutgoingChanges {
 
         // Track member counts that are updated to reflect each
         // new action.
-        var membersOfAnyKind = Set(currentGroupModel.groupMembership.allMembersOfAnyKind.compactMap { $0.serviceId })
-        var fullMembers = Set(currentGroupModel.groupMembership.fullMembers.compactMap { $0.serviceId as? Aci })
-        var fullMemberAdmins = Set(currentGroupModel.groupMembership.fullMemberAdministrators.compactMap { $0.serviceId as? Aci })
+        let currentGroupMembership = currentGroupModel.groupMembership
+        var fullMembers = Set(currentGroupMembership.fullMembers.compactMap { $0.serviceId as? Aci })
+        var fullMemberAdmins = Set(currentGroupMembership.fullMemberAdministrators.compactMap { $0.serviceId as? Aci })
 
         var groupUpdateMessageBehavior: GroupUpdateMessageBehavior = .sendUpdateToOtherGroupMembers
 
@@ -403,55 +395,59 @@ public class GroupsV2OutgoingChanges {
 
         var membersToUnban = [Aci]()
 
-        let currentGroupMembership = currentGroupModel.groupMembership
-        for serviceId in membersToAdd {
-            if currentGroupMembership.isFullMember(serviceId) {
-                // Another user has already added this member. They may have been added
-                // with a different role. We don't treat that as a conflict.
-            } else if let aci = serviceId as? Aci, currentGroupMembership.isRequestingMember(aci) {
-                var actionBuilder = GroupsProtoGroupChangeActionsPromoteRequestingMemberAction.builder()
-                let userId = try groupV2Params.userId(for: aci)
-                actionBuilder.setUserID(userId)
-                actionBuilder.setRole(.default)
-                actionsBuilder.addPromoteRequestingMembers(actionBuilder.buildInfallibly())
-                didChange = true
-                membersToUnban.append(aci)
+        if !membersToAdd.isEmpty {
+            var fullOrInvitedMembers = Set(currentGroupModel.groupMembership.fullOrInvitedMembers.compactMap { $0.serviceId })
+            for serviceId in membersToAdd {
+                if currentGroupMembership.isFullMember(serviceId) {
+                    // Another user has already added this member. They may have been added
+                    // with a different role. We don't treat that as a conflict.
+                } else if let aci = serviceId as? Aci, currentGroupMembership.isRequestingMember(aci) {
+                    var actionBuilder = GroupsProtoGroupChangeActionsPromoteRequestingMemberAction.builder()
+                    let userId = try groupV2Params.userId(for: aci)
+                    actionBuilder.setUserID(userId)
+                    actionBuilder.setRole(.default)
+                    actionsBuilder.addPromoteRequestingMembers(actionBuilder.buildInfallibly())
+                    didChange = true
+                    membersToUnban.append(aci)
 
-                membersOfAnyKind.insert(aci)
-                fullMembers.insert(aci)
-            } else if let aci = serviceId as? Aci, let profileKeyCredential = profileKeyCredentials[aci] {
-                var actionBuilder = GroupsProtoGroupChangeActionsAddMemberAction.builder()
-                actionBuilder.setAdded(try GroupsV2Protos.buildMemberProto(
-                    profileKeyCredential: profileKeyCredential,
-                    role: .default,
-                    groupV2Params: groupV2Params
-                ))
-                actionsBuilder.addAddMembers(actionBuilder.buildInfallibly())
-                didChange = true
-                membersToUnban.append(aci)
+                    fullOrInvitedMembers.insert(aci)
+                    fullMembers.insert(aci)
+                } else if let aci = serviceId as? Aci, let profileKeyCredential = profileKeyCredentials[aci] {
+                    var actionBuilder = GroupsProtoGroupChangeActionsAddMemberAction.builder()
+                    actionBuilder.setAdded(try GroupsV2Protos.buildMemberProto(
+                        profileKeyCredential: profileKeyCredential,
+                        role: .default,
+                        groupV2Params: groupV2Params
+                    ))
+                    actionsBuilder.addAddMembers(actionBuilder.buildInfallibly())
+                    didChange = true
+                    membersToUnban.append(aci)
 
-                membersOfAnyKind.insert(aci)
-                fullMembers.insert(aci)
-            } else if currentGroupMembership.isInvitedMember(serviceId) {
-                // Another user has already invited this member. They may have been added
-                // with a different role. We don't treat that as a conflict.
-            } else {
-                guard membersOfAnyKind.count <= GroupManager.groupsV2MaxGroupSizeHardLimit else {
-                    throw GroupsV2Error.cannotBuildGroupChangeProto_tooManyMembers
+                    fullOrInvitedMembers.insert(aci)
+                    fullMembers.insert(aci)
+                } else if currentGroupMembership.isInvitedMember(serviceId) {
+                    // Another user has already invited this member. They may have been added
+                    // with a different role. We don't treat that as a conflict.
+                } else {
+                    var actionBuilder = GroupsProtoGroupChangeActionsAddPendingMemberAction.builder()
+                    actionBuilder.setAdded(try GroupsV2Protos.buildPendingMemberProto(
+                        serviceId: serviceId,
+                        role: .default,
+                        groupV2Params: groupV2Params
+                    ))
+                    actionsBuilder.addAddPendingMembers(actionBuilder.buildInfallibly())
+                    didChange = true
+                    if let aci = serviceId as? Aci { membersToUnban.append(aci) }
+
+                    fullOrInvitedMembers.insert(serviceId)
                 }
-                var actionBuilder = GroupsProtoGroupChangeActionsAddPendingMemberAction.builder()
-                actionBuilder.setAdded(try GroupsV2Protos.buildPendingMemberProto(
-                    serviceId: serviceId,
-                    role: .default,
-                    groupV2Params: groupV2Params
-                ))
-                actionsBuilder.addAddPendingMembers(actionBuilder.buildInfallibly())
-                didChange = true
-                if let aci = serviceId as? Aci { membersToUnban.append(aci) }
-
-                membersOfAnyKind.insert(serviceId)
+            }
+            guard fullOrInvitedMembers.count <= RemoteConfig.current.maxGroupSizeHardLimit else {
+                throw GroupsV2Error.cannotBuildGroupChangeProto_tooManyMembers
             }
         }
+
+        var membersToBan = [Aci]()
 
         for serviceId in self.membersToRemove {
             if let aci = serviceId as? Aci, currentGroupMembership.isFullMember(aci) {
@@ -460,8 +456,8 @@ public class GroupsV2OutgoingChanges {
                 actionBuilder.setDeletedUserID(userId)
                 actionsBuilder.addDeleteMembers(actionBuilder.buildInfallibly())
                 didChange = true
+                membersToBan.append(aci)
 
-                membersOfAnyKind.remove(aci)
                 fullMembers.remove(aci)
                 if currentGroupMembership.isFullMemberAndAdministrator(aci) {
                     fullMemberAdmins.remove(aci)
@@ -472,18 +468,14 @@ public class GroupsV2OutgoingChanges {
                 actionBuilder.setDeletedUserID(userId)
                 actionsBuilder.addDeletePendingMembers(actionBuilder.buildInfallibly())
                 didChange = true
-
-                membersOfAnyKind.remove(serviceId)
-                if let aci = serviceId as? Aci { fullMembers.remove(aci) }
+                // Don't ban invited members.
             } else if let aci = serviceId as? Aci, currentGroupMembership.isRequestingMember(aci) {
                 var actionBuilder = GroupsProtoGroupChangeActionsDeleteRequestingMemberAction.builder()
                 let userId = try groupV2Params.userId(for: aci)
                 actionBuilder.setDeletedUserID(userId)
                 actionsBuilder.addDeleteRequestingMembers(actionBuilder.buildInfallibly())
                 didChange = true
-
-                membersOfAnyKind.remove(aci)
-                fullMembers.remove(aci)
+                membersToBan.append(aci)
             } else {
                 // Another user has already removed this member or revoked their
                 // invitation.
@@ -502,7 +494,7 @@ public class GroupsV2OutgoingChanges {
             // If we will overrun the max number of banned members, unban currently
             // banned members until we have enough room, beginning with the
             // least-recently banned.
-            let maxNumBannableIds = RemoteConfig.current.groupsV2MaxBannedMembers
+            let maxNumBannableIds = RemoteConfig.current.maxGroupSizeBannedMembers
             let netNumIdsToBan = acisToBan.count - acisToUnban.count
             let nOldMembersToUnban = currentBannedMembers.count + netNumIdsToBan - Int(maxNumBannableIds)
 
@@ -682,7 +674,6 @@ public class GroupsV2OutgoingChanges {
 
             if promotedLocalAci {
                 didChange = true
-                membersOfAnyKind.insert(localAci)
                 fullMembers.insert(localAci)
             }
         }

@@ -1,1 +1,1 @@
-• Opravili jsme chybu, která po vložení přílohy do chatu mohla způsobit otevření nástroje pro výběr obrázků.
+• Message status indicators (sent, delivered, etc.) are now supported by the iOS VoiceOver feature in order to improve accessibility for blind and low-vision individuals.

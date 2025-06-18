@@ -1,1 +1,1 @@
-• Cambiar de opinión siempre es válido, así que hemos corregido un error que hacía que se abriera el selector de imágenes si pegabas un archivo adjunto en un chat y luego decidías no enviarlo.
+• Message status indicators (sent, delivered, etc.) are now supported by the iOS VoiceOver feature in order to improve accessibility for blind and low-vision individuals.

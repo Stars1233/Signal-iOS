@@ -1,1 +1,1 @@
-• قُمنا بإصلاح خطأ كان يتسبب في فتح أداة مُحَدِّد الصور بعد لصق ملف مُرفَق في دردشة ما وعدم إرساله بعد ذلك.
+• Message status indicators (sent, delivered, etc.) are now supported by the iOS VoiceOver feature in order to improve accessibility for blind and low-vision individuals.

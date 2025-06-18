@@ -1,1 +1,1 @@
-• 채팅에 첨부 파일을 붙여 넣으면 이미지 선택기가 열리는 버그를 수정했습니다.
+• Message status indicators (sent, delivered, etc.) are now supported by the iOS VoiceOver feature in order to improve accessibility for blind and low-vision individuals.

@@ -1,1 +1,1 @@
-• Chúng tôi đã sửa lỗi có thể khiến trình chọn hình ảnh mở sau khi dán tập tin đính kèm vào cuộc trò chuyện.
+• Message status indicators (sent, delivered, etc.) are now supported by the iOS VoiceOver feature in order to improve accessibility for blind and low-vision individuals.

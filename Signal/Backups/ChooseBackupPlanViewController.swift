@@ -9,12 +9,7 @@ import StoreKit
 import SwiftUI
 
 class ChooseBackupPlanViewController: HostingController<ChooseBackupPlanView> {
-    protocol Delegate: AnyObject {
-        func chooseBackupPlanViewController(
-            _ chooseBackupPlanViewController: ChooseBackupPlanViewController,
-            didEnablePlan planSelection: PlanSelection
-        )
-    }
+    typealias OnConfirmPlanSelectionBlock = (ChooseBackupPlanViewController, PlanSelection) -> Void
 
     enum PlanSelection {
         case free
@@ -27,24 +22,8 @@ class ChooseBackupPlanViewController: HostingController<ChooseBackupPlanView> {
     private let db: DB
     private let tsAccountManager: TSAccountManager
 
+    private let onConfirmPlanSelectionBlock: OnConfirmPlanSelectionBlock
     private let viewModel: ChooseBackupPlanViewModel
-
-    weak var delegate: Delegate?
-
-    convenience init(
-        initialPlanSelection: PlanSelection?,
-        paidPlanDisplayPrice: String,
-    ) {
-        self.init(
-            initialPlanSelection: initialPlanSelection,
-            paidPlanDisplayPrice: paidPlanDisplayPrice,
-            backupIdManager: DependenciesBridge.shared.backupIdManager,
-            backupSettingsStore: BackupSettingsStore(),
-            backupSubscriptionManager: DependenciesBridge.shared.backupSubscriptionManager,
-            db: DependenciesBridge.shared.db,
-            tsAccountManager: DependenciesBridge.shared.tsAccountManager
-        )
-    }
 
     init(
         initialPlanSelection: PlanSelection?,
@@ -53,7 +32,8 @@ class ChooseBackupPlanViewController: HostingController<ChooseBackupPlanView> {
         backupSettingsStore: BackupSettingsStore,
         backupSubscriptionManager: BackupSubscriptionManager,
         db: DB,
-        tsAccountManager: TSAccountManager
+        tsAccountManager: TSAccountManager,
+        onConfirmPlanSelectionBlock: @escaping OnConfirmPlanSelectionBlock,
     ) {
         self.backupIdManager = backupIdManager
         self.backupSettingsStore = backupSettingsStore
@@ -61,6 +41,7 @@ class ChooseBackupPlanViewController: HostingController<ChooseBackupPlanView> {
         self.db = db
         self.tsAccountManager = tsAccountManager
 
+        self.onConfirmPlanSelectionBlock = onConfirmPlanSelectionBlock
         self.viewModel = ChooseBackupPlanViewModel(
             initialPlanSelection: initialPlanSelection,
             paidPlanDisplayPrice: paidPlanDisplayPrice
@@ -70,136 +51,42 @@ class ChooseBackupPlanViewController: HostingController<ChooseBackupPlanView> {
 
         viewModel.actionsDelegate = self
     }
+
+    static func load(
+        fromViewController: UIViewController,
+        initialPlanSelection: PlanSelection?,
+        onConfirmPlanSelectionBlock: @escaping OnConfirmPlanSelectionBlock,
+    ) async throws(OWSAssertionError) -> ChooseBackupPlanViewController {
+        let backupSubscriptionManager = DependenciesBridge.shared.backupSubscriptionManager
+
+        let paidPlanDisplayPrice: String
+        do {
+            paidPlanDisplayPrice = try await ModalActivityIndicatorViewController
+                .presentAndPropagateResult(from: fromViewController) {
+                    try await backupSubscriptionManager.subscriptionDisplayPrice()
+                }
+        } catch {
+            throw OWSAssertionError("Failed to get paidPlanDisplayPrice!")
+        }
+
+        return ChooseBackupPlanViewController(
+            initialPlanSelection: initialPlanSelection,
+            paidPlanDisplayPrice: paidPlanDisplayPrice,
+            backupIdManager: DependenciesBridge.shared.backupIdManager,
+            backupSettingsStore: BackupSettingsStore(),
+            backupSubscriptionManager: backupSubscriptionManager,
+            db: DependenciesBridge.shared.db,
+            tsAccountManager: DependenciesBridge.shared.tsAccountManager,
+            onConfirmPlanSelectionBlock: onConfirmPlanSelectionBlock,
+        )
+    }
 }
 
 // MARK: - ChooseBackupPlanViewModel.ActionsDelegate
 
 extension ChooseBackupPlanViewController: ChooseBackupPlanViewModel.ActionsDelegate {
     fileprivate func confirmSelection(_ planSelection: PlanSelection) {
-        Task { await _confirmSelection(planSelection: planSelection) }
-    }
-
-    @MainActor
-    private func _confirmSelection(planSelection: PlanSelection) async {
-        func errorActionSheet(_ message: String) {
-            OWSActionSheets.showActionSheet(
-                message: message,
-                fromViewController: self
-            )
-        }
-
-        let networkErrorSheetMessage = OWSLocalizedString(
-            "CHOOSE_BACKUP_PLAN_CONFIRMATION_ERROR_NETWORK_ERROR",
-            comment: "Message shown in an action sheet when the user tries to confirm a plan selection, but encountered a network error."
-        )
-
-        // First, reserve a Backup ID. We'll need this regardless of which plan
-        // the user chose, and we want to be sure it's succeeded before we
-        // attempt a potential purchase. (Redeeming a Backups subscription
-        // without this step will fail!)
-        do {
-            guard let localIdentifiers = db.read(block: { tx in
-                tsAccountManager.localIdentifiers(tx: tx)
-            }) else {
-                return errorActionSheet(OWSLocalizedString(
-                    "CHOOSE_BACKUP_PLAN_CONFIRMATION_ERROR_NOT_REGISTERED",
-                    comment: "Message shown in an action sheet when the user tries to confirm a plan selection, but is not registered."
-                ))
-            }
-
-            try await ModalActivityIndicatorViewController.presentAndPropagateResult(
-                from: self
-            ) {
-                _ = try await self.backupIdManager.registerBackupId(
-                    localIdentifiers: localIdentifiers,
-                    auth: .implicit()
-                )
-            }
-        } catch where error.isNetworkFailureOrTimeout {
-            return errorActionSheet(networkErrorSheetMessage)
-        } catch {
-            owsFailDebug("Unexpectedly failed to register Backup ID! \(error)")
-            return errorActionSheet(OWSLocalizedString(
-                "CHOOSE_BACKUP_PLAN_CONFIRMATION_ERROR_GENERIC_ERROR",
-                comment: "Message shown in an action sheet when the user tries to confirm a plan selection, but encountered a generic error."
-            ))
-        }
-
-        switch planSelection {
-        case .free:
-            await db.awaitableWrite { tx in
-                backupSettingsStore.setBackupPlan(.free, tx: tx)
-            }
-
-            delegate?.chooseBackupPlanViewController(
-                self,
-                didEnablePlan: planSelection
-            )
-        case .paid:
-            let purchaseResult: BackupSubscription.PurchaseResult
-            do {
-                purchaseResult = try await backupSubscriptionManager.purchaseNewSubscription()
-            } catch StoreKitError.networkError {
-                return errorActionSheet(networkErrorSheetMessage)
-            } catch {
-                owsFailDebug("StoreKit purchase unexpectedly failed: \(error)")
-                return errorActionSheet(OWSLocalizedString(
-                    "CHOOSE_BACKUP_PLAN_CONFIRMATION_ERROR_PURCHASE",
-                    comment: "Message shown in an action sheet when the user tries to confirm selecting the paid plan, but encountered an error from Apple while purchasing."
-                ))
-            }
-
-            switch purchaseResult {
-            case .success:
-                // Enable Backups, so that the redemption can upgrade it to
-                // .paid below.
-                await db.awaitableWrite { tx in
-                    backupSettingsStore.setBackupPlan(.free, tx: tx)
-                }
-
-                do {
-                    try await ModalActivityIndicatorViewController.presentAndPropagateResult(
-                        from: self
-                    ) {
-                        // This upgrades BackupPlan to .paid if it succeeds.
-                        try await self.backupSubscriptionManager.redeemSubscriptionIfNecessary()
-                    }
-                } catch {
-                    owsFailDebug("Unexpectedly failed to redeem subscription! \(error)")
-                    return errorActionSheet(OWSLocalizedString(
-                        "CHOOSE_BACKUP_PLAN_CONFIRMATION_ERROR_PURCHASE_REDEMPTION",
-                        comment: "Message shown in an action sheet when the user tries to confirm selecting the paid plan, but encountered an error while redeeming their completed purchase."
-                    ))
-                }
-
-                // Since BackupPlan is set to .paid when redemption succeeds, we
-                // don't need to do anything here.
-
-                delegate?.chooseBackupPlanViewController(
-                    self,
-                    didEnablePlan: planSelection
-                )
-            case .pending:
-                // The subscription won't be redeemed until if/when the purchase
-                // is approved, but if/when that happens BackupPlan will get set
-                // set to .paid. For the time being, we can enable Backups as
-                // a free-tier user!
-                await db.awaitableWrite { tx in
-                    backupSettingsStore.setBackupPlan(.free, tx: tx)
-                }
-
-                delegate?.chooseBackupPlanViewController(
-                    self,
-                    didEnablePlan: planSelection
-                )
-            case .userCancelled:
-                // Do nothing – don't even dismiss "choose plan", to give
-                // the user the chance to try again. We've reserved a Backup
-                // ID at this point, but that's fine even if they don't end
-                // up enabling Backups at all.
-                break
-            }
-        }
+        onConfirmPlanSelectionBlock(self, planSelection)
     }
 }
 
@@ -242,100 +129,96 @@ struct ChooseBackupPlanView: View {
     }
 
     var body: some View {
-        VStack {
-            ScrollView {
-                VStack {
-                    Image("backups-choose-plan")
-                        .frame(width: 80, height: 80)
+        ScrollableContentPinnedFooterView {
+            VStack {
+                Image("backups-choose-plan")
+                    .frame(width: 80, height: 80)
 
-                    Spacer().frame(height: 8)
+                Spacer().frame(height: 8)
 
-                    Text(OWSLocalizedString(
-                        "CHOOSE_BACKUP_PLAN_TITLE",
-                        comment: "Title for a view allowing users to choose a Backup plan."
-                    ))
-                    .font(.title.weight(.semibold))
-                    .foregroundStyle(Color.Signal.label)
+                Text(OWSLocalizedString(
+                    "CHOOSE_BACKUP_PLAN_TITLE",
+                    comment: "Title for a view allowing users to choose a Backup plan."
+                ))
+                .font(.title.weight(.semibold))
+                .foregroundStyle(Color.Signal.label)
 
-                    Spacer().frame(height: 12)
+                Spacer().frame(height: 12)
 
-                    Text(OWSLocalizedString(
-                        "CHOOSE_BACKUP_PLAN_SUBTITLE",
-                        comment: "Subtitle for a view allowing users to choose a Backup plan."
-                    ))
-                    .appendLink(CommonStrings.learnMore) {
-                        // TODO: [Backups] Open Support page
-                    }
-                    .foregroundStyle(Color.Signal.secondaryLabel)
-
-                    Spacer().frame(height: 20)
-
-                    PlanOptionView(
-                        title: OWSLocalizedString(
-                            "CHOOSE_BACKUP_PLAN_FREE_PLAN_TITLE",
-                            comment: "Title for the free plan option, when choosing a Backup plan."
-                        ),
-                        subtitle: OWSLocalizedString(
-                            "CHOOSE_BACKUP_PLAN_FREE_PLAN_SUBTITLE",
-                            comment: "Subtitle for the free plan option, when choosing a Backup plan."
-                        ),
-                        bullets: [
-                            PlanOptionView.BulletPoint(iconKey: "thread", text: OWSLocalizedString(
-                                "CHOOSE_BACKUP_PLAN_BULLET_FULL_TEXT_BACKUP",
-                                comment: "Text for a bullet point in a list of Backup features, describing that all text messages are included."
-                            )),
-                            PlanOptionView.BulletPoint(iconKey: "album-tilt", text: OWSLocalizedString(
-                                "CHOOSE_BACKUP_PLAN_BULLET_RECENT_MEDIA_BACKUP",
-                                comment: "Text for a bullet point in a list of Backup features, describing that recent media is included."
-                            )),
-                        ],
-                        isCurrentPlan: viewModel.initialPlanSelection == .free,
-                        isSelected: viewModel.planSelection == .free,
-                        onTap: {
-                            viewModel.planSelection = .free
-                        }
-                    )
-
-                    Spacer().frame(height: 16)
-
-                    PlanOptionView(
-                        title: String(
-                            format: OWSLocalizedString(
-                                "CHOOSE_BACKUP_PLAN_PAID_PLAN_TITLE",
-                                comment: "Title for the paid plan option, when choosing a Backup plan. Embeds {{ the formatted monthly cost, as currency, of the paid plan }}."
-                            ),
-                            viewModel.paidPlanDisplayPrice
-                        ),
-                        subtitle: OWSLocalizedString(
-                            "CHOOSE_BACKUP_PLAN_PAID_PLAN_SUBTITLE",
-                            comment: "Subtitle for the paid plan option, when choosing a Backup plan."
-                        ),
-                        bullets: [
-                            PlanOptionView.BulletPoint(iconKey: "thread", text: OWSLocalizedString(
-                                "CHOOSE_BACKUP_PLAN_BULLET_FULL_TEXT_BACKUP",
-                                comment: "Text for a bullet point in a list of Backup features, describing that all text messages are included."
-                            )),
-                            PlanOptionView.BulletPoint(iconKey: "album-tilt", text: OWSLocalizedString(
-                                "CHOOSE_BACKUP_PLAN_BULLET_FULL_MEDIA_BACKUP",
-                                comment: "Text for a bullet point in a list of Backup features, describing that all media is included."
-                            )),
-                            PlanOptionView.BulletPoint(iconKey: "data", text: OWSLocalizedString(
-                                "CHOOSE_BACKUP_PLAN_BULLET_STORAGE_AMOUNT",
-                                comment: "Text for a bullet point in a list of Backup features, describing the amount of included storage."
-                            )),
-                        ],
-                        isCurrentPlan: viewModel.initialPlanSelection == .paid,
-                        isSelected: viewModel.planSelection == .paid,
-                        onTap: {
-                            viewModel.planSelection = .paid
-                        }
-                    )
+                Text(OWSLocalizedString(
+                    "CHOOSE_BACKUP_PLAN_SUBTITLE",
+                    comment: "Subtitle for a view allowing users to choose a Backup plan."
+                ))
+                .appendLink(CommonStrings.learnMore) {
+                    // TODO: [Backups] Open Support page
                 }
-                .padding(.horizontal, 24)
+                .foregroundStyle(Color.Signal.secondaryLabel)
+
+                Spacer().frame(height: 20)
+
+                PlanOptionView(
+                    title: OWSLocalizedString(
+                        "CHOOSE_BACKUP_PLAN_FREE_PLAN_TITLE",
+                        comment: "Title for the free plan option, when choosing a Backup plan."
+                    ),
+                    subtitle: OWSLocalizedString(
+                        "CHOOSE_BACKUP_PLAN_FREE_PLAN_SUBTITLE",
+                        comment: "Subtitle for the free plan option, when choosing a Backup plan."
+                    ),
+                    bullets: [
+                        PlanOptionView.BulletPoint(iconKey: "thread", text: OWSLocalizedString(
+                            "CHOOSE_BACKUP_PLAN_BULLET_FULL_TEXT_BACKUP",
+                            comment: "Text for a bullet point in a list of Backup features, describing that all text messages are included."
+                        )),
+                        PlanOptionView.BulletPoint(iconKey: "album-tilt", text: OWSLocalizedString(
+                            "CHOOSE_BACKUP_PLAN_BULLET_RECENT_MEDIA_BACKUP",
+                            comment: "Text for a bullet point in a list of Backup features, describing that recent media is included."
+                        )),
+                    ],
+                    isCurrentPlan: viewModel.initialPlanSelection == .free,
+                    isSelected: viewModel.planSelection == .free,
+                    onTap: {
+                        viewModel.planSelection = .free
+                    }
+                )
 
                 Spacer().frame(height: 16)
-            }
 
+                PlanOptionView(
+                    title: String(
+                        format: OWSLocalizedString(
+                            "CHOOSE_BACKUP_PLAN_PAID_PLAN_TITLE",
+                            comment: "Title for the paid plan option, when choosing a Backup plan. Embeds {{ the formatted monthly cost, as currency, of the paid plan }}."
+                        ),
+                        viewModel.paidPlanDisplayPrice
+                    ),
+                    subtitle: OWSLocalizedString(
+                        "CHOOSE_BACKUP_PLAN_PAID_PLAN_SUBTITLE",
+                        comment: "Subtitle for the paid plan option, when choosing a Backup plan."
+                    ),
+                    bullets: [
+                        PlanOptionView.BulletPoint(iconKey: "thread", text: OWSLocalizedString(
+                            "CHOOSE_BACKUP_PLAN_BULLET_FULL_TEXT_BACKUP",
+                            comment: "Text for a bullet point in a list of Backup features, describing that all text messages are included."
+                        )),
+                        PlanOptionView.BulletPoint(iconKey: "album-tilt", text: OWSLocalizedString(
+                            "CHOOSE_BACKUP_PLAN_BULLET_FULL_MEDIA_BACKUP",
+                            comment: "Text for a bullet point in a list of Backup features, describing that all media is included."
+                        )),
+                        PlanOptionView.BulletPoint(iconKey: "data", text: OWSLocalizedString(
+                            "CHOOSE_BACKUP_PLAN_BULLET_STORAGE_AMOUNT",
+                            comment: "Text for a bullet point in a list of Backup features, describing the amount of included storage."
+                        )),
+                    ],
+                    isCurrentPlan: viewModel.initialPlanSelection == .paid,
+                    isSelected: viewModel.planSelection == .paid,
+                    onTap: {
+                        viewModel.planSelection = .paid
+                    }
+                )
+            }
+            .padding(.horizontal, 24)
+        } pinnedFooter: {
             Button {
                 viewModel.confirmSelection()
             } label: {
@@ -364,10 +247,7 @@ struct ChooseBackupPlanView: View {
             .cornerRadius(12)
             .padding(.horizontal, 40)
         }
-        .frame(maxWidth: .infinity)
         .multilineTextAlignment(.center)
-        .padding(.top, 8)
-        .padding(.bottom, 12)
         .background(Color.Signal.groupedBackground)
     }
 }

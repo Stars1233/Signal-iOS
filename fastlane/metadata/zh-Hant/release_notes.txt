@@ -1,1 +1,1 @@
-• 改變主意當然沒問題，因此我們修復了一個錯誤，以後在聊天中貼上附件之後決定不傳送時，圖片選擇器就不會再打開。
+• Message status indicators (sent, delivered, etc.) are now supported by the iOS VoiceOver feature in order to improve accessibility for blind and low-vision individuals.

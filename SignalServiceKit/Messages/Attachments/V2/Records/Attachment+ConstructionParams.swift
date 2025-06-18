@@ -20,6 +20,7 @@ extension Attachment {
         public let encryptionKey: Data
         public var streamInfo: StreamInfo?
         public let transitTierInfo: TransitTierInfo?
+        public let sha256ContentHash: Data?
         public let mediaName: String?
         public let mediaTierInfo: MediaTierInfo?
         public let thumbnailMediaTierInfo: ThumbnailMediaTierInfo?
@@ -33,6 +34,7 @@ extension Attachment {
             encryptionKey: Data,
             streamInfo: StreamInfo?,
             transitTierInfo: TransitTierInfo?,
+            sha256ContentHash: Data?,
             mediaName: String?,
             mediaTierInfo: MediaTierInfo?,
             thumbnailMediaTierInfo: ThumbnailMediaTierInfo?,
@@ -45,6 +47,7 @@ extension Attachment {
             self.encryptionKey = encryptionKey
             self.streamInfo = streamInfo
             self.transitTierInfo = transitTierInfo
+            self.sha256ContentHash = sha256ContentHash
             self.mediaName = mediaName
             self.mediaTierInfo = mediaTierInfo
             self.thumbnailMediaTierInfo = thumbnailMediaTierInfo
@@ -65,6 +68,7 @@ extension Attachment {
                 encryptionKey: encryptionKey,
                 streamInfo: nil,
                 transitTierInfo: transitTierInfo,
+                sha256ContentHash: nil,
                 mediaName: nil,
                 mediaTierInfo: nil,
                 thumbnailMediaTierInfo: nil,
@@ -79,6 +83,7 @@ extension Attachment {
             mimeType: String,
             encryptionKey: Data,
             streamInfo: StreamInfo,
+            sha256ContentHash: Data,
             mediaName: String
         ) -> ConstructionParams {
             return .init(
@@ -87,6 +92,7 @@ extension Attachment {
                 encryptionKey: encryptionKey,
                 streamInfo: streamInfo,
                 transitTierInfo: nil,
+                sha256ContentHash: sha256ContentHash,
                 mediaName: mediaName,
                 mediaTierInfo: nil,
                 thumbnailMediaTierInfo: nil,
@@ -101,16 +107,22 @@ extension Attachment {
             mimeType: String,
             encryptionKey: Data,
             transitTierInfo: TransitTierInfo?,
-            mediaName: String,
+            sha256ContentHash: Data?,
+            mediaName: String?,
             mediaTierInfo: MediaTierInfo?,
             thumbnailMediaTierInfo: ThumbnailMediaTierInfo?
         ) -> ConstructionParams {
+            owsPrecondition(
+                (sha256ContentHash == nil) == (mediaName == nil),
+                "Either both hash and mediaName set or neither set"
+            )
             return .init(
                 blurHash: blurHash,
                 mimeType: mimeType,
                 encryptionKey: encryptionKey,
                 streamInfo: nil,
                 transitTierInfo: transitTierInfo,
+                sha256ContentHash: sha256ContentHash,
                 mediaName: mediaName,
                 mediaTierInfo: mediaTierInfo,
                 thumbnailMediaTierInfo: thumbnailMediaTierInfo,
@@ -132,6 +144,7 @@ extension Attachment {
                 encryptionKey: Cryptography.randomAttachmentEncryptionKey(),
                 streamInfo: nil,
                 transitTierInfo: nil,
+                sha256ContentHash: nil,
                 mediaName: nil,
                 mediaTierInfo: nil,
                 thumbnailMediaTierInfo: nil,
@@ -154,6 +167,7 @@ extension Attachment {
                 encryptionKey: thumbnailEncryptionKey,
                 streamInfo: nil,
                 transitTierInfo: thumbnailTransitTierInfo,
+                sha256ContentHash: nil,
                 mediaName: nil,
                 mediaTierInfo: nil,
                 thumbnailMediaTierInfo: nil,
@@ -167,6 +181,8 @@ extension Attachment {
             attachment: Attachment,
             validatedMimeType: String,
             streamInfo: Attachment.StreamInfo,
+            sha256ContentHash: Data,
+            digestSHA256Ciphertext: Data,
             mediaName: String,
             lastFullscreenViewTimestamp: UInt64?,
         ) -> ConstructionParams {
@@ -177,7 +193,13 @@ extension Attachment {
                     uploadTimestamp: $0.uploadTimestamp,
                     encryptionKey: $0.encryptionKey,
                     unencryptedByteCount: $0.unencryptedByteCount,
-                    digestSHA256Ciphertext: $0.digestSHA256Ciphertext,
+                    // Whatever the integrity check was before, we now want it
+                    // to be the ciphertext digest NOT the plaintext hash.
+                    // We disallow reusing existing transit tier info when
+                    // forwarding if it doesn't have a digest, as digest is
+                    // required on the outgoing proto. So to allow forwarding
+                    // (where otherwise applicable) set the digest here.
+                    integrityCheck: .digestSHA256Ciphertext(digestSHA256Ciphertext),
                     incrementalMacInfo: $0.incrementalMacInfo,
                     // Wipe the last download attempt time; its now succeeded.
                     lastDownloadAttemptTimestamp: nil
@@ -189,6 +211,7 @@ extension Attachment {
                 encryptionKey: attachment.encryptionKey,
                 streamInfo: streamInfo,
                 transitTierInfo: transitTierInfo,
+                sha256ContentHash: sha256ContentHash,
                 mediaName: mediaName,
                 mediaTierInfo: attachment.mediaTierInfo,
                 thumbnailMediaTierInfo: attachment.thumbnailMediaTierInfo,
@@ -209,7 +232,7 @@ extension Attachment {
                     uploadTimestamp: $0.uploadTimestamp,
                     encryptionKey: $0.encryptionKey,
                     unencryptedByteCount: $0.unencryptedByteCount,
-                    digestSHA256Ciphertext: $0.digestSHA256Ciphertext,
+                    integrityCheck: $0.integrityCheck,
                     incrementalMacInfo: $0.incrementalMacInfo,
                     lastDownloadAttemptTimestamp: timestamp
                 )
@@ -220,6 +243,28 @@ extension Attachment {
                 encryptionKey: attachment.encryptionKey,
                 streamInfo: attachment.streamInfo,
                 transitTierInfo: transitTierInfo,
+                sha256ContentHash: attachment.sha256ContentHash,
+                mediaName: attachment.mediaName,
+                mediaTierInfo: attachment.mediaTierInfo,
+                thumbnailMediaTierInfo: attachment.thumbnailMediaTierInfo,
+                localRelativeFilePathThumbnail: attachment.localRelativeFilePathThumbnail,
+                originalAttachmentIdForQuotedReply: attachment.originalAttachmentIdForQuotedReply,
+                lastFullscreenViewTimestamp: attachment.lastFullscreenViewTimestamp,
+            )
+        }
+
+        public static func forUpdatingAsUploadedToTransitTier(
+            attachment stream: AttachmentStream,
+            transitTierInfo: TransitTierInfo
+        ) -> ConstructionParams {
+            let attachment = stream.attachment
+            return .init(
+                blurHash: attachment.blurHash,
+                mimeType: attachment.mimeType,
+                encryptionKey: attachment.encryptionKey,
+                streamInfo: attachment.streamInfo,
+                transitTierInfo: transitTierInfo,
+                sha256ContentHash: attachment.sha256ContentHash,
                 mediaName: attachment.mediaName,
                 mediaTierInfo: attachment.mediaTierInfo,
                 thumbnailMediaTierInfo: attachment.thumbnailMediaTierInfo,
@@ -238,9 +283,90 @@ extension Attachment {
                 encryptionKey: attachment.encryptionKey,
                 streamInfo: attachment.streamInfo,
                 transitTierInfo: nil,
+                sha256ContentHash: attachment.sha256ContentHash,
                 mediaName: attachment.mediaName,
                 mediaTierInfo: attachment.mediaTierInfo,
                 thumbnailMediaTierInfo: attachment.thumbnailMediaTierInfo,
+                localRelativeFilePathThumbnail: attachment.localRelativeFilePathThumbnail,
+                originalAttachmentIdForQuotedReply: attachment.originalAttachmentIdForQuotedReply,
+                lastFullscreenViewTimestamp: attachment.lastFullscreenViewTimestamp,
+            )
+        }
+
+        public static func forUpdatingAsUploadedToMediaTier(
+            attachment: Attachment,
+            mediaTierInfo: MediaTierInfo,
+            mediaName: String
+        ) -> ConstructionParams {
+            return .init(
+                blurHash: attachment.blurHash,
+                mimeType: attachment.mimeType,
+                encryptionKey: attachment.encryptionKey,
+                streamInfo: attachment.streamInfo,
+                transitTierInfo: attachment.transitTierInfo,
+                sha256ContentHash: attachment.sha256ContentHash,
+                mediaName: mediaName,
+                mediaTierInfo: mediaTierInfo,
+                thumbnailMediaTierInfo: attachment.thumbnailMediaTierInfo,
+                localRelativeFilePathThumbnail: attachment.localRelativeFilePathThumbnail,
+                originalAttachmentIdForQuotedReply: attachment.originalAttachmentIdForQuotedReply,
+                lastFullscreenViewTimestamp: attachment.lastFullscreenViewTimestamp,
+            )
+        }
+
+        public static func forRemovingMediaTierInfo(
+            attachment: Attachment
+        ) -> ConstructionParams {
+            return .init(
+                blurHash: attachment.blurHash,
+                mimeType: attachment.mimeType,
+                encryptionKey: attachment.encryptionKey,
+                streamInfo: attachment.streamInfo,
+                transitTierInfo: attachment.transitTierInfo,
+                sha256ContentHash: attachment.sha256ContentHash,
+                mediaName: attachment.mediaName,
+                mediaTierInfo: nil,
+                thumbnailMediaTierInfo: attachment.thumbnailMediaTierInfo,
+                localRelativeFilePathThumbnail: attachment.localRelativeFilePathThumbnail,
+                originalAttachmentIdForQuotedReply: attachment.originalAttachmentIdForQuotedReply,
+                lastFullscreenViewTimestamp: attachment.lastFullscreenViewTimestamp,
+            )
+        }
+
+        public static func forUpdatingAsUploadedThumbnailToMediaTier(
+            attachment: Attachment,
+            thumbnailMediaTierInfo: ThumbnailMediaTierInfo,
+            mediaName: String
+        ) -> ConstructionParams {
+            return .init(
+                blurHash: attachment.blurHash,
+                mimeType: attachment.mimeType,
+                encryptionKey: attachment.encryptionKey,
+                streamInfo: attachment.streamInfo,
+                transitTierInfo: attachment.transitTierInfo,
+                sha256ContentHash: attachment.sha256ContentHash,
+                mediaName: mediaName,
+                mediaTierInfo: attachment.mediaTierInfo,
+                thumbnailMediaTierInfo: thumbnailMediaTierInfo,
+                localRelativeFilePathThumbnail: attachment.localRelativeFilePathThumbnail,
+                originalAttachmentIdForQuotedReply: attachment.originalAttachmentIdForQuotedReply,
+                lastFullscreenViewTimestamp: attachment.lastFullscreenViewTimestamp,
+            )
+        }
+
+        public static func forRemovingThumbnailMediaTierInfo(
+            attachment: Attachment
+        ) -> ConstructionParams {
+            return .init(
+                blurHash: attachment.blurHash,
+                mimeType: attachment.mimeType,
+                encryptionKey: attachment.encryptionKey,
+                streamInfo: attachment.streamInfo,
+                transitTierInfo: attachment.transitTierInfo,
+                sha256ContentHash: attachment.sha256ContentHash,
+                mediaName: attachment.mediaName,
+                mediaTierInfo: attachment.mediaTierInfo,
+                thumbnailMediaTierInfo: nil,
                 localRelativeFilePathThumbnail: attachment.localRelativeFilePathThumbnail,
                 originalAttachmentIdForQuotedReply: attachment.originalAttachmentIdForQuotedReply,
                 lastFullscreenViewTimestamp: attachment.lastFullscreenViewTimestamp,
@@ -251,6 +377,7 @@ extension Attachment {
             attachment: Attachment,
             validatedMimeType: String,
             streamInfo: Attachment.StreamInfo,
+            sha256ContentHash: Data,
             mediaName: String,
             lastFullscreenViewTimestamp: UInt64?,
         ) -> ConstructionParams {
@@ -258,7 +385,7 @@ extension Attachment {
                 return Attachment.MediaTierInfo(
                     cdnNumber: $0.cdnNumber,
                     unencryptedByteCount: $0.unencryptedByteCount,
-                    digestSHA256Ciphertext: $0.digestSHA256Ciphertext,
+                    sha256ContentHash: $0.sha256ContentHash,
                     incrementalMacInfo: $0.incrementalMacInfo,
                     uploadEra: $0.uploadEra,
                     // Wipe the last download attempt time; its now succeeded.
@@ -271,6 +398,7 @@ extension Attachment {
                 encryptionKey: attachment.encryptionKey,
                 streamInfo: streamInfo,
                 transitTierInfo: attachment.transitTierInfo,
+                sha256ContentHash: sha256ContentHash,
                 mediaName: mediaName,
                 mediaTierInfo: mediaTierInfo,
                 thumbnailMediaTierInfo: attachment.thumbnailMediaTierInfo,
@@ -288,7 +416,7 @@ extension Attachment {
                 return Attachment.MediaTierInfo(
                     cdnNumber: $0.cdnNumber,
                     unencryptedByteCount: $0.unencryptedByteCount,
-                    digestSHA256Ciphertext: $0.digestSHA256Ciphertext,
+                    sha256ContentHash: $0.sha256ContentHash,
                     incrementalMacInfo: $0.incrementalMacInfo,
                     uploadEra: $0.uploadEra,
                     lastDownloadAttemptTimestamp: timestamp
@@ -300,6 +428,7 @@ extension Attachment {
                 encryptionKey: attachment.encryptionKey,
                 streamInfo: attachment.streamInfo,
                 transitTierInfo: attachment.transitTierInfo,
+                sha256ContentHash: attachment.sha256ContentHash,
                 mediaName: attachment.mediaName,
                 mediaTierInfo: mediaTierInfo,
                 thumbnailMediaTierInfo: attachment.thumbnailMediaTierInfo,
@@ -312,8 +441,7 @@ extension Attachment {
         public static func forUpdatingAsDownlodedThumbnailFromMediaTier(
             attachment: Attachment,
             validatedMimeType: String,
-            streamInfo: Attachment.StreamInfo,
-            mediaName: String
+            streamInfo: Attachment.StreamInfo
         ) -> ConstructionParams {
             let thumbnailMediaTierInfo = attachment.thumbnailMediaTierInfo.map {
                 return Attachment.ThumbnailMediaTierInfo(
@@ -329,6 +457,7 @@ extension Attachment {
                 encryptionKey: attachment.encryptionKey,
                 streamInfo: attachment.streamInfo,
                 transitTierInfo: attachment.transitTierInfo,
+                sha256ContentHash: attachment.sha256ContentHash,
                 mediaName: attachment.mediaName,
                 mediaTierInfo: attachment.mediaTierInfo,
                 thumbnailMediaTierInfo: thumbnailMediaTierInfo,
@@ -355,6 +484,7 @@ extension Attachment {
                 encryptionKey: attachment.encryptionKey,
                 streamInfo: attachment.streamInfo,
                 transitTierInfo: attachment.transitTierInfo,
+                sha256ContentHash: attachment.sha256ContentHash,
                 mediaName: attachment.mediaName,
                 mediaTierInfo: attachment.mediaTierInfo,
                 thumbnailMediaTierInfo: thumbnailMediaTierInfo,
@@ -373,6 +503,7 @@ extension Attachment {
             let streamInfo = attachment.streamInfo.map {
                 return Attachment.StreamInfo(
                     sha256ContentHash: $0.sha256ContentHash,
+                    mediaName: $0.mediaName,
                     encryptedByteCount: $0.encryptedByteCount,
                     unencryptedByteCount: $0.unencryptedByteCount,
                     contentType: contentType,
@@ -386,6 +517,7 @@ extension Attachment {
                 encryptionKey: attachment.encryptionKey,
                 streamInfo: streamInfo,
                 transitTierInfo: attachment.transitTierInfo,
+                sha256ContentHash: attachment.sha256ContentHash,
                 mediaName: attachment.mediaName,
                 mediaTierInfo: attachment.mediaTierInfo,
                 thumbnailMediaTierInfo: attachment.thumbnailMediaTierInfo,
@@ -398,18 +530,23 @@ extension Attachment {
         public static func forMerging(
             streamInfo: Attachment.StreamInfo,
             into attachment: Attachment,
-            mimeType: String
+            encryptionKey: Data,
+            mimeType: String,
+            transitTierInfo: TransitTierInfo?,
+            mediaTierInfo: MediaTierInfo?,
+            thumbnailMediaTierInfo: ThumbnailMediaTierInfo?
         ) -> ConstructionParams {
             return .init(
                 blurHash: attachment.blurHash,
                 mimeType: mimeType,
-                encryptionKey: attachment.encryptionKey,
+                encryptionKey: encryptionKey,
                 streamInfo: streamInfo,
-                transitTierInfo: attachment.transitTierInfo,
-                mediaName: attachment.mediaName,
-                mediaTierInfo: attachment.mediaTierInfo,
-                thumbnailMediaTierInfo: attachment.thumbnailMediaTierInfo,
-                localRelativeFilePathThumbnail: attachment.localRelativeFilePathThumbnail,
+                transitTierInfo: transitTierInfo,
+                sha256ContentHash: streamInfo.sha256ContentHash,
+                mediaName: streamInfo.mediaName,
+                mediaTierInfo: mediaTierInfo,
+                thumbnailMediaTierInfo: thumbnailMediaTierInfo,
+                localRelativeFilePathThumbnail: nil,
                 originalAttachmentIdForQuotedReply: attachment.originalAttachmentIdForQuotedReply,
                 lastFullscreenViewTimestamp: attachment.lastFullscreenViewTimestamp,
             )
@@ -425,6 +562,7 @@ extension Attachment {
                 encryptionKey: attachment.encryptionKey,
                 streamInfo: attachment.streamInfo,
                 transitTierInfo: attachment.transitTierInfo,
+                sha256ContentHash: attachment.sha256ContentHash,
                 mediaName: attachment.mediaName,
                 mediaTierInfo: attachment.mediaTierInfo,
                 thumbnailMediaTierInfo: attachment.thumbnailMediaTierInfo,
@@ -435,7 +573,8 @@ extension Attachment {
         }
 
         public static func forOffloadingFiles(
-            attachment: Attachment
+            attachment: Attachment,
+            localRelativeFilePathThumbnail: String?,
         ) -> ConstructionParams {
             return .init(
                 blurHash: attachment.blurHash,
@@ -444,11 +583,12 @@ extension Attachment {
                 // Remove stream info
                 streamInfo: nil,
                 transitTierInfo: attachment.transitTierInfo,
-                // Keep medianame so we can download again
+                // Keep sha256ContentHash and medianame so we can download again
+                sha256ContentHash: attachment.sha256ContentHash,
                 mediaName: attachment.mediaName,
                 mediaTierInfo: attachment.mediaTierInfo,
                 thumbnailMediaTierInfo: attachment.thumbnailMediaTierInfo,
-                localRelativeFilePathThumbnail: attachment.localRelativeFilePathThumbnail,
+                localRelativeFilePathThumbnail: localRelativeFilePathThumbnail ?? attachment.localRelativeFilePathThumbnail,
                 originalAttachmentIdForQuotedReply: attachment.originalAttachmentIdForQuotedReply,
                 lastFullscreenViewTimestamp: attachment.lastFullscreenViewTimestamp,
             )

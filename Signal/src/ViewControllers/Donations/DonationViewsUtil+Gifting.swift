@@ -66,8 +66,8 @@ extension DonationViewsUtil {
         static func prepareToPay(
             amount: FiatMoney,
             applePayPayment: PKPayment
-        ) -> Promise<PreparedGiftPayment> {
-            prepareToPay(
+        ) async throws -> PreparedGiftPayment {
+            return try await prepareToPay(
                 amount: amount,
                 withStripePaymentMethod: .applePay(payment: applePayPayment)
             )
@@ -77,8 +77,8 @@ extension DonationViewsUtil {
         static func prepareToPay(
             amount: FiatMoney,
             creditOrDebitCard: Stripe.PaymentMethod.CreditOrDebitCard
-        ) -> Promise<PreparedGiftPayment> {
-            prepareToPay(
+        ) async throws -> PreparedGiftPayment {
+            try await prepareToPay(
                 amount: amount,
                 withStripePaymentMethod: .creditOrDebitCard(creditOrDebitCard: creditOrDebitCard)
             )
@@ -88,18 +88,20 @@ extension DonationViewsUtil {
         private static func prepareToPay(
             amount: FiatMoney,
             withStripePaymentMethod paymentMethod: Stripe.PaymentMethod
-        ) -> Promise<PreparedGiftPayment> {
-            Promise.wrapAsync {
-                let paymentIntent = try await Stripe.createBoostPaymentIntent(
-                    for: amount,
-                    level: .giftBadge(.signalGift),
-                    paymentMethod: paymentMethod.stripePaymentMethod
-                )
-                let paymentMethodId = try await Stripe.createPaymentMethod(with: paymentMethod)
-                return .forStripe(paymentIntent: paymentIntent, paymentMethodId: paymentMethodId)
-            }.timeout(seconds: 30) {
-                Logger.warn("[Gifting] Timed out after preparing gift badge payment")
-                return SendGiftError.failedAndUserNotCharged
+        ) async throws -> PreparedGiftPayment {
+            do {
+                return try await withCooperativeTimeout(seconds: 30) {
+                    let paymentIntent = try await Stripe.createBoostPaymentIntent(
+                        for: amount,
+                        level: .giftBadge(.signalGift),
+                        paymentMethod: paymentMethod.stripePaymentMethod
+                    )
+                    let paymentMethodId = try await Stripe.createPaymentMethod(with: paymentMethod)
+                    return .forStripe(paymentIntent: paymentIntent, paymentMethodId: paymentMethodId)
+                }
+            } catch is CooperativeTimeoutError {
+                Logger.warn("[Gifting] Timed out while preparing gift badge payment")
+                throw SendGiftError.failedAndUserNotCharged
             }
         }
 

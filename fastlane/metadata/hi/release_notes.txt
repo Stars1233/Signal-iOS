@@ -1,1 +1,1 @@
-• मन कभी भी बदल सकता है, इसलिए हमने उस गड़बड़ी को ठीक कर दिया है जिसकी वजह से चैट में अटैचमेंट पेस्ट करने और उसे भेजने का फ़ैसला न करने के बाद इमेज पिकर खुल जाता था।
+• Message status indicators (sent, delivered, etc.) are now supported by the iOS VoiceOver feature in order to improve accessibility for blind and low-vision individuals.

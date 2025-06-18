@@ -32,6 +32,7 @@ public class AppEnvironment: NSObject {
     private(set) var appIconBadgeUpdater: AppIconBadgeUpdater!
     private(set) var avatarHistoryManager: AvatarHistoryManager!
     private(set) var backupDisablingManager: BackupDisablingManager!
+    private(set) var backupEnablingManager: BackupEnablingManager!
     private(set) var badgeManager: BadgeManager!
     private(set) var callLinkProfileKeySharingManager: CallLinkProfileKeySharingManager!
     private(set) var callService: CallService!
@@ -50,12 +51,18 @@ public class AppEnvironment: NSObject {
     }
 
     func setUp(appReadiness: AppReadiness, callService: CallService) {
+        let backupSettingsStore = BackupSettingsStore()
+        let backupDisablingManager = BackupDisablingManager(
+            backupIdManager: DependenciesBridge.shared.backupIdManager,
+            backupSettingsStore: BackupSettingsStore(),
+            db: DependenciesBridge.shared.db,
+            tsAccountManager: DependenciesBridge.shared.tsAccountManager,
+        )
         let badgeManager = BadgeManager(
             databaseStorage: SSKEnvironment.shared.databaseStorageRef,
             mainScheduler: DispatchQueue.main,
             serialScheduler: DispatchQueue.sharedUtility
         )
-
         let deviceProvisioningService = DeviceProvisioningServiceImpl(
             networkManager: SSKEnvironment.shared.networkManagerRef,
             schedulers: DependenciesBridge.shared.schedulers
@@ -67,9 +74,12 @@ public class AppEnvironment: NSObject {
             db: DependenciesBridge.shared.db
         )
         self.badgeManager = badgeManager
-        self.backupDisablingManager = BackupDisablingManager(
+        self.backupDisablingManager = backupDisablingManager
+        self.backupEnablingManager = BackupEnablingManager(
+            backupDisablingManager: backupDisablingManager,
             backupIdManager: DependenciesBridge.shared.backupIdManager,
             backupSettingsStore: BackupSettingsStore(),
+            backupSubscriptionManager: DependenciesBridge.shared.backupSubscriptionManager,
             db: DependenciesBridge.shared.db,
             tsAccountManager: DependenciesBridge.shared.tsAccountManager,
         )
@@ -91,6 +101,7 @@ public class AppEnvironment: NSObject {
         )
         self.quickRestoreManager = QuickRestoreManager(
             accountKeyStore: DependenciesBridge.shared.accountKeyStore,
+            backupSettingsStore: backupSettingsStore,
             db: DependenciesBridge.shared.db,
             deviceProvisioningService: deviceProvisioningService,
             identityManager: DependenciesBridge.shared.identityManager,
@@ -192,8 +203,8 @@ public class AppEnvironment: NSObject {
                 await deletedCallRecordCleanupManager.startCleanupIfNecessary()
             }
 
-            Task {
-                await self.backupDisablingManager.disableRemotelyIfNecessary()
+            Task { () async -> Void in
+                try? await self.backupDisablingManager.disableRemotelyIfNecessary()
             }
 
             Task {

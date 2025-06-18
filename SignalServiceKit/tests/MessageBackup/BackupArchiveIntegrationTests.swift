@@ -342,6 +342,8 @@ class BackupArchiveIntegrationTests: XCTestCase {
         try await deps.backupArchiveManager.importPlaintextBackup(
             fileUrl: testCaseFileUrl,
             localIdentifiers: localIdentifiers,
+            isPrimaryDevice: true,
+            backupPurpose: .remoteBackup,
             progress: nil
         )
 
@@ -520,7 +522,7 @@ private func failTest<T>(
 /// should never be invoked during Backup import or export.
 private enum CrashyMocks {
     final class MockNetworkManager: NetworkManager {
-        override func asyncRequest(_ request: TSRequest, canUseWebSocket: Bool = true) async throws -> any HTTPResponse { failTest(Self.self) }
+        override func asyncRequest(_ request: TSRequest, canUseWebSocket: Bool = true, retryPolicy: RetryPolicy = .dont) async throws -> any HTTPResponse { failTest(Self.self) }
         override func makePromise(request: TSRequest, canUseWebSocket: Bool = true) -> Promise<any HTTPResponse> { failTest(Self.self) }
     }
 

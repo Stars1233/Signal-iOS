@@ -1,1 +1,1 @@
-• Es ist immer okay, seine Meinung zu ändern. Deshalb haben wir einen Fehler behoben, der dazu führte, dass sich das Foto-Auswahlmenü öffnete, wenn du einen Anhang in einen Chat eingefügt und dich dann dazu entschlossen hast, diesen doch nicht zu senden.
+• Message status indicators (sent, delivered, etc.) are now supported by the iOS VoiceOver feature in order to improve accessibility for blind and low-vision individuals.
