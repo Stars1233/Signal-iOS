@@ -1,1 +1,1 @@
-• Cambiar de opinión siempre es válido, así que hemos corregido un error que hacía que se abriera el selector de imágenes si pegabas un archivo adjunto en un chat y luego decidías no enviarlo.
+• Los indicadores de estado de los mensajes (enviado, entregado, etc.) ahora son compatibles con la función VoiceOver de iOS. Así, logramos mejorar la accesibilidad para las personas ciegas o con baja visión.

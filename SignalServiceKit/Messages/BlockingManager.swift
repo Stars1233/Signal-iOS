@@ -25,7 +25,6 @@ public enum BlockMode {
 // MARK: -
 
 public class BlockingManager {
-    private let appReadiness: AppReadiness
     private let blockedGroupStore: BlockedGroupStore
     private let blockedRecipientStore: BlockedRecipientStore
 
@@ -42,23 +41,20 @@ public class BlockingManager {
         blockedGroupStore: BlockedGroupStore,
         blockedRecipientStore: BlockedRecipientStore
     ) {
-        self.appReadiness = appReadiness
         self.blockedGroupStore = blockedGroupStore
         self.blockedRecipientStore = blockedRecipientStore
 
         SwiftSingletons.register(self)
-        appReadiness.runNowOrWhenAppWillBecomeReady {
+        appReadiness.runNowOrWhenAppDidBecomeReadyAsync {
             self.observeNotifications()
+            // Once we're ready to send a message, check to see if we need to sync.
+            self.syncIfNeeded()
         }
-        // Once we're ready to send a message, check to see if we need to sync.
-        syncIfNeeded()
     }
 
     private func syncIfNeeded() {
-        appReadiness.runNowOrWhenMainAppDidBecomeReadyAsync {
-            self.syncQueue.enqueue {
-                await self.sendBlockListSyncMessage(force: false)
-            }
+        self.syncQueue.enqueue {
+            await self.sendBlockListSyncMessage(force: false)
         }
     }
 
@@ -252,7 +248,7 @@ public class BlockingManager {
         owsAssertDebug(groupThread != nil, "Must have TSGroupThread in order to block it.")
 
         if blockMode.locallyInitiated, let masterKey = try? (groupThread?.groupModel as? TSGroupModelV2)?.masterKey() {
-            SSKEnvironment.shared.storageServiceManagerRef.recordPendingUpdates(updatedGroupV2MasterKeys: [masterKey.serialize().asData])
+            SSKEnvironment.shared.storageServiceManagerRef.recordPendingUpdates(updatedGroupV2MasterKeys: [masterKey])
         }
 
         if let groupThread {
@@ -309,7 +305,7 @@ public class BlockingManager {
                 return nil
             }()
             if let masterKey {
-                SSKEnvironment.shared.storageServiceManagerRef.recordPendingUpdates(updatedGroupV2MasterKeys: [masterKey.serialize().asData])
+                SSKEnvironment.shared.storageServiceManagerRef.recordPendingUpdates(updatedGroupV2MasterKeys: [masterKey])
             }
         }
 

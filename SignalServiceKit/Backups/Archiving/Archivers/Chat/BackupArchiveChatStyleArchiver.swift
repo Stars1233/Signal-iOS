@@ -12,19 +12,22 @@ public class BackupArchiveChatStyleArchiver: BackupArchiveProtoStreamWriter {
     private let backupAttachmentDownloadManager: BackupAttachmentDownloadManager
     private let chatColorSettingStore: ChatColorSettingStore
     private let wallpaperStore: WallpaperStore
+    private let backupAttachmentByteCounter: BackupArchiveAttachmentByteCounter
 
     public init(
         attachmentManager: AttachmentManager,
         attachmentStore: AttachmentStore,
         backupAttachmentDownloadManager: BackupAttachmentDownloadManager,
         chatColorSettingStore: ChatColorSettingStore,
-        wallpaperStore: WallpaperStore
+        wallpaperStore: WallpaperStore,
+        backupAttachmentByteCounter: BackupArchiveAttachmentByteCounter
     ) {
         self.attachmentManager = attachmentManager
         self.attachmentStore = attachmentStore
         self.backupAttachmentDownloadManager = backupAttachmentDownloadManager
         self.chatColorSettingStore = chatColorSettingStore
         self.wallpaperStore = wallpaperStore
+        self.backupAttachmentByteCounter = backupAttachmentByteCounter
     }
 
     // MARK: - Custom Chat Colors
@@ -454,22 +457,9 @@ public class BackupArchiveChatStyleArchiver: BackupArchiveProtoStreamWriter {
             return .success(nil)
         }
 
-        do {
-            try context.enqueueAttachmentForUploadIfNeeded(referencedAttachment)
-        } catch {
-            // Just log these errors, but count as success and proceed.
-            // The wallpaper just won't upload.
-            BackupArchive.collapse([.init(
-                error: BackupArchive.ArchiveFrameError<IDType>.archiveFrameError(
-                    .failedToEnqueueAttachmentForUpload,
-                    errorId
-                ),
-                wasFrameDropped: false
-            )]).forEach { $0.log() }
-        }
-
         return .success(referencedAttachment.asBackupFilePointer(
-            currentBackupAttachmentUploadEra: context.currentBackupAttachmentUploadEra
+            currentBackupAttachmentUploadEra: context.currentBackupAttachmentUploadEra,
+            attachmentBytesCounter: backupAttachmentByteCounter
         ))
     }
 
@@ -541,6 +531,7 @@ public class BackupArchiveChatStyleArchiver: BackupArchiveProtoStreamWriter {
                     restoreStartTimestampMs: context.startTimestampMs,
                     backupPlan: backupPlan,
                     remoteConfig: context.accountDataContext.currentRemoteConfig,
+                    isPrimaryDevice: context.isPrimaryDevice,
                     tx: context.tx
                 )
             }

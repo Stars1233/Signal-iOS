@@ -514,6 +514,69 @@
 /* Text used as placeholder in backup key text view. */
 "BACKUP_KEY_PLACEHOLDER" = "Kunci sandaran";
 
+/* Title of button to tap if you forgot your backup key. */
+"BACKUP_KEY_REMINDER_FORGOT_KEY" = "Terlupa kunci?";
+
+/* Action text for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_MEGAPHONE_ACTION" = "Sahkan";
+
+/* Body for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_MEGAPHONE_BODY" = "Kami akan sesekali meminta anda mengesahkan kunci anda untuk memastikan anda masih mengingatinya";
+
+/* Title for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_MEGAPHONE_TITLE" = "Sahkan Kunci Sandaran anda";
+
+/* Snooze text for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_NOT_NOW_ACTION" = "Bukan sekarang";
+
+/* Toast indicating that the Backup Key was correct. */
+"BACKUP_KEY_REMINDER_SUCCESSFUL_TOAST" = "Kunci sandaran betul. Pastikan kunci anda selamat.";
+
+/* Body for a sheet warning users to their 'Backup Key' safe. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_KEEP_KEY_SAFE_SHEET_BODY" = "Signal tidak akan dapat membantu memulihkan sandaran jika anda kehilangan kunci. Simpannya di tempat yang selamat dan jangan kongsikannya dengan orang lain.";
+
+/* Title for a sheet warning users to their 'Backup Key' safe. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_KEEP_KEY_SAFE_SHEET_TITLE" = "Pastikan kunci anda selamat";
+
+/* Title for a button offering to let users see their 'Backup Key'. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_SEE_KEY_AGAIN_BUTTON_TITLE" = "Lihat kunci lagi";
+
+/* Subtitle for a view asking users to confirm their 'Backup Key'. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_SUBTITLE" = "Masukkan kunci sandaran yang baru anda rekodkan";
+
+/* Title for a view asking users to confirm their 'Backup Key'. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_TITLE" = "Sahkan kunci sandaran anda";
+
+/* Bullet point on a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_BULLET_1" = "Disulitkan Hujung ke hujung";
+
+/* Bullet point on a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_BULLET_2" = "Terpulang kepada anda";
+
+/* Bullet point on a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_BULLET_3" = "Padamkan sandaran anda pada bila-bila masa";
+
+/* Subtitle for a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_SUBTITLE" = "Sandarkan mesej dan media anda menggunakan perkhidmatan storan selamat yang disulitkan dari hujung ke hujung oleh Signal. Mesej tidak akan pernah hilang apabila anda mendapat telefon baharu atau memasang semula Signal.";
+
+/* Title for a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_TITLE" = "Sandaran Signal";
+
+/* Subtitle for a view introducing the 'Backup Key' during an onboarding flow. */
+"BACKUP_ONBOARDING_KEY_INTRO_SUBTITLE" = "Kunci sandaran anda ialah kod 64 digit yang boleh memulihkan sandaran apabila anda memasang semula Signal.\n\nJika terlupa PIN, anda tidak akan dapat memulihkan sandaran. Signal tidak dapat membantu memulihkan sandaran anda.";
+
+/* Title for a view introducing the 'Backup Key' during an onboarding flow. */
+"BACKUP_ONBOARDING_KEY_INTRO_TITLE" = "Kunci sandaran anda";
+
+/* Title for a button allowing users to copy their 'Backup Key' to the clipboard. */
+"BACKUP_RECORD_KEY_COPY_TO_CLIPBOARD_BUTTON_TITLE" = "Salin ke Papan Keratan";
+
+/* Subtitle for a view allowing users to record their 'Backup Key'. */
+"BACKUP_RECORD_KEY_SUBTITLE" = "Kunci ini diperlukan untuk memulihkan akaun dan data anda. Simpan kunci ini di tempat yang selamat. Jika anda kehilangannya, anda tidak akan dapat memulihkan akaun anda.";
+
+/* Title for a view allowing users to record their 'Backup Key'. */
+"BACKUP_RECORD_KEY_TITLE" = "Rekodkan kunci sandaran anda";
+
 /* Title for a button allowing users to upgrade from a free to paid backup plan. */
 "BACKUP_SETTINGS_BACKUP_PLAN_FREE_ACTION_BUTTON_TITLE" = "Naik taraf";
 
@@ -560,19 +623,19 @@
 "BACKUP_SETTINGS_BACKUPS_DISABLED_SECTION_FOOTER" = "Sandaran telah dimatikan dan data anda telah dipadam daripada perkhidmatan storan selamat Signal.";
 
 /* Message for a view indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_MESSAGE" = "An error occurred. Please contact support.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_MESSAGE" = "Ralat telah berlaku. Sila hubungi sokongan.";
 
 /* Header for a menu section related to settings for when disabling Backups encountered an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "An error occurred when deleting your data from Signal's secure storage service.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "Ralat berlaku semasa memadam data anda daripada perkhidmatan storan selamat Signal.";
 
 /* Title for a view indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_TITLE" = "Failed to Delete Backup";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_TITLE" = "Gagal Memadam Sandaran";
 
 /* Description for a progress view tracking Backups being disabled. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_PROGRESS_VIEW_DESCRIPTION" = "Deleting Backup...";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_PROGRESS_VIEW_DESCRIPTION" = "Memadam Sandaran...";
 
 /* Header for a menu section related to disabling Backups. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "Backups have been turned off and your data will be deleted from Signal's secure storage service.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "Sandaran telah dimatikan dan data anda akan dipadam daripada perkhidmatan storan selamat Signal.";
 
 /* Header for a menu section related to settings for when Backups are enabled. */
 "BACKUP_SETTINGS_BACKUPS_ENABLED_SECTION_HEADER" = "Butiran sandaran";
@@ -584,13 +647,13 @@
 "BACKUP_SETTINGS_DISABLE_BACKUPS_BUTTON_TITLE" = "Matikan & Padam Sandaran";
 
 /* Message shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "An error occurred when deleting your data from Signal's secure storage service.";
+"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "Ralat berlaku semasa memadam data anda daripada perkhidmatan storan selamat Signal.";
 
 /* Title shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_TITLE" = "Failed to Delete Backup";
+"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_TITLE" = "Gagal Memadam Sandaran";
 
 /* Message shown in an action sheet when the user tries to disable Backups, but is not registered. */
-"BACKUP_SETTINGS_DISABLING_ERROR_NOT_REGISTERED" = "You must be registered to disable Backups.";
+"BACKUP_SETTINGS_DISABLING_ERROR_NOT_REGISTERED" = "Anda mesti berdaftar untuk mematikan Sandaran.";
 
 /* Text describing that a user's backup will be automatically performed daily. */
 "BACKUP_SETTINGS_ENABLED_BACKUP_FREQUENCY_DAILY" = "Harian";
@@ -633,6 +696,15 @@
 
 /* Title for a button allowing users to re-enable Backups, after it had been previously disabled. */
 "BACKUP_SETTINGS_REENABLE_BACKUPS_BUTTON_TITLE" = "Dayakan semula sandaran";
+
+/* Subtitle for a progress bar tracking uploads that are paused because of low battery. */
+"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_PAUSED_LOW_BATTERY" = "Upload paused: device has low battery";
+
+/* Subtitle for a progress bar tracking uploads that are paused because they need WiFi. */
+"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_PAUSED_NEEDS_WIFI" = "Upload paused: waiting for Wi-Fi";
+
+/* Subtitle for a progress bar tracking active uploading. Embeds 1:{{ the amount uploaded as a file size, e.g. 100 MB }}; 2:{{ the total amount to upload as a file size, e.g. 1 GB }}; 3:{{ the amount uploaded as a percentage, e.g. 10% }}. */
+"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_RUNNING" = "Uploading %1$@ of %2$@ (%3$@)";
 
 /* Message for a sheet shown after the user enables backups. */
 "BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_MESSAGE" = "Bergantung pada saiz sandaran anda, ini mungkin mengambil masa yang lama. Anda boleh menggunakan telefon anda seperti biasa semasa sandaran dilakukan.";
@@ -2339,7 +2411,7 @@
 "DISAPPEARING_MESSAGES_CUSTOM_TIME_UNIT_PICKER" = "Unit";
 
 /* Title for a picker for the amount of time, in a given unit, to use for disappearing messages. */
-"DISAPPEARING_MESSAGES_CUSTOM_TIME_VALUE_PICKER" = "Value";
+"DISAPPEARING_MESSAGES_CUSTOM_TIME_VALUE_PICKER" = "Nilai";
 
 /* The unit for a number of days */
 "DISAPPEARING_MESSAGES_DAYS" = "hari";
@@ -2541,12 +2613,6 @@
 
 /* When users make donations on a friend's behalf, a message is sent. This text tells senders that their message will disappear, if the conversation has disappearing messages enabled. Embeds {{duration}}, such as \"1 week\". */
 "DONATION_ON_BEHALF_OF_A_FRIEND_DISAPPEARING_MESSAGES_NOTICE_FORMAT" = "Mesej yang hilang dihidupkan untuk sembang ini. Mesej derma anda akan hilang dalam %1$@.";
-
-/* Users can donate on a friend's behalf. If something goes wrong during this donation, such as a network error, this error message is shown. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_GENERIC_SEND_ERROR_BODY" = "Tidak boleh menderma. Periksa sambungan anda dan cuba lagi.";
-
-/* Users can donate on a friend's behalf. If something goes wrong during this donation, such as a network error, an error dialog is shown. This is the title of that dialog. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_GENERIC_SEND_ERROR_TITLE" = "Tidak Boleh Menderma";
 
 /* Users can donate on a friend's behalf. This tells users that this will be a one-time donation. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_DESCRIPTION" = "Derma Sekali";
@@ -2868,6 +2934,12 @@
 
 /* Call setup status label */
 "END_CALL_UNCATEGORIZED_FAILURE" = "Panggilan gagal";
+
+/* Label explaining that an entered 'Backup Key' is incorrect. */
+"ENTER_ACCOUNT_ENTROPY_POOL_VIEW_INCORRECT_AEP_LABEL" = "Kunci sandaran salah";
+
+/* Label explaining that an entered 'Backup Key' is malformed. */
+"ENTER_ACCOUNT_ENTROPY_POOL_VIEW_MALFORMED_AEP_LABEL" = "Kunci sandaran tidak sah";
 
 /* Error indicating that a message could not be forwarded. */
 "ERROR_COULD_NOT_FORWARD_MESSAGES_1" = "Tidak dapat memajukan mesej.";
@@ -3214,6 +3286,9 @@
 /* Button to leave a group call */
 "GROUP_CALL_LEAVE_BUTTON" = "Tinggalkan Panggilan";
 
+/* Title for a 'done' button on a sheet showing the group call members list */
+"GROUP_CALL_MEMBER_LIST_DONE_BUTTON_TITLE" = "Selesai";
+
 /* Title for the section of the group call member list which displays the list of all members in the call. */
 "GROUP_CALL_MEMBER_LIST_IN_CALL_SECTION_HEADER" = "Dalam Panggilan";
 
@@ -3446,7 +3521,7 @@
 "GROUP_IS_ANNOUNCEMENT_ONLY_ENABLED_BY_REMOTE_USER_FORMAT" = "%1$@ telah mengubah tetapan kumpulan kepada hanya benarkan pentadbir menghantar mesej.";
 
 /* Subtitle indicating that the local user has been blocked from joining the group */
-"GROUP_LINK_ACTION_SHEET_VIEW_BLOCKED_FROM_JOINING_SUBTITLE" = "Anda tidak boleh menyertai kumpulan ini melalui pautan kumpulan tersebut kerana pentadbir telah mengalih keluar anda.";
+"GROUP_LINK_ACTION_SHEET_VIEW_BLOCKED_FROM_JOINING_SUBTITLE" = "Anda tidak boleh menyertai kumpulan ini melalui pautan kumpulan kerana pentadbir telah mengalih keluar anda. Hubungi pentadbir untuk ditambahkan semula ke kumpulan.";
 
 /* Title indicating that you cannot join a group in the 'group invite link' action sheet. */
 "GROUP_LINK_ACTION_SHEET_VIEW_CANNOT_JOIN_GROUP_TITLE" = "Tidak dapat menyertai kumpulan";
@@ -5230,6 +5305,9 @@
 /* The body for the skip restore 'choice' option */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_BODY" = "Teruskan tanpa memindahkan mesej dan media anda";
 
+/* The title for a less-prominent skip restore 'choice' option */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_SMALL_TITLE" = "Langkau pemulihan";
+
 /* The title for the skip restore 'choice' option */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_TITLE" = "Daftar tanpa Pemindahan";
 
@@ -5258,7 +5336,7 @@
 "ONBOARDING_CONFIRM_BACKUP_RESTORE_CONFIRM_ACTION" = "Memulihkan sandaran";
 
 /* Description for form confirming restore from backup. */
-"ONBOARDING_CONFIRM_BACKUP_RESTORE_DESCRIPTION" = "Sandaran terakhir anda dibuat pada %1$@ jam %2$@. Anda boleh membuat sandaran terkini jika anda masih mempunyai peranti lama anda. [Lihat Caranya](https://signal.org)";
+"ONBOARDING_CONFIRM_BACKUP_RESTORE_DESCRIPTION" = "Sandaran terakhir anda dibuat pada %1$@ jam %2$@. Saiz sandaran anda ialah %3$@";
 
 /* Text for action button to explore other options. */
 "ONBOARDING_CONFIRM_BACKUP_RESTORE_MORE_OPTIONS_ACTION" = "Lebih pilihan";
@@ -8957,7 +9035,7 @@
 "VOICE_MESSAGE_CANCEL_INSTRUCTIONS" = "Luncurkan untuk membatalkan";
 
 /* Filename for voice messages. */
-"VOICE_MESSAGE_FILE_NAME" = "Signal";
+"VOICE_MESSAGE_FILE_NAME" = "signal";
 
 /* Message for the tooltip indicating the 'voice message' needs to be held to be held down to record. */
 "VOICE_MESSAGE_TOO_SHORT_TOOLTIP" = "Tekan dan tahan untuk merakam.";

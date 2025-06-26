@@ -509,10 +509,73 @@
 "AVATAR_SETTINGS_VIEW_TEXT_BUTTON" = "Tekst";
 
 /* return to the previous screen */
-"BACK_BUTTON" = "Wróć";
+"BACK_BUTTON" = "Wstecz";
 
 /* Text used as placeholder in backup key text view. */
 "BACKUP_KEY_PLACEHOLDER" = "Kod kopii zapasowej";
+
+/* Title of button to tap if you forgot your backup key. */
+"BACKUP_KEY_REMINDER_FORGOT_KEY" = "Nie pamiętasz kodu?";
+
+/* Action text for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_MEGAPHONE_ACTION" = "Zweryfikuj";
+
+/* Body for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_MEGAPHONE_BODY" = "Co jakiś czas prosimy Cię o weryfikację kodu kopii zapasowej, aby pomóc Ci się upewnić, że wciąż go znasz";
+
+/* Title for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_MEGAPHONE_TITLE" = "Zweryfikuj kod kopii zapasowej";
+
+/* Snooze text for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_NOT_NOW_ACTION" = "Nie teraz";
+
+/* Toast indicating that the Backup Key was correct. */
+"BACKUP_KEY_REMINDER_SUCCESSFUL_TOAST" = "Kod kopii zapasowej jest prawidłowy. Przechowuj kod w bezpiecznym miejscu.";
+
+/* Body for a sheet warning users to their 'Backup Key' safe. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_KEEP_KEY_SAFE_SHEET_BODY" = "Jeśli go zgubisz, Signal nie będzie mógł Ci pomóc w przywróceniu kopii zapasowej. Przechowuj swój kod w bezpiecznym miejscu. Nie udostępniaj kodu innym osobom.";
+
+/* Title for a sheet warning users to their 'Backup Key' safe. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_KEEP_KEY_SAFE_SHEET_TITLE" = "Zapisz kod w bezpiecznym miejscu";
+
+/* Title for a button offering to let users see their 'Backup Key'. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_SEE_KEY_AGAIN_BUTTON_TITLE" = "Wyświetl kod ponownie";
+
+/* Subtitle for a view asking users to confirm their 'Backup Key'. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_SUBTITLE" = "Podaj zapisany właśnie kod kopii zapasowej";
+
+/* Title for a view asking users to confirm their 'Backup Key'. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_TITLE" = "Potwierdź kod kopii zapasowej";
+
+/* Bullet point on a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_BULLET_1" = "Szyfrowane metodą end-to-end";
+
+/* Bullet point on a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_BULLET_2" = "Dla chętnych (jak zwykle)";
+
+/* Bullet point on a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_BULLET_3" = "Możliwość usunięcia kopii zapasowej w dowolnym momencie";
+
+/* Subtitle for a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_SUBTITLE" = "Twórz kopie zapasowe wiadomości i multimediów w usłudze bezpiecznego przechowywania Signal, szyfrowanej metodą end-to-end. Dzięki temu nie stracisz historii wiadomości nawet po zmianie telefonu czy ponownej instalacji Signal.";
+
+/* Title for a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_TITLE" = "Kopie zapasowe Signal";
+
+/* Subtitle for a view introducing the 'Backup Key' during an onboarding flow. */
+"BACKUP_ONBOARDING_KEY_INTRO_SUBTITLE" = "Kod kopii zapasowej, składający się z 64 znaków, umożliwi Ci przywrócenie kopii zapasowej po ponownej instalacji aplikacji Signal.\n\nJeśli go zapomnisz, stracisz możliwość przywrócenia kopii zapasowej. Signal nie będzie mógł pomóc w jej odzyskaniu.";
+
+/* Title for a view introducing the 'Backup Key' during an onboarding flow. */
+"BACKUP_ONBOARDING_KEY_INTRO_TITLE" = "Twój kod kopii zapasowej";
+
+/* Title for a button allowing users to copy their 'Backup Key' to the clipboard. */
+"BACKUP_RECORD_KEY_COPY_TO_CLIPBOARD_BUTTON_TITLE" = "Skopiuj do schowka";
+
+/* Subtitle for a view allowing users to record their 'Backup Key'. */
+"BACKUP_RECORD_KEY_SUBTITLE" = "Ten kod będzie potrzebny do odzyskania konta i danych. Przechowuj go w bezpiecznym miejscu. Jeśli go zgubisz, stracisz możliwość przywrócenia konta.";
+
+/* Title for a view allowing users to record their 'Backup Key'. */
+"BACKUP_RECORD_KEY_TITLE" = "Zapisz kod kopii zapasowej";
 
 /* Title for a button allowing users to upgrade from a free to paid backup plan. */
 "BACKUP_SETTINGS_BACKUP_PLAN_FREE_ACTION_BUTTON_TITLE" = "Aktywuj tryb rozszerzony";
@@ -557,22 +620,22 @@
 "BACKUP_SETTINGS_BACKUP_PLAN_PAID_RENEWAL_FORMAT" = "Odnowi się %1$@";
 
 /* Footer for a menu section related to settings for when Backups are disabled. */
-"BACKUP_SETTINGS_BACKUPS_DISABLED_SECTION_FOOTER" = "Tworzenie kopii zapasowych zostało wyłączone, a Twoje dane zostały usunięte z bezpiecznej usługi przechowywania Signal.";
+"BACKUP_SETTINGS_BACKUPS_DISABLED_SECTION_FOOTER" = "Tworzenie kopii zapasowych zostało wyłączone, a Twoje dane zostały usunięte z usługi bezpiecznego przechowywania Signal.";
 
 /* Message for a view indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_MESSAGE" = "An error occurred. Please contact support.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_MESSAGE" = "Wystąpił błąd. Skontaktuj się z pomocą techniczną.";
 
 /* Header for a menu section related to settings for when disabling Backups encountered an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "An error occurred when deleting your data from Signal's secure storage service.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "Podczas usuwania danych z usługi bezpiecznego przechowywania Signal wystąpił błąd.";
 
 /* Title for a view indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_TITLE" = "Failed to Delete Backup";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_TITLE" = "Nie udało się usunąć kopii zapasowej";
 
 /* Description for a progress view tracking Backups being disabled. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_PROGRESS_VIEW_DESCRIPTION" = "Deleting Backup...";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_PROGRESS_VIEW_DESCRIPTION" = "Usuwanie kopii zapasowej…";
 
 /* Header for a menu section related to disabling Backups. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "Backups have been turned off and your data will be deleted from Signal's secure storage service.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "Tworzenie kopii zapasowych zostało wyłączone, a Twoje dane zostaną usunięte z usługi bezpiecznego przechowywania Signal.";
 
 /* Header for a menu section related to settings for when Backups are enabled. */
 "BACKUP_SETTINGS_BACKUPS_ENABLED_SECTION_HEADER" = "Szczegóły kopii zapasowej";
@@ -584,13 +647,13 @@
 "BACKUP_SETTINGS_DISABLE_BACKUPS_BUTTON_TITLE" = "Usuń kopię zapasową i wyłącz tworzenie kolejnych";
 
 /* Message shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "An error occurred when deleting your data from Signal's secure storage service.";
+"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "Podczas usuwania danych z usługi bezpiecznego przechowywania Signal wystąpił błąd.";
 
 /* Title shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_TITLE" = "Failed to Delete Backup";
+"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_TITLE" = "Nie udało się usunąć kopii zapasowej";
 
 /* Message shown in an action sheet when the user tries to disable Backups, but is not registered. */
-"BACKUP_SETTINGS_DISABLING_ERROR_NOT_REGISTERED" = "You must be registered to disable Backups.";
+"BACKUP_SETTINGS_DISABLING_ERROR_NOT_REGISTERED" = "Aby wyłączyć tworzenie kopii zapasowych, najpierw musisz zarejestrować urządzenie.";
 
 /* Text describing that a user's backup will be automatically performed daily. */
 "BACKUP_SETTINGS_ENABLED_BACKUP_FREQUENCY_DAILY" = "Codziennie";
@@ -633,6 +696,15 @@
 
 /* Title for a button allowing users to re-enable Backups, after it had been previously disabled. */
 "BACKUP_SETTINGS_REENABLE_BACKUPS_BUTTON_TITLE" = "Włącz z powrotem";
+
+/* Subtitle for a progress bar tracking uploads that are paused because of low battery. */
+"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_PAUSED_LOW_BATTERY" = "Upload paused: device has low battery";
+
+/* Subtitle for a progress bar tracking uploads that are paused because they need WiFi. */
+"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_PAUSED_NEEDS_WIFI" = "Upload paused: waiting for Wi-Fi";
+
+/* Subtitle for a progress bar tracking active uploading. Embeds 1:{{ the amount uploaded as a file size, e.g. 100 MB }}; 2:{{ the total amount to upload as a file size, e.g. 1 GB }}; 3:{{ the amount uploaded as a percentage, e.g. 10% }}. */
+"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_RUNNING" = "Uploading %1$@ of %2$@ (%3$@)";
 
 /* Message for a sheet shown after the user enables backups. */
 "BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_MESSAGE" = "W przypadku dużej ilości danych tworzenie kopii zapasowej może zająć sporo czasu. Podczas gdy to się dzieje, możesz normalnie korzystać z telefonu.";
@@ -2018,7 +2090,7 @@
 "DATABASE_RECOVERY_AWAITING_USER_CONFIRMATION_TITLE" = "Problem z przywracaniem danych";
 
 /* On the database recovery screen, if the user's device storage is nearly full, Signal will not be able to recover the database. A warning screen, which can be bypassed if the user wishes, will be shown. This is the text on the button to bypass the warning. */
-"DATABASE_RECOVERY_MORE_STORAGE_SPACE_NEEDED_CONTINUE_ANYWAY" = "Kontynuuj mimo to";
+"DATABASE_RECOVERY_MORE_STORAGE_SPACE_NEEDED_CONTINUE_ANYWAY" = "Mimo to kontynuuj";
 
 /* On the database recovery screen, if the user's device storage is nearly full, Signal will not be able to recover the database. A warning screen, which can be bypassed if the user wishes, will be shown. This is the line of text on that screen. Embeds an amount like \"2GB\". */
 "DATABASE_RECOVERY_MORE_STORAGE_SPACE_NEEDED_DESCRIPTION" = "Aby przywracanie danych się udało, zalecamy co najmniej %1$@ wolnego miejsca na urządzeniu.";
@@ -2336,10 +2408,10 @@
 "DISAPPEARING_MESSAGES_CUSTOM_TIME" = "Ustaw inny czas";
 
 /* Title for a picker for the unit of time to use for disappearing messages. */
-"DISAPPEARING_MESSAGES_CUSTOM_TIME_UNIT_PICKER" = "Unit";
+"DISAPPEARING_MESSAGES_CUSTOM_TIME_UNIT_PICKER" = "Jednostka";
 
 /* Title for a picker for the amount of time, in a given unit, to use for disappearing messages. */
-"DISAPPEARING_MESSAGES_CUSTOM_TIME_VALUE_PICKER" = "Value";
+"DISAPPEARING_MESSAGES_CUSTOM_TIME_VALUE_PICKER" = "Liczba";
 
 /* The unit for a number of days */
 "DISAPPEARING_MESSAGES_DAYS" = "dni";
@@ -2541,12 +2613,6 @@
 
 /* When users make donations on a friend's behalf, a message is sent. This text tells senders that their message will disappear, if the conversation has disappearing messages enabled. Embeds {{duration}}, such as \"1 week\". */
 "DONATION_ON_BEHALF_OF_A_FRIEND_DISAPPEARING_MESSAGES_NOTICE_FORMAT" = "W tym czacie włączona jest opcja znikających wiadomości. Twoja wiadomość na temat darowizny zniknie za %1$@.";
-
-/* Users can donate on a friend's behalf. If something goes wrong during this donation, such as a network error, this error message is shown. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_GENERIC_SEND_ERROR_BODY" = "Nie udało się wpłacić darowizny. Sprawdź połączenie z internetem i spróbuj ponownie.";
-
-/* Users can donate on a friend's behalf. If something goes wrong during this donation, such as a network error, an error dialog is shown. This is the title of that dialog. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_GENERIC_SEND_ERROR_TITLE" = "Nie udało się wpłacić darowizny";
 
 /* Users can donate on a friend's behalf. This tells users that this will be a one-time donation. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_DESCRIPTION" = "Darowizna jednorazowa";
@@ -2868,6 +2934,12 @@
 
 /* Call setup status label */
 "END_CALL_UNCATEGORIZED_FAILURE" = "Połączenie nieudane";
+
+/* Label explaining that an entered 'Backup Key' is incorrect. */
+"ENTER_ACCOUNT_ENTROPY_POOL_VIEW_INCORRECT_AEP_LABEL" = "Niepoprawny kod kopii zapasowej";
+
+/* Label explaining that an entered 'Backup Key' is malformed. */
+"ENTER_ACCOUNT_ENTROPY_POOL_VIEW_MALFORMED_AEP_LABEL" = "Nieprawidłowy kod kopii zapasowej";
 
 /* Error indicating that a message could not be forwarded. */
 "ERROR_COULD_NOT_FORWARD_MESSAGES_1" = "Nie udało się przekazać wiadomości.";
@@ -3214,6 +3286,9 @@
 /* Button to leave a group call */
 "GROUP_CALL_LEAVE_BUTTON" = "Opuść rozmowę";
 
+/* Title for a 'done' button on a sheet showing the group call members list */
+"GROUP_CALL_MEMBER_LIST_DONE_BUTTON_TITLE" = "Gotowe";
+
 /* Title for the section of the group call member list which displays the list of all members in the call. */
 "GROUP_CALL_MEMBER_LIST_IN_CALL_SECTION_HEADER" = "Uczestnicy";
 
@@ -3446,7 +3521,7 @@
 "GROUP_IS_ANNOUNCEMENT_ONLY_ENABLED_BY_REMOTE_USER_FORMAT" = "%1$@ zmienia ustawienia grupy tak, aby tylko administratorzy mogli wysyłać wiadomości.";
 
 /* Subtitle indicating that the local user has been blocked from joining the group */
-"GROUP_LINK_ACTION_SHEET_VIEW_BLOCKED_FROM_JOINING_SUBTITLE" = "Nie możesz dołączyć do tej grupy przez link, ponieważ administrator Cię usunął.";
+"GROUP_LINK_ACTION_SHEET_VIEW_BLOCKED_FROM_JOINING_SUBTITLE" = "Nie możesz dołączyć do tej grupy przez link, ponieważ administrator Cię z niej usunął. Skontaktuj się z administratorem i poproś go o ponowne dodanie Cię do grupy.";
 
 /* Title indicating that you cannot join a group in the 'group invite link' action sheet. */
 "GROUP_LINK_ACTION_SHEET_VIEW_CANNOT_JOIN_GROUP_TITLE" = "Nie możesz dołączyć do grupy";
@@ -3896,7 +3971,7 @@
 "GROUPS_TOO_MANY_MEMBERS_ALERT_TITLE" = "Osiągnięto zalecaną maksymalną liczebność grupy";
 
 /* Message asking the user to confirm that they want to add a member to the group. */
-"GROUPS_TOO_MANY_MEMBERS_CONFIRM" = "Dodać osobę mimo to?";
+"GROUPS_TOO_MANY_MEMBERS_CONFIRM" = "Mimo to dodać osobę?";
 
 /* Label for button that lets the user view the request to join the group. */
 "GROUPS_VIEW_REQUEST_BUTTON" = "Zobacz prośbę";
@@ -3974,7 +4049,7 @@
 "HOME_VIEW_TITLE_ARCHIVE" = "Archiwum";
 
 /* Title for the 'Select Chats' option in the ChatList. */
-"HOME_VIEW_TITLE_SELECT_CHATS" = "Wybierz czaty";
+"HOME_VIEW_TITLE_SELECT_CHATS" = "Zaznacz czaty";
 
 /* Title 'Read All' button in the toolbar of the ChatList if multi-section is active. */
 "HOME_VIEW_TOOLBAR_READ_ALL" = "Przeczytaj wszystko";
@@ -5230,6 +5305,9 @@
 /* The body for the skip restore 'choice' option */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_BODY" = "Kontynuuj bez przenoszenia wiadomości i multimediów";
 
+/* The title for a less-prominent skip restore 'choice' option */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_SMALL_TITLE" = "Pomiń przywracanie";
+
 /* The title for the skip restore 'choice' option */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_TITLE" = "Zarejestruj bez przenoszenia";
 
@@ -5258,7 +5336,7 @@
 "ONBOARDING_CONFIRM_BACKUP_RESTORE_CONFIRM_ACTION" = "Przywróć kopię zapasową";
 
 /* Description for form confirming restore from backup. */
-"ONBOARDING_CONFIRM_BACKUP_RESTORE_DESCRIPTION" = "Ostatnia kopia zapasowa została utworzona %1$@ o godz. %2$@. Jeśli nadal masz dostęp do starego urządzenia, możesz utworzyć nowszą kopię zapasową. [Dowiedz się jak](https://signal.org)";
+"ONBOARDING_CONFIRM_BACKUP_RESTORE_DESCRIPTION" = "Ostatnia kopia zapasowa została utworzona %1$@ o godz. %2$@. Rozmiar kopii zapasowej to %3$@";
 
 /* Text for action button to explore other options. */
 "ONBOARDING_CONFIRM_BACKUP_RESTORE_MORE_OPTIONS_ACTION" = "Więcej opcji";
@@ -6194,10 +6272,10 @@
 "PROFILE_BIO_VIEW_TITLE_FORMAT" = "O mnie (%1$@)";
 
 /* The copy rendered in a conversation when someone in your address book changes their profile name. Embeds {contact name}, {old profile name}, {new profile name} */
-"PROFILE_NAME_CHANGE_SYSTEM_CONTACT_FORMAT" = "%1$@ ma nową nazwę profilu: %3$@ (stara nazwa: %2$@).";
+"PROFILE_NAME_CHANGE_SYSTEM_CONTACT_FORMAT" = "%1$@ ma nowe imię w profilu: %3$@ (poprzednie imię: %2$@).";
 
 /* The copy rendered in a conversation when someone not in your address book changes their profile name. Embeds {old profile name}, {new profile name} */
-"PROFILE_NAME_CHANGE_SYSTEM_NONCONTACT_FORMAT" = "%1$@ ma nową nazwę profilu: %2$@.";
+"PROFILE_NAME_CHANGE_SYSTEM_NONCONTACT_FORMAT" = "%1$@ ma nowe imię w profilu: %2$@.";
 
 /* First bullet point for the explainer sheet for profile names */
 "PROFILE_NAME_EDUCATION_SHEET_BULLET_1" = "Imiona i nazwiska w profilach nie są weryfikowane";
@@ -6227,7 +6305,7 @@
 "PROFILE_SETTINGS_USERNAME_CORRUPTED_RESOLUTION_DELETE_USERNAME_ACTION_TITLE" = "Usuń nazwę użytkownika";
 
 /* Title for an action sheet button allowing users to fix their username when their current one is corrupted. */
-"PROFILE_SETTINGS_USERNAME_CORRUPTED_RESOLUTION_FIX_ACTION_TITLE" = "Napraw teraz";
+"PROFILE_SETTINGS_USERNAME_CORRUPTED_RESOLUTION_FIX_ACTION_TITLE" = "Zrób to teraz";
 
 /* A message asking the user if they are sure they want to remove their username and explaining what will happen. Embeds {{ the user's current username }}. */
 "PROFILE_SETTINGS_USERNAME_DELETION_CONFIRMATION_ALERT_MESSAGE_FORMAT" = "Spowoduje to usunięcie Twojej nazwy użytkownika i dezaktywację kodu QR oraz linku. Inne osoby będą mogły użyć nazwy „%1$@”. Chcesz kontynuować?";
@@ -6623,13 +6701,13 @@
 "REGISTRATION_VOICE_CODE_FAILED_TRY_SMS_ERROR" = "Nie udało się podać kodu weryfikacyjnego przez połączenie głosowe. Możesz zamiast tego poprosić o SMS z kodem.";
 
 /* Button below the warning to fix a corrupted username. */
-"REMINDER_VIEW_USERNAME_CORRUPTED_FIX_BUTTON" = "Napraw teraz";
+"REMINDER_VIEW_USERNAME_CORRUPTED_FIX_BUTTON" = "Zrób to teraz";
 
 /* Label warning the user that something is wrong with their username. */
 "REMINDER_VIEW_USERNAME_CORRUPTED_WARNING" = "Coś poszło nie tak z Twoją nazwą użytkownika. Nie jest już przypisana do Twojego konta. Możesz spróbować ustawić tę samą nazwę ponownie lub wybrać nową.";
 
 /* Button below the warning to fix a username link. */
-"REMINDER_VIEW_USERNAME_LINK_CORRUPTED_FIX_BUTTON" = "Napraw teraz";
+"REMINDER_VIEW_USERNAME_LINK_CORRUPTED_FIX_BUTTON" = "Zrób to teraz";
 
 /* Label warning the user that something is wrong with their username link. */
 "REMINDER_VIEW_USERNAME_LINK_CORRUPTED_WARNING" = "Coś poszło nie tak z kodem QR oraz linkiem przypisanymi do Twojej nazwy użytkownika. Nie są już prawidłowe. Utwórz nowy link do udostępniania.";
@@ -6707,13 +6785,13 @@
 "RING_ON_CONFIRMATION_TOAST_LABEL" = "Sygnał nawiązywania połączenia włączony";
 
 /* button title to confirm adding a recipient when their safety number has recently changed */
-"SAFETY_NUMBER_CHANGED_CONFIRM_ADD_MEMBER_ACTION" = "Dodaj mimo to";
+"SAFETY_NUMBER_CHANGED_CONFIRM_ADD_MEMBER_ACTION" = "Mimo to dodaj";
 
 /* alert button text to confirm placing an outgoing call after the recipients Safety Number has changed. */
-"SAFETY_NUMBER_CHANGED_CONFIRM_CALL_ACTION" = "Zadzwoń mimo to";
+"SAFETY_NUMBER_CHANGED_CONFIRM_CALL_ACTION" = "Mimo to zadzwoń";
 
 /* button title to confirm sending to a recipient whose safety number recently changed */
-"SAFETY_NUMBER_CHANGED_CONFIRM_SEND_ACTION" = "Wyślij mimo to";
+"SAFETY_NUMBER_CHANGED_CONFIRM_SEND_ACTION" = "Mimo to wyślij ";
 
 /* Message for the 'safety number confirmation' view */
 "SAFETY_NUMBER_CONFIRMATION_MESSAGE" = "Te osoby mogły ponownie zainstalować aplikację lub zmienić urządzenie. Zadbaj o prywatność i zweryfikuj Wasze numery bezpieczeństwa.";
@@ -6746,7 +6824,7 @@
 "SAFETY_TIPS_CRYPTO_TITLE" = "Oszustwa związane z pieniędzmi, w tym kryptowalutami";
 
 /* Message contents for the safety tip concerning fake businesses. */
-"SAFETY_TIPS_FAKE_BUSINESS_BODY" = "Zachowaj ostrożność, jeśli kontaktuje się z Tobą organizacja rządowa lub firma. Wiadomości, których nadawcami mieliby być kurierzy, instytucje podatkowe itd., mogą być spamem.";
+"SAFETY_TIPS_FAKE_BUSINESS_BODY" = "Zachowaj ostrożność, jeśli rzekomo kontaktuje się z Tobą organizacja rządowa lub firma. Wiadomości, których nadawcami mieliby być kurierzy, instytucje podatkowe itd., mogą być spamem.";
 
 /* Message title describing the safety tip about unknown or fake businesses. */
 "SAFETY_TIPS_FAKE_BUSINESS_TITLE" = "Fałszywe konta firm i instytucji";
@@ -8738,7 +8816,7 @@
 "UNSUPPORTED_FEATURE_ERROR" = "Twoje urządzenie nie obsługuje tej funkcji.";
 
 /* Description for the unverified safety number change. Embeds {name of contact with identity change} */
-"UNVERIFIED_SAFETY_NUMBER_CHANGE_DESCRIPTION_FORMAT" = "Ty i %1$@ macie nowy numer bezpieczeństwa, ponieważ ta osoba prawdopodobnie ponownie zainstalowała Signal lub zmieniła urządzenie. Dotknij opcji Zweryfikuj, aby potwierdzić nowy numer bezpieczeństwa. Ta czynność jest opcjonalna.";
+"UNVERIFIED_SAFETY_NUMBER_CHANGE_DESCRIPTION_FORMAT" = "Ty i %1$@ macie nowy numer bezpieczeństwa, ponieważ ta osoba prawdopodobnie ponownie zainstalowała Signal lub zmieniła urządzenie na inne. Dotknij opcji „Zweryfikuj”, aby potwierdzić nowy numer bezpieczeństwa. Ta czynność jest opcjonalna.";
 
 /* Action to verify a safety number after it has changed */
 "UNVERIFIED_SAFETY_NUMBER_VERIFY_ACTION" = "Zweryfikuj";
@@ -8924,7 +9002,7 @@
 "VERIFY_PRIVACY_MULTIPLE" = "Sprawdź numery bezpieczeństwa";
 
 /* Instructions for verifying your safety number. Embeds {{contact's name}} */
-"VERIFY_SAFETY_NUMBER_INSTRUCTIONS" = "Aby upewnić się, że Ty i %1$@ komunikujecie się w środowisku szyfrowanym metodą en-to-end, porównaj numer powyżej z numerem na urządzeniu tej osoby. Możesz też zeskanować kod wyświetlany na jej urządzeniu.";
+"VERIFY_SAFETY_NUMBER_INSTRUCTIONS" = "Aby upewnić się, że Ty i %1$@ komunikujecie się w środowisku szyfrowanym metodą end-to-end, porównaj numer powyżej z numerem na urządzeniu tej osoby. Możesz też zeskanować kod wyświetlany na jej urządzeniu.";
 
 /* Toast alert text shown when tapping on a video that cannot be played. */
 "VIDEO_BROKEN" = "Nie można odtworzyć tego filmu";

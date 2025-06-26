@@ -514,6 +514,69 @@
 /* Text used as placeholder in backup key text view. */
 "BACKUP_KEY_PLACEHOLDER" = "Yedekleme anahtarı";
 
+/* Title of button to tap if you forgot your backup key. */
+"BACKUP_KEY_REMINDER_FORGOT_KEY" = "Anahtarı mı unuttun?";
+
+/* Action text for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_MEGAPHONE_ACTION" = "Doğrula";
+
+/* Body for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_MEGAPHONE_BODY" = "Hâlâ bildiğinden emin olmak için zaman zaman anahtarını doğrulamanı isteyeceğiz";
+
+/* Title for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_MEGAPHONE_TITLE" = "Yedekleme Anahtarını doğrula";
+
+/* Snooze text for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_NOT_NOW_ACTION" = "Şimdi Değil";
+
+/* Toast indicating that the Backup Key was correct. */
+"BACKUP_KEY_REMINDER_SUCCESSFUL_TOAST" = "Yedekleme anahtarı doğru. Anahtarını güvende tut.";
+
+/* Body for a sheet warning users to their 'Backup Key' safe. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_KEEP_KEY_SAFE_SHEET_BODY" = "Anahtarını kaybedersen Signal yedeklemeni geri yüklemene yardımcı olamaz. Güvenli ve emniyetli bir yerde sakla ve başkalarıyla paylaşma.";
+
+/* Title for a sheet warning users to their 'Backup Key' safe. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_KEEP_KEY_SAFE_SHEET_TITLE" = "Anahtarını güvende tut";
+
+/* Title for a button offering to let users see their 'Backup Key'. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_SEE_KEY_AGAIN_BUTTON_TITLE" = "Anahtarı tekrar gör";
+
+/* Subtitle for a view asking users to confirm their 'Backup Key'. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_SUBTITLE" = "Az önce kaydettiğin yedekleme anahtarını gir";
+
+/* Title for a view asking users to confirm their 'Backup Key'. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_TITLE" = "Yedekleme anahtarını onayla";
+
+/* Bullet point on a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_BULLET_1" = "Uçtan Uca Şifreli";
+
+/* Bullet point on a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_BULLET_2" = "İsteğe bağlı, daima";
+
+/* Bullet point on a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_BULLET_3" = "Yedeklemeni istediğin zaman sil";
+
+/* Subtitle for a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_SUBTITLE" = "Signal'ın güvenli, uçtan uca şifreli depolama hizmetini kullanarak mesajlarını ve medyanı yedekle. Yeni bir telefon aldığında veya Signal'ı yeniden yüklediğinde asla mesaj kaybetme.";
+
+/* Title for a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_TITLE" = "Signal Yedeklemeleri";
+
+/* Subtitle for a view introducing the 'Backup Key' during an onboarding flow. */
+"BACKUP_ONBOARDING_KEY_INTRO_SUBTITLE" = "Yedekleme anahtarın, Signal'i yeniden kurduğunda yedeklemeni geri yüklemeni sağlayan 64 karakterli bir koddur.\n\nAnahtarını unutursan yedeklemeni geri yükleyemezsin. Signal, yedeklemeni kurtarmana yardımcı olamaz.";
+
+/* Title for a view introducing the 'Backup Key' during an onboarding flow. */
+"BACKUP_ONBOARDING_KEY_INTRO_TITLE" = "Yedekleme anahtarın";
+
+/* Title for a button allowing users to copy their 'Backup Key' to the clipboard. */
+"BACKUP_RECORD_KEY_COPY_TO_CLIPBOARD_BUTTON_TITLE" = "Panoya Kopyala";
+
+/* Subtitle for a view allowing users to record their 'Backup Key'. */
+"BACKUP_RECORD_KEY_SUBTITLE" = "Hesabını ve verilerini kurtarmak için bu anahtar gereklidir. Bu anahtarı güvenli bir yerde sakla. Kaybedersen, hesabını kurtarmanız mümkün olmaz.";
+
+/* Title for a view allowing users to record their 'Backup Key'. */
+"BACKUP_RECORD_KEY_TITLE" = "Yedekleme anahtarını kaydet";
+
 /* Title for a button allowing users to upgrade from a free to paid backup plan. */
 "BACKUP_SETTINGS_BACKUP_PLAN_FREE_ACTION_BUTTON_TITLE" = "Yükselt";
 
@@ -560,19 +623,19 @@
 "BACKUP_SETTINGS_BACKUPS_DISABLED_SECTION_FOOTER" = "Yedeklemeler kapatıldı ve verilerin Signal'ın güvenli depolama hizmetinden silindi.";
 
 /* Message for a view indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_MESSAGE" = "An error occurred. Please contact support.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_MESSAGE" = "Bir hata oluştu. Lütfen destek ekibiyle iletişime geç.";
 
 /* Header for a menu section related to settings for when disabling Backups encountered an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "An error occurred when deleting your data from Signal's secure storage service.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "Verilerin Signal'ın güvenli depolama hizmetinden silinirken bir hata oluştu.";
 
 /* Title for a view indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_TITLE" = "Failed to Delete Backup";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_TITLE" = "Yedekleme Silinemedi";
 
 /* Description for a progress view tracking Backups being disabled. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_PROGRESS_VIEW_DESCRIPTION" = "Deleting Backup...";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_PROGRESS_VIEW_DESCRIPTION" = "Yedekleme Siliniyor...";
 
 /* Header for a menu section related to disabling Backups. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "Backups have been turned off and your data will be deleted from Signal's secure storage service.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "Yedeklemeler kapatıldı ve verilerin Signal'ın güvenli depolama hizmetinden silinecek.";
 
 /* Header for a menu section related to settings for when Backups are enabled. */
 "BACKUP_SETTINGS_BACKUPS_ENABLED_SECTION_HEADER" = "Yedekleme detayları";
@@ -584,13 +647,13 @@
 "BACKUP_SETTINGS_DISABLE_BACKUPS_BUTTON_TITLE" = "Kapat ve Yedeklemeyi Sil";
 
 /* Message shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "An error occurred when deleting your data from Signal's secure storage service.";
+"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "Verilerin Signal'ın güvenli depolama hizmetinden silinirken bir hata oluştu.";
 
 /* Title shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_TITLE" = "Failed to Delete Backup";
+"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_TITLE" = "Yedekleme Silinemedi";
 
 /* Message shown in an action sheet when the user tries to disable Backups, but is not registered. */
-"BACKUP_SETTINGS_DISABLING_ERROR_NOT_REGISTERED" = "You must be registered to disable Backups.";
+"BACKUP_SETTINGS_DISABLING_ERROR_NOT_REGISTERED" = "Yedeklemeleri devre dışı bırakmak için kayıtlı olman gerekir.";
 
 /* Text describing that a user's backup will be automatically performed daily. */
 "BACKUP_SETTINGS_ENABLED_BACKUP_FREQUENCY_DAILY" = "Günlük";
@@ -633,6 +696,15 @@
 
 /* Title for a button allowing users to re-enable Backups, after it had been previously disabled. */
 "BACKUP_SETTINGS_REENABLE_BACKUPS_BUTTON_TITLE" = "Yedeklemeleri yeniden etkinleştir";
+
+/* Subtitle for a progress bar tracking uploads that are paused because of low battery. */
+"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_PAUSED_LOW_BATTERY" = "Upload paused: device has low battery";
+
+/* Subtitle for a progress bar tracking uploads that are paused because they need WiFi. */
+"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_PAUSED_NEEDS_WIFI" = "Upload paused: waiting for Wi-Fi";
+
+/* Subtitle for a progress bar tracking active uploading. Embeds 1:{{ the amount uploaded as a file size, e.g. 100 MB }}; 2:{{ the total amount to upload as a file size, e.g. 1 GB }}; 3:{{ the amount uploaded as a percentage, e.g. 10% }}. */
+"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_RUNNING" = "Uploading %1$@ of %2$@ (%3$@)";
 
 /* Message for a sheet shown after the user enables backups. */
 "BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_MESSAGE" = "Yedeklemenin büyüklüğüne bağlı olarak bu işlem uzun sürebilir. Yedekleme gerçekleşirken telefonunu normal şekilde kullanabilirsin.";
@@ -2336,10 +2408,10 @@
 "DISAPPEARING_MESSAGES_CUSTOM_TIME" = "Özel Zaman";
 
 /* Title for a picker for the unit of time to use for disappearing messages. */
-"DISAPPEARING_MESSAGES_CUSTOM_TIME_UNIT_PICKER" = "Unit";
+"DISAPPEARING_MESSAGES_CUSTOM_TIME_UNIT_PICKER" = "Birim";
 
 /* Title for a picker for the amount of time, in a given unit, to use for disappearing messages. */
-"DISAPPEARING_MESSAGES_CUSTOM_TIME_VALUE_PICKER" = "Value";
+"DISAPPEARING_MESSAGES_CUSTOM_TIME_VALUE_PICKER" = "Değer";
 
 /* The unit for a number of days */
 "DISAPPEARING_MESSAGES_DAYS" = "gün";
@@ -2541,12 +2613,6 @@
 
 /* When users make donations on a friend's behalf, a message is sent. This text tells senders that their message will disappear, if the conversation has disappearing messages enabled. Embeds {{duration}}, such as \"1 week\". */
 "DONATION_ON_BEHALF_OF_A_FRIEND_DISAPPEARING_MESSAGES_NOTICE_FORMAT" = "Kaybolan mesajlar bu sohbet için açıldı. Bağış mesajın %1$@ içinde kaybolacak.";
-
-/* Users can donate on a friend's behalf. If something goes wrong during this donation, such as a network error, this error message is shown. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_GENERIC_SEND_ERROR_BODY" = "Bağış yapılamıyor. Bağlantını kontrol edip tekrar dene.";
-
-/* Users can donate on a friend's behalf. If something goes wrong during this donation, such as a network error, an error dialog is shown. This is the title of that dialog. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_GENERIC_SEND_ERROR_TITLE" = "Bağış Yapılamıyor";
 
 /* Users can donate on a friend's behalf. This tells users that this will be a one-time donation. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_DESCRIPTION" = "Tek Seferlik Bağış";
@@ -2868,6 +2934,12 @@
 
 /* Call setup status label */
 "END_CALL_UNCATEGORIZED_FAILURE" = "Arama başarısız";
+
+/* Label explaining that an entered 'Backup Key' is incorrect. */
+"ENTER_ACCOUNT_ENTROPY_POOL_VIEW_INCORRECT_AEP_LABEL" = "Hatalı yedekleme anahtarı";
+
+/* Label explaining that an entered 'Backup Key' is malformed. */
+"ENTER_ACCOUNT_ENTROPY_POOL_VIEW_MALFORMED_AEP_LABEL" = "Geçersiz yedekleme anahtarı";
 
 /* Error indicating that a message could not be forwarded. */
 "ERROR_COULD_NOT_FORWARD_MESSAGES_1" = "İleti yönlendirilemedi.";
@@ -3214,6 +3286,9 @@
 /* Button to leave a group call */
 "GROUP_CALL_LEAVE_BUTTON" = "Aramadan Ayrıl";
 
+/* Title for a 'done' button on a sheet showing the group call members list */
+"GROUP_CALL_MEMBER_LIST_DONE_BUTTON_TITLE" = "Tamam";
+
 /* Title for the section of the group call member list which displays the list of all members in the call. */
 "GROUP_CALL_MEMBER_LIST_IN_CALL_SECTION_HEADER" = "Aramada";
 
@@ -3446,7 +3521,7 @@
 "GROUP_IS_ANNOUNCEMENT_ONLY_ENABLED_BY_REMOTE_USER_FORMAT" = "%1$@ grup ayarlarını yalnızca yöneticilerin ileti yollayabileceği şekilde değiştirdi.";
 
 /* Subtitle indicating that the local user has been blocked from joining the group */
-"GROUP_LINK_ACTION_SHEET_VIEW_BLOCKED_FROM_JOINING_SUBTITLE" = "Gruptan yönetici tarafından çıkarıldığın için gruba bağlantı üzerinden katılamazsın.";
+"GROUP_LINK_ACTION_SHEET_VIEW_BLOCKED_FROM_JOINING_SUBTITLE" = "Gruptan yönetici tarafından çıkarıldığın için, gruba bağlantıyla katılamazsın. Gruba geri eklenmek için bir yönetici ile iletişime geç.";
 
 /* Title indicating that you cannot join a group in the 'group invite link' action sheet. */
 "GROUP_LINK_ACTION_SHEET_VIEW_CANNOT_JOIN_GROUP_TITLE" = "Gruba katılınamadı";
@@ -5230,6 +5305,9 @@
 /* The body for the skip restore 'choice' option */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_BODY" = "Mesajlarını ve medyanı aktarmadan devam et";
 
+/* The title for a less-prominent skip restore 'choice' option */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_SMALL_TITLE" = "Geri yüklemeyi atla";
+
 /* The title for the skip restore 'choice' option */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_TITLE" = "Aktarmadan Kaydet";
 
@@ -5258,7 +5336,7 @@
 "ONBOARDING_CONFIRM_BACKUP_RESTORE_CONFIRM_ACTION" = "Yedeği geri yükle";
 
 /* Description for form confirming restore from backup. */
-"ONBOARDING_CONFIRM_BACKUP_RESTORE_DESCRIPTION" = "Son yedeklemen %1$@ tarihinde %2$@ saatinde yapılmıştır. Eski cihazın hâlâ sendeyse daha yeni bir yedekleme oluşturabilirsin. [Nasılmış Gör](https://signal.org)";
+"ONBOARDING_CONFIRM_BACKUP_RESTORE_DESCRIPTION" = "Son yedeklemen %1$@ tarihinde %2$@ saatinde yapılmıştır. Yedekleme boyutun %3$@";
 
 /* Text for action button to explore other options. */
 "ONBOARDING_CONFIRM_BACKUP_RESTORE_MORE_OPTIONS_ACTION" = "Daha fazla seçenek";
@@ -8957,7 +9035,7 @@
 "VOICE_MESSAGE_CANCEL_INSTRUCTIONS" = "İptal etmek için kaydırın";
 
 /* Filename for voice messages. */
-"VOICE_MESSAGE_FILE_NAME" = "Signal";
+"VOICE_MESSAGE_FILE_NAME" = "signal";
 
 /* Message for the tooltip indicating the 'voice message' needs to be held to be held down to record. */
 "VOICE_MESSAGE_TOO_SHORT_TOOLTIP" = "Kaydetmek için tıklayın ve basılı tutun";

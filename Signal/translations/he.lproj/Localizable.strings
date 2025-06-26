@@ -514,6 +514,69 @@
 /* Text used as placeholder in backup key text view. */
 "BACKUP_KEY_PLACEHOLDER" = "מפתח גיבוי";
 
+/* Title of button to tap if you forgot your backup key. */
+"BACKUP_KEY_REMINDER_FORGOT_KEY" = "שכחת את המפתח?";
+
+/* Action text for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_MEGAPHONE_ACTION" = "אימות";
+
+/* Body for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_MEGAPHONE_BODY" = "מדי פעם נבקש ממך לאמת את המפתח שלך כדי לוודא שהוא עדיין זכור לך";
+
+/* Title for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_MEGAPHONE_TITLE" = "אימות מפתח הגיבוי שלך";
+
+/* Snooze text for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_NOT_NOW_ACTION" = "לא עכשיו";
+
+/* Toast indicating that the Backup Key was correct. */
+"BACKUP_KEY_REMINDER_SUCCESSFUL_TOAST" = "מפתח הגיבוי נכון. שמור על המפתח שלך במקום בטוח.";
+
+/* Body for a sheet warning users to their 'Backup Key' safe. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_KEEP_KEY_SAFE_SHEET_BODY" = "Signal לא תוכל לעזור לך לשחזר את הגיבוי שלך אם איבדת את המפתח שלך. חשוב לאחסן אותו במקום בטוח ומאובטח, ולא לשתף אותו עם אחרים.";
+
+/* Title for a sheet warning users to their 'Backup Key' safe. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_KEEP_KEY_SAFE_SHEET_TITLE" = "יש לשמור על בטיחות המפתח שלך";
+
+/* Title for a button offering to let users see their 'Backup Key'. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_SEE_KEY_AGAIN_BUTTON_TITLE" = "צפייה חוזרת במפתח";
+
+/* Subtitle for a view asking users to confirm their 'Backup Key'. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_SUBTITLE" = "יש להזין את מפתח הגיבוי שזה עתה הקלטת";
+
+/* Title for a view asking users to confirm their 'Backup Key'. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_TITLE" = "אישור מפתח הגיבוי שלך";
+
+/* Bullet point on a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_BULLET_1" = "מוצפן מקצה לקצה";
+
+/* Bullet point on a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_BULLET_2" = "אופציונלי, תמיד";
+
+/* Bullet point on a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_BULLET_3" = "אפשר למחוק את הגיבוי בכל עת";
+
+/* Subtitle for a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_SUBTITLE" = "אפשר לגבות את ההודעות והמדיה ששלך באמצעות שירות האחסון המאובטח המוצפן מקצה לקצה של Signal. ככה, לא מאבדים אף הודעה כשמחליפים טלפון או מתקינים מחדש את Signal.";
+
+/* Title for a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_TITLE" = "גיבויי Signal";
+
+/* Subtitle for a view introducing the 'Backup Key' during an onboarding flow. */
+"BACKUP_ONBOARDING_KEY_INTRO_SUBTITLE" = "מפתח הגיבוי שלך הוא קוד בן 64 ספרות שמאפשר לך לשחזר את הגיבוי שלך בעת התקנה מחדש של Signal.\n\nאם שכחת את המפתח שלך, לא תהיה לך אפשרות לשחזר את הגיבוי. Signal לא תוכל לעזור לך לשחזר את הגיבוי שלך.";
+
+/* Title for a view introducing the 'Backup Key' during an onboarding flow. */
+"BACKUP_ONBOARDING_KEY_INTRO_TITLE" = "מפתח הגיבוי שלך";
+
+/* Title for a button allowing users to copy their 'Backup Key' to the clipboard. */
+"BACKUP_RECORD_KEY_COPY_TO_CLIPBOARD_BUTTON_TITLE" = "העתק ללוח הגזירה";
+
+/* Subtitle for a view allowing users to record their 'Backup Key'. */
+"BACKUP_RECORD_KEY_SUBTITLE" = "המפתח הזה נדרש כדי לשחזר את החשבון והנתונים שלך. חשוב לאחסן את המפתח הזה במקום בטוח. אם הוא נאבד, אי אפשר לשחזר את החשבון שלך.";
+
+/* Title for a view allowing users to record their 'Backup Key'. */
+"BACKUP_RECORD_KEY_TITLE" = "תיעוד מפתח הגיבוי שלך";
+
 /* Title for a button allowing users to upgrade from a free to paid backup plan. */
 "BACKUP_SETTINGS_BACKUP_PLAN_FREE_ACTION_BUTTON_TITLE" = "שדרג";
 
@@ -560,19 +623,19 @@
 "BACKUP_SETTINGS_BACKUPS_DISABLED_SECTION_FOOTER" = "הגיבויים הושבתו והנתונים שלך נמחקו משירות האחסון המאובטח של Signal.";
 
 /* Message for a view indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_MESSAGE" = "An error occurred. Please contact support.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_MESSAGE" = "אירעה שגיאה. יש ליצור קשר עם התמיכה.";
 
 /* Header for a menu section related to settings for when disabling Backups encountered an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "An error occurred when deleting your data from Signal's secure storage service.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "אירעה שגיאה בעת מחיקת הנתונים שלך משירות האחסון המאובטח של Signal.";
 
 /* Title for a view indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_TITLE" = "Failed to Delete Backup";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_TITLE" = "מחיקת הגיבוי נכשלה";
 
 /* Description for a progress view tracking Backups being disabled. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_PROGRESS_VIEW_DESCRIPTION" = "Deleting Backup...";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_PROGRESS_VIEW_DESCRIPTION" = "גיבוי במחיקה…";
 
 /* Header for a menu section related to disabling Backups. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "Backups have been turned off and your data will be deleted from Signal's secure storage service.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "הגיבויים הושבתו והנתונים שלך יימחקו משירות האחסון המאובטח של Signal.";
 
 /* Header for a menu section related to settings for when Backups are enabled. */
 "BACKUP_SETTINGS_BACKUPS_ENABLED_SECTION_HEADER" = "פרטי גיבוי";
@@ -584,13 +647,13 @@
 "BACKUP_SETTINGS_DISABLE_BACKUPS_BUTTON_TITLE" = "כיבוי ומחיקת גיבויים";
 
 /* Message shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "An error occurred when deleting your data from Signal's secure storage service.";
+"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "אירעה שגיאה בעת מחיקת הנתונים שלך משירות האחסון המאובטח של Signal.";
 
 /* Title shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_TITLE" = "Failed to Delete Backup";
+"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_TITLE" = "מחיקת הגיבוי נכשלה";
 
 /* Message shown in an action sheet when the user tries to disable Backups, but is not registered. */
-"BACKUP_SETTINGS_DISABLING_ERROR_NOT_REGISTERED" = "You must be registered to disable Backups.";
+"BACKUP_SETTINGS_DISABLING_ERROR_NOT_REGISTERED" = "חובה להיות רשומ/ה כדי להשבית גיבויים.";
 
 /* Text describing that a user's backup will be automatically performed daily. */
 "BACKUP_SETTINGS_ENABLED_BACKUP_FREQUENCY_DAILY" = "יומית";
@@ -633,6 +696,15 @@
 
 /* Title for a button allowing users to re-enable Backups, after it had been previously disabled. */
 "BACKUP_SETTINGS_REENABLE_BACKUPS_BUTTON_TITLE" = "הפעלת גיבויים מחדש";
+
+/* Subtitle for a progress bar tracking uploads that are paused because of low battery. */
+"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_PAUSED_LOW_BATTERY" = "Upload paused: device has low battery";
+
+/* Subtitle for a progress bar tracking uploads that are paused because they need WiFi. */
+"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_PAUSED_NEEDS_WIFI" = "Upload paused: waiting for Wi-Fi";
+
+/* Subtitle for a progress bar tracking active uploading. Embeds 1:{{ the amount uploaded as a file size, e.g. 100 MB }}; 2:{{ the total amount to upload as a file size, e.g. 1 GB }}; 3:{{ the amount uploaded as a percentage, e.g. 10% }}. */
+"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_RUNNING" = "Uploading %1$@ of %2$@ (%3$@)";
 
 /* Message for a sheet shown after the user enables backups. */
 "BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_MESSAGE" = "בהתאם לגודל הגיבוי שלך, זה עשוי להימשך זמן רב. אפשר להשתמש בטלפון שלך כרגיל בזמן שהגיבוי מתבצע.";
@@ -2336,10 +2408,10 @@
 "DISAPPEARING_MESSAGES_CUSTOM_TIME" = "זמן ברירת מחדל";
 
 /* Title for a picker for the unit of time to use for disappearing messages. */
-"DISAPPEARING_MESSAGES_CUSTOM_TIME_UNIT_PICKER" = "Unit";
+"DISAPPEARING_MESSAGES_CUSTOM_TIME_UNIT_PICKER" = "יחידה";
 
 /* Title for a picker for the amount of time, in a given unit, to use for disappearing messages. */
-"DISAPPEARING_MESSAGES_CUSTOM_TIME_VALUE_PICKER" = "Value";
+"DISAPPEARING_MESSAGES_CUSTOM_TIME_VALUE_PICKER" = "ערך";
 
 /* The unit for a number of days */
 "DISAPPEARING_MESSAGES_DAYS" = "ימים";
@@ -2541,12 +2613,6 @@
 
 /* When users make donations on a friend's behalf, a message is sent. This text tells senders that their message will disappear, if the conversation has disappearing messages enabled. Embeds {{duration}}, such as \"1 week\". */
 "DONATION_ON_BEHALF_OF_A_FRIEND_DISAPPEARING_MESSAGES_NOTICE_FORMAT" = "הודעות נעלמות מופעלות בצ׳אט זה. הודעת התרומה שלך תיעלם בעוד %1$@.";
-
-/* Users can donate on a friend's behalf. If something goes wrong during this donation, such as a network error, this error message is shown. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_GENERIC_SEND_ERROR_BODY" = "לא ניתן לתרום. כדאי לבדוק את החיבור שלך ולנסות שוב.";
-
-/* Users can donate on a friend's behalf. If something goes wrong during this donation, such as a network error, an error dialog is shown. This is the title of that dialog. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_GENERIC_SEND_ERROR_TITLE" = "לא ניתן לתרום";
 
 /* Users can donate on a friend's behalf. This tells users that this will be a one-time donation. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_DESCRIPTION" = "תרומה חד פעמית";
@@ -2868,6 +2934,12 @@
 
 /* Call setup status label */
 "END_CALL_UNCATEGORIZED_FAILURE" = "שיחה נכשלה";
+
+/* Label explaining that an entered 'Backup Key' is incorrect. */
+"ENTER_ACCOUNT_ENTROPY_POOL_VIEW_INCORRECT_AEP_LABEL" = "מפתח גיבוי שגוי";
+
+/* Label explaining that an entered 'Backup Key' is malformed. */
+"ENTER_ACCOUNT_ENTROPY_POOL_VIEW_MALFORMED_AEP_LABEL" = "מפתח גיבוי לא חוקי";
 
 /* Error indicating that a message could not be forwarded. */
 "ERROR_COULD_NOT_FORWARD_MESSAGES_1" = "לא היה ניתן להעביר הלאה הודעה.";
@@ -3214,6 +3286,9 @@
 /* Button to leave a group call */
 "GROUP_CALL_LEAVE_BUTTON" = "עזוב שיחה";
 
+/* Title for a 'done' button on a sheet showing the group call members list */
+"GROUP_CALL_MEMBER_LIST_DONE_BUTTON_TITLE" = "סיים";
+
 /* Title for the section of the group call member list which displays the list of all members in the call. */
 "GROUP_CALL_MEMBER_LIST_IN_CALL_SECTION_HEADER" = "בשיחה";
 
@@ -3446,7 +3521,7 @@
 "GROUP_IS_ANNOUNCEMENT_ONLY_ENABLED_BY_REMOTE_USER_FORMAT" = "%1$@ שינה/שינתה את הגדרות הקבוצה אל התרה רק למנהלנים לשלוח הודעות.";
 
 /* Subtitle indicating that the local user has been blocked from joining the group */
-"GROUP_LINK_ACTION_SHEET_VIEW_BLOCKED_FROM_JOINING_SUBTITLE" = "אי אפשר להצטרף אל הקבוצה הזאת באמצעות קישור קבוצה מאחר שמנהל/ת הסיר/ה אותך.";
+"GROUP_LINK_ACTION_SHEET_VIEW_BLOCKED_FROM_JOINING_SUBTITLE" = "אי אפשר להצטרף אל הקבוצה הזאת באמצעות קישור קבוצה מאחר שמנהל/ת הסיר/ה אותך. יש לפנות למנהל/ת כדי שיצרפו אותך בחזרה לקבוצה.";
 
 /* Title indicating that you cannot join a group in the 'group invite link' action sheet. */
 "GROUP_LINK_ACTION_SHEET_VIEW_CANNOT_JOIN_GROUP_TITLE" = "לא ניתן להצטרף אל הקבוצה";
@@ -5230,6 +5305,9 @@
 /* The body for the skip restore 'choice' option */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_BODY" = "להמשיך בלי להעביר את ההודעות והמדיה שלך";
 
+/* The title for a less-prominent skip restore 'choice' option */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_SMALL_TITLE" = "דילוג על שחזור";
+
 /* The title for the skip restore 'choice' option */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_TITLE" = "הירשם בלי להעביר";
 
@@ -5258,7 +5336,7 @@
 "ONBOARDING_CONFIRM_BACKUP_RESTORE_CONFIRM_ACTION" = "שחזר גיבוי";
 
 /* Description for form confirming restore from backup. */
-"ONBOARDING_CONFIRM_BACKUP_RESTORE_DESCRIPTION" = "הגיבוי האחרון שלך התבצע ב–%1$@ בשעה %2$@. ניתן להתחיל ליצור גיבוי חדש יותר אם עדיין יש לך את המכשיר הישן. [ככה עושים את זה](https://signal.org)";
+"ONBOARDING_CONFIRM_BACKUP_RESTORE_DESCRIPTION" = "הגיבוי האחרון שלך התבצע בתאריך %1$@ בשעה %2$@. גודל הגיבוי שלך הוא %3$@";
 
 /* Text for action button to explore other options. */
 "ONBOARDING_CONFIRM_BACKUP_RESTORE_MORE_OPTIONS_ACTION" = "עוד אפשרויות";
@@ -8957,7 +9035,7 @@
 "VOICE_MESSAGE_CANCEL_INSTRUCTIONS" = "החלק כדי לבטל";
 
 /* Filename for voice messages. */
-"VOICE_MESSAGE_FILE_NAME" = "Signal";
+"VOICE_MESSAGE_FILE_NAME" = "signal";
 
 /* Message for the tooltip indicating the 'voice message' needs to be held to be held down to record. */
 "VOICE_MESSAGE_TOO_SHORT_TOOLTIP" = "לחץ והחזק כדי להקליט.";

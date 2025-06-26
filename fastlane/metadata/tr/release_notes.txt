@@ -1,1 +1,1 @@
-• Bir eklentiyi sohbete yapıştırdıktan sonra resim seçicinin açılmasına neden olan bir hatayı düzelttik.
+• VoiceOver erişilebilirlik geliştirmeleri.

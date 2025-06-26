@@ -1,1 +1,1 @@
-• Chúng tôi đã sửa lỗi có thể khiến trình chọn hình ảnh mở sau khi dán tập tin đính kèm vào cuộc trò chuyện.
+• Cải thiện khả năng tiếp cận VoiceOver.

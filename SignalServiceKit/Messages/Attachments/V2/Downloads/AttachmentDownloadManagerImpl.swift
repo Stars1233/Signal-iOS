@@ -29,7 +29,8 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
         attachmentDownloadStore: AttachmentDownloadStore,
         attachmentStore: AttachmentStore,
         attachmentValidator: AttachmentContentValidator,
-        backupAttachmentUploadManager: BackupAttachmentUploadManager,
+        backupAttachmentUploadQueueRunner: BackupAttachmentUploadQueueRunner,
+        backupAttachmentUploadScheduler: BackupAttachmentUploadScheduler,
         backupKeyMaterial: BackupKeyMaterial,
         backupRequestManager: BackupRequestManager,
         currentCallProvider: CurrentCallProvider,
@@ -63,7 +64,8 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
         )
         self.attachmentUpdater = AttachmentUpdater(
             attachmentStore: attachmentStore,
-            backupAttachmentUploadManager: backupAttachmentUploadManager,
+            backupAttachmentUploadQueueRunner: backupAttachmentUploadQueueRunner,
+            backupAttachmentUploadScheduler: backupAttachmentUploadScheduler,
             db: db,
             decrypter: decrypter,
             interactionStore: interactionStore,
@@ -105,24 +107,23 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
         self.tsAccountManager = tsAccountManager
 
         appReadiness.runNowOrWhenMainAppDidBecomeReadyAsync { [weak self] in
-            self?.beginDownloadingIfNecessary()
-        }
+            guard let self else { return }
+            self.beginDownloadingIfNecessary()
 
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(registrationStateDidChange),
-            name: .registrationStateDidChange,
-            object: nil
-        )
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(registrationStateDidChange),
+                name: .registrationStateDidChange,
+                object: nil
+            )
+        }
     }
 
     @objc
     private func registrationStateDidChange() {
         AssertIsOnMainThread()
         guard tsAccountManager.registrationStateWithMaybeSneakyTransaction.isRegistered else { return }
-        appReadiness.runNowOrWhenMainAppDidBecomeReadyAsync { [weak self] in
-            self?.beginDownloadingIfNecessary()
-        }
+        self.beginDownloadingIfNecessary()
     }
 
     public func downloadBackup(
@@ -139,6 +140,14 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
                 progress: progress
             )
         }
+    }
+
+    public func backupCdnInfo(
+        metadata: BackupReadCredential
+    ) async throws -> AttachmentDownloads.CdnInfo {
+        let uuid = UUID()
+        let downloadState = DownloadState(type: .backup(metadata: metadata, uuid: uuid))
+        return try await self.downloadQueue.performHeadRequest(downloadState: downloadState)
     }
 
     public func downloadTransientAttachment(
@@ -503,6 +512,8 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
                 let shouldReEnqueueAsTransitTier =
                     record.sourceType == .mediaTierFullsize
                     && attachment?.transitTierInfo != nil
+                    // Backup restore download queue does its own fallbacks
+                    && record.priority != .backupRestore
 
                 // Not retrying; just delete the enqueued download
                 try? self.attachmentDownloadStore.removeAttachmentFromQueue(
@@ -516,7 +527,8 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
                         forAttachmentId: record.attachmentId,
                         tx: tx
                     )
-                } else {
+                } else if record.priority != .backupRestore {
+                    // Backup restore doenload queue does its own marking of failed state.
                     try? self.attachmentStore.updateAttachmentAsFailedToDownload(
                         from: record.sourceType,
                         id: record.attachmentId,
@@ -602,29 +614,10 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
                 // We don't do persistent retries fromt the transit tier.
                 return nil
             case .mediaTierFullsize, .mediaTierThumbnail:
-                switch record.priority {
-                case .default, .backupRestoreLow, .backupRestoreHigh:
-                    guard record.retryAttempts < 32 else {
-                        owsFailDebug("risk of integer overflow")
-                        return nil
-                    }
-                    // Exponential backoff, starting at 1 day.
-                    let initialDelay = UInt64.dayInMs
-                    let delay = UInt64(pow(2.0, Double(record.retryAttempts))) * initialDelay
-                    if delay > UInt64.dayInMs * 30 {
-                        // Don't go more than 30 days; stop retrying.
-                        Logger.info("Giving up retrying attachment download")
-                        return nil
-                    }
-                    return delay
-                case .userInitiated:
-                    // Don't _persist_ a retry for this; let the error
-                    // bubble up to the user, they can tap to retry.
-                    return nil
-                case .localClone:
-                    owsFailDebug("Trying to retry a local clone? Shouldn't happen")
-                    return nil
-                }
+                // User initiated downloads aren't retried,
+                // and backups-initiated downloads get retried
+                // at the backup manager level.
+                return nil
             }
         }
 
@@ -712,7 +705,7 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
                     encryptionKey: transitTierInfo.encryptionKey,
                     source: .transitTier(
                         cdnKey: transitTierInfo.cdnKey,
-                        digest: transitTierInfo.digestSHA256Ciphertext,
+                        integrityCheck: transitTierInfo.integrityCheck,
                         plaintextLength: transitTierInfo.unencryptedByteCount
                     )
                 )
@@ -727,6 +720,7 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
                     downloadMetadata = nil
                     break
                 }
+                let integrityCheck = AttachmentIntegrityCheck.sha256ContentHash(mediaTierInfo.sha256ContentHash)
                 downloadMetadata = .init(
                     mimeType: attachment.mimeType,
                     cdnNumber: cdnNumber,
@@ -734,14 +728,14 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
                     source: .mediaTierFullsize(
                         cdnReadCredential: cdnCredential,
                         outerEncryptionMetadata: encryptionMetadata,
-                        digest: mediaTierInfo.digestSHA256Ciphertext,
+                        integrityCheck: integrityCheck,
                         plaintextLength: mediaTierInfo.unencryptedByteCount
                     )
                 )
             case .mediaTierThumbnail:
                 let cdnNumber = attachment.thumbnailMediaTierInfo?.cdnNumber ?? remoteConfigManager.currentConfig().mediaTierFallbackCdnNumber
                 guard
-                    attachment.thumbnailMediaTierInfo != nil,
+                    attachment.thumbnailMediaTierInfo != nil || MimeTypeUtil.isSupportedVisualMediaMimeType(attachment.mimeType),
                     let mediaName = attachment.mediaName,
                     // This is the outer encryption
                     let outerEncryptionMetadata = buildCdnEncryptionMetadata(
@@ -1005,7 +999,7 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
             case .userInitiated, .localClone:
                 // Always download at these priorities.
                 return .downloadable
-            case .default, .backupRestoreHigh, .backupRestoreLow:
+            case .default, .backupRestore:
                 break
             }
             return db.read { tx in
@@ -1089,7 +1083,7 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
             case .userInitiated, .localClone:
                 // Always download at these priorities.
                 return false
-            case .default, .backupRestoreLow, .backupRestoreHigh:
+            case .default, .backupRestore:
                 break
             }
 
@@ -1116,7 +1110,7 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
             case .userInitiated, .localClone:
                 // Always download at these priorities.
                 return false
-            case .default, .backupRestoreLow, .backupRestoreHigh:
+            case .default, .backupRestore:
                 break
             }
 
@@ -1167,7 +1161,7 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
                 return false
             case .default:
                 break
-            case .backupRestoreLow, .backupRestoreHigh:
+            case .backupRestore:
                 // Despite being lower priority than default,
                 // these actually should download despite the setting.
                 return false
@@ -1397,6 +1391,41 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
             }
         }
 
+        fileprivate func performHeadRequest(
+            downloadState: DownloadState
+        ) async throws -> AttachmentDownloads.CdnInfo {
+            let urlSession = self.signalService.urlSessionForCdn(
+                cdnNumber: downloadState.cdnNumber(),
+                maxResponseSize: BackupArchive.Constants.maxDownloadSizeBytes
+            )
+            let urlPath = try downloadState.urlPath()
+            var headers = downloadState.additionalHeaders()
+            headers["Content-Type"] = MimeType.applicationOctetStream.rawValue
+
+            // Perform a HEAD request to get the byte length & last modified date from cdn.
+            let request = try urlSession.endpoint.buildRequest(urlPath, method: .head, headers: headers)
+            let response = try await urlSession.performRequest(request: request, ignoreAppExpiry: true)
+            guard
+                let contentLengthRaw = response.headers["Content-Length"],
+                let contentLengthBytes = UInt(contentLengthRaw)
+            else {
+                Logger.error("Missing content length from cdn")
+                throw OWSUnretryableError()
+            }
+
+            guard
+                let lastModifiedRaw = response.headers["Last-Modified"],
+                let lastModifiedDate = Date.ows_parseFromHTTPDateString(lastModifiedRaw)
+            else {
+                Logger.error("Missing last modified from cdn")
+                throw OWSUnretryableError()
+            }
+            return AttachmentDownloads.CdnInfo(
+                contentLength: contentLengthBytes,
+                lastModified: lastModifiedDate
+            )
+        }
+
         func enqueueDownload(
             downloadState: DownloadState,
             maxDownloadSizeBytes: UInt,
@@ -1491,20 +1520,12 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
                     }
                 } else {
                     // Perform a HEAD request just to get the byte length from cdn.
-                    let request = try urlSession.endpoint.buildRequest(urlPath, method: .head, headers: headers)
-                    let response = try await urlSession.performRequest(request: request, ignoreAppExpiry: true)
-                    guard
-                        let contentLengthRaw = response.headers["Content-Length"],
-                        let contentLengthBytes = UInt(contentLengthRaw)
-                    else {
-                        Logger.error("Missing content length from cdn")
-                        throw OWSUnretryableError()
-                    }
-                    expectedDownloadSizeBytes = contentLengthBytes
+                    let downloadInfo = try await performHeadRequest(downloadState: downloadState)
+                    expectedDownloadSizeBytes = downloadInfo.contentLength
                     for progress in progresses {
                         progressSources.append(await progress.addSource(
                             withLabel: AttachmentDownloads.downloadProgressLabel,
-                            unitCount: UInt64(contentLengthBytes)
+                            unitCount: UInt64(downloadInfo.contentLength)
                         ))
                     }
                 }
@@ -1671,9 +1692,9 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
 
                     try Cryptography.decryptAttachment(
                         at: encryptedFileUrl,
-                        metadata: EncryptionMetadata(
+                        metadata: DecryptionMetadata(
                             key: metadata.encryptionKey,
-                            digest: metadata.digest,
+                            integrityCheck: metadata.integrityCheck,
                             plaintextLength: metadata.plaintextLength.map(Int.init)
                         ),
                         output: outputUrl
@@ -1752,17 +1773,17 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
                         do {
                             let pendingAttachment: PendingAttachment
                             switch metadata.source {
-                            case .transitTier(_, let digest, let plaintextLength):
-                                pendingAttachment = try attachmentValidator.validateContents(
+                            case .transitTier(_, let integrityCheck, let plaintextLength):
+                                pendingAttachment = try attachmentValidator.validateDownloadedContents(
                                     ofEncryptedFileAt: encryptedFileUrl,
                                     encryptionKey: metadata.encryptionKey,
                                     plaintextLength: plaintextLength,
-                                    digestSHA256Ciphertext: digest,
+                                    integrityCheck: integrityCheck,
                                     mimeType: metadata.mimeType,
                                     renderingFlag: .default,
                                     sourceFilename: nil
                                 )
-                            case .mediaTierFullsize(_, let outerEncryptionMetadata, let digest, let plaintextLength):
+                            case .mediaTierFullsize(_, let outerEncryptionMetadata, let integrityCheck, let plaintextLength):
                                 let innerPlaintextLength: Int? = {
                                     guard let plaintextLength else { return nil }
                                     return Int(plaintextLength)
@@ -1770,10 +1791,10 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
 
                                 pendingAttachment = try attachmentValidator.validateContents(
                                     ofBackupMediaFileAt: encryptedFileUrl,
-                                    outerEncryptionData: EncryptionMetadata(key: outerEncryptionMetadata.encryptionKey),
-                                    innerEncryptionData: EncryptionMetadata(
+                                    outerDecryptionData: DecryptionMetadata(key: outerEncryptionMetadata.encryptionKey),
+                                    innerDecryptionData: DecryptionMetadata(
                                         key: metadata.encryptionKey,
-                                        digest: digest,
+                                        integrityCheck: integrityCheck,
                                         plaintextLength: innerPlaintextLength
                                     ),
                                     finalEncryptionKey: metadata.encryptionKey,
@@ -1784,8 +1805,8 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
                             case .mediaTierThumbnail(_, let outerEncryptionMetadata, let innerEncryptionData):
                                 pendingAttachment = try attachmentValidator.validateContents(
                                     ofBackupMediaFileAt: encryptedFileUrl,
-                                    outerEncryptionData: EncryptionMetadata(key: outerEncryptionMetadata.encryptionKey),
-                                    innerEncryptionData: EncryptionMetadata(key: innerEncryptionData.encryptionKey),
+                                    outerDecryptionData: DecryptionMetadata(key: outerEncryptionMetadata.encryptionKey),
+                                    innerDecryptionData: DecryptionMetadata(key: innerEncryptionData.encryptionKey),
                                     finalEncryptionKey: metadata.encryptionKey,
                                     mimeType: metadata.mimeType,
                                     renderingFlag: .default,
@@ -1828,7 +1849,8 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
     private class AttachmentUpdater {
 
         private let attachmentStore: AttachmentStore
-        private let backupAttachmentUploadManager: BackupAttachmentUploadManager
+        private let backupAttachmentUploadQueueRunner: BackupAttachmentUploadQueueRunner
+        private let backupAttachmentUploadScheduler: BackupAttachmentUploadScheduler
         private let db: any DB
         private let decrypter: Decrypter
         private let interactionStore: InteractionStore
@@ -1840,7 +1862,8 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
 
         public init(
             attachmentStore: AttachmentStore,
-            backupAttachmentUploadManager: BackupAttachmentUploadManager,
+            backupAttachmentUploadQueueRunner: BackupAttachmentUploadQueueRunner,
+            backupAttachmentUploadScheduler: BackupAttachmentUploadScheduler,
             db: any DB,
             decrypter: Decrypter,
             interactionStore: InteractionStore,
@@ -1851,7 +1874,8 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
             threadStore: ThreadStore
         ) {
             self.attachmentStore = attachmentStore
-            self.backupAttachmentUploadManager = backupAttachmentUploadManager
+            self.backupAttachmentUploadQueueRunner = backupAttachmentUploadQueueRunner
+            self.backupAttachmentUploadScheduler = backupAttachmentUploadScheduler
             self.db = db
             self.decrypter = decrypter
             self.interactionStore = interactionStore
@@ -1870,17 +1894,22 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
             timestamp: UInt64,
         ) async throws -> DownloadResult {
             return try await db.awaitableWrite { tx in
-                guard let existingAttachment = self.attachmentStore.fetch(id: attachmentId, tx: tx) else {
+                guard let attachmentWeJustDownloaded = self.attachmentStore.fetch(id: attachmentId, tx: tx) else {
                     Logger.error("Missing attachment after download; could have been deleted while downloading.")
                     throw OWSUnretryableError()
                 }
-                if let stream = existingAttachment.asStream() {
+                if let stream = attachmentWeJustDownloaded.asStream() {
                     // Its already a stream?
                     return .stream(stream)
                 }
 
+                let mediaName = Attachment.mediaName(
+                    sha256ContentHash: pendingAttachment.sha256ContentHash,
+                    encryptionKey: pendingAttachment.encryptionKey
+                )
                 let streamInfo = Attachment.StreamInfo(
                     sha256ContentHash: pendingAttachment.sha256ContentHash,
+                    mediaName: mediaName,
                     encryptedByteCount: pendingAttachment.encryptedByteCount,
                     unencryptedByteCount: pendingAttachment.unencryptedByteCount,
                     contentType: pendingAttachment.validatedContentType,
@@ -1907,7 +1936,7 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
                     self.orphanedAttachmentCleaner.releasePendingAttachment(withId: pendingAttachment.orphanRecordId, tx: tx)
 
                     self.orphanedBackupAttachmentManager.didCreateOrUpdateAttachment(
-                        withMediaName: Attachment.mediaName(digestSHA256Ciphertext: pendingAttachment.digestSHA256Ciphertext),
+                        withMediaName: mediaName,
                         tx: tx
                     )
 
@@ -1921,15 +1950,11 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
                             // really means "copy from transit tier" and since we just downloaded
                             // we shouldn't need to reupload to do that; we just needed to verify
                             // the digest before copying.
-                            try backupAttachmentUploadManager.enqueueUsingHighestPriorityOwnerIfNeeded(
+                            try backupAttachmentUploadScheduler.enqueueUsingHighestPriorityOwnerIfNeeded(
                                 attachment,
                                 tx: tx
                             )
-                            tx.addSyncCompletion { [backupAttachmentUploadManager] in
-                                Task {
-                                    try await backupAttachmentUploadManager.backUpAllAttachments()
-                                }
-                            }
+                            backupAttachmentUploadQueueRunner.backUpAllAttachmentsAfterTxCommits(tx: tx)
                         case .mediaTierFullsize, .mediaTierThumbnail:
                             break
                         }
@@ -1960,27 +1985,22 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
 
                 } catch let error {
                     let existingAttachmentId: Attachment.IDType
-                    if case let AttachmentInsertError.duplicatePlaintextHash(id) = error {
-                        existingAttachmentId = id
-                    } else if case let AttachmentInsertError.duplicateMediaName(id) = error {
-                        existingAttachmentId = id
-
-                        guard let existingAttachment = self.attachmentStore.fetch(id: id, tx: tx) else {
-                            throw OWSAssertionError("Matched attachment missing")
-                        }
-
-                        if existingAttachment.asStream() == nil {
-                            // Set the stream info on the existing attachment, if needed.
-                            try self.attachmentStore.merge(
-                                streamInfo: streamInfo,
-                                into: existingAttachment,
-                                validatedMimeType: pendingAttachment.mimeType,
-                                tx: tx
-                            )
-
-                            // Make sure to clear out the pending attachment from the orphan table so it isn't deleted!
-                            self.orphanedAttachmentCleaner.releasePendingAttachment(withId: pendingAttachment.orphanRecordId, tx: tx)
-                        }
+                    if let error = error as? AttachmentInsertError {
+                        existingAttachmentId = try AttachmentManagerImpl.handleAttachmentInsertError(
+                            error,
+                            pendingAttachmentStreamInfo: streamInfo,
+                            pendingAttachmentEncryptionKey: pendingAttachment.encryptionKey,
+                            pendingAttachmentMimeType: pendingAttachment.mimeType,
+                            pendingAttachmentOrphanRecordId: pendingAttachment.orphanRecordId,
+                            pendingAttachmentTransitTierInfo: attachmentWeJustDownloaded.transitTierInfo,
+                            attachmentStore: attachmentStore,
+                            orphanedAttachmentCleaner: orphanedAttachmentCleaner,
+                            orphanedAttachmentStore: orphanedAttachmentStore,
+                            backupAttachmentUploadScheduler: backupAttachmentUploadScheduler,
+                            orphanedBackupAttachmentManager: orphanedBackupAttachmentManager,
+                            tx: tx
+                        )
+                        backupAttachmentUploadQueueRunner.backUpAllAttachmentsAfterTxCommits(tx: tx)
                     } else {
                         throw error
                     }
@@ -1989,8 +2009,8 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
                     // Move all existing references to that copy, instead.
                     // Doing so should delete the original attachment pointer.
 
-                    // Just hold all refs in memory; this is a pointer so really there
-                    // should only ever be one reference as we don't dedupe pointers.
+                    // Just hold all refs in memory; there shouldn't in practice be
+                    // so many pointers to the same attachment.
                     var references = [AttachmentReference]()
                     try self.attachmentStore.enumerateAllReferences(
                         toAttachmentId: attachmentId,
@@ -2065,8 +2085,13 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
                     tx: tx
                 )
 
+                let mediaName = Attachment.mediaName(
+                    sha256ContentHash: pendingAttachment.sha256ContentHash,
+                    encryptionKey: pendingAttachment.encryptionKey
+                )
                 let streamInfo = Attachment.StreamInfo(
                     sha256ContentHash: pendingAttachment.sha256ContentHash,
+                    mediaName: mediaName,
                     encryptedByteCount: pendingAttachment.encryptedByteCount,
                     unencryptedByteCount: pendingAttachment.unencryptedByteCount,
                     contentType: pendingAttachment.validatedContentType,
@@ -2100,7 +2125,8 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
                         mimeType: pendingAttachment.mimeType,
                         encryptionKey: pendingAttachment.encryptionKey,
                         streamInfo: streamInfo,
-                        mediaName: Attachment.mediaName(digestSHA256Ciphertext: pendingAttachment.digestSHA256Ciphertext)
+                        sha256ContentHash: pendingAttachment.sha256ContentHash,
+                        mediaName: mediaName
                     )
 
                     try self.attachmentStore.insert(
@@ -2114,6 +2140,19 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
                             withMediaName: mediaName,
                             tx: tx
                         )
+
+                        if
+                            let attachment = attachmentStore.fetchAttachment(
+                                mediaName: mediaName,
+                                tx: tx
+                            )
+                        {
+                            try backupAttachmentUploadScheduler.enqueueUsingHighestPriorityOwnerIfNeeded(
+                                attachment,
+                                tx: tx
+                            )
+                            backupAttachmentUploadQueueRunner.backUpAllAttachmentsAfterTxCommits(tx: tx)
+                        }
                     }
 
                     // Make sure to clear out the pending attachment from the orphan table so it isn't deleted!
@@ -2129,27 +2168,22 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
                     alreadyAssignedFirstReference = true
                 } catch let error {
                     let existingAttachmentId: Attachment.IDType
-                    if case let AttachmentInsertError.duplicatePlaintextHash(id) = error {
-                        existingAttachmentId = id
-                    } else if case let AttachmentInsertError.duplicateMediaName(id) = error {
-                        existingAttachmentId = id
-
-                        guard let existingAttachment = self.attachmentStore.fetch(id: id, tx: tx) else {
-                            throw OWSAssertionError("Matched attachment missing")
-                        }
-
-                        if existingAttachment.asStream() == nil {
-                            // Set the stream info on the existing attachment, if needed.
-                            try self.attachmentStore.merge(
-                                streamInfo: streamInfo,
-                                into: existingAttachment,
-                                validatedMimeType: pendingAttachment.mimeType,
-                                tx: tx
-                            )
-
-                            // Make sure to clear out the pending attachment from the orphan table so it isn't deleted!
-                            self.orphanedAttachmentCleaner.releasePendingAttachment(withId: pendingAttachment.orphanRecordId, tx: tx)
-                        }
+                    if let error = error as? AttachmentInsertError {
+                        existingAttachmentId = try AttachmentManagerImpl.handleAttachmentInsertError(
+                            error,
+                            pendingAttachmentStreamInfo: streamInfo,
+                            pendingAttachmentEncryptionKey: pendingAttachment.encryptionKey,
+                            pendingAttachmentMimeType: pendingAttachment.mimeType,
+                            pendingAttachmentOrphanRecordId: pendingAttachment.orphanRecordId,
+                            pendingAttachmentTransitTierInfo: nil,
+                            attachmentStore: attachmentStore,
+                            orphanedAttachmentCleaner: orphanedAttachmentCleaner,
+                            orphanedAttachmentStore: orphanedAttachmentStore,
+                            backupAttachmentUploadScheduler: backupAttachmentUploadScheduler,
+                            orphanedBackupAttachmentManager: orphanedBackupAttachmentManager,
+                            tx: tx
+                        )
+                        backupAttachmentUploadQueueRunner.backUpAllAttachmentsAfterTxCommits(tx: tx)
                     } else {
                         throw error
                     }
@@ -2241,8 +2275,13 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
                     tx: tx
                 )
 
+                let mediaName = Attachment.mediaName(
+                    sha256ContentHash: pendingThumbnailAttachment.sha256ContentHash,
+                    encryptionKey: pendingThumbnailAttachment.encryptionKey
+                )
                 let streamInfo = Attachment.StreamInfo(
                     sha256ContentHash: pendingThumbnailAttachment.sha256ContentHash,
+                    mediaName: mediaName,
                     encryptedByteCount: pendingThumbnailAttachment.encryptedByteCount,
                     unencryptedByteCount: pendingThumbnailAttachment.unencryptedByteCount,
                     contentType: pendingThumbnailAttachment.validatedContentType,
@@ -2274,7 +2313,8 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
                         mimeType: pendingThumbnailAttachment.mimeType,
                         encryptionKey: pendingThumbnailAttachment.encryptionKey,
                         streamInfo: streamInfo,
-                        mediaName: Attachment.mediaName(digestSHA256Ciphertext: pendingThumbnailAttachment.digestSHA256Ciphertext)
+                        sha256ContentHash: pendingThumbnailAttachment.sha256ContentHash,
+                        mediaName: mediaName,
                     )
 
                     try self.attachmentStore.insert(
@@ -2288,6 +2328,19 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
                             withMediaName: mediaName,
                             tx: tx
                         )
+
+                        if
+                            let attachment = attachmentStore.fetchAttachment(
+                                mediaName: mediaName,
+                                tx: tx
+                            )
+                        {
+                            try backupAttachmentUploadScheduler.enqueueUsingHighestPriorityOwnerIfNeeded(
+                                attachment,
+                                tx: tx
+                            )
+                            backupAttachmentUploadQueueRunner.backUpAllAttachmentsAfterTxCommits(tx: tx)
+                        }
                     }
 
                     // Make sure to clear out the pending attachment from the orphan table so it isn't deleted!
@@ -2303,30 +2356,22 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
                     alreadyAssignedFirstReference = true
                 } catch let error {
                     let existingAttachmentId: Attachment.IDType
-                    if case let AttachmentInsertError.duplicatePlaintextHash(id) = error {
-                        existingAttachmentId = id
-                    } else if case let AttachmentInsertError.duplicateMediaName(id) = error {
-                        existingAttachmentId = id
-
-                        guard let existingAttachment = self.attachmentStore.fetch(id: id, tx: tx) else {
-                            throw OWSAssertionError("Matched attachment missing")
-                        }
-
-                        if existingAttachment.asStream() == nil {
-                            // Set the stream info on the existing attachment, if needed.
-                            try self.attachmentStore.merge(
-                                streamInfo: streamInfo,
-                                into: existingAttachment,
-                                validatedMimeType: pendingThumbnailAttachment.mimeType,
-                                tx: tx
-                            )
-
-                            // Make sure to clear out the pending attachment from the orphan table so it isn't deleted!
-                            self.orphanedAttachmentCleaner.releasePendingAttachment(
-                                withId: pendingThumbnailAttachment.orphanRecordId,
-                                tx: tx
-                            )
-                        }
+                    if let error = error as? AttachmentInsertError {
+                        existingAttachmentId = try AttachmentManagerImpl.handleAttachmentInsertError(
+                            error,
+                            pendingAttachmentStreamInfo: streamInfo,
+                            pendingAttachmentEncryptionKey: pendingThumbnailAttachment.encryptionKey,
+                            pendingAttachmentMimeType: pendingThumbnailAttachment.mimeType,
+                            pendingAttachmentOrphanRecordId: pendingThumbnailAttachment.orphanRecordId,
+                            pendingAttachmentTransitTierInfo: nil,
+                            attachmentStore: attachmentStore,
+                            orphanedAttachmentCleaner: orphanedAttachmentCleaner,
+                            orphanedAttachmentStore: orphanedAttachmentStore,
+                            backupAttachmentUploadScheduler: backupAttachmentUploadScheduler,
+                            orphanedBackupAttachmentManager: orphanedBackupAttachmentManager,
+                            tx: tx
+                        )
+                        backupAttachmentUploadQueueRunner.backUpAllAttachmentsAfterTxCommits(tx: tx)
                     } else {
                         throw error
                     }

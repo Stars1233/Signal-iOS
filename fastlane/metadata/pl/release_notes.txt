@@ -1,1 +1,1 @@
-• Zdarzyło Ci się kiedyś wkleić załącznik do czatu, po czym zdecydować, że jednak go nie wyślesz? Naprawiliśmy błąd, który powodował, że czasem w takich sytuacjach otwierało się okno wyboru obrazów. Wysłać czy nie wysłać – teraz możesz zmieniać zdanie do woli.
+• Poprawiliśmy dostępność aplikacji dla osób niewidzących lub niedowidzących za sprawą nowych opisów głosowych obsługiwanych przez funkcję VoiceOver systemu iOS, które informują o statusie wiadomości (na przykład „wysłano” lub „dostarczono”).

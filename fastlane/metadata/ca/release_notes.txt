@@ -1,1 +1,1 @@
-• Hem corregit un error que feia que s'obrís el selector d'imatges en enganxar un arxiu adjunt en un xat.
+• Millores d'accessibilitat a la funció VoiceOver.

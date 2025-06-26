@@ -28,6 +28,7 @@ final class CallService: CallServiceStateObserver, CallServiceStateDelegate {
     private let appReadiness: AppReadiness
     private var audioSession: AudioSession { SUIEnvironment.shared.audioSessionRef }
     private var callLinkStore: any CallLinkRecordStore { DependenciesBridge.shared.callLinkStore }
+    private var chatConnectionManager: any ChatConnectionManager { DependenciesBridge.shared.chatConnectionManager }
     let authCredentialManager: any AuthCredentialManager
     private var databaseStorage: SDSDatabaseStorage { SSKEnvironment.shared.databaseStorageRef }
     private let db: any DB
@@ -141,9 +142,6 @@ final class CallService: CallServiceStateObserver, CallServiceStateDelegate {
         notificationObservers.append(NotificationCenter.default.addObserver(forName: Self.callServicePreferencesDidChange, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.configureDataMode() }
         })
-        notificationObservers.append(NotificationCenter.default.addObserver(forName: .registrationStateDidChange, object: nil, queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated { self?.registrationChanged() }
-        })
 
         // Note that we're not using the usual .owsReachabilityChanged
         // We want to update our data mode if the app has been backgrounded
@@ -163,6 +161,9 @@ final class CallService: CallServiceStateObserver, CallServiceStateDelegate {
             if let localAci = DependenciesBridge.shared.tsAccountManager.localIdentifiersWithMaybeSneakyTransaction?.aci {
                 self.callManager.setSelfUuid(localAci.rawUUID)
             }
+            self.notificationObservers.append(NotificationCenter.default.addObserver(forName: .registrationStateDidChange, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.registrationChanged() }
+            })
         }
 
         appReadiness.runNowOrWhenAppDidBecomeReadyAsync {
@@ -179,19 +180,34 @@ final class CallService: CallServiceStateObserver, CallServiceStateDelegate {
         }
     }
 
+    @MainActor
+    private var shouldRebuildCallUIAdapter = false
+
     /**
      * Choose whether to use CallKit or a Notification backed interface for calling.
      */
+    @MainActor
     public func rebuildCallUIAdapter() {
         if let currentCall = callServiceState.currentCall {
-            Logger.warn("ending current call in. Did user toggle callkit preference while in a call?")
-            callServiceState.terminateCall(currentCall)
+            Logger.warn("Ending current call because the user toggled a CallKit preference during a call.")
+            self.callUIAdapter.localHangupCall(currentCall)
         }
+        self.shouldRebuildCallUIAdapter = true
+        self.rebuildCallUIAdapterIfNeeded()
+    }
 
+    @MainActor
+    private func rebuildCallUIAdapterIfNeeded() {
+        guard self.shouldRebuildCallUIAdapter else {
+            return
+        }
+        self.shouldRebuildCallUIAdapter = false
         self.callUIAdapter = CallUIAdapter()
     }
 
     private let sleepBlockObject = DeviceSleepBlockObject(blockReason: "call")
+
+    private var connectionTokens = [OWSChatConnection.ConnectionToken]()
 
     func didUpdateCall(from oldValue: SignalCall?, to newValue: SignalCall?) {
         switch oldValue?.mode {
@@ -225,6 +241,11 @@ final class CallService: CallServiceStateObserver, CallServiceStateDelegate {
 
         updateIsVideoEnabled()
 
+        // Keep the connection open while we have an active call.
+        let oldTokens = self.connectionTokens
+        self.connectionTokens = (newValue != nil) ? self.chatConnectionManager.requestConnections(shouldReconnectIfConnectedElsewhere: true) : []
+        oldTokens.forEach { $0.releaseConnection() }
+
         // Prevent device from sleeping while we have an active call.
         if oldValue != nil {
             self.deviceSleepManager.removeBlock(blockObject: sleepBlockObject)
@@ -239,6 +260,12 @@ final class CallService: CallServiceStateObserver, CallServiceStateDelegate {
             }
             if newValue != nil {
                 UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+            }
+        }
+
+        if newValue == nil {
+            MainActor.assumeIsolated {
+                self.rebuildCallUIAdapterIfNeeded()
             }
         }
 
@@ -450,7 +477,7 @@ final class CallService: CallServiceStateObserver, CallServiceStateDelegate {
 
                 do {
                     try callManager.cancelGroupRing(
-                        groupId: groupThreadCall.groupId.serialize().asData,
+                        groupId: groupThreadCall.groupId.serialize(),
                         ringId: ringId,
                         reason: .declinedByUser
                     )
@@ -515,7 +542,7 @@ final class CallService: CallServiceStateObserver, CallServiceStateDelegate {
             let videoCaptureController = VideoCaptureController()
             let sfuUrl = DebugFlags.callingUseTestSFU.get() ? TSConstants.sfuTestURL : TSConstants.sfuURL
             let ringRtcCall = callManager.createGroupCall(
-                groupId: groupId.serialize().asData,
+                groupId: groupId.serialize(),
                 sfuUrl: sfuUrl,
                 hkdfExtraInfo: Data(),
                 audioLevelsIntervalMillis: nil,
@@ -574,7 +601,7 @@ final class CallService: CallServiceStateObserver, CallServiceStateDelegate {
             let authCredentialPresentation = authCredential.present(callLinkParams: secretParams)
             let ringRtcCall = callManager.createCallLinkCall(
                 sfuUrl: sfuUrl,
-                authCredentialPresentation: authCredentialPresentation.serialize(),
+                authCredentialPresentation: [UInt8](authCredentialPresentation.serialize()),
                 linkRootKey: callLink.rootKey,
                 adminPasskey: adminPasskey,
                 hkdfExtraInfo: Data(),
@@ -1506,7 +1533,7 @@ extension CallService: CallManagerDelegate {
         }
 
         let action: RingAction = databaseStorage.read { transaction in
-            guard let groupId = try? GroupIdentifier(contents: [UInt8](groupId)) else {
+            guard let groupId = try? GroupIdentifier(contents: groupId) else {
                 owsFailDebug("discarding group ring \(ringId) from \(senderAci) for invalid group")
                 return .cancel
             }
@@ -1518,7 +1545,7 @@ extension CallService: CallManagerDelegate {
 
             guard GroupMessageProcessorManager.discardMode(
                 forMessageFrom: senderAci,
-                groupId: groupId.serialize().asData,
+                groupId: groupId.serialize(),
                 tx: transaction
             ) == .doNotDiscard else {
                 Logger.warn("discarding group ring \(ringId) from \(senderAci)")
@@ -1556,7 +1583,7 @@ extension CallService: CallManagerDelegate {
             }
             guard currentCall == nil else {
                 do {
-                    try callManager.cancelGroupRing(groupId: groupId.serialize().asData, ringId: ringId, reason: .busy)
+                    try callManager.cancelGroupRing(groupId: groupId.serialize(), ringId: ringId, reason: .busy)
                 } catch {
                     owsFailDebug("RingRTC failed to cancel group ring \(ringId): \(error)")
                 }

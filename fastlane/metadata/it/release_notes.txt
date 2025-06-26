@@ -1,1 +1,1 @@
-• Cambiare idea è normale, ecco perché abbiamo risolto un bug che causa un comportamento anomalo nel selettore delle immagini, che si apriva dopo aver incollato un allegato in chat e poi aver deciso di non inviarlo.
+• Gli indicatori dello stato dei messaggi (inviato, consegnato, e così via) hanno ora il supporto alla funzione di VoiceOver di iOS così da migliorare l'accessibilità per le persone ipovedenti o non vedenti.

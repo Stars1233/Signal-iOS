@@ -48,20 +48,16 @@ extension BadgeGiftingConfirmationViewController: PKPaymentAuthorizationControll
                     )
                 }
 
-                let preparedPayment = try await DonationViewsUtil.Gifts.prepareToPay(amount: self.price, applePayPayment: payment).awaitable()
+                let preparedPayment = try await DonationViewsUtil.Gifts.prepareToPay(amount: self.price, applePayPayment: payment)
 
-                let safetyNumberConfirmationResult = DonationViewsUtil.Gifts.showSafetyNumberConfirmationIfNecessary(
-                    for: self.thread
+                let safetyNumberConfirmationResult = await DonationViewsUtil.Gifts.showSafetyNumberConfirmationIfNecessary(
+                    for: self.thread,
+                    didPresent: {
+                        wrappedCompletion(.init(status: .success, errors: nil))
+                    }
                 )
-                if safetyNumberConfirmationResult.needsUserInteraction {
-                    wrappedCompletion(.init(status: .success, errors: nil))
-                }
-
-                switch try await safetyNumberConfirmationResult.promise.awaitable() {
-                case .userDidNotConfirmSafetyNumberChange:
+                guard safetyNumberConfirmationResult else {
                     throw DonationViewsUtil.Gifts.SendGiftError.userCanceledBeforeChargeCompleted
-                case .userConfirmedSafetyNumberChangeOrNoChangeWasNeeded:
-                    break
                 }
 
                 var modalActivityIndicatorViewController: ModalActivityIndicatorViewController?
@@ -107,7 +103,7 @@ extension BadgeGiftingConfirmationViewController: PKPaymentAuthorizationControll
                             controller.dismiss()
                             presentModalActivityIndicatorIfNotAlreadyPresented()
                         }
-                    ).awaitable()
+                    )
                 }
 
                 // We shouldn't need to dismiss the Apple Pay sheet here, but if the `chargeSucceeded`

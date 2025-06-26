@@ -1,1 +1,1 @@
-• Opravili sme chybu, ktorá mohla spôsobiť, že sa po vložení prílohy do četu otvoril výber obrázkov.
+• Zlepšenie dostupnosti funkcie VoiceOver.

@@ -57,15 +57,15 @@ public class MessageProcessor {
 
         SwiftSingletons.register(self)
 
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(registrationStateDidChange),
-            name: .registrationStateDidChange,
-            object: nil
-        )
-
         appReadiness.runNowOrWhenAppDidBecomeReadySync {
             SSKEnvironment.shared.messagePipelineSupervisorRef.register(pipelineStage: self)
+
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(self.registrationStateDidChange),
+                name: .registrationStateDidChange,
+                object: nil
+            )
         }
     }
 
@@ -133,6 +133,10 @@ public class MessageProcessor {
         label: "org.signal.message-processor",
         autoreleaseFrequency: .workItem
     )
+
+    #if TESTABLE_BUILD
+    var serialQueueForTests: DispatchQueue { serialQueue }
+    #endif
 
     private var pendingEnvelopes = PendingEnvelopes()
 
@@ -317,9 +321,7 @@ public class MessageProcessor {
 
     @objc
     private func registrationStateDidChange() {
-        appReadiness.runNowOrWhenAppDidBecomeReadySync {
-            self.drainPendingEnvelopes()
-        }
+        self.drainPendingEnvelopes()
     }
 }
 

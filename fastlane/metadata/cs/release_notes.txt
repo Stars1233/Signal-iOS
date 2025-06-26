@@ -1,1 +1,1 @@
-• Opravili jsme chybu, která po vložení přílohy do chatu mohla způsobit otevření nástroje pro výběr obrázků.
+• Vylepšení přístupnosti pro VoiceOver

@@ -12,15 +12,18 @@ internal class BackupArchiveMessageAttachmentArchiver: BackupArchiveProtoStreamW
     private let attachmentManager: AttachmentManager
     private let attachmentStore: AttachmentStore
     private let backupAttachmentDownloadManager: BackupAttachmentDownloadManager
+    private let backupAttachmentByteCounter: BackupArchiveAttachmentByteCounter
 
     init(
         attachmentManager: AttachmentManager,
         attachmentStore: AttachmentStore,
-        backupAttachmentDownloadManager: BackupAttachmentDownloadManager
+        backupAttachmentDownloadManager: BackupAttachmentDownloadManager,
+        backupAttachmentByteCounter: BackupArchiveAttachmentByteCounter
     ) {
         self.attachmentManager = attachmentManager
         self.attachmentStore = attachmentStore
         self.backupAttachmentDownloadManager = backupAttachmentDownloadManager
+        self.backupAttachmentByteCounter = backupAttachmentByteCounter
     }
 
     /// We tend to deal with all attachments for a given message back-to-back, but in separate steps.
@@ -81,7 +84,8 @@ internal class BackupArchiveMessageAttachmentArchiver: BackupArchiveProtoStreamW
         var pointers = [BackupProto_MessageAttachment]()
         for referencedAttachment in referencedAttachments {
             let pointerProto = referencedAttachment.asBackupFilePointer(
-                currentBackupAttachmentUploadEra: context.currentBackupAttachmentUploadEra
+                currentBackupAttachmentUploadEra: context.currentBackupAttachmentUploadEra,
+                attachmentBytesCounter: backupAttachmentByteCounter
             )
 
             var attachmentProto = BackupProto_MessageAttachment()
@@ -100,26 +104,7 @@ internal class BackupArchiveMessageAttachmentArchiver: BackupArchiveProtoStreamW
             pointers.append(attachmentProto)
         }
 
-        var attachmentFailures: [BackupArchive.ArchiveFrameError<BackupArchive.InteractionUniqueId>] = []
-
-        for referencedAttachment in referencedAttachments {
-            do {
-                try context.enqueueAttachmentForUploadIfNeeded(referencedAttachment)
-            } catch {
-                // If some attachment fails, thats ~mostly~ fine. Everything else
-                // can still go through, the one attachment just won't upload.
-                attachmentFailures.append(.archiveFrameError(
-                    .failedToEnqueueAttachmentForUpload,
-                    messageId
-                ))
-            }
-        }
-
-        if attachmentFailures.isEmpty {
-            return .success(pointers)
-        } else {
-            return .partialFailure(pointers, attachmentFailures)
-        }
+        return .success(pointers)
     }
 
     public func archiveOversizeTextAttachment(
@@ -163,7 +148,8 @@ internal class BackupArchiveMessageAttachmentArchiver: BackupArchiveProtoStreamW
         }
 
         let pointerProto = referencedAttachment.asBackupFilePointer(
-            currentBackupAttachmentUploadEra: context.currentBackupAttachmentUploadEra
+            currentBackupAttachmentUploadEra: context.currentBackupAttachmentUploadEra,
+            attachmentBytesCounter: backupAttachmentByteCounter
         )
 
         var attachmentProto = BackupProto_MessageAttachment()
@@ -171,17 +157,6 @@ internal class BackupArchiveMessageAttachmentArchiver: BackupArchiveProtoStreamW
         attachmentProto.flag = referencedAttachment.reference.renderingFlag.asBackupProtoFlag
         attachmentProto.wasDownloaded = referencedAttachment.attachment.asStream() != nil
         // NOTE: clientUuid is unecessary for quoted reply attachments.
-
-        do {
-            try context.enqueueAttachmentForUploadIfNeeded(referencedAttachment)
-        } catch {
-            // If some attachment fails, thats ~mostly~ fine. Everything else
-            // can still go through, the one attachment just won't upload.
-            return .partialFailure(attachmentProto, [.archiveFrameError(
-                .failedToEnqueueAttachmentForUpload,
-                messageId
-            )])
-        }
 
         return .success(attachmentProto)
     }
@@ -443,21 +418,9 @@ internal class BackupArchiveMessageAttachmentArchiver: BackupArchiveProtoStreamW
         }
 
         let result = referencedAttachment.asBackupFilePointer(
-            currentBackupAttachmentUploadEra: context.currentBackupAttachmentUploadEra
+            currentBackupAttachmentUploadEra: context.currentBackupAttachmentUploadEra,
+            attachmentBytesCounter: backupAttachmentByteCounter
         )
-
-        do {
-            try context.enqueueAttachmentForUploadIfNeeded(referencedAttachment)
-        } catch {
-            // If some attachment fails, thats ~mostly~ fine. Everything else
-            // can still go through, the one attachment just won't upload.
-            return .partialFailure(
-                result, [.archiveFrameError(
-                    .failedToEnqueueAttachmentForUpload,
-                    messageId
-                )]
-            )
-        }
 
         return .success(result)
     }
@@ -531,6 +494,7 @@ internal class BackupArchiveMessageAttachmentArchiver: BackupArchiveProtoStreamW
                     restoreStartTimestampMs: context.startTimestampMs,
                     backupPlan: backupPlan,
                     remoteConfig: accountDataContext.currentRemoteConfig,
+                    isPrimaryDevice: context.isPrimaryDevice,
                     tx: context.tx
                 )
             }
@@ -600,7 +564,8 @@ extension BackupArchive.RestoreFrameError.ErrorType {
 extension ReferencedAttachment {
 
     internal func asBackupFilePointer(
-        currentBackupAttachmentUploadEra: String
+        currentBackupAttachmentUploadEra: String,
+        attachmentBytesCounter: BackupArchiveAttachmentByteCounter
     ) -> BackupProto_FilePointer {
         var proto = BackupProto_FilePointer()
         proto.contentType = attachment.mimeType
@@ -640,6 +605,17 @@ extension ReferencedAttachment {
             proto.incrementalMacChunkSize = incrementalMacInfo.chunkSize
         }
 
+        if attachment.mediaName != nil {
+            guard let unencryptedByteCount = attachment.streamInfo?.unencryptedByteCount
+                    ?? attachment.mediaTierInfo?.unencryptedByteCount else {
+                return proto
+            }
+            attachmentBytesCounter.addToByteCount(
+                attachmentID: attachment.id,
+                byteCount: UInt64(Cryptography.estimatedMediaTierCDNSize(unencryptedSize: unencryptedByteCount))
+            )
+        }
+
         // Notes:
         // * incrementalMac and incrementalMacChunkSize unsupported by iOS
         return proto
@@ -652,8 +628,7 @@ extension ReferencedAttachment {
             FeatureFlags.Backups.remoteExportAlpha,
             let mediaName = attachment.mediaName,
             let mediaTierDigest =
-                attachment.mediaTierInfo?.digestSHA256Ciphertext
-                ?? attachment.streamInfo?.digestSHA256Ciphertext,
+                attachment.streamInfo?.digestSHA256Ciphertext,
             let mediaTierUnencryptedByteCount =
                 attachment.mediaTierInfo?.unencryptedByteCount
                 ?? attachment.streamInfo?.unencryptedByteCount
@@ -711,7 +686,12 @@ extension ReferencedAttachment {
                 allowZero: false
             )
             transitTierLocator.key = transitTierInfo.encryptionKey
-            transitTierLocator.digest = transitTierInfo.digestSHA256Ciphertext
+            switch transitTierInfo.integrityCheck {
+            case .digestSHA256Ciphertext(let data):
+                transitTierLocator.digest = data
+            case .sha256ContentHash:
+                break
+            }
             if let unencryptedByteCount = transitTierInfo.unencryptedByteCount {
                 transitTierLocator.size = unencryptedByteCount
             }
@@ -742,29 +722,39 @@ extension ReferencedAttachment {
             locatorInfo.transitCdnKey = transitTierInfo.cdnKey
             locatorInfo.transitCdnNumber = transitTierInfo.cdnNumber
             locatorInfo.transitTierUploadTimestamp = transitTierInfo.uploadTimestamp
+            // We may overwrite this below with plaintext hash integrity check,
+            // which is desired. We only use encrypted digest integrity check
+            // if we don't have a plaintext hash and DO have a transit tier upload.
+            switch transitTierInfo.integrityCheck {
+            case .digestSHA256Ciphertext(let data):
+                locatorInfo.integrityCheck = .encryptedDigest(data)
+                locatorInfo.legacyDigest = data
+            case .sha256ContentHash(let data):
+                locatorInfo.integrityCheck = .plaintextHash(data)
+            }
         }
 
-        if
-            let mediaName = attachment.mediaName
-        {
-            locatorInfo.mediaName = mediaName
+        if let plaintextHash = attachment.sha256ContentHash {
+            locatorInfo.integrityCheck = .plaintextHash(plaintextHash)
             if let mediaTierCdnNumber = attachment.mediaTierInfo?.cdnNumber {
                 locatorInfo.mediaTierCdnNumber = mediaTierCdnNumber
+            }
+            if
+                let mediaName = attachment.mediaName
+            {
+                locatorInfo.legacyMediaName = mediaName
             }
         }
 
         // Set fields only if some cdn info is available.
-        if
-            locatorInfo.mediaName.isEmpty.negated
-            || locatorInfo.transitCdnKey.isEmpty.negated
-        {
+        switch locatorInfo.integrityCheck {
+        case .plaintextHash, .encryptedDigest:
             locatorInfo.key = attachment.encryptionKey
+
             if
                 let digest = attachment.streamInfo?.digestSHA256Ciphertext
-                    ?? attachment.mediaTierInfo?.digestSHA256Ciphertext
-                    ?? attachment.transitTierInfo?.digestSHA256Ciphertext
             {
-                locatorInfo.digest = digest
+                locatorInfo.legacyDigest = digest
             }
             if
                 let unencryptedByteCount = attachment.streamInfo?.unencryptedByteCount
@@ -773,6 +763,8 @@ extension ReferencedAttachment {
             {
                 locatorInfo.size = unencryptedByteCount
             }
+        case .none:
+            break
         }
 
         return locatorInfo

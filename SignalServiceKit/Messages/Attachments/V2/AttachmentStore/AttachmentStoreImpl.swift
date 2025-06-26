@@ -366,7 +366,10 @@ public class AttachmentStoreImpl: AttachmentStore {
 
         // Find if there is already an attachment with the same media name.
         let existingMediaNameRecord = try fetchAttachmentThrows(
-            mediaName: Attachment.mediaName(digestSHA256Ciphertext: streamInfo.digestSHA256Ciphertext),
+            mediaName: Attachment.mediaName(
+                sha256ContentHash: streamInfo.sha256ContentHash,
+                encryptionKey: existingAttachment.encryptionKey
+            ),
             tx: tx
         )
         if let existingMediaNameRecord, existingMediaNameRecord.id != id {
@@ -378,7 +381,7 @@ public class AttachmentStoreImpl: AttachmentStore {
         switch priority {
         case .userInitiated:
             lastFullscreenViewTimestamp = timestamp
-        case .backupRestoreLow, .backupRestoreHigh, .default, .localClone:
+        case .backupRestore, .default, .localClone:
             lastFullscreenViewTimestamp = nil
         }
 
@@ -390,7 +393,9 @@ public class AttachmentStoreImpl: AttachmentStore {
                     attachment: existingAttachment,
                     validatedMimeType: validatedMimeType,
                     streamInfo: streamInfo,
-                    mediaName: Attachment.mediaName(digestSHA256Ciphertext: streamInfo.digestSHA256Ciphertext),
+                    sha256ContentHash: streamInfo.sha256ContentHash,
+                    digestSHA256Ciphertext: streamInfo.digestSHA256Ciphertext,
+                    mediaName: streamInfo.mediaName,
                     lastFullscreenViewTimestamp: lastFullscreenViewTimestamp,
                 )
             )
@@ -400,7 +405,8 @@ public class AttachmentStoreImpl: AttachmentStore {
                     attachment: existingAttachment,
                     validatedMimeType: validatedMimeType,
                     streamInfo: streamInfo,
-                    mediaName: Attachment.mediaName(digestSHA256Ciphertext: streamInfo.digestSHA256Ciphertext),
+                    sha256ContentHash: streamInfo.sha256ContentHash,
+                    mediaName: streamInfo.mediaName,
                     lastFullscreenViewTimestamp: lastFullscreenViewTimestamp,
                 )
             )
@@ -409,8 +415,7 @@ public class AttachmentStoreImpl: AttachmentStore {
                 params: .forUpdatingAsDownlodedThumbnailFromMediaTier(
                     attachment: existingAttachment,
                     validatedMimeType: validatedMimeType,
-                    streamInfo: streamInfo,
-                    mediaName: Attachment.mediaName(digestSHA256Ciphertext: streamInfo.digestSHA256Ciphertext)
+                    streamInfo: streamInfo
                 )
             )
         }
@@ -422,7 +427,11 @@ public class AttachmentStoreImpl: AttachmentStore {
     public func merge(
         streamInfo: Attachment.StreamInfo,
         into attachment: Attachment,
+        encryptionKey: Data,
         validatedMimeType: String,
+        transitTierInfo: Attachment.TransitTierInfo?,
+        mediaTierInfo: Attachment.MediaTierInfo?,
+        thumbnailMediaTierInfo: Attachment.ThumbnailMediaTierInfo?,
         tx: DBWriteTransaction
     ) throws {
         guard attachment.asStream() == nil else {
@@ -432,7 +441,11 @@ public class AttachmentStoreImpl: AttachmentStore {
         var newRecord = Attachment.Record(params: .forMerging(
             streamInfo: streamInfo,
             into: attachment,
-            mimeType: validatedMimeType
+            encryptionKey: encryptionKey,
+            mimeType: validatedMimeType,
+            transitTierInfo: transitTierInfo,
+            mediaTierInfo: mediaTierInfo,
+            thumbnailMediaTierInfo: thumbnailMediaTierInfo
         ))
 
         newRecord.sqliteId = attachment.id
@@ -494,6 +507,40 @@ public class AttachmentStoreImpl: AttachmentStore {
 
         var newRecord = Attachment.Record(
             params: .forRemovingTransitTierInfo(attachment: existingAttachment)
+        )
+        newRecord.sqliteId = id
+        try newRecord.checkAllUInt64FieldsFitInInt64()
+        try newRecord.update(tx.database)
+    }
+
+    public func removeMediaTierInfo(
+        forAttachmentId id: Attachment.IDType,
+        tx: DBWriteTransaction
+    ) throws {
+        let existingAttachment = fetch(ids: [id], tx: tx).first
+        guard let existingAttachment else {
+            throw OWSAssertionError("Attachment does not exist")
+        }
+
+        var newRecord = Attachment.Record(
+            params: .forRemovingMediaTierInfo(attachment: existingAttachment)
+        )
+        newRecord.sqliteId = id
+        try newRecord.checkAllUInt64FieldsFitInInt64()
+        try newRecord.update(tx.database)
+    }
+
+    public func removeThumbnailMediaTierInfo(
+        forAttachmentId id: Attachment.IDType,
+        tx: DBWriteTransaction
+    ) throws {
+        let existingAttachment = fetch(ids: [id], tx: tx).first
+        guard let existingAttachment else {
+            throw OWSAssertionError("Attachment does not exist")
+        }
+
+        var newRecord = Attachment.Record(
+            params: .forRemovingThumbnailMediaTierInfo(attachment: existingAttachment)
         )
         newRecord.sqliteId = id
         try newRecord.checkAllUInt64FieldsFitInInt64()

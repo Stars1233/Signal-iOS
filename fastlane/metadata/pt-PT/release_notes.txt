@@ -1,1 +1,1 @@
-• Corrigimos um erro que fazia com que o selecionador de imagens se abrisse após colar um anexo num chat.
+• Melhorias de acessibilidade do VoiceOver.

@@ -17,61 +17,47 @@ extension DonationPaymentDetailsViewController {
     ) {
         Logger.info("[Gifting] Starting gift donation with credit/debit card")
 
-        DonationViewsUtil.wrapPromiseInProgressView(
-            from: self,
-            promise: firstly(on: DispatchQueue.sharedUserInitiated) { () -> Promise<Void> in
-                try SSKEnvironment.shared.databaseStorageRef.read { transaction in
-                    try DonationViewsUtil.Gifts.throwIfAlreadySendingGift(
-                        threadId: thread.uniqueId,
-                        transaction: transaction
-                    )
-                }
-                return Promise.value(())
-            }.then(on: DispatchQueue.sharedUserInitiated) { [weak self] () -> Promise<PreparedGiftPayment> in
-                guard let self else {
-                    throw DonationViewsUtil.Gifts.SendGiftError.userCanceledBeforeChargeCompleted
+        Task {
+            do {
+                try await DonationViewsUtil.wrapInProgressView(
+                    from: self,
+                    operation: {
+                        try await throwIfAlreadySendingGift(threadUniqueId: thread.uniqueId)
 
-                }
-                return DonationViewsUtil.Gifts.prepareToPay(
-                    amount: self.donationAmount, creditOrDebitCard: creditOrDebitCard
-                )
-            }.then(on: DispatchQueue.main) { [weak self] preparedPayment -> Promise<PreparedGiftPayment> in
-                if self == nil {
-                    throw DonationViewsUtil.Gifts.SendGiftError.userCanceledBeforeChargeCompleted
+                        let preparedPayment = try await DonationViewsUtil.Gifts.prepareToPay(
+                            amount: self.donationAmount, creditOrDebitCard: creditOrDebitCard
+                        )
 
-                }
-                return DonationViewsUtil.Gifts.showSafetyNumberConfirmationIfNecessary(for: thread)
-                    .promise
-                    .map { safetyNumberConfirmationResult in
-                        switch safetyNumberConfirmationResult {
-                        case .userDidNotConfirmSafetyNumberChange:
+                        guard await DonationViewsUtil.Gifts.showSafetyNumberConfirmationIfNecessary(for: thread) else {
                             throw DonationViewsUtil.Gifts.SendGiftError.userCanceledBeforeChargeCompleted
-                        case .userConfirmedSafetyNumberChangeOrNoChangeWasNeeded:
-                            return preparedPayment
                         }
+
+                        try await DonationViewsUtil.Gifts.startJob(
+                            amount: self.donationAmount,
+                            preparedPayment: preparedPayment,
+                            thread: thread,
+                            messageText: messageText,
+                            databaseStorage: SSKEnvironment.shared.databaseStorageRef,
+                            blockingManager: SSKEnvironment.shared.blockingManagerRef
+                        )
                     }
-            }.then(on: DispatchQueue.sharedUserInitiated) { [weak self] preparedPayment -> Promise<Void> in
-                guard let self else {
-                    throw DonationViewsUtil.Gifts.SendGiftError.userCanceledBeforeChargeCompleted
-                }
-
-                return DonationViewsUtil.Gifts.startJob(
-                    amount: self.donationAmount,
-                    preparedPayment: preparedPayment,
-                    thread: thread,
-                    messageText: messageText,
-                    databaseStorage: SSKEnvironment.shared.databaseStorageRef,
-                    blockingManager: SSKEnvironment.shared.blockingManagerRef
                 )
+                Logger.info("[Gifting] Gifting card donation finished")
+                self.onFinished(nil)
+            } catch {
+                owsPrecondition(error is DonationViewsUtil.Gifts.SendGiftError)
+                Logger.warn("[Gifting] Gifting card donation failed")
+                self.onFinished(error)
             }
-        ).done(on: DispatchQueue.main) { [weak self] in
-            Logger.info("[Gifting] Gifting card donation finished")
-            self?.onFinished(nil)
-        }.catch(on: DispatchQueue.main) { [weak self] error in
-            owsPrecondition(error is DonationViewsUtil.Gifts.SendGiftError)
+        }
+    }
 
-            Logger.warn("[Gifting] Gifting card donation failed")
-            self?.onFinished(error)
+    private nonisolated func throwIfAlreadySendingGift(threadUniqueId: String) async throws {
+        try SSKEnvironment.shared.databaseStorageRef.read { transaction in
+            try DonationViewsUtil.Gifts.throwIfAlreadySendingGift(
+                threadId: threadUniqueId,
+                transaction: transaction
+            )
         }
     }
 }

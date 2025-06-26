@@ -514,6 +514,69 @@
 /* Text used as placeholder in backup key text view. */
 "BACKUP_KEY_PLACEHOLDER" = "備份金鑰";
 
+/* Title of button to tap if you forgot your backup key. */
+"BACKUP_KEY_REMINDER_FORGOT_KEY" = "忘記了備份金鑰？";
+
+/* Action text for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_MEGAPHONE_ACTION" = "驗證";
+
+/* Body for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_MEGAPHONE_BODY" = "我們偶爾會要求你驗證你的備份金鑰，以確保你仍然記得";
+
+/* Title for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_MEGAPHONE_TITLE" = "驗證你的備份金鑰";
+
+/* Snooze text for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_NOT_NOW_ACTION" = "現在不要";
+
+/* Toast indicating that the Backup Key was correct. */
+"BACKUP_KEY_REMINDER_SUCCESSFUL_TOAST" = "備份金鑰正確。請妥善保管你的金鑰。";
+
+/* Body for a sheet warning users to their 'Backup Key' safe. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_KEEP_KEY_SAFE_SHEET_BODY" = "如果你遺失金鑰，Signal 將無法幫助你還原備份。將其存放在安全可靠的地方，不要與他人分享。";
+
+/* Title for a sheet warning users to their 'Backup Key' safe. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_KEEP_KEY_SAFE_SHEET_TITLE" = "妥善保管你的金鑰";
+
+/* Title for a button offering to let users see their 'Backup Key'. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_SEE_KEY_AGAIN_BUTTON_TITLE" = "再看一次金鑰";
+
+/* Subtitle for a view asking users to confirm their 'Backup Key'. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_SUBTITLE" = "輸入你剛剛記錄的備份金鑰";
+
+/* Title for a view asking users to confirm their 'Backup Key'. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_TITLE" = "確認你的備份金鑰";
+
+/* Bullet point on a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_BULLET_1" = "端對端加密";
+
+/* Bullet point on a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_BULLET_2" = "永遠可自由選擇";
+
+/* Bullet point on a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_BULLET_3" = "隨時刪除你的備份";
+
+/* Subtitle for a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_SUBTITLE" = "使用 Signal 的端對端加密儲存服務備份你的訊息和媒體。當你使用新手機或重新安裝 Signal 時，絕不會遺失訊息。";
+
+/* Title for a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_TITLE" = "Signal 備份";
+
+/* Subtitle for a view introducing the 'Backup Key' during an onboarding flow. */
+"BACKUP_ONBOARDING_KEY_INTRO_SUBTITLE" = "你的備份金鑰是一組 64 個字元的代碼，可讓你在重新安裝 Signal 時還原備份。\n\n如果你忘記了金鑰，你將會無法還原備份。Signal 無法幫助你還原備份。";
+
+/* Title for a view introducing the 'Backup Key' during an onboarding flow. */
+"BACKUP_ONBOARDING_KEY_INTRO_TITLE" = "你的備份金鑰";
+
+/* Title for a button allowing users to copy their 'Backup Key' to the clipboard. */
+"BACKUP_RECORD_KEY_COPY_TO_CLIPBOARD_BUTTON_TITLE" = "複製到剪貼簿";
+
+/* Subtitle for a view allowing users to record their 'Backup Key'. */
+"BACKUP_RECORD_KEY_SUBTITLE" = "需要此金鑰才能恢復你的帳戶和資料。將此金鑰存放在安全的地方。如果你將其遺失，你將會無法恢復帳戶。";
+
+/* Title for a view allowing users to record their 'Backup Key'. */
+"BACKUP_RECORD_KEY_TITLE" = "記錄你的備份金鑰";
+
 /* Title for a button allowing users to upgrade from a free to paid backup plan. */
 "BACKUP_SETTINGS_BACKUP_PLAN_FREE_ACTION_BUTTON_TITLE" = "升級";
 
@@ -560,19 +623,19 @@
 "BACKUP_SETTINGS_BACKUPS_DISABLED_SECTION_FOOTER" = "備份已關閉，而且你的資料已從 Signal 的安全儲存服務中刪除。";
 
 /* Message for a view indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_MESSAGE" = "An error occurred. Please contact support.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_MESSAGE" = "發生錯誤。請聯絡支援團隊。";
 
 /* Header for a menu section related to settings for when disabling Backups encountered an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "An error occurred when deleting your data from Signal's secure storage service.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "從 Signal 的安全儲存服務中刪除資料時發生錯誤。";
 
 /* Title for a view indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_TITLE" = "Failed to Delete Backup";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_TITLE" = "無法刪除備份";
 
 /* Description for a progress view tracking Backups being disabled. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_PROGRESS_VIEW_DESCRIPTION" = "Deleting Backup...";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_PROGRESS_VIEW_DESCRIPTION" = "正在刪除備份...";
 
 /* Header for a menu section related to disabling Backups. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "Backups have been turned off and your data will be deleted from Signal's secure storage service.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "備份已關閉，你的資料將會從 Signal 的安全儲存服務中刪除。";
 
 /* Header for a menu section related to settings for when Backups are enabled. */
 "BACKUP_SETTINGS_BACKUPS_ENABLED_SECTION_HEADER" = "備份詳細資料";
@@ -584,13 +647,13 @@
 "BACKUP_SETTINGS_DISABLE_BACKUPS_BUTTON_TITLE" = "關閉並刪除備份";
 
 /* Message shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "An error occurred when deleting your data from Signal's secure storage service.";
+"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "從 Signal 的安全儲存服務中刪除資料時發生錯誤。";
 
 /* Title shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_TITLE" = "Failed to Delete Backup";
+"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_TITLE" = "無法刪除備份";
 
 /* Message shown in an action sheet when the user tries to disable Backups, but is not registered. */
-"BACKUP_SETTINGS_DISABLING_ERROR_NOT_REGISTERED" = "You must be registered to disable Backups.";
+"BACKUP_SETTINGS_DISABLING_ERROR_NOT_REGISTERED" = "你必須登記才能停用備份。";
 
 /* Text describing that a user's backup will be automatically performed daily. */
 "BACKUP_SETTINGS_ENABLED_BACKUP_FREQUENCY_DAILY" = "每日";
@@ -633,6 +696,15 @@
 
 /* Title for a button allowing users to re-enable Backups, after it had been previously disabled. */
 "BACKUP_SETTINGS_REENABLE_BACKUPS_BUTTON_TITLE" = "重新啟用備份";
+
+/* Subtitle for a progress bar tracking uploads that are paused because of low battery. */
+"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_PAUSED_LOW_BATTERY" = "Upload paused: device has low battery";
+
+/* Subtitle for a progress bar tracking uploads that are paused because they need WiFi. */
+"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_PAUSED_NEEDS_WIFI" = "Upload paused: waiting for Wi-Fi";
+
+/* Subtitle for a progress bar tracking active uploading. Embeds 1:{{ the amount uploaded as a file size, e.g. 100 MB }}; 2:{{ the total amount to upload as a file size, e.g. 1 GB }}; 3:{{ the amount uploaded as a percentage, e.g. 10% }}. */
+"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_RUNNING" = "Uploading %1$@ of %2$@ (%3$@)";
 
 /* Message for a sheet shown after the user enables backups. */
 "BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_MESSAGE" = "視備份的大小而定，這可能需要一段較長的時間。備份期間，你可以如常使用手機。";
@@ -2336,10 +2408,10 @@
 "DISAPPEARING_MESSAGES_CUSTOM_TIME" = "自訂時間";
 
 /* Title for a picker for the unit of time to use for disappearing messages. */
-"DISAPPEARING_MESSAGES_CUSTOM_TIME_UNIT_PICKER" = "Unit";
+"DISAPPEARING_MESSAGES_CUSTOM_TIME_UNIT_PICKER" = "單位";
 
 /* Title for a picker for the amount of time, in a given unit, to use for disappearing messages. */
-"DISAPPEARING_MESSAGES_CUSTOM_TIME_VALUE_PICKER" = "Value";
+"DISAPPEARING_MESSAGES_CUSTOM_TIME_VALUE_PICKER" = "數值";
 
 /* The unit for a number of days */
 "DISAPPEARING_MESSAGES_DAYS" = "天";
@@ -2541,12 +2613,6 @@
 
 /* When users make donations on a friend's behalf, a message is sent. This text tells senders that their message will disappear, if the conversation has disappearing messages enabled. Embeds {{duration}}, such as \"1 week\". */
 "DONATION_ON_BEHALF_OF_A_FRIEND_DISAPPEARING_MESSAGES_NOTICE_FORMAT" = "此聊天已開啟「自動銷毀訊息」功能。你的捐款訊息將在 %1$@ 內消失。";
-
-/* Users can donate on a friend's behalf. If something goes wrong during this donation, such as a network error, this error message is shown. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_GENERIC_SEND_ERROR_BODY" = "無法捐款。請檢查你的網路連線，然後再試一次。";
-
-/* Users can donate on a friend's behalf. If something goes wrong during this donation, such as a network error, an error dialog is shown. This is the title of that dialog. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_GENERIC_SEND_ERROR_TITLE" = "無法捐款";
 
 /* Users can donate on a friend's behalf. This tells users that this will be a one-time donation. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_DESCRIPTION" = "單次捐款";
@@ -2868,6 +2934,12 @@
 
 /* Call setup status label */
 "END_CALL_UNCATEGORIZED_FAILURE" = "通話失敗";
+
+/* Label explaining that an entered 'Backup Key' is incorrect. */
+"ENTER_ACCOUNT_ENTROPY_POOL_VIEW_INCORRECT_AEP_LABEL" = "備份金鑰不正確";
+
+/* Label explaining that an entered 'Backup Key' is malformed. */
+"ENTER_ACCOUNT_ENTROPY_POOL_VIEW_MALFORMED_AEP_LABEL" = "無效的備份金鑰";
 
 /* Error indicating that a message could not be forwarded. */
 "ERROR_COULD_NOT_FORWARD_MESSAGES_1" = "訊息無法轉寄。";
@@ -3214,6 +3286,9 @@
 /* Button to leave a group call */
 "GROUP_CALL_LEAVE_BUTTON" = "退出通話";
 
+/* Title for a 'done' button on a sheet showing the group call members list */
+"GROUP_CALL_MEMBER_LIST_DONE_BUTTON_TITLE" = "完成";
+
 /* Title for the section of the group call member list which displays the list of all members in the call. */
 "GROUP_CALL_MEMBER_LIST_IN_CALL_SECTION_HEADER" = "通話中";
 
@@ -3446,7 +3521,7 @@
 "GROUP_IS_ANNOUNCEMENT_ONLY_ENABLED_BY_REMOTE_USER_FORMAT" = "%1$@ 已將群組設定變更為僅允許管理員傳送訊息。";
 
 /* Subtitle indicating that the local user has been blocked from joining the group */
-"GROUP_LINK_ACTION_SHEET_VIEW_BLOCKED_FROM_JOINING_SUBTITLE" = "您不能透過群組連結加入此群組，因為管理員已移除您。";
+"GROUP_LINK_ACTION_SHEET_VIEW_BLOCKED_FROM_JOINING_SUBTITLE" = "你無法透過群組連結加入此群組，因為管理員已移除你。請聯絡管理員以重新加入該群組。";
 
 /* Title indicating that you cannot join a group in the 'group invite link' action sheet. */
 "GROUP_LINK_ACTION_SHEET_VIEW_CANNOT_JOIN_GROUP_TITLE" = "無法加入群組";
@@ -5230,6 +5305,9 @@
 /* The body for the skip restore 'choice' option */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_BODY" = "不轉移訊息及媒體並繼續";
 
+/* The title for a less-prominent skip restore 'choice' option */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_SMALL_TITLE" = "跳過還原";
+
 /* The title for the skip restore 'choice' option */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_TITLE" = "注冊而不轉移";
 
@@ -5258,7 +5336,7 @@
 "ONBOARDING_CONFIRM_BACKUP_RESTORE_CONFIRM_ACTION" = "備份還原";
 
 /* Description for form confirming restore from backup. */
-"ONBOARDING_CONFIRM_BACKUP_RESTORE_DESCRIPTION" = "你上次備份是在 %1$@ 的 %2$@ 進行的。如果你仍然擁有舊裝置，則可以建立較新的備份。[請參閱操作方式] (https://signal.org)";
+"ONBOARDING_CONFIRM_BACKUP_RESTORE_DESCRIPTION" = "你上次備份是在 %1$@ 的 %2$@ 進行的。你的備份大小為 %3$@";
 
 /* Text for action button to explore other options. */
 "ONBOARDING_CONFIRM_BACKUP_RESTORE_MORE_OPTIONS_ACTION" = "更多選項";
@@ -6359,40 +6437,40 @@
 "REACTION_DETAIL_ALL_FORMAT" = "所有 %1$@ 個心情";
 
 /* notification body. Embeds {{reaction emoji}} */
-"REACTION_INCOMING_NOTIFICATION_BODY_FORMAT" = "對你的訊息表達了 %1$@ 心情";
+"REACTION_INCOMING_NOTIFICATION_BODY_FORMAT" = "對以下內容表達了 %1$@ 心情：你的訊息";
 
 /* notification body. Embeds {{reaction emoji}} */
-"REACTION_INCOMING_NOTIFICATION_TO_ALBUM_BODY_FORMAT" = "對你的相簿表達了 %1$@ 心情";
+"REACTION_INCOMING_NOTIFICATION_TO_ALBUM_BODY_FORMAT" = "對以下內容表達了 %1$@ 心情：你的相簿";
 
 /* notification body. Embeds {{reaction emoji}} */
-"REACTION_INCOMING_NOTIFICATION_TO_AUDIO_BODY_FORMAT" = "對你的音訊表達了 %1$@ 心情";
+"REACTION_INCOMING_NOTIFICATION_TO_AUDIO_BODY_FORMAT" = "對以下內容表達了 %1$@ 心情：你的音訊";
 
 /* notification body. Embeds {{reaction emoji}} */
-"REACTION_INCOMING_NOTIFICATION_TO_CONTACT_SHARE_BODY_FORMAT" = "對你的共享聯絡人表達了 %1$@ 心情";
+"REACTION_INCOMING_NOTIFICATION_TO_CONTACT_SHARE_BODY_FORMAT" = "對以下內容表達了 %1$@ 心情：你的共享聯絡人";
 
 /* notification body. Embeds {{reaction emoji}} */
-"REACTION_INCOMING_NOTIFICATION_TO_FILE_BODY_FORMAT" = "對你的檔案表達了 %1$@ 心情";
+"REACTION_INCOMING_NOTIFICATION_TO_FILE_BODY_FORMAT" = "對以下內容表達了 %1$@ 心情：你的檔案";
 
 /* notification body. Embeds {{reaction emoji}} */
-"REACTION_INCOMING_NOTIFICATION_TO_GIF_BODY_FORMAT" = "對你的 GIF 表達了 %1$@ 心情";
+"REACTION_INCOMING_NOTIFICATION_TO_GIF_BODY_FORMAT" = "對以下內容表達了 %1$@ 心情：你的 GIF";
 
 /* notification body. Embeds {{reaction emoji}} */
-"REACTION_INCOMING_NOTIFICATION_TO_PHOTO_BODY_FORMAT" = "對你的相片表達了 %1$@ 心情";
+"REACTION_INCOMING_NOTIFICATION_TO_PHOTO_BODY_FORMAT" = "對以下內容表達了 %1$@ 心情：你的相片";
 
 /* notification body. Embeds {{reaction emoji}} */
-"REACTION_INCOMING_NOTIFICATION_TO_STICKER_MESSAGE_BODY_FORMAT" = "對你的貼圖表達了 %1$@ 心情";
+"REACTION_INCOMING_NOTIFICATION_TO_STICKER_MESSAGE_BODY_FORMAT" = "對以下內容表達了 %1$@ 心情：你的貼圖";
 
 /* notification body. Embeds {{reaction emoji}} and {{body text}} */
-"REACTION_INCOMING_NOTIFICATION_TO_TEXT_MESSAGE_BODY_FORMAT" = "對「%2$@」表達了%1$@ 心情";
+"REACTION_INCOMING_NOTIFICATION_TO_TEXT_MESSAGE_BODY_FORMAT" = "對以下內容表達了 %1$@ 心情：「%2$@」";
 
 /* notification body. Embeds {{reaction emoji}} */
-"REACTION_INCOMING_NOTIFICATION_TO_VIDEO_BODY_FORMAT" = "對你的影片表達了 %1$@ 心情";
+"REACTION_INCOMING_NOTIFICATION_TO_VIDEO_BODY_FORMAT" = "對以下內容表達了 %1$@ 心情：你的影片";
 
 /* notification body. Embeds {{reaction emoji}} */
-"REACTION_INCOMING_NOTIFICATION_TO_VIEW_ONCE_MESSAGE_BODY_FORMAT" = "對你的「閱後即焚」多媒體檔案表達了 %1$@ 心情";
+"REACTION_INCOMING_NOTIFICATION_TO_VIEW_ONCE_MESSAGE_BODY_FORMAT" = "對以下內容表達了 %1$@ 心情：你的「閱後即焚」媒體";
 
 /* notification body. Embeds {{reaction emoji}} */
-"REACTION_INCOMING_NOTIFICATION_TO_VOICE_MESSAGE_BODY_FORMAT" = "對你的語音訊息表達了 %1$@ 心情";
+"REACTION_INCOMING_NOTIFICATION_TO_VOICE_MESSAGE_BODY_FORMAT" = "對以下內容表達了 %1$@ 心情：你的語音訊息";
 
 /* Pressing this button marks a thread as read */
 "READ_ACTION" = "已讀取";
@@ -8258,16 +8336,16 @@
 "STORY_PRIVACY_TITLE" = "限時動態隱私設定";
 
 /* inbox and notification text for a reaction to a story authored by the local user. Embeds {{reaction emoji}} */
-"STORY_REACTION_LOCAL_AUTHOR_PREVIEW_FORMAT" = "對你的限時動態表達了 %1$@ 心情";
+"STORY_REACTION_LOCAL_AUTHOR_PREVIEW_FORMAT" = "對以下內容表達了 %1$@ 心情：你的限時動態";
 
 /* quote text for a reaction to a story by the user (the header on the bubble says \"You\"). Embeds {{reaction emoji}} */
-"STORY_REACTION_QUOTE_FORMAT_SECOND_PERSON" = "對限時動態表達了 %1$@ 心情";
+"STORY_REACTION_QUOTE_FORMAT_SECOND_PERSON" = "對以下內容表達了 %1$@ 心情：限時動態";
 
 /* quote text for a reaction to a story by some other user (the header on the bubble says their name, e.g. \"Bob\"). Embeds {{reaction emoji}} */
-"STORY_REACTION_QUOTE_FORMAT_THIRD_PERSON" = "對限時動態表達了 %1$@ 心情";
+"STORY_REACTION_QUOTE_FORMAT_THIRD_PERSON" = "對以下內容表達了 %1$@ 心情：限時動態";
 
 /* inbox and notification text for a reaction to a story authored by another user. Embeds {{ %1$@ reaction emoji, %2$@ story author name }} */
-"STORY_REACTION_REMOTE_AUTHOR_PREVIEW_FORMAT" = "對 %2$@ 的限時動態表達了 %1$@ 心情";
+"STORY_REACTION_REMOTE_AUTHOR_PREVIEW_FORMAT" = "對以下內容表達了 %1$@ 心情： %2$@ 的限時動態";
 
 /* Button for replying to a story with no existing replies. */
 "STORY_REPLY_BUTTON" = "回覆";
@@ -8957,7 +9035,7 @@
 "VOICE_MESSAGE_CANCEL_INSTRUCTIONS" = "滑動以取消";
 
 /* Filename for voice messages. */
-"VOICE_MESSAGE_FILE_NAME" = "Signal";
+"VOICE_MESSAGE_FILE_NAME" = "signal";
 
 /* Message for the tooltip indicating the 'voice message' needs to be held to be held down to record. */
 "VOICE_MESSAGE_TOO_SHORT_TOOLTIP" = "按住以錄製。";

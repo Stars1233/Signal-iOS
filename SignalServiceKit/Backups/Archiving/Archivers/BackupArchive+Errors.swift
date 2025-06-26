@@ -100,9 +100,6 @@ extension BackupArchive {
             /// We only support backing up 1:1 story replies.
             case storyReplyInGroupThread
 
-            /// An attachment failed to be enqueued for upload, and will not be uploaded to the media tier.
-            case failedToEnqueueAttachmentForUpload
-
             /// A reaction has an invalid or missing author address information, causing the
             /// reaction to be skipped.
             case invalidReactionAddress
@@ -304,7 +301,6 @@ extension BackupArchive {
                     .storyReplyAuthorMissingAci,
                     .storyReplyEmptyContents,
                     .storyReplyInGroupThread,
-                    .failedToEnqueueAttachmentForUpload,
                     .invalidReactionAddress,
                     .invalidReactionTimestamp,
                     .emptyGroupUpdate,
@@ -369,7 +365,6 @@ extension BackupArchive {
                     .storyReplyAuthorMissingAci,
                     .storyReplyEmptyContents,
                     .storyReplyInGroupThread,
-                    .failedToEnqueueAttachmentForUpload,
                     .invalidReactionAddress,
                     .invalidReactionTimestamp,
                     .emptyGroupUpdate,
@@ -567,6 +562,9 @@ extension BackupArchive {
                 case invalidContactIdentityKey
                 /// An invalid member (group, distribution list, etc) was specified as a distribution list member.  Includes the offending proto
                 case invalidDistributionListMember(protoClass: Any.Type)
+
+                /// The backup tier in account settings was set but not able to be parsed by libsignal.
+                case invalidBackupTier
 
                 /// A ``BackupProto/Contact`` with no aci, pni, or e164.
                 case contactWithoutIdentifiers
@@ -830,7 +828,8 @@ extension BackupArchive {
                         .invalidMediaRootBackupKey,
                         .accountDataNotFound,
                         .recipientIdNotFound,
-                        .chatIdNotFound:
+                        .chatIdNotFound,
+                        .invalidBackupTier:
                     // Collapse these by the id they refer to, which is in the "type".
                     return typeLogString
                 case .customChatColorNotFound(let id):
@@ -946,6 +945,7 @@ extension BackupArchive {
                         .invalidProfileKey,
                         .invalidContactIdentityKey,
                         .invalidDistributionListMember,
+                        .invalidBackupTier,
                         .contactWithoutIdentifiers,
                         .otherContactWithLocalIdentifiers,
                         .chatItemInvalidDateSent,

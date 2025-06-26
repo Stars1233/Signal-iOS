@@ -18,6 +18,7 @@ class BackupReceiptCredentialRedemptionJobQueue {
 
     public init(
         authCredentialStore: AuthCredentialStore,
+        backupAttachmentUploadQueueRunner: BackupAttachmentUploadQueueRunner,
         backupSettingsStore: BackupSettingsStore,
         db: any DB,
         networkManager: NetworkManager,
@@ -25,6 +26,7 @@ class BackupReceiptCredentialRedemptionJobQueue {
     ) {
         self.jobRunnerFactory = BackupReceiptCredentialRedemptionJobRunnerFactory(
             authCredentialStore: authCredentialStore,
+            backupAttachmentUploadQueueRunner: backupAttachmentUploadQueueRunner,
             backupSettingsStore: backupSettingsStore,
             db: db,
             networkManager: networkManager
@@ -70,17 +72,20 @@ class BackupReceiptCredentialRedemptionJobQueue {
 
 private class BackupReceiptCredentialRedemptionJobRunnerFactory: JobRunnerFactory {
     private let authCredentialStore: AuthCredentialStore
+    private let backupAttachmentUploadQueueRunner: BackupAttachmentUploadQueueRunner
     private let backupSettingsStore: BackupSettingsStore
     private let db: any DB
     private let networkManager: NetworkManager
 
     init(
         authCredentialStore: AuthCredentialStore,
+        backupAttachmentUploadQueueRunner: BackupAttachmentUploadQueueRunner,
         backupSettingsStore: BackupSettingsStore,
         db: any DB,
         networkManager: NetworkManager
     ) {
         self.authCredentialStore = authCredentialStore
+        self.backupAttachmentUploadQueueRunner = backupAttachmentUploadQueueRunner
         self.backupSettingsStore = backupSettingsStore
         self.db = db
         self.networkManager = networkManager
@@ -89,6 +94,7 @@ private class BackupReceiptCredentialRedemptionJobRunnerFactory: JobRunnerFactor
     func buildRunner() -> BackupReceiptCredentialRedemptionJobRunner {
         return BackupReceiptCredentialRedemptionJobRunner(
             authCredentialStore: authCredentialStore,
+            backupAttachmentUploadQueueRunner: backupAttachmentUploadQueueRunner,
             backupSettingsStore: backupSettingsStore,
             db: db,
             networkManager: networkManager,
@@ -99,6 +105,7 @@ private class BackupReceiptCredentialRedemptionJobRunnerFactory: JobRunnerFactor
     func buildRunner(continuation: CheckedContinuation<Void, Error>) -> BackupReceiptCredentialRedemptionJobRunner {
         return BackupReceiptCredentialRedemptionJobRunner(
             authCredentialStore: authCredentialStore,
+            backupAttachmentUploadQueueRunner: backupAttachmentUploadQueueRunner,
             backupSettingsStore: backupSettingsStore,
             db: db,
             networkManager: networkManager,
@@ -124,6 +131,7 @@ private class BackupReceiptCredentialRedemptionJobRunner: JobRunner {
     }
 
     private let authCredentialStore: AuthCredentialStore
+    private let backupAttachmentUploadQueueRunner: BackupAttachmentUploadQueueRunner
     private let backupSettingsStore: BackupSettingsStore
     private let db: any DB
     private let networkManager: NetworkManager
@@ -133,12 +141,14 @@ private class BackupReceiptCredentialRedemptionJobRunner: JobRunner {
 
     init(
         authCredentialStore: AuthCredentialStore,
+        backupAttachmentUploadQueueRunner: BackupAttachmentUploadQueueRunner,
         backupSettingsStore: BackupSettingsStore,
         db: any DB,
         networkManager: NetworkManager,
         continuation: CheckedContinuation<Void, Error>?
     ) {
         self.authCredentialStore = authCredentialStore
+        self.backupAttachmentUploadQueueRunner = backupAttachmentUploadQueueRunner
         self.backupSettingsStore = backupSettingsStore
         self.db = db
         self.networkManager = networkManager
@@ -164,9 +174,8 @@ private class BackupReceiptCredentialRedemptionJobRunner: JobRunner {
             await db.awaitableWrite { tx in
                 jobRecord.anyRemove(transaction: tx)
 
-                // By redeeming, we've got the server-side entitlement to get
-                // paid-tier Backup credentials. Correspondingly, upgrade our
-                // local BackupPlan to paid.
+                /// We're now a paid-tier Backups user according to the server.
+                /// If our local thinks we're free-tier, upgrade it.
                 switch backupSettingsStore.backupPlan(tx: tx) {
                 case .free:
                     // "Optimize Media" is off by default when you first upgrade.
@@ -174,14 +183,12 @@ private class BackupReceiptCredentialRedemptionJobRunner: JobRunner {
                         .paid(optimizeLocalStorage: false),
                         tx: tx
                     )
+
+                    backupAttachmentUploadQueueRunner.backUpAllAttachmentsAfterTxCommits(tx: tx)
                 case .disabled:
-                    // "Upgrade" assumes Backups is already enabled – don't
-                    // enable it if it's not. (It's a little weird to have
-                    // Backups disabled, but be paying for a subscription, but
-                    // it's allowed.)
+                    // Don't sneakily enable Backups!
                     break
                 case .paid, .paidExpiringSoon:
-                    // No need to change anything – we're already paid.
                     break
                 }
 
@@ -323,7 +330,7 @@ private class BackupReceiptCredentialRedemptionJobRunner: JobRunner {
                         .paymentNotFound:
                     return .redemptionUnsuccessful
                 }
-            } catch where error.isNetworkFailureOrTimeout || (error as? OWSHTTPError)?.isRetryable == true {
+            } catch where error.isNetworkFailureOrTimeout || error.is5xxServiceResponse {
                 return .networkError
             } catch let error {
                 owsFailDebug(
@@ -362,9 +369,10 @@ private class BackupReceiptCredentialRedemptionJobRunner: JobRunner {
                 response = try await networkManager.asyncRequest(
                     .backupRedeemReceiptCredential(
                         receiptCredentialPresentation: presentation
-                    )
+                    ),
+                    retryPolicy: .hopefullyRecoverable
                 )
-            } catch where error.isNetworkFailureOrTimeout || (error as? OWSHTTPError)?.isRetryable == true {
+            } catch where error.isNetworkFailureOrTimeout || error.is5xxServiceResponse {
                 return .networkError
             } catch where error.httpStatusCode == 400 {
                 /// This indicates that our receipt credential presentation has
@@ -418,7 +426,7 @@ private extension TSRequest {
             method: "POST",
             parameters: [
                 "receiptCredentialPresentation": receiptCredentialPresentation
-                    .serialize().asData.base64EncodedString(),
+                    .serialize().base64EncodedString(),
             ]
         )
     }

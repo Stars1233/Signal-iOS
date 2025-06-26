@@ -32,19 +32,10 @@ private extension DonationPaymentMethod {
 }
 
 extension DonationViewsUtil {
-    public static func waitForRedemptionJob(
-        _ jobPromise: Promise<Void>,
-        paymentMethod: DonationPaymentMethod?
-    ) -> Promise<Void> {
-        return jobPromise
-            .recover({ _ in throw DonationJobError.assertion })
-            .timeout(seconds: paymentMethod.timeoutDuration, timeoutErrorBlock: { DonationJobError.timeout })
-    }
-
     public static func waitForRedemption(paymentMethod: DonationPaymentMethod?, _ block: sending @escaping () async throws -> Void) async throws {
         do {
-            try await withCooperativeTimeout(seconds: paymentMethod.timeoutDuration, operation: block)
-        } catch is CooperativeTimeoutError {
+            try await withUncooperativeTimeout(seconds: paymentMethod.timeoutDuration, operation: block)
+        } catch is UncooperativeTimeoutError {
             throw DonationJobError.timeout
         } catch {
             throw DonationJobError.assertion

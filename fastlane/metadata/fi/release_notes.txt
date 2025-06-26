@@ -1,1 +1,1 @@
-• Korjasimme virheen, joka aiheutti kuvanvalitsimen avautumisen sen jälkeen, kun liite oli liitetty keskusteluun.
+• VoiceOver-toiminnon saavutettavuusparannuksia.

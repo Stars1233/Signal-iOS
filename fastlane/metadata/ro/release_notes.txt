@@ -1,1 +1,1 @@
-• Este întotdeauna în regulă să te răzgândești, așa că am remediat o eroare care făcea ca selectorul de imagini să se deschidă după ce lipeai un atașament într-un chat și apoi decideai să nu îl trimiți.
+• Indicatorii de stare a mesajelor (trimis, livrat etc.) sunt acum compatibili cu funcția VoiceOver din iOS pentru a îmbunătăți accesibilitatea pentru persoanele nevăzătoare și cu deficiențe de vedere.

@@ -1,1 +1,1 @@
-• On a tous le droit de changer d'avis : le sélecteur d'images ne s'affichera donc plus par erreur lorsque vous collez une pièce jointe dans une conversation et décidez finalement de ne pas l'envoyer.
+• Signal donne de la voix ! La fonction VoiceOver d'iOS prend désormais en charge les indicateurs d'état des messages (envoyé, distribué, etc.). Objectif : améliorer l'accessibilité de l'application pour les personnes aveugles et malvoyantes.

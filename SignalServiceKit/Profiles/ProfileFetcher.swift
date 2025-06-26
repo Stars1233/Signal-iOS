@@ -307,7 +307,7 @@ public actor ProfileFetcherImpl: ProfileFetcher {
         self.scheduledOpportunisticDate = [now, minimumDate].compacted().max()!
 
         if let minimumDate, now < minimumDate {
-            try await Task.sleep(nanoseconds: minimumDate - now)
+            try await Task.sleep(nanoseconds: (minimumDate - now).nanoseconds)
         }
     }
 
@@ -322,7 +322,7 @@ public actor ProfileFetcherImpl: ProfileFetcher {
         } else {
             switch fetchResult.outcome {
             case .success:
-                retryDelay = 2 * .minute
+                retryDelay = 5 * .minute
             case .networkFailure:
                 retryDelay = 1 * .minute
             case .requestFailure(.notAuthorized):

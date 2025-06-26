@@ -11,12 +11,12 @@ source 'https://cdn.cocoapods.org/'
 pod 'blurhash', podspec: './ThirdParty/blurhash.podspec'
 pod 'SwiftProtobuf', "1.29.0"
 
-ENV['LIBSIGNAL_FFI_PREBUILD_CHECKSUM'] = '14b49c376c7e5c029ca62db154a2c2f9a227d279a363e73d66c96100368c46f8'
-pod 'LibSignalClient', git: 'https://github.com/signalapp/libsignal.git', tag: 'v0.73.1', testspecs: ["Tests"]
+ENV['LIBSIGNAL_FFI_PREBUILD_CHECKSUM'] = '22a0f47ecb8202fb0eae0e89994b4a8437a2775ae9aadc1d44a94c393a32793f'
+pod 'LibSignalClient', git: 'https://github.com/signalapp/libsignal.git', tag: 'v0.76.1', testspecs: ["Tests"]
 # pod 'LibSignalClient', path: '../libsignal', testspecs: ["Tests"]
 
-ENV['RINGRTC_PREBUILD_CHECKSUM'] = '1c124eb495cdbaee797c82e190bad710bf1b505cbf772af48ca92f5f4c2a7897'
-pod 'SignalRingRTC', git: 'https://github.com/signalapp/ringrtc', tag: 'v2.52.2', inhibit_warnings: true
+ENV['RINGRTC_PREBUILD_CHECKSUM'] = 'b8a9c55d0fb9b9535f471695ee210e3e4c731e624ec69e08e0da94691e946daa'
+pod 'SignalRingRTC', git: 'https://github.com/signalapp/ringrtc', tag: 'v2.53.0', inhibit_warnings: true
 # pod 'SignalRingRTC', path: '../ringrtc', testspecs: ["Tests"]
 
 pod 'GRDB.swift/SQLCipher'
@@ -269,7 +269,7 @@ def copy_acknowledgements
   acknowledgements_files = targets.map do |target|
     "Pods/Target Support Files/Pods-#{target}/Pods-#{target}-acknowledgements.plist"
   end
-  acknowledgements_files << "Pods/LibSignalClient/acknowledgments/acknowledgments.plist"
+  acknowledgements_files << "Pods/LibSignalClient/acknowledgments/acknowledgments-ios.plist"
   acknowledgements_files << "Pods/SignalRingRTC/acknowledgments/acknowledgments.plist"
   acknowledgements_files << "Pods/SignalRingRTC/out/release/acknowledgments-webrtc-ios.plist"
 
