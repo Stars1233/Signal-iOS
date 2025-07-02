@@ -219,7 +219,7 @@ public enum DonationSubscriptionManager {
         Logger.info("[Donations] Cancelling subscription")
 
         let request = OWSRequestFactory.deleteSubscriberID(subscriberID)
-        let response = try await networkManager.asyncRequest(request)
+        let response = try await networkManager.asyncRequest(request, retryPolicy: .hopefullyRecoverable)
         if response.responseStatusCode != 200, response.responseStatusCode != 404 {
             throw OWSAssertionError("Got bad response code \(response.responseStatusCode).")
         }
@@ -246,17 +246,17 @@ public enum DonationSubscriptionManager {
         Logger.info("[Donations] Setting up new subscriber ID")
 
         let newSubscriberID = Randomness.generateRandomBytes(UInt(32))
-        try await postSubscriberID(subscriberID: newSubscriberID)
-        return newSubscriberID
-    }
+        let request = OWSRequestFactory.setSubscriberID(newSubscriberID)
 
-    private static func postSubscriberID(subscriberID: Data) async throws {
-        let request = OWSRequestFactory.setSubscriberID(subscriberID)
-        let response = try await SSKEnvironment.shared.networkManagerRef.asyncRequest(request)
+        let response = try await SSKEnvironment.shared.networkManagerRef
+            .asyncRequest(request, retryPolicy: .hopefullyRecoverable)
+
         let statusCode = response.responseStatusCode
         if statusCode != 200 {
             throw OWSAssertionError("Got bad response code \(statusCode).")
         }
+
+        return newSubscriberID
     }
 
     private static func setDefaultPaymentMethod(
@@ -269,9 +269,8 @@ public enum DonationSubscriptionManager {
             processor: processor.rawValue,
             paymentMethodId: paymentMethodId
         )
-
-        let response = try await SSKEnvironment.shared.networkManagerRef.asyncRequest(request)
-
+        let response = try await SSKEnvironment.shared.networkManagerRef
+            .asyncRequest(request, retryPolicy: .hopefullyRecoverable)
         let statusCode = response.responseStatusCode
         if statusCode != 200 {
             throw OWSAssertionError("Got bad response code \(statusCode).")
@@ -287,7 +286,8 @@ public enum DonationSubscriptionManager {
             setupIntentId: setupIntentId
         )
 
-        let response = try await SSKEnvironment.shared.networkManagerRef.asyncRequest(request)
+        let response = try await SSKEnvironment.shared.networkManagerRef
+            .asyncRequest(request, retryPolicy: .hopefullyRecoverable)
         let statusCode = response.responseStatusCode
         if statusCode != 200 {
             throw OWSAssertionError("Got bad response code \(statusCode).")
@@ -314,14 +314,17 @@ public enum DonationSubscriptionManager {
             currency: currencyCode,
             idempotencyKey: key
         )
-        let response = try await networkManager.asyncRequest(request)
+        let response = try await networkManager.asyncRequest(request, retryPolicy: .hopefullyRecoverable)
         let statusCode = response.responseStatusCode
         if statusCode != 200 {
             throw OWSAssertionError("Got bad response code \(statusCode).")
         }
 
         guard
-            let subscription = try await SubscriptionFetcher(networkManager: networkManager)
+            let subscription = try await SubscriptionFetcher(
+                networkManager: networkManager,
+                retryPolicy: .hopefullyRecoverable
+            )
                 .fetch(subscriberID: subscriberID)
         else {
             throw OWSAssertionError("Failed to fetch valid subscription object after setSubscription")
@@ -453,11 +456,9 @@ public enum DonationSubscriptionManager {
         do {
             let networkRequest = OWSRequestFactory.subscriptionReceiptCredentialsRequest(
                 subscriberID: subscriberId,
-                request: request.serialize().asData
+                request: request.serialize()
             )
-
             let response = try await networkManager.asyncRequest(networkRequest)
-
             return try self.parseReceiptCredentialResponse(
                 httpResponse: response,
                 receiptCredentialRequestContext: context,
@@ -481,11 +482,9 @@ public enum DonationSubscriptionManager {
             let networkRequest = OWSRequestFactory.boostReceiptCredentials(
                 with: boostPaymentIntentId,
                 for: paymentProcessor.rawValue,
-                request: request.serialize().asData
+                request: request.serialize()
             )
-
             let response = try await SSKEnvironment.shared.networkManagerRef.asyncRequest(networkRequest)
-
             return try self.parseReceiptCredentialResponse(
                 httpResponse: response,
                 receiptCredentialRequestContext: context,
@@ -547,7 +546,7 @@ public enum DonationSubscriptionManager {
         }
 
         let receiptCredentialResponse = try ReceiptCredentialResponse(
-            contents: [UInt8](receiptCredentialResponseData)
+            contents: receiptCredentialResponseData
         )
         let receiptCredential = try clientOperations.receiveReceiptCredential(
             receiptCredentialRequestContext: receiptCredentialRequestContext,
@@ -606,8 +605,7 @@ public enum DonationSubscriptionManager {
         }()
         Logger.info("[Donations] Redeeming receipt credential presentation. Expires at \(expiresAtForLogging)")
 
-        let receiptCredentialPresentationData = receiptCredentialPresentation.serialize().asData
-
+        let receiptCredentialPresentationData = receiptCredentialPresentation.serialize()
         let request = OWSRequestFactory.subscriptionRedeemReceiptCredential(
             receiptCredentialPresentation: receiptCredentialPresentationData
         )
@@ -623,7 +621,7 @@ public enum DonationSubscriptionManager {
     private static func generateReceiptSerial() throws -> ReceiptSerial {
         let count = ReceiptSerial.SIZE
         let bytes = Randomness.generateRandomBytes(UInt(count))
-        return try ReceiptSerial(contents: [UInt8](bytes))
+        return try ReceiptSerial(contents: bytes)
     }
 
     private static func clientZKReceiptOperations() -> ClientZkReceiptOperations {
@@ -919,15 +917,17 @@ public class OWSRetryableSubscriptionError: CustomNSError, IsRetryableProvider {
 
 extension DonationSubscriptionManager {
 
-    private static var cachedBadges = [OneTimeBadgeLevel: CachedBadge]()
+    private static let cachedBadges = AtomicValue<[OneTimeBadgeLevel: CachedBadge]>([:], lock: .init())
 
     public static func getCachedBadge(level: OneTimeBadgeLevel) -> CachedBadge {
-        if let cachedBadge = self.cachedBadges[level] {
+        return self.cachedBadges.update {
+            if let cachedBadge = $0[level] {
+                return cachedBadge
+            }
+            let cachedBadge = CachedBadge(level: level)
+            $0[level] = cachedBadge
             return cachedBadge
         }
-        let cachedBadge = CachedBadge(level: level)
-        self.cachedBadges[level] = cachedBadge
-        return cachedBadge
     }
 
     public static func getBoostBadge() async throws -> ProfileBadge {

@@ -377,8 +377,8 @@ private extension InternalSettingsViewController {
         )
 
         let messageBackupKey = try backupKey.asMessageBackupKey(for: localIdentifiers.aci)
-        let keyString = "AES key: \(Data(messageBackupKey.aesKey).base64EncodedString())"
-            + "\nHMAC key: \(Data(messageBackupKey.hmacKey).base64EncodedString())"
+        let keyString = "AES key: \(messageBackupKey.aesKey.base64EncodedString())"
+            + "\nHMAC key: \(messageBackupKey.hmacKey.base64EncodedString())"
 
         await withCheckedContinuation { continuation in
             DispatchQueue.main.async {
@@ -428,8 +428,8 @@ private extension InternalSettingsViewController {
         _ = try await backupArchiveManager.uploadEncryptedBackup(
             metadata: metadata,
             registeredBackupIDToken: registeredBackupIDToken,
-            localIdentifiers: localIdentifiers,
-            auth: .implicit()
+            auth: .implicit(),
+            progress: nil,
         )
     }
 }

@@ -14,11 +14,9 @@ public final class InMemoryDB: DB {
     }
 
     let databaseQueue: DatabaseQueue
-    private let schedulers: Schedulers
 
-    public init(schedulers: Schedulers = DispatchQueueSchedulers()) {
+    public init() {
         self.databaseQueue = DatabaseQueue()
-        self.schedulers = schedulers
 
         let schemaUrl: URL
         if
@@ -66,7 +64,7 @@ public final class InMemoryDB: DB {
         completionQueue: DispatchQueue,
         completion: ((T) -> Void)?
     ) {
-        schedulers.global().async {
+        DispatchQueue.global().async {
             let result: T = self.read(file: file, function: function, line: line, block: block)
             if let completion { completionQueue.async({ completion(result) }) }
         }
@@ -80,21 +78,21 @@ public final class InMemoryDB: DB {
         completionQueue: DispatchQueue,
         completion: ((T) -> Void)?
     ) {
-        schedulers.global().async {
+        DispatchQueue.global().async {
             let result = self.write(file: file, function: function, line: line, block: block)
             if let completion { completionQueue.async({ completion(result) }) }
         }
     }
 
     public func asyncWriteWithTxCompletion<T>(
-        file: String = #file,
-        function: String = #function,
-        line: Int = #line,
+        file: String,
+        function: String,
+        line: Int,
         block: @escaping (DBWriteTransaction) -> TransactionCompletion<T>,
         completionQueue: DispatchQueue,
         completion: ((T) -> Void)?
     ) {
-        schedulers.global().async {
+        DispatchQueue.global().async {
             let result = self.writeWithTxCompletion(file: file, function: function, line: line, block: block)
             if let completion { completionQueue.async({ completion(result) }) }
         }
@@ -110,10 +108,20 @@ public final class InMemoryDB: DB {
         return try write(file: file, function: function, line: line, block: block)
     }
 
+    public func awaitableWriteWithRollbackIfThrows<T, E>(
+        file: String,
+        function: String,
+        line: Int,
+        block: (DBWriteTransaction) throws(E) -> T
+    ) async throws(E) -> T {
+        await Task.yield()
+        return try writeWithRollbackIfThrows(file: file, function: function, line: line, block: block)
+    }
+
     public func awaitableWriteWithTxCompletion<T>(
-        file: String = #file,
-        function: String = #function,
-        line: Int = #line,
+        file: String,
+        function: String,
+        line: Int,
         block: (DBWriteTransaction) -> TransactionCompletion<T>
     ) async -> T {
         await Task.yield()
@@ -153,32 +161,50 @@ public final class InMemoryDB: DB {
         line: Int,
         block: (DBWriteTransaction) throws(E) -> T
     ) throws(E) -> T {
-        return try _writeCommitIfThrows(block: block, rescue: { err throws(E) in throw err })
+        return try _writeWithTxCompletionIfThrows(
+            block: block,
+            completionIfThrows: .commit(()),
+            rescue: { err throws(E) in throw err }
+        )
+    }
+
+    public func writeWithRollbackIfThrows<T, E>(
+        file: String,
+        function: String,
+        line: Int,
+        block: (DBWriteTransaction) throws(E) -> T
+    ) throws(E) -> T {
+        return try _writeWithTxCompletionIfThrows(
+            block: block,
+            completionIfThrows: .rollback(()),
+            rescue: { err throws(E) in throw err }
+        )
     }
 
     public func writeWithTxCompletion<T>(
-        file: String = #file,
-        function: String = #function,
-        line: Int = #line,
+        file: String,
+        function: String,
+        line: Int,
         block: (DBWriteTransaction) -> TransactionCompletion<T>
     ) -> T {
         return _writeWithTxCompletion(block: block)
     }
 
-    private func _writeCommitIfThrows<T, E>(
+    private func _writeWithTxCompletionIfThrows<T, E>(
         block: (DBWriteTransaction) throws(E) -> T,
-        rescue: (E) throws(E) -> Never
+        completionIfThrows: TransactionCompletion<Void>,
+        rescue: (E) throws(E) -> Never,
     ) throws(E) -> T {
         var result: T!
         var thrown: E?
         _writeWithTxCompletion { tx in
             do throws(E) {
                 result = try block(tx)
+                return .commit(())
             } catch {
                 thrown = error
+                return completionIfThrows
             }
-            // Always commit, regardless of thrown errors.
-            return .commit(())
         }
         if let thrown {
             try rescue(thrown)

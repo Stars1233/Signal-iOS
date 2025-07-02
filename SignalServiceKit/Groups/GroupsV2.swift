@@ -93,13 +93,11 @@ public protocol GroupsV2 {
     ) async throws -> GroupV2SnapshotResponse
 
     func updateGroupV2(
-        groupId: Data,
-        groupSecretParams: GroupSecretParams,
+        secretParams: GroupSecretParams,
         changesBlock: (GroupsV2OutgoingChanges) -> Void
     ) async throws
 
     func updateGroupWithChangeActions(
-        groupId: Data,
         spamReportingMetadata: GroupUpdateSpamReportingMetadata,
         changeActionsProto: GroupsProtoGroupChangeActions,
         groupSecretParams: GroupSecretParams
@@ -213,7 +211,7 @@ public protocol GroupV2Updates {
     ) async throws
 
     func updateGroupWithChangeActions(
-        groupId: Data,
+        groupId: GroupIdentifier,
         spamReportingMetadata: GroupUpdateSpamReportingMetadata,
         changeActionsProto: GroupsProtoGroupChangeActions,
         groupSendEndorsementsResponse: GroupSendEndorsementsResponse?,
@@ -222,7 +220,7 @@ public protocol GroupV2Updates {
     ) throws -> TSGroupThread
 }
 
-extension GroupV2Updates {
+extension GroupV2Updates where Self: Sendable {
     public func refreshGroup(
         secretParams: GroupSecretParams,
         spamReportingMetadata: GroupUpdateSpamReportingMetadata = .learnedByLocallyInitatedRefresh,
@@ -249,7 +247,7 @@ extension GroupV2Updates {
         Task {
             do {
                 try await self.refreshGroupImpl(
-                    secretParams: try GroupSecretParams(contents: [UInt8](groupSecretParamsData)),
+                    secretParams: try GroupSecretParams(contents: groupSecretParamsData),
                     spamReportingMetadata: .learnedByLocallyInitatedRefresh,
                     source: .other,
                     options: options
@@ -294,7 +292,7 @@ public struct GroupV2Change {
 
 extension GroupMasterKey {
     static func isValid(_ masterKeyData: Data) -> Bool {
-        return (try? GroupMasterKey(contents: [UInt8](masterKeyData))) != nil
+        return (try? GroupMasterKey(contents: masterKeyData)) != nil
     }
 }
 
@@ -317,14 +315,14 @@ public struct GroupV2ContextInfo {
     }
 
     private static func groupSecretParams(for masterKeyData: Data) throws -> GroupSecretParams {
-        let groupMasterKey = try GroupMasterKey(contents: [UInt8](masterKeyData))
+        let groupMasterKey = try GroupMasterKey(contents: masterKeyData)
         return try GroupSecretParams.deriveFromMasterKey(groupMasterKey: groupMasterKey)
     }
 
     private init(masterKeyData: Data, groupSecretParams: GroupSecretParams, groupId: GroupIdentifier) {
         self.masterKeyData = masterKeyData
         self.groupSecretParams = groupSecretParams
-        self.groupSecretParamsData = groupSecretParams.serialize().asData
+        self.groupSecretParamsData = groupSecretParams.serialize()
         self.groupId = groupId
     }
 }
@@ -495,8 +493,7 @@ public class MockGroupsV2: GroupsV2 {
     }
 
     public func updateGroupV2(
-        groupId: Data,
-        groupSecretParams: GroupSecretParams,
+        secretParams: GroupSecretParams,
         changesBlock: (GroupsV2OutgoingChanges) -> Void
     ) async throws {
         owsFail("Not implemented.")
@@ -515,7 +512,6 @@ public class MockGroupsV2: GroupsV2 {
     }
 
     public func updateGroupWithChangeActions(
-        groupId: Data,
         spamReportingMetadata: GroupUpdateSpamReportingMetadata,
         changeActionsProto: GroupsProtoGroupChangeActions,
         groupSecretParams: GroupSecretParams
@@ -626,7 +622,7 @@ public class MockGroupV2Updates: GroupV2Updates {
     }
 
     public func updateGroupWithChangeActions(
-        groupId: Data,
+        groupId: GroupIdentifier,
         spamReportingMetadata: GroupUpdateSpamReportingMetadata,
         changeActionsProto: GroupsProtoGroupChangeActions,
         groupSendEndorsementsResponse: GroupSendEndorsementsResponse?,

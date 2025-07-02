@@ -1,1 +1,1 @@
-• 我们修复了一个漏洞，该漏洞会在用户将附件粘贴到聊天后无故打开图片选择器。
+• This update fixes a bug that prevented link previews from appearing for forwarded messages in some cases.

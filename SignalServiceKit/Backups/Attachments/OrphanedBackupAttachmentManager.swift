@@ -25,6 +25,16 @@ public protocol OrphanedBackupAttachmentManager {
         tx: DBWriteTransaction
     )
 
+    /// Orphan all existing media tier uploads for an attachment, marking them for
+    /// deletion from the media tier CDN.
+    /// Do this before wiping media tier info on an attachment. Note that this doesn't
+    /// need to be done when deleting an attachment, as a SQLite trigger handles
+    /// deletion automatically.
+    func orphanExistingMediaTierUploads(
+        of attachment: Attachment,
+        tx: DBWriteTransaction
+    ) throws
+
     /// Run all remote deletions, returning when finished. Supports cooperative cancellation.
     /// Should only be run after backup uploads have finished to avoid races.
     func runIfNeeded() async throws
@@ -80,11 +90,20 @@ public class OrphanedBackupAttachmentManagerImpl: OrphanedBackupAttachmentManage
         try! OrphanedBackupAttachment
             .filter(Column(OrphanedBackupAttachment.CodingKeys.mediaName) == mediaName)
             .deleteAll(tx.database)
-        for type in MediaTierEncryptionType.allCases {
+        for type in OrphanedBackupAttachment.SizeType.allCases {
             do {
                 let mediaId = try backupKeyMaterial.mediaEncryptionMetadata(
-                    mediaName: mediaName,
-                    type: type,
+                    mediaName: {
+                        switch type {
+                        case .fullsize:
+                            mediaName
+                        case .thumbnail:
+                            AttachmentBackupThumbnail
+                                .thumbnailMediaName(fullsizeMediaName: mediaName)
+                        }
+                    }(),
+                    // Doesn't matter what we use, we just want the mediaId.
+                    type: .outerLayerFullsizeOrThumbnail,
                     tx: tx
                 ).mediaId
                 try! OrphanedBackupAttachment
@@ -101,6 +120,41 @@ public class OrphanedBackupAttachmentManagerImpl: OrphanedBackupAttachmentManage
                 }
             }
 
+        }
+    }
+
+    public func orphanExistingMediaTierUploads(
+        of attachment: Attachment,
+        tx: DBWriteTransaction
+    ) throws {
+        guard let mediaName = attachment.mediaName else {
+            // If we didn't have a mediaName assigned,
+            // there's no uploads to orphan (that we know of locally).
+            return
+        }
+        if
+            let mediaTierInfo = attachment.mediaTierInfo,
+            let cdnNumber = mediaTierInfo.cdnNumber
+        {
+            var fullsizeOrphanRecord = OrphanedBackupAttachment.locallyOrphaned(
+                cdnNumber: cdnNumber,
+                mediaName: mediaName,
+                type: .fullsize
+            )
+            try orphanedBackupAttachmentStore.insert(&fullsizeOrphanRecord, tx: tx)
+        }
+        if
+            let thumbnailMediaTierInfo = attachment.thumbnailMediaTierInfo,
+            let cdnNumber = thumbnailMediaTierInfo.cdnNumber
+        {
+            var fullsizeOrphanRecord = OrphanedBackupAttachment.locallyOrphaned(
+                cdnNumber: cdnNumber,
+                mediaName: AttachmentBackupThumbnail.thumbnailMediaName(
+                    fullsizeMediaName: mediaName
+                ),
+                type: .thumbnail
+            )
+            try orphanedBackupAttachmentStore.insert(&fullsizeOrphanRecord, tx: tx)
         }
     }
 
@@ -161,18 +215,10 @@ public class OrphanedBackupAttachmentManagerImpl: OrphanedBackupAttachmentManage
                 return .cancelled
             }
 
-            let (localAci, registrationState, attachment) = db.read { tx in
-                let attachment: Attachment?
-                if let mediaName = record.record.mediaName {
-                    attachment = attachmentStore.fetchAttachment(mediaName: mediaName, tx: tx)
-                } else {
-                    attachment = nil
-                }
-
+            let (localAci, registrationState) = db.read { tx in
                 return (
                     tsAccountManager.localIdentifiers(tx: tx)?.aci,
                     tsAccountManager.registrationState(tx: tx),
-                    attachment
                 )
             }
 
@@ -202,43 +248,6 @@ public class OrphanedBackupAttachmentManagerImpl: OrphanedBackupAttachmentManage
                 break
             }
 
-            // Check the existing attachment only if this was locally
-            // orphaned (the record has a mediaName).
-            if record.record.mediaName != nil {
-                // If an attachment exists with the same media name, that means a new
-                // copy with the same file contents got created between orphan record
-                // insertion and now. Most likely we want to cancel this delete.
-                if
-                    let attachment,
-                    attachment.mediaTierInfo?.cdnNumber == nil
-                {
-                    // The new attachment hasn't been uploaded to backups. It might
-                    // be uploading right now, so don't try and delete.
-                    return .cancelled
-                } else if
-                    let attachment,
-                    let cdnNumber = attachment.mediaTierInfo?.cdnNumber,
-                    cdnNumber == record.record.cdnNumber
-                {
-                    // The new copy has been uploaded to the same cdn.
-                    // Don't delete it.
-                    return .cancelled
-                } else if
-                    let attachment,
-                    let cdnNumber = attachment.mediaTierInfo?.cdnNumber,
-                    cdnNumber > record.record.cdnNumber
-                {
-                    // This is rare, but we could end up with two copies of
-                    // the same attachment on two cdns (say 3 and 4). We want
-                    // to allow deleting the copy on the older cdn but never the newer one.
-                    // If the delete record is for 4 and the attachment is uploaded
-                    // to 3, for all we know there's a job enqueued right now to
-                    // "upload" it to 4 so we don't wanna delete and race with that.
-                    Logger.info("Deleting duplicate upload at older cdn \(record.record.cdnNumber)")
-                    return .cancelled
-                }
-            }
-
             guard let localAci else {
                 let error = OWSAssertionError("Deleting without being registered")
                 try? await loader.stop(reason: error)
@@ -250,20 +259,21 @@ public class OrphanedBackupAttachmentManagerImpl: OrphanedBackupAttachmentManage
             if let recordMediaId = record.record.mediaId {
                 mediaId = recordMediaId
             } else if let type = record.record.type, let mediaName = record.record.mediaName {
-                let mediaTierEncryptionType: MediaTierEncryptionType
+                let mediaNameToUse: String
                 switch type {
                 case .fullsize:
-                    mediaTierEncryptionType = .attachment
+                    mediaNameToUse = mediaName
                 case .thumbnail:
-                    mediaTierEncryptionType = .thumbnail
+                    mediaNameToUse = AttachmentBackupThumbnail.thumbnailMediaName(fullsizeMediaName: mediaName)
                 }
 
                 do {
                     (mediaId) = try db.read { tx in
                         (
                             try backupKeyMaterial.mediaEncryptionMetadata(
-                                mediaName: mediaName,
-                                type: mediaTierEncryptionType,
+                                mediaName: mediaNameToUse,
+                                // Doesn't matter what we use, we just want the mediaId.
+                                type: .outerLayerFullsizeOrThumbnail,
                                 tx: tx
                             ).mediaId
                         )
@@ -366,6 +376,13 @@ open class OrphanedBackupAttachmentManagerMock: OrphanedBackupAttachmentManager 
         withMediaName mediaName: String,
         tx: DBWriteTransaction
     ) {
+        // Do nothing
+    }
+
+    open func orphanExistingMediaTierUploads(
+        of attachment: Attachment,
+        tx: DBWriteTransaction
+    ) throws {
         // Do nothing
     }
 

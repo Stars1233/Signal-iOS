@@ -12,7 +12,7 @@ public class GroupV2UpdatesImpl {
     // revision.
     private static let groupRefreshStore = KeyValueStore(collection: "groupRefreshStore")
 
-    private var lastSuccessfulRefreshMap = LRUCache<Data, Date>(maxSize: 256)
+    private var lastSuccessfulRefreshMap = LRUCache<GroupIdentifier, Date>(maxSize: 256)
 
     private let operationQueue = ConcurrentTaskQueue(concurrentLimit: 1)
 
@@ -84,13 +84,13 @@ public class GroupV2UpdatesImpl {
                     groupModel.groupMembership.isLocalUserFullOrInvitedMember,
                     let groupSecretParams = try? groupModel.secretParams(),
                     let groupId = try? groupSecretParams.getPublicParams().getGroupIdentifier(),
-                    !SSKEnvironment.shared.blockingManagerRef.isGroupIdBlocked(groupId.serialize().asData, transaction: transaction)
+                    !SSKEnvironment.shared.blockingManagerRef.isGroupIdBlocked(groupId, transaction: transaction)
                 else {
                     // Refreshing a group we're not a member of will throw errors
                     return
                 }
 
-                let storeKey = groupId.serialize().asData.toHex()
+                let storeKey = groupId.serialize().toHex()
                 guard let lastRefreshDate: Date = Self.groupRefreshStore.getDate(
                     storeKey,
                     transaction: transaction
@@ -138,7 +138,7 @@ public class GroupV2UpdatesImpl {
 extension GroupV2UpdatesImpl: GroupV2Updates {
 
     public func updateGroupWithChangeActions(
-        groupId: Data,
+        groupId: GroupIdentifier,
         spamReportingMetadata: GroupUpdateSpamReportingMetadata,
         changeActionsProto: GroupsProtoGroupChangeActions,
         groupSendEndorsementsResponse: GroupSendEndorsementsResponse?,
@@ -146,7 +146,7 @@ extension GroupV2UpdatesImpl: GroupV2Updates {
         transaction: DBWriteTransaction
     ) throws -> TSGroupThread {
 
-        guard let groupThread = TSGroupThread.fetch(groupId: groupId, transaction: transaction) else {
+        guard let groupThread = TSGroupThread.fetch(forGroupId: groupId, tx: transaction) else {
             throw OWSAssertionError("Missing groupThread.")
         }
         guard let localIdentifiers = DependenciesBridge.shared.tsAccountManager.localIdentifiers(tx: transaction) else {
@@ -205,7 +205,7 @@ extension GroupV2UpdatesImpl: GroupV2Updates {
         source: GroupChangeActionFetchSource,
         options: TSGroupModelOptions
     ) async throws {
-        let groupId = try secretParams.getPublicParams().getGroupIdentifier().serialize().asData
+        let groupId = try secretParams.getPublicParams().getGroupIdentifier()
 
         let isThrottled = { () -> Bool in
             guard options.contains(.throttle) else {
@@ -261,14 +261,14 @@ extension GroupV2UpdatesImpl: GroupV2Updates {
         }
     }
 
-    private func lastSuccessfulRefreshDate(forGroupId groupId: Data) -> Date? {
+    private func lastSuccessfulRefreshDate(forGroupId groupId: GroupIdentifier) -> Date? {
         lastSuccessfulRefreshMap[groupId]
     }
 
-    private func didUpdateGroupToLatestRevision(groupId: Data) async {
+    private func didUpdateGroupToLatestRevision(groupId: GroupIdentifier) async {
         lastSuccessfulRefreshMap[groupId] = Date()
         await SSKEnvironment.shared.databaseStorageRef.awaitableWrite { tx in
-            Self.groupRefreshStore.setDate(Date(), key: groupId.hexadecimalString, transaction: tx)
+            Self.groupRefreshStore.setDate(Date(), key: groupId.serialize().hexadecimalString, transaction: tx)
         }
     }
 
@@ -525,7 +525,7 @@ private extension GroupV2UpdatesImpl {
                 // this step if we are planning to leave the group via the block
                 // above, as it's redundant.
                 SSKEnvironment.shared.groupsV2Ref.updateLocalProfileKeyInGroup(
-                    groupId: groupId.serialize().asData,
+                    groupId: groupId.serialize(),
                     transaction: transaction
                 )
             }
@@ -838,9 +838,9 @@ private extension GroupV2UpdatesImpl {
             do {
                 let uuidCiphertext: UuidCiphertext
                 if let userId = action.userID {
-                    uuidCiphertext = try UuidCiphertext(contents: [UInt8](userId))
+                    uuidCiphertext = try UuidCiphertext(contents: userId)
                 } else if let presentationData = action.presentation {
-                    let presentation = try ProfileKeyCredentialPresentation(contents: [UInt8](presentationData))
+                    let presentation = try ProfileKeyCredentialPresentation(contents: presentationData)
                     uuidCiphertext = try presentation.getUuidCiphertext()
                 } else {
                     throw OWSAssertionError("Missing userId.")

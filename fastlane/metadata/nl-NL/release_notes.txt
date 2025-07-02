@@ -1,1 +1,1 @@
-• We hebben een fout opgelost waardoor de fotokiezer werd geopend nadat een bijlage in een chat was geplakt en vervolgens werd besloten deze niet te verzenden.
+• This update fixes a bug that prevented link previews from appearing for forwarded messages in some cases.

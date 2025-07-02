@@ -95,9 +95,9 @@ public class LinkPreviewManagerImpl: LinkPreviewManager {
     public func buildDataSource<Builder: LinkPreviewBuilder>(
         from draft: OWSLinkPreviewDraft,
         builder: Builder
-    ) throws -> Builder.DataSource {
+    ) throws -> LinkPreviewDataSource {
         let areLinkPreviewsEnabled = db.read(block: linkPreviewSettingStore.areLinkPreviewsEnabled(tx:))
-        guard areLinkPreviewsEnabled else {
+        guard draft.isForwarded || areLinkPreviewsEnabled else {
             throw LinkPreviewError.featureDisabled
         }
         return try builder.buildDataSource(draft)
@@ -111,11 +111,11 @@ public class LinkPreviewManagerImpl: LinkPreviewManager {
     }
 
     public func buildLinkPreview<Builder: LinkPreviewBuilder>(
-        from dataSource: Builder.DataSource,
+        from dataSource: LinkPreviewDataSource,
         builder: Builder,
         tx: DBWriteTransaction
     ) throws -> OwnedAttachmentBuilder<OWSLinkPreview> {
-        guard linkPreviewSettingStore.areLinkPreviewsEnabled(tx: tx) else {
+        guard dataSource.isForwarded || linkPreviewSettingStore.areLinkPreviewsEnabled(tx: tx) else {
             throw LinkPreviewError.featureDisabled
         }
         return try builder.createLinkPreview(from: dataSource, tx: tx)
@@ -234,11 +234,13 @@ public class LinkPreviewManagerImpl: LinkPreviewManager {
         if
             let previewAttachmentRef,
             let attachment = attachmentStore.fetch(id: previewAttachmentRef.attachmentRowId, tx: tx),
-            let pointer = attachment.asTransitTierPointer()
+            let pointer = attachment.asTransitTierPointer(),
+            case let .digestSHA256Ciphertext(digestSHA256Ciphertext) = pointer.info.integrityCheck
         {
             let attachmentProto = attachmentManager.buildProtoForSending(
                 from: previewAttachmentRef,
-                pointer: pointer
+                pointer: pointer,
+                digestSHA256Ciphertext: digestSHA256Ciphertext
             )
             builder.setImage(attachmentProto)
         }

@@ -118,14 +118,17 @@ extension ExperienceUpgrade {
                 .inactiveLinkedDeviceReminder,
                 .pinReminder,
                 .contactPermissionReminder,
+                .backupKeyReminder,
+                .enableBackupsReminder,
                 .unrecognized:
             return
         case .remoteMegaphone(let megaphone):
-            guard let imageLocalUrl = megaphone.translation.imageLocalUrl else {
+            guard megaphone.translation.hasImage else {
                 return
             }
 
             do {
+                let imageLocalUrl = RemoteMegaphoneModel.imagesDirectory.appendingPathComponent(megaphone.translation.imageLocalRelativePath)
                 try FileManager.default.removeItem(at: imageLocalUrl)
             } catch let error {
                 owsFailDebug("Failed to remove image file for removed remote megaphone with ID \(megaphone.id)! \(error)")

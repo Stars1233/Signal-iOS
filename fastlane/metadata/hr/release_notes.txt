@@ -1,1 +1,1 @@
-• Ispravili smo programsku pogrešku koja je povremeno uzrokovala pokretanje alata za odabir slike nakon lijepljenja privitka u razgovor.
+• This update fixes a bug that prevented link previews from appearing for forwarded messages in some cases.

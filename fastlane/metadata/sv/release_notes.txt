@@ -1,1 +1,1 @@
-• Vi har åtgärdat ett fel som kunde leda till att bildväljaren öppnades efter att en bilaga klistrats in i en chatt.
+• This update fixes a bug that prevented link previews from appearing for forwarded messages in some cases.

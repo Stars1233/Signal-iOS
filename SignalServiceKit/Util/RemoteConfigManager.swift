@@ -80,16 +80,16 @@ public class RemoteConfig {
         )
     }
 
-    public var groupsV2MaxGroupSizeRecommended: UInt {
-        getUIntValue(forFlag: .groupsV2MaxGroupSizeRecommended, defaultValue: 151)
+    public var maxGroupSizeRecommended: UInt {
+        getUIntValue(forFlag: .maxGroupSizeRecommended, defaultValue: 151)
     }
 
-    public var groupsV2MaxGroupSizeHardLimit: UInt {
-        getUIntValue(forFlag: .groupsV2MaxGroupSizeHardLimit, defaultValue: 1001)
+    public var maxGroupSizeHardLimit: UInt {
+        getUIntValue(forFlag: .maxGroupSizeHardLimit, defaultValue: 1001)
     }
 
-    public var groupsV2MaxBannedMembers: UInt {
-        groupsV2MaxGroupSizeHardLimit
+    public var maxGroupSizeBannedMembers: UInt {
+        maxGroupSizeHardLimit
     }
 
     public var cdsSyncInterval: TimeInterval {
@@ -253,6 +253,26 @@ public class RemoteConfig {
         return !isEnabled(.lazyDatabaseMigratorKillSwitch)
     }
 
+    public var isNotificationServiceWebSocketEnabled: Bool {
+        return !isEnabled(.notificationServiceWebSocketKillSwitch)
+    }
+
+    public var shouldVerifyPniAndPniIdentityKeyExist: Bool {
+        return isEnabled(.shouldVerifyPniAndPniIdentityKeyExist)
+    }
+
+    public var shouldValidateLinkedAciIdentityKey: Bool {
+        return isEnabled(.shouldValidateLinkedAciIdentityKey)
+    }
+
+    public var shouldValidatePrimaryAciIdentityKey: Bool {
+        return isEnabled(.shouldValidatePrimaryAciIdentityKey)
+    }
+
+    public var shouldValidatePrimaryPniIdentityKey: Bool {
+        return isEnabled(.shouldValidatePrimaryPniIdentityKey)
+    }
+
     // MARK: UInt values
 
     private func getUIntValue(
@@ -366,7 +386,7 @@ public class RemoteConfig {
     static func bucket(key: String, aci: Aci, bucketSize: UInt64) -> UInt64 {
         var data = Data((key + ".").utf8)
 
-        data.append(Data(aci.serviceIdBinary))
+        data.append(aci.serviceIdBinary)
 
         let hash = Data(SHA256.hash(data: data))
         guard hash.count == 32 else {
@@ -434,46 +454,25 @@ private enum IsEnabledFlag: String, FlagType {
     case cardGiftDonationKillSwitch = "ios.cardGiftDonationKillSwitch"
     case cardMonthlyDonationKillSwitch = "ios.cardMonthlyDonationKillSwitch"
     case cardOneTimeDonationKillSwitch = "ios.cardOneTimeDonationKillSwitch"
-    case deleteForMeSyncMessageSending = "ios.deleteForMeSyncMessage.sending"
     case enableAutoAPNSRotation = "ios.enableAutoAPNSRotation"
     case enableGifSearch = "global.gifSearch"
     case lazyDatabaseMigratorKillSwitch = "ios.lazyDatabaseMigratorKillSwitch"
-    case libsignalForChat = "ios.useLibsignalForChat"
+    case libsignalEnforceMinTlsVersion = "ios.libsignalEnforceMinTlsVersion"
     case messageResendKillSwitch = "ios.messageResendKillSwitch"
+    case notificationServiceWebSocketKillSwitch = "ios.notificationServiceWebSocketKillSwitch"
     case paymentsResetKillSwitch = "ios.paymentsResetKillSwitch"
     case paypalGiftDonationKillSwitch = "ios.paypalGiftDonationKillSwitch"
     case paypalMonthlyDonationKillSwitch = "ios.paypalMonthlyDonationKillSwitch"
     case paypalOneTimeDonationKillSwitch = "ios.paypalOneTimeDonationKillSwitch"
     case ringrtcNwPathMonitorTrialKillSwitch = "ios.ringrtcNwPathMonitorTrialKillSwitch"
     case serviceExtensionFailureKillSwitch = "ios.serviceExtensionFailureKillSwitch"
-    case tsAttachmentMigrationMainAppBackgroundKillSwitch = "ios.tsAttachmentMigrationMainAppBackgroundKillSwitch"
+    case shouldValidateLinkedAciIdentityKey = "ios.shouldValidateLinkedAciIdentityKey"
+    case shouldValidatePrimaryAciIdentityKey = "ios.shouldValidatePrimaryAciIdentityKey"
+    case shouldValidatePrimaryPniIdentityKey = "ios.shouldValidatePrimaryPniIdentityKey"
+    case shouldVerifyPniAndPniIdentityKeyExist = "ios.shouldVerifyPniAndPniIdentityKeyExist"
     case tsAttachmentMigrationBGProcessingTaskKillSwitch = "ios.tsAttachmentMigrationBGProcessingTaskKillSwitch"
+    case tsAttachmentMigrationMainAppBackgroundKillSwitch = "ios.tsAttachmentMigrationMainAppBackgroundKillSwitch"
 
-    var isSticky: Bool {
-        switch self {
-        case .applePayGiftDonationKillSwitch: false
-        case .applePayMonthlyDonationKillSwitch: false
-        case .applePayOneTimeDonationKillSwitch: false
-        case .automaticSessionResetKillSwitch: false
-        case .cardGiftDonationKillSwitch: false
-        case .cardMonthlyDonationKillSwitch: false
-        case .cardOneTimeDonationKillSwitch: false
-        case .deleteForMeSyncMessageSending: false
-        case .enableAutoAPNSRotation: false
-        case .enableGifSearch: false
-        case .lazyDatabaseMigratorKillSwitch: false
-        case .libsignalForChat: false
-        case .messageResendKillSwitch: false
-        case .paymentsResetKillSwitch: false
-        case .paypalGiftDonationKillSwitch: false
-        case .paypalMonthlyDonationKillSwitch: false
-        case .paypalOneTimeDonationKillSwitch: false
-        case .ringrtcNwPathMonitorTrialKillSwitch: false
-        case .serviceExtensionFailureKillSwitch: false
-        case .tsAttachmentMigrationMainAppBackgroundKillSwitch: false
-        case .tsAttachmentMigrationBGProcessingTaskKillSwitch: false
-        }
-    }
     var isHotSwappable: Bool {
         switch self {
         case .applePayGiftDonationKillSwitch: false
@@ -483,20 +482,24 @@ private enum IsEnabledFlag: String, FlagType {
         case .cardGiftDonationKillSwitch: false
         case .cardMonthlyDonationKillSwitch: false
         case .cardOneTimeDonationKillSwitch: false
-        case .deleteForMeSyncMessageSending: false
         case .enableAutoAPNSRotation: false
         case .enableGifSearch: false
         case .lazyDatabaseMigratorKillSwitch: true
-        case .libsignalForChat: false
+        case .libsignalEnforceMinTlsVersion: false
         case .messageResendKillSwitch: false
+        case .notificationServiceWebSocketKillSwitch: true
         case .paymentsResetKillSwitch: false
         case .paypalGiftDonationKillSwitch: false
         case .paypalMonthlyDonationKillSwitch: false
         case .paypalOneTimeDonationKillSwitch: false
         case .ringrtcNwPathMonitorTrialKillSwitch: false
         case .serviceExtensionFailureKillSwitch: true
-        case .tsAttachmentMigrationMainAppBackgroundKillSwitch: true
+        case .shouldValidateLinkedAciIdentityKey: true
+        case .shouldValidatePrimaryAciIdentityKey: true
+        case .shouldValidatePrimaryPniIdentityKey: true
+        case .shouldVerifyPniAndPniIdentityKeyExist: true
         case .tsAttachmentMigrationBGProcessingTaskKillSwitch: true
+        case .tsAttachmentMigrationMainAppBackgroundKillSwitch: true
         }
     }
 }
@@ -508,13 +511,14 @@ private enum ValueFlag: String, FlagType {
     case cdsSyncInterval = "cds.syncInterval.seconds"
     case clientExpiration = "ios.clientExpiration"
     case creditAndDebitCardDisabledRegions = "global.donations.ccDisabledRegions"
-    case groupsV2MaxGroupSizeHardLimit = "global.groupsv2.groupSizeHardLimit"
-    case groupsV2MaxGroupSizeRecommended = "global.groupsv2.maxGroupSize"
     case idealEnabledRegions = "global.donations.idealEnabledRegions"
     case maxAttachmentDownloadSizeBytes = "global.attachments.maxBytes"
     case maxGroupCallRingSize = "global.calling.maxGroupCallRingSize"
+    case maxGroupSizeHardLimit = "global.groupsv2.groupSizeHardLimit"
+    case maxGroupSizeRecommended = "global.groupsv2.maxGroupSize"
     case maxNicknameLength = "global.nicknames.max"
     case maxSenderKeyAge = "ios.maxSenderKeyAge"
+    case mediaTierFallbackCdnNumber = "global.backups.mediaTierFallbackCdnNumber"
     case messageQueueTimeInSeconds = "global.messageQueueTimeInSeconds"
     case messageSendLogEntryLifetime = "ios.messageSendLogEntryLifetime"
     case minNicknameLength = "global.nicknames.min"
@@ -525,36 +529,6 @@ private enum ValueFlag: String, FlagType {
     case sepaEnabledRegions = "global.donations.sepaEnabledRegions"
     case standardMediaQualityLevel = "ios.standardMediaQualityLevel"
     case tsAttachmentMigrationBatchDelayMs = "ios.tsAttachmentMigrationBatchDelayMs"
-    case mediaTierFallbackCdnNumber = "global.backups.mediaTierFallbackCdnNumber"
-
-    var isSticky: Bool {
-        switch self {
-        case .applePayDisabledRegions: false
-        case .automaticSessionResetAttemptInterval: false
-        case .backgroundRefreshInterval: false
-        case .cdsSyncInterval: false
-        case .clientExpiration: false
-        case .creditAndDebitCardDisabledRegions: false
-        case .groupsV2MaxGroupSizeHardLimit: true
-        case .groupsV2MaxGroupSizeRecommended: true
-        case .idealEnabledRegions: false
-        case .maxAttachmentDownloadSizeBytes: false
-        case .maxGroupCallRingSize: false
-        case .maxNicknameLength: false
-        case .maxSenderKeyAge: false
-        case .messageQueueTimeInSeconds: false
-        case .messageSendLogEntryLifetime: false
-        case .minNicknameLength: false
-        case .paymentsDisabledRegions: false
-        case .paypalDisabledRegions: false
-        case .reactiveProfileKeyAttemptInterval: false
-        case .replaceableInteractionExpiration: false
-        case .sepaEnabledRegions: false
-        case .standardMediaQualityLevel: false
-        case .tsAttachmentMigrationBatchDelayMs: false
-        case .mediaTierFallbackCdnNumber: false
-        }
-    }
 
     var isHotSwappable: Bool {
         switch self {
@@ -564,13 +538,14 @@ private enum ValueFlag: String, FlagType {
         case .cdsSyncInterval: false
         case .clientExpiration: true
         case .creditAndDebitCardDisabledRegions: true
-        case .groupsV2MaxGroupSizeHardLimit: true
-        case .groupsV2MaxGroupSizeRecommended: true
         case .idealEnabledRegions: true
         case .maxAttachmentDownloadSizeBytes: false
         case .maxGroupCallRingSize: true
+        case .maxGroupSizeHardLimit: true
+        case .maxGroupSizeRecommended: true
         case .maxNicknameLength: false
         case .maxSenderKeyAge: true
+        case .mediaTierFallbackCdnNumber: true
         case .messageQueueTimeInSeconds: false
         case .messageSendLogEntryLifetime: false
         case .minNicknameLength: false
@@ -581,19 +556,12 @@ private enum ValueFlag: String, FlagType {
         case .sepaEnabledRegions: true
         case .standardMediaQualityLevel: false
         case .tsAttachmentMigrationBatchDelayMs: true
-        case .mediaTierFallbackCdnNumber: true
         }
     }
 }
 
 private enum TimeGatedFlag: String, FlagType {
     case __none
-
-    var isSticky: Bool {
-        switch self {
-        case .__none: false
-        }
-    }
 
     var isHotSwappable: Bool {
         // These flags are time-gated. This means they are hot-swappable by
@@ -607,10 +575,6 @@ private enum TimeGatedFlag: String, FlagType {
 // MARK: -
 
 private protocol FlagType: CaseIterable {
-    // Values defined in this array remain set once they are set regardless of
-    // the remote state.
-    var isSticky: Bool { get }
-
     // Values defined in this array will update while the app is running, as
     // soon as we fetch an update to the remote config. They will not wait for
     // an app restart.
@@ -637,7 +601,7 @@ public class MockRemoteConfigProvider: RemoteConfigProvider {
 // MARK: -
 
 public protocol RemoteConfigManager: RemoteConfigProvider {
-    func warmCaches()
+    func warmCaches() -> RemoteConfig
     var cachedConfig: RemoteConfig? { get }
     /// Refresh the remote config from the server if it's been too long since we
     /// last fetched it.
@@ -651,7 +615,9 @@ public protocol RemoteConfigManager: RemoteConfigProvider {
 public class StubbableRemoteConfigManager: RemoteConfigManager {
     public var cachedConfig: RemoteConfig?
 
-    public func warmCaches() {}
+    public func warmCaches() -> RemoteConfig {
+        return currentConfig()
+    }
 
     public func refreshIfNeeded() async throws {
     }
@@ -714,14 +680,14 @@ public class RemoteConfigManagerImpl: RemoteConfigManager {
 
         appReadiness.runNowOrWhenMainAppDidBecomeReadyAsync {
             self.refreshRepeatedlyIfNeeded(forceInitialRefreshImmediately: false)
-        }
 
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(registrationStateDidChange),
-            name: .registrationStateDidChange,
-            object: nil
-        )
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(self.registrationStateDidChange),
+                name: .registrationStateDidChange,
+                object: nil
+            )
+        }
     }
 
     // MARK: -
@@ -735,7 +701,7 @@ public class RemoteConfigManagerImpl: RemoteConfigManager {
         self.refreshRepeatedlyIfNeeded(forceInitialRefreshImmediately: true)
     }
 
-    public func warmCaches() {
+    public func warmCaches() -> RemoteConfig {
         owsAssertDebug(GRDBSchemaMigrator.areMigrationsComplete)
 
         // swiftlint:disable large_tuple
@@ -767,7 +733,17 @@ public class RemoteConfigManagerImpl: RemoteConfigManager {
             // If we're not registered or haven't saved one, use an empty one.
             remoteConfig = .emptyConfig
         }
-        updateCachedConfig { _ in remoteConfig }
+        return updateCachedConfig { oldConfig in
+            if let oldConfig {
+                // If we're calling warmCaches for the second or later time, we can only
+                // update the flags that are hot-swappable.
+                return oldConfig.mergingHotSwappableFlags(from: remoteConfig)
+            } else {
+                // If we're calling warmCaches for first time, we can set hot swappable and
+                // non-hot swappable flags.
+                return remoteConfig
+            }
+        }
     }
 
     private static let refreshInterval: TimeInterval = 2 * .hour
@@ -853,63 +829,35 @@ public class RemoteConfigManagerImpl: RemoteConfigManager {
         var isEnabledFlags = [String: Bool]()
         var valueFlags = [String: String]()
         var timeGatedFlags = [String: Date]()
-        fetchedConfig.items.forEach { (key: String, item: FetchedRemoteConfigItem) in
-            switch item {
-            case .isEnabled(let isEnabled):
-                if IsEnabledFlag(rawValue: key) != nil {
-                    isEnabledFlags[key] = isEnabled
-                }
-            case .value(let value):
-                if ValueFlag(rawValue: key) != nil {
-                    valueFlags[key] = value
-                } else if TimeGatedFlag(rawValue: key) != nil {
+        fetchedConfig.items.forEach { config in
+            if IsEnabledFlag(rawValue: config.name) != nil {
+                isEnabledFlags[config.name] = (config.value == "1" || config.value == "true" || config.value == "TRUE" || config.enabled == true)
+                return
+            }
+            if ValueFlag(rawValue: config.name) != nil {
+                valueFlags[config.name] = config.value
+                return
+            }
+            if TimeGatedFlag(rawValue: config.name) != nil {
+                if let value = config.value {
                     if let secondsSinceEpoch = TimeInterval(value) {
-                        timeGatedFlags[key] = Date(timeIntervalSince1970: secondsSinceEpoch)
+                        timeGatedFlags[config.name] = Date(timeIntervalSince1970: secondsSinceEpoch)
                     } else {
                         owsFailDebug("Invalid value: \(value) \(type(of: value))")
                     }
                 }
+                return
             }
         }
 
         // Persist all flags in the database to be applied on next launch.
 
         await self.db.awaitableWrite { transaction in
-            // Preserve any sticky flags.
-            if let existingConfig = self.keyValueStore.getRemoteConfigIsEnabledFlags(transaction: transaction) {
-                existingConfig.forEach { (key: String, value: Bool) in
-                    // Preserve "is enabled" flags if they are sticky and already set.
-                    if let flag = IsEnabledFlag(rawValue: key), flag.isSticky, value == true {
-                        isEnabledFlags[key] = value
-                    }
-                }
-            }
-            if let existingConfig = self.keyValueStore.getRemoteConfigValueFlags(transaction: transaction) {
-                existingConfig.forEach { (key: String, value: String) in
-                    // Preserve "value" flags if they are sticky and already set and missing
-                    // from the fetched config.
-                    if let flag = ValueFlag(rawValue: key), flag.isSticky, valueFlags[key] == nil {
-                        valueFlags[key] = value
-                    }
-                }
-            }
-            if let existingConfig = self.keyValueStore.getRemoteConfigTimeGatedFlags(transaction: transaction) {
-                existingConfig.forEach { (key: String, value: Date) in
-                    // Preserve "time gated" flags if they are sticky and already set and
-                    // missing from the fetched config.
-                    if let flag = TimeGatedFlag(rawValue: key), flag.isSticky, timeGatedFlags[key] == nil {
-                        timeGatedFlags[key] = value
-                    }
-                }
-            }
-
             self.keyValueStore.setClockSkew(clockSkew, transaction: transaction)
             self.keyValueStore.setRemoteConfigIsEnabledFlags(isEnabledFlags, transaction: transaction)
             self.keyValueStore.setRemoteConfigValueFlags(valueFlags, transaction: transaction)
             self.keyValueStore.setRemoteConfigTimeGatedFlags(timeGatedFlags, transaction: transaction)
             self.keyValueStore.setLastFetched(Date(), transaction: transaction)
-
-            self.checkClientExpiration(valueFlags: valueFlags)
         }
 
         // As a special case, persist RingRTC field trials. See comments in
@@ -922,16 +870,10 @@ public class RemoteConfigManagerImpl: RemoteConfigManager {
             }(),
             in: CurrentAppContext().appUserDefaults()
         )
-        // Similarly, persist the choice of libsignal for the chat websockets.
-        let shouldUseLibsignalForChatWebsocket = isEnabledFlags[IsEnabledFlag.libsignalForChat.rawValue] ?? FeatureFlags.libsignalForChat
-        ChatConnectionManagerImpl.saveShouldUseLibsignalForIdentifiedWebsocket(
-            shouldUseLibsignalForChatWebsocket,
-            in: CurrentAppContext().appUserDefaults()
-        )
-        ChatConnectionManagerImpl.saveShouldUseLibsignalForUnidentifiedWebsocket(
-            shouldUseLibsignalForChatWebsocket,
-            in: CurrentAppContext().appUserDefaults()
-        )
+
+        let libsignalEnforceMinTlsVersion = isEnabledFlags[IsEnabledFlag.libsignalEnforceMinTlsVersion.rawValue] ?? FeatureFlags.libsignalEnforceMinTlsVersion
+
+        LibsignalUserDefaults.saveShouldEnforceMinTlsVersion(libsignalEnforceMinTlsVersion, in: CurrentAppContext().appUserDefaults())
 
         // This has *all* the new values, even those that can't be hot-swapped.
         let newConfig = RemoteConfig(
@@ -945,20 +887,26 @@ public class RemoteConfigManagerImpl: RemoteConfigManager {
         let mergedConfig = self.updateCachedConfig { oldConfig in
             return (oldConfig ?? .emptyConfig).mergingHotSwappableFlags(from: newConfig)
         }
-        checkClientExpiration(valueFlags: mergedConfig.valueFlags)
+
+        await checkClientExpiration(valueFlag: mergedConfig.valueFlags[ValueFlag.clientExpiration.rawValue])
 
         newConfig.logFlags()
     }
 
     // MARK: -
 
-    private enum FetchedRemoteConfigItem {
-        case isEnabled(Bool)
-        case value(String)
+    private struct UserRemoteConfigList: Decodable {
+        var config: [UserRemoteConfig]
+    }
+
+    private struct UserRemoteConfig: Decodable {
+        var name: String
+        var enabled: Bool?
+        var value: String?
     }
 
     private struct FetchedRemoteConfigResponse {
-        let items: [String: FetchedRemoteConfigItem]
+        let items: [UserRemoteConfig]
         let serverEpochTimeMs: UInt64?
     }
 
@@ -967,37 +915,13 @@ public class RemoteConfigManagerImpl: RemoteConfigManager {
 
         let response = try await networkManager.asyncRequest(request)
 
-        guard let json = response.responseBodyJson else {
-            throw OWSAssertionError("Missing or invalid JSON.")
-        }
-        guard let parser = ParamParser(responseObject: json) else {
-            throw OWSAssertionError("Missing or invalid response.")
-        }
+        let result = try JSONDecoder().decode(UserRemoteConfigList.self, from: response.responseBodyData ?? Data())
 
-        let config: [[String: Any]] = try parser.required(key: "config")
         let serverEpochTimeMs = response.headers["x-signal-timestamp"].flatMap(UInt64.init(_:))
         owsAssertDebug(serverEpochTimeMs != nil, "Must have X-Signal-Timestamp.")
 
-        let items: [String: FetchedRemoteConfigItem] = try config.reduce([:]) { accum, item in
-            var accum = accum
-            guard let itemParser = ParamParser(responseObject: item) else {
-                throw OWSAssertionError("Missing or invalid remote config item.")
-            }
-
-            let name: String = try itemParser.required(key: "name")
-            let isEnabled: Bool = try itemParser.required(key: "enabled")
-
-            if let value: String = try itemParser.optional(key: "value") {
-                accum[name] = .value(value)
-            } else {
-                accum[name] = .isEnabled(isEnabled)
-            }
-
-            return accum
-        }
-
         return FetchedRemoteConfigResponse(
-            items: items,
+            items: result.config,
             serverEpochTimeMs: serverEpochTimeMs
         )
     }
@@ -1018,17 +942,16 @@ public class RemoteConfigManagerImpl: RemoteConfigManager {
         }
     }
 
-    private func checkClientExpiration(valueFlags: [String: String]) {
-        if let minimumVersions = parseClientExpiration(valueFlags: valueFlags) {
-            appExpiry.setExpirationDateForCurrentVersion(remoteExpirationDate(from: minimumVersions), db: db)
+    private func checkClientExpiration(valueFlag: String?) async {
+        if let minimumVersions = parseClientExpiration(valueFlag: valueFlag) {
+            await appExpiry.setExpirationDateForCurrentVersion(remoteExpirationDate(from: minimumVersions), now: dateProvider(), db: db)
         } else {
             // If it's not valid, there's a typo in the config, err on the safe side
             // and leave it alone.
         }
     }
 
-    private func parseClientExpiration(valueFlags: [String: String]) -> [MinimumVersion]? {
-        let valueFlag = valueFlags[ValueFlag.clientExpiration.rawValue]
+    private func parseClientExpiration(valueFlag: String?) -> [MinimumVersion]? {
         guard let valueFlag = valueFlag?.nilIfEmpty else {
             return []
         }
@@ -1129,5 +1052,27 @@ private extension KeyValueStore {
 
     func setClockSkew(_ newValue: TimeInterval, transaction: DBWriteTransaction) {
         return setDouble(newValue, key: clockSkewKey, transaction: transaction)
+    }
+}
+
+// MARK: -
+
+enum LibsignalUserDefaults {
+
+    private static var shouldEnforceMinTlsVersionKey: String = "LibsignalEnforceMinTlsVersion"
+
+    /// We cache this in UserDefaults because it's used too early to access the RemoteConfig object.
+    ///
+    /// It also makes it possible to override the setting in Xcode via the Scheme settings:
+    /// add the arguments "-UseLibsignalForUnidentifiedWebsocket YES" to the invocation of the app.
+    static func saveShouldEnforceMinTlsVersion(
+        _ shouldEnforceMinTlsVersion: Bool,
+        in defaults: UserDefaults
+    ) {
+        defaults.set(shouldEnforceMinTlsVersion, forKey: shouldEnforceMinTlsVersionKey)
+    }
+
+    static func readShouldEnforceMinTlsVersion(from defaults: UserDefaults) -> Bool {
+        return defaults.bool(forKey: shouldEnforceMinTlsVersionKey)
     }
 }

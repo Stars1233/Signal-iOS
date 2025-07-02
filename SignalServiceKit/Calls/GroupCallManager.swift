@@ -77,7 +77,7 @@ public class GroupCallManager {
         // If the currentCall is for the provided thread, we don't need to
         // perform an explicit peek. Connected calls will receive automatic
         // updates from RingRTC.
-        if currentCallProvider.currentGroupThreadCallGroupId?.serialize() == groupId.serialize() {
+        if currentCallProvider.currentGroupThreadCallGroupId == groupId {
             logger.info("Ignoring peek request for the current call.")
             return
         }
@@ -471,7 +471,7 @@ public class GroupCallManager {
         AssertNotOnMainThread()
 
         // The message can't be for the current call
-        if currentCallProvider.currentGroupThreadCallGroupId?.serialize().asData == groupThread.groupId {
+        if currentCallProvider.currentGroupThreadCallGroupId?.serialize() == groupThread.groupId {
             return
         }
 

@@ -15,36 +15,30 @@ extension DonateViewController {
         badge: ProfileBadge
     ) {
         Logger.info("[Donations] Starting one-time PayPal donation")
+        Task {
+            await self._startPaypalBoost(amount: amount, badge: badge)
+        }
+    }
 
-        firstly(on: DispatchQueue.main) { [weak self] () -> Promise<(URL, String)> in
-            guard let self else { throw OWSAssertionError("[Donations] Missing self!") }
-
+    private func _startPaypalBoost(amount: FiatMoney, badge: ProfileBadge) async {
+        do {
             Logger.info("[Donations] Creating one-time PayPal payment")
-            return Promise.wrapAsync {
-                try await DonationViewsUtil.Paypal.createPaypalPaymentBehindActivityIndicator(
-                    amount: amount,
-                    level: .boostBadge,
-                    fromViewController: self
-                )
-            }
-        }.then(on: DispatchQueue.main) { [weak self] (approvalUrl, paymentId) -> Promise<(Paypal.OneTimePaymentWebAuthApprovalParams, String)> in
-            guard let self else { throw OWSAssertionError("[Donations] Missing self!") }
+            let (approvalUrl, paymentId) = try await DonationViewsUtil.Paypal.createPaypalPaymentBehindActivityIndicator(
+                amount: amount,
+                level: .boostBadge,
+                fromViewController: self
+            )
 
             Logger.info("[Donations] Presenting PayPal web UI for user approval of one-time donation")
-            return Promise.wrapAsync {
-                let approvalParams: Paypal.OneTimePaymentWebAuthApprovalParams = try await Paypal.presentExpectingApprovalParams(
-                    approvalUrl: approvalUrl,
-                    withPresentationContext: self
-                )
-                return (approvalParams, paymentId)
-            }
-        }.then(on: DispatchQueue.main) { [weak self] (approvalParams, paymentId) -> Promise<Void> in
-            guard let self else { return .value(()) }
+            let approvalParams: Paypal.OneTimePaymentWebAuthApprovalParams = try await Paypal.presentExpectingApprovalParams(
+                approvalUrl: approvalUrl,
+                withPresentationContext: self
+            )
 
             Logger.info("[Donations] Creating and redeeming one-time boost receipt for PayPal donation")
-            return DonationViewsUtil.wrapPromiseInProgressView(
+            try await DonationViewsUtil.wrapInProgressView(
                 from: self,
-                promise: Promise.wrapAsync {
+                operation: {
                     try await self.confirmPaypalPaymentAndRedeemBoost(
                         amount: amount,
                         paymentId: paymentId,
@@ -52,16 +46,12 @@ extension DonateViewController {
                     )
                 }
             )
-        }.done(on: DispatchQueue.main) { [weak self] in
-            guard let self else { return }
 
             Logger.info("[Donations] One-time PayPal donation finished")
             self.didCompleteDonation(
                 receiptCredentialSuccessMode: .oneTimeBoost
             )
-        }.catch(on: DispatchQueue.main) { [weak self] error in
-            guard let self else { return }
-
+        } catch {
             if let webAuthError = error as? Paypal.AuthError {
                 switch webAuthError {
                 case .userCanceled:

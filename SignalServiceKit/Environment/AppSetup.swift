@@ -126,9 +126,16 @@ public class AppSetup {
 
         let tsConstants = TSConstants.shared
 
+        let remoteConfig: [String: String] = if LibsignalUserDefaults.readShouldEnforceMinTlsVersion(from: appContext.appUserDefaults()) {
+            // The actual value does not matter as long as the key is present
+            ["enforceMinimumTls": "true"]
+        } else {
+            [:]
+        }
         let libsignalNet = Net(
             env: TSConstants.isUsingProductionService ? .production : .staging,
-            userAgent: HttpHeaders.userAgentHeaderValueSignalIos
+            userAgent: HttpHeaders.userAgentHeaderValueSignalIos,
+            remoteConfig: remoteConfig
         )
 
         let recipientDatabaseTable = RecipientDatabaseTable()
@@ -160,10 +167,8 @@ public class AppSetup {
 
         let schedulers = DispatchQueueSchedulers()
 
-        let appExpiry = AppExpiryImpl(
-            dateProvider: dateProvider,
+        let appExpiry = AppExpiry(
             appVersion: appVersion,
-            schedulers: schedulers
         )
 
         let db = databaseStorage
@@ -265,7 +270,7 @@ public class AppSetup {
 
         let authCredentialStore = AuthCredentialStore()
 
-        let callLinkPublicParams = try! GenericServerPublicParams(contents: [UInt8](tsConstants.callLinkPublicParams))
+        let callLinkPublicParams = try! GenericServerPublicParams(contents: tsConstants.callLinkPublicParams)
         let authCredentialManager = AuthCredentialManagerImpl(
             authCredentialStore: authCredentialStore,
             callLinkPublicParams: callLinkPublicParams,
@@ -292,9 +297,14 @@ public class AppSetup {
         let storyStore = StoryStoreImpl()
 
         let audioWaveformManager = AudioWaveformManagerImpl()
+
+        let attachmentStore = AttachmentStoreImpl()
+
         let orphanedAttachmentCleaner = OrphanedAttachmentCleanerImpl(db: databaseStorage)
         let attachmentContentValidator = AttachmentContentValidatorImpl(
+            attachmentStore: attachmentStore,
             audioWaveformManager: audioWaveformManager,
+            db: db,
             orphanedAttachmentCleaner: orphanedAttachmentCleaner
         )
 
@@ -365,7 +375,6 @@ public class AppSetup {
             networkManager: networkManager
         )
 
-        let attachmentStore = AttachmentStoreImpl()
         let orphanedAttachmentStore = OrphanedAttachmentStoreImpl()
         let attachmentUploadStore = AttachmentUploadStoreImpl(attachmentStore: attachmentStore)
         let attachmentDownloadStore = AttachmentDownloadStoreImpl(dateProvider: dateProvider)
@@ -402,15 +411,28 @@ public class AppSetup {
         )
 
         let backupSettingsStore = BackupSettingsStore()
+        let backupAttachmentUploadEraStore = BackupAttachmentUploadEraStore()
         let backupAttachmentUploadStore = BackupAttachmentUploadStoreImpl()
         let backupAttachmentDownloadStore = BackupAttachmentDownloadStoreImpl()
 
-        let backupAttachmentQueueStatusManager = BackupAttachmentQueueStatusManagerImpl(
+        let backupAttachmentDownloadQueueStatusManager = BackupAttachmentDownloadQueueStatusManagerImpl(
             appContext: appContext,
             appReadiness: appReadiness,
             backupAttachmentDownloadStore: backupAttachmentDownloadStore,
+            backupSettingsStore: backupSettingsStore,
+            dateProvider: dateProvider,
+            db: db,
+            deviceBatteryLevelManager: deviceBatteryLevelManager,
+            reachabilityManager: reachabilityManager,
+            remoteConfigManager: remoteConfigManager,
+            tsAccountManager: tsAccountManager
+        )
+        let backupAttachmentUploadQueueStatusManager = BackupAttachmentUploadQueueStatusManagerImpl(
+            appContext: appContext,
+            appReadiness: appReadiness,
             backupAttachmentUploadStore: backupAttachmentUploadStore,
             backupSettingsStore: backupSettingsStore,
+            dateProvider: dateProvider,
             db: db,
             deviceBatteryLevelManager: deviceBatteryLevelManager,
             reachabilityManager: reachabilityManager,
@@ -418,35 +440,37 @@ public class AppSetup {
             tsAccountManager: tsAccountManager
         )
 
-        let backupReceiptCredentialRedemptionJobQueue = BackupReceiptCredentialRedemptionJobQueue(
-            authCredentialStore: authCredentialStore,
-            backupSettingsStore: backupSettingsStore,
-            db: db,
-            networkManager: networkManager,
-            reachabilityManager: reachabilityManager
-        )
-        let backupSubscriptionManager = BackupSubscriptionManager(
+        let backupAttachmentUploadProgress = BackupAttachmentUploadProgressImpl(db: db)
+        let backupAttachmentDownloadProgress = BackupAttachmentDownloadProgressImpl(
+            appContext: appContext,
+            appReadiness: appReadiness,
+            backupAttachmentDownloadStore: backupAttachmentDownloadStore,
             backupSettingsStore: backupSettingsStore,
             dateProvider: dateProvider,
             db: db,
-            networkManager: networkManager,
-            receiptCredentialRedemptionJobQueue: backupReceiptCredentialRedemptionJobQueue,
-            storageServiceManager: storageServiceManager,
-            tsAccountManager: tsAccountManager
+            remoteConfigProvider: remoteConfigManager
         )
 
-        let backupAttachmentUploadProgress = BackupAttachmentUploadProgress(
-            backupSubscriptionManager: backupSubscriptionManager,
-            db: db
+        let backupAttachmentUploadScheduler = BackupAttachmentUploadSchedulerImpl(
+            attachmentStore: attachmentStore,
+            backupAttachmentUploadStore: backupAttachmentUploadStore,
+            backupAttachmentUploadEraStore: backupAttachmentUploadEraStore,
+            dateProvider: dateProvider,
+            interactionStore: interactionStore,
         )
 
         let backupListMediaManager = BackupListMediaManagerImpl(
             attachmentStore: attachmentStore,
             attachmentUploadStore: attachmentUploadStore,
+            backupAttachmentDownloadProgress: backupAttachmentDownloadProgress,
             backupAttachmentDownloadStore: backupAttachmentDownloadStore,
+            backupAttachmentUploadProgress: backupAttachmentUploadProgress,
+            backupAttachmentUploadScheduler: backupAttachmentUploadScheduler,
+            backupAttachmentUploadStore: backupAttachmentUploadStore,
+            backupAttachmentUploadEraStore: backupAttachmentUploadEraStore,
             backupKeyMaterial: backupKeyMaterial,
             backupRequestManager: backupRequestManager,
-            backupSubscriptionManager: backupSubscriptionManager,
+            backupSettingsStore: backupSettingsStore,
             dateProvider: dateProvider,
             db: db,
             orphanedBackupAttachmentStore: orphanedBackupAttachmentStore,
@@ -454,20 +478,22 @@ public class AppSetup {
             tsAccountManager: tsAccountManager
         )
 
-        let backupAttachmentUploadManager = BackupAttachmentUploadManagerImpl(
+        let backupAttachmentUploadQueueRunner = BackupAttachmentUploadQueueRunnerImpl(
             appReadiness: appReadiness,
             attachmentStore: attachmentStore,
             attachmentUploadManager: attachmentUploadManager,
+            backupAttachmentUploadScheduler: backupAttachmentUploadScheduler,
             backupAttachmentUploadStore: backupAttachmentUploadStore,
+            backupAttachmentUploadEraStore: backupAttachmentUploadEraStore,
+            backupKeyMaterial: backupKeyMaterial,
             backupListMediaManager: backupListMediaManager,
             backupRequestManager: backupRequestManager,
             backupSettingsStore: backupSettingsStore,
-            backupSubscriptionManager: backupSubscriptionManager,
             dateProvider: dateProvider,
             db: db,
             orphanedBackupAttachmentStore: orphanedBackupAttachmentStore,
             progress: backupAttachmentUploadProgress,
-            statusManager: backupAttachmentQueueStatusManager,
+            statusManager: backupAttachmentUploadQueueStatusManager,
             tsAccountManager: tsAccountManager
         )
 
@@ -476,7 +502,8 @@ public class AppSetup {
             attachmentDownloadStore: attachmentDownloadStore,
             attachmentStore: attachmentStore,
             attachmentValidator: attachmentContentValidator,
-            backupAttachmentUploadManager: backupAttachmentUploadManager,
+            backupAttachmentUploadQueueRunner: backupAttachmentUploadQueueRunner,
+            backupAttachmentUploadScheduler: backupAttachmentUploadScheduler,
             backupKeyMaterial: backupKeyMaterial,
             backupRequestManager: backupRequestManager,
             currentCallProvider: currentCallProvider,
@@ -495,10 +522,54 @@ public class AppSetup {
             threadStore: threadStore,
             tsAccountManager: tsAccountManager
         )
+        let backupAttachmentDownloadManager = testDependencies.backupAttachmentDownloadManager ?? BackupAttachmentDownloadManagerImpl(
+            appContext: appContext,
+            appReadiness: appReadiness,
+            attachmentStore: attachmentStore,
+            attachmentDownloadManager: attachmentDownloadManager,
+            backupAttachmentDownloadStore: backupAttachmentDownloadStore,
+            backupAttachmentUploadScheduler: backupAttachmentUploadScheduler,
+            backupListMediaManager: backupListMediaManager,
+            backupRequestManager: backupRequestManager,
+            backupSettingsStore: backupSettingsStore,
+            dateProvider: dateProvider,
+            db: db,
+            mediaBandwidthPreferenceStore: mediaBandwidthPreferenceStore,
+            progress: backupAttachmentDownloadProgress,
+            remoteConfigProvider: remoteConfigManager,
+            statusManager: backupAttachmentDownloadQueueStatusManager,
+            tsAccountManager: tsAccountManager
+        )
+
+        let backupPlanManager = BackupPlanManagerImpl(
+            backupAttachmentDownloadManager: backupAttachmentDownloadManager,
+            backupAttachmentUploadQueueRunner: backupAttachmentUploadQueueRunner,
+            backupSettingsStore: backupSettingsStore
+        )
+
+        let backupReceiptCredentialRedemptionJobQueue = BackupReceiptCredentialRedemptionJobQueue(
+            authCredentialStore: authCredentialStore,
+            backupPlanManager: backupPlanManager,
+            db: db,
+            networkManager: networkManager,
+            reachabilityManager: reachabilityManager
+        )
+        let backupSubscriptionManager = BackupSubscriptionManager(
+            backupAttachmentUploadEraStore: backupAttachmentUploadEraStore,
+            backupPlanManager: backupPlanManager,
+            dateProvider: dateProvider,
+            db: db,
+            networkManager: networkManager,
+            receiptCredentialRedemptionJobQueue: backupReceiptCredentialRedemptionJobQueue,
+            storageServiceManager: storageServiceManager,
+            tsAccountManager: tsAccountManager
+        )
+
         let attachmentManager = AttachmentManagerImpl(
             attachmentDownloadManager: attachmentDownloadManager,
             attachmentStore: attachmentStore,
-            backupAttachmentUploadManager: backupAttachmentUploadManager,
+            backupAttachmentUploadQueueRunner: backupAttachmentUploadQueueRunner,
+            backupAttachmentUploadScheduler: backupAttachmentUploadScheduler,
             dateProvider: dateProvider,
             orphanedAttachmentCleaner: orphanedAttachmentCleaner,
             orphanedAttachmentStore: orphanedAttachmentStore,
@@ -552,6 +623,7 @@ public class AppSetup {
             networkManager: networkManager,
             notificationPresenter: notificationPresenter,
             pniProtocolStore: pniProtocolStore,
+            profileManager: profileManager,
             recipientDatabaseTable: recipientDatabaseTable,
             recipientFetcher: recipientFetcher,
             recipientIdFinder: recipientIdFinder,
@@ -869,17 +941,18 @@ public class AppSetup {
             versionedProfiles: versionedProfiles
         )
 
-        let pniIdentityKeyChecker = PniIdentityKeyCheckerImpl(
+        let identityKeyChecker = IdentityKeyCheckerImpl(
             db: db,
-            identityManager: PniIdentityKeyCheckerImpl.Wrappers.IdentityManager(identityManager),
-            profileFetcher: PniIdentityKeyCheckerImpl.Wrappers.ProfileFetcher(schedulers: schedulers)
+            identityManager: IdentityKeyCheckerImpl.Wrappers.IdentityManager(identityManager),
+            profileFetcher: IdentityKeyCheckerImpl.Wrappers.ProfileFetcher(networkManager: networkManager),
         )
-        let linkedDevicePniKeyManager = LinkedDevicePniKeyManagerImpl(
+        let identityKeyMismatchManager = IdentityKeyMismatchManagerImpl(
             db: db,
-            messageProcessor: LinkedDevicePniKeyManagerImpl.Wrappers.MessageProcessor(messageProcessor),
-            pniIdentityKeyChecker: pniIdentityKeyChecker,
+            identityKeyChecker: identityKeyChecker,
+            messageProcessor: IdentityKeyMismatchManagerImpl.Wrappers.MessageProcessor(messageProcessor),
             registrationStateChangeManager: registrationStateChangeManager,
-            tsAccountManager: tsAccountManager
+            tsAccountManager: tsAccountManager,
+            whoAmIManager: whoAmIManager,
         )
         let pniHelloWorldManager = PniHelloWorldManagerImpl(
             db: db,
@@ -896,7 +969,6 @@ public class AppSetup {
             accountManager: tsAccountManager,
             appExpiry: appExpiry,
             appReadiness: appReadiness,
-            currentCallProvider: currentCallProvider,
             db: db,
             libsignalNet: libsignalNet,
             registrationStateChangeManager: registrationStateChangeManager,
@@ -907,8 +979,8 @@ public class AppSetup {
         let preKeyManager = PreKeyManagerImpl(
             dateProvider: dateProvider,
             db: db,
+            identityKeyMismatchManager: identityKeyMismatchManager,
             identityManager: PreKey.Wrappers.IdentityManager(identityManager),
-            linkedDevicePniKeyManager: linkedDevicePniKeyManager,
             messageProcessor: messageProcessor,
             preKeyTaskAPIClient: preKeyTaskAPIClient,
             protocolStoreManager: signalProtocolStoreManager,
@@ -1023,36 +1095,6 @@ public class AppSetup {
             threadStore: threadStore
         )
 
-        let backupAttachmentDownloadProgress = BackupAttachmentDownloadProgress(
-            appContext: appContext,
-            appReadiness: appReadiness,
-            backupAttachmentDownloadStore: backupAttachmentDownloadStore,
-            backupSettingsStore: backupSettingsStore,
-            dateProvider: dateProvider,
-            db: db,
-            remoteConfigProvider: remoteConfigManager
-        )
-
-        let backupAttachmentDownloadManager = testDependencies.backupAttachmentDownloadManager
-            ?? BackupAttachmentDownloadManagerImpl(
-                appContext: appContext,
-                appReadiness: appReadiness,
-                attachmentStore: attachmentStore,
-                attachmentDownloadManager: attachmentDownloadManager,
-                backupAttachmentDownloadStore: backupAttachmentDownloadStore,
-                backupListMediaManager: backupListMediaManager,
-                backupRequestManager: backupRequestManager,
-                backupSettingsStore: backupSettingsStore,
-                backupSubscriptionManager: backupSubscriptionManager,
-                dateProvider: dateProvider,
-                db: db,
-                mediaBandwidthPreferenceStore: mediaBandwidthPreferenceStore,
-                progress: backupAttachmentDownloadProgress,
-                remoteConfigProvider: remoteConfigManager,
-                statusManager: backupAttachmentQueueStatusManager,
-                tsAccountManager: tsAccountManager
-            )
-
         let reactionStore: any ReactionStore = ReactionStoreImpl()
         let disappearingMessagesJob = OWSDisappearingMessagesJob(appReadiness: appReadiness, databaseStorage: databaseStorage)
 
@@ -1088,7 +1130,7 @@ public class AppSetup {
             attachmentStore: attachmentStore,
             backupAttachmentDownloadManager: backupAttachmentDownloadManager,
             chatColorSettingStore: chatColorSettingStore,
-            wallpaperStore: wallpaperStore
+            wallpaperStore: wallpaperStore,
         )
 
         let backupInteractionStore = BackupArchiveInteractionStore(interactionStore: interactionStore)
@@ -1145,7 +1187,8 @@ public class AppSetup {
 
         let backupArchiveManager = BackupArchiveManagerImpl(
             accountDataArchiver: BackupArchiveAccountDataArchiver(
-                backupSettingsStore: backupSettingsStore,
+                backupAttachmentUploadEraStore: backupAttachmentUploadEraStore,
+                backupPlanManager: backupPlanManager,
                 backupSubscriptionManager: backupSubscriptionManager,
                 chatStyleArchiver: backupChatStyleArchiver,
                 disappearingMessageConfigurationStore: disappearingMessagesConfigurationStore,
@@ -1176,10 +1219,9 @@ public class AppSetup {
             avatarFetcher: backupArchiveAvatarFetcher,
             backupArchiveErrorPresenter: backupArchiveErrorPresenter,
             backupAttachmentDownloadManager: backupAttachmentDownloadManager,
-            backupAttachmentUploadManager: backupAttachmentUploadManager,
+            backupAttachmentUploadEraStore: backupAttachmentUploadEraStore,
             backupRequestManager: backupRequestManager,
             backupSettingsStore: backupSettingsStore,
-            backupSubscriptionManager: backupSubscriptionManager,
             backupStickerPackDownloadStore: backupStickerPackDownloadStore,
             callLinkRecipientArchiver: BackupArchiveCallLinkRecipientArchiver(
                 callLinkStore: callLinkStore
@@ -1204,7 +1246,7 @@ public class AppSetup {
                 interactionStore: backupInteractionStore,
                 archivedPaymentStore: archivedPaymentStore,
                 reactionStore: reactionStore,
-                threadStore: backupThreadStore
+                threadStore: backupThreadStore,
             ),
             contactRecipientArchiver: backupContactRecipientArchiver,
             databaseChangeObserver: databaseStorage.databaseChangeObserver,
@@ -1262,7 +1304,8 @@ public class AppSetup {
             remoteConfigManager: remoteConfigManager,
             stickerPackArchiver: BackupArchiveStickerPackArchiver(
                 backupStickerPackDownloadStore: backupStickerPackDownloadStore
-            )
+            ),
+            tsAccountManager: tsAccountManager,
         )
 
         let externalPendingIDEALDonationStore = ExternalPendingIDEALDonationStoreImpl()
@@ -1325,6 +1368,50 @@ public class AppSetup {
             tsAccountManager: tsAccountManager
         )
 
+        let groupMessageProcessorManager = GroupMessageProcessorManager()
+
+        let receiptSender = ReceiptSender(
+            appReadiness: appReadiness,
+            recipientDatabaseTable: recipientDatabaseTable
+        )
+
+        let messageFetcherJob = MessageFetcherJob(appReadiness: appReadiness)
+
+        let backgroundMessageFetcherFactory = BackgroundMessageFetcherFactory(
+            chatConnectionManager: chatConnectionManager,
+            groupMessageProcessorManager: groupMessageProcessorManager,
+            messageFetcherJob: messageFetcherJob,
+            messageProcessor: messageProcessor,
+            messageSenderJobQueue: messageSenderJobQueue,
+            receiptSender: receiptSender,
+        )
+
+        let attachmentOffloadingManager = AttachmentOffloadingManagerImpl(
+            attachmentStore: attachmentStore,
+            attachmentThumbnailService: attachmentThumbnailService,
+            backupAttachmentDownloadStore: backupAttachmentDownloadStore,
+            backupAttachmentUploadEraStore: backupAttachmentUploadEraStore,
+            backupSettingsStore: backupSettingsStore,
+            dateProvider: dateProvider,
+            db: db,
+            listMediaManager: backupListMediaManager,
+            orphanedAttachmentCleaner: orphanedAttachmentCleaner,
+            orphanedAttachmentStore: orphanedAttachmentStore
+        )
+        let backupExportJob = BackupExportJobImpl(
+            attachmentOffloadingManager: attachmentOffloadingManager,
+            backupArchiveManager: backupArchiveManager,
+            backupAttachmentUploadProgress: backupAttachmentUploadProgress,
+            backupAttachmentUploadQueueRunner: backupAttachmentUploadQueueRunner,
+            backupIdManager: backupIdManager,
+            backupKeyMaterial: backupKeyMaterial,
+            backupListMediaManager: backupListMediaManager,
+            db: db,
+            messageProcessor: messageProcessor,
+            orphanedBackupAttachmentManager: orphanedBackupAttachmentManager,
+            tsAccountManager: tsAccountManager
+        )
+
         let dependenciesBridge = DependenciesBridge(
             accountAttributesUpdater: accountAttributesUpdater,
             adHocCallRecordManager: adHocCallRecordManager,
@@ -1342,17 +1429,21 @@ public class AppSetup {
             audioWaveformManager: audioWaveformManager,
             authorMergeHelper: authorMergeHelper,
             avatarDefaultColorManager: avatarDefaultColorManager,
+            backgroundMessageFetcherFactory: backgroundMessageFetcherFactory,
             backupArchiveErrorPresenter: backupArchiveErrorPresenter,
             backupArchiveManager: backupArchiveManager,
             backupAttachmentDownloadManager: backupAttachmentDownloadManager,
             backupAttachmentDownloadProgress: backupAttachmentDownloadProgress,
             backupAttachmentDownloadStore: backupAttachmentDownloadStore,
-            backupAttachmentQueueStatusManager: backupAttachmentQueueStatusManager,
-            backupAttachmentUploadManager: backupAttachmentUploadManager,
+            backupAttachmentDownloadQueueStatusReporter: backupAttachmentDownloadQueueStatusManager,
             backupAttachmentUploadProgress: backupAttachmentUploadProgress,
+            backupAttachmentUploadQueueRunner: backupAttachmentUploadQueueRunner,
+            backupAttachmentUploadQueueStatusReporter: backupAttachmentUploadQueueStatusManager,
+            backupExportJob: backupExportJob,
             backupIdManager: backupIdManager,
             backupKeyMaterial: backupKeyMaterial,
             backupRequestManager: backupRequestManager,
+            backupPlanManager: backupPlanManager,
             backupSubscriptionManager: backupSubscriptionManager,
             badgeCountFetcher: badgeCountFetcher,
             callLinkStore: callLinkStore,
@@ -1385,6 +1476,7 @@ public class AppSetup {
             groupMemberUpdater: groupMemberUpdater,
             groupSendEndorsementStore: groupSendEndorsementStore,
             groupUpdateInfoMessageInserter: groupUpdateInfoMessageInserter,
+            identityKeyMismatchManager: identityKeyMismatchManager,
             identityManager: identityManager,
             inactiveLinkedDeviceFinder: inactiveLinkedDeviceFinder,
             incomingCallEventSyncMessageManager: incomingCallEventSyncMessageManager,
@@ -1396,7 +1488,6 @@ public class AppSetup {
             interactionStore: interactionStore,
             lastVisibleInteractionStore: lastVisibleInteractionStore,
             learnMyOwnPniManager: learnMyOwnPniManager,
-            linkedDevicePniKeyManager: linkedDevicePniKeyManager,
             linkAndSyncManager: linkAndSyncManager,
             linkPreviewManager: linkPreviewManager,
             linkPreviewSettingStore: linkPreviewSettingStore,
@@ -1474,18 +1565,12 @@ public class AppSetup {
             )
         )
         let messageDecrypter = OWSMessageDecrypter(appReadiness: appReadiness)
-        let groupMessageProcessorManager = GroupMessageProcessorManager()
-        let receiptSender = ReceiptSender(
-            appReadiness: appReadiness,
-            recipientDatabaseTable: recipientDatabaseTable
-        )
         let stickerManager = StickerManager(
             appReadiness: appReadiness,
             dateProvider: dateProvider
         )
         let sskPreferences = SSKPreferences()
         let groupV2Updates = testDependencies.groupV2Updates ?? GroupV2UpdatesImpl(appReadiness: appReadiness)
-        let messageFetcherJob = MessageFetcherJob(appReadiness: appReadiness)
         let paymentsCurrencies = testDependencies.paymentsCurrencies ?? PaymentsCurrenciesImpl(appReadiness: appReadiness)
         let spamChallengeResolver = SpamChallengeResolver(appReadiness: appReadiness)
         let phoneNumberUtil = PhoneNumberUtil()
@@ -1726,7 +1811,15 @@ extension AppSetup.FinalContinuation {
         // susceptible to diverging state between the Main App & NSE and should be
         // reloaded here. In practice, some caches exist but aren't used by the
         // NSE, or they are used but behave properly even if they're not reloaded.
-        self.sskEnvironment.warmCaches(appReadiness: self.appReadiness)
+        self.sskEnvironment.warmCaches(appReadiness: self.appReadiness, dependenciesBridge: self.dependenciesBridge)
+
+        self.appReadiness.runNowOrWhenAppWillBecomeReady {
+            self.dependenciesBridge.chatConnectionManager.updateCanOpenWebSocket()
+        }
+
+        self.appReadiness.runNowOrWhenAppDidBecomeReadySync {
+            self.dependenciesBridge.appExpiry.refreshExpirationTimer()
+        }
 
         if self.didRunLaunchTasks {
             return
@@ -1771,7 +1864,7 @@ extension AppSetup.FinalContinuation {
         canInitiateRegistration: Bool
     ) -> SetupError? {
         let storageServiceManager = sskEnvironment.storageServiceManagerRef
-        let tsAccountManager = DependenciesBridge.shared.tsAccountManager
+        let tsAccountManager = dependenciesBridge.tsAccountManager
 
         let registrationState = tsAccountManager.registrationStateWithMaybeSneakyTransaction
         let canInitiateReregistration = registrationState.isDeregistered && canInitiateRegistration

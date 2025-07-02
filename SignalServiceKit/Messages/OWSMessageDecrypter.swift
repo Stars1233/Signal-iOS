@@ -7,7 +7,8 @@ import LibSignalClient
 
 public class OWSMessageDecrypter {
 
-    private var senderIdsResetDuringCurrentBatch = NSMutableSet()
+    private let senderIdsResetDuringCurrentBatch = AtomicValue<Set<String>>(Set(), lock: .init())
+
     private var placeholderCleanupTimer: Timer? {
         didSet { oldValue?.invalidate() }
     }
@@ -15,12 +16,14 @@ public class OWSMessageDecrypter {
     public init(appReadiness: AppReadiness) {
         SwiftSingletons.register(self)
 
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(messageProcessorDidDrainQueue),
-            name: MessageProcessor.messageProcessorDidDrainQueue,
-            object: nil
-        )
+        appReadiness.runNowOrWhenAppDidBecomeReadySync {
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(self.messageProcessorDidDrainQueue),
+                name: MessageProcessor.messageProcessorDidDrainQueue,
+                object: nil
+            )
+        }
 
         appReadiness.runNowOrWhenAppDidBecomeReadyAsync { [weak self] in
             guard let self = self else { return }
@@ -31,15 +34,16 @@ public class OWSMessageDecrypter {
 
     @objc
     func messageProcessorDidDrainQueue() {
-        // We don't want to send additional resets until we
-        // have received the "empty" response from the WebSocket
-        // or finished at least one REST fetch.
-        guard SSKEnvironment.shared.messageFetcherJobRef.hasCompletedInitialFetch else { return }
+        Task {
+            // We don't want to send additional resets until we have received the
+            // "empty" response from the WebSocket or finished at least one REST fetch.
+            guard await SSKEnvironment.shared.messageFetcherJobRef.hasCompletedInitialFetch else { return }
 
-        // We clear all recently reset sender ids any time the
-        // decryption queue has drained, so that any new messages
-        // that fail to decrypt will reset the session again.
-        senderIdsResetDuringCurrentBatch.removeAllObjects()
+            // We clear all recently reset sender ids any time the decryption queue has
+            // drained, so that any new messages that fail to decrypt will reset the
+            // session again.
+            senderIdsResetDuringCurrentBatch.update { $0.removeAll() }
+        }
     }
 
     private func trySendNullMessage(
@@ -122,7 +126,7 @@ public class OWSMessageDecrypter {
 
         let profileKeyMessage = OWSProfileKeyMessage(
             thread: contactThread,
-            profileKey: profileKey.serialize().asData,
+            profileKey: profileKey.serialize(),
             transaction: transaction
         )
         let preparedMessage = PreparedOutgoingMessage.preprepared(
@@ -256,10 +260,10 @@ public class OWSMessageDecrypter {
         case .pni:
             Logger.info("Not resetting or requesting resend of message sent to PNI.")
 
-            let linkedDevicePniKeyManager = DependenciesBridge.shared.linkedDevicePniKeyManager
-            linkedDevicePniKeyManager.recordSuspectedIssueWithPniIdentityKey(tx: transaction)
+            let identityKeyMismatchManager = DependenciesBridge.shared.identityKeyMismatchManager
+            identityKeyMismatchManager.recordSuspectedIssueWithPniIdentityKey(tx: transaction)
             Task {
-                await linkedDevicePniKeyManager.validateLocalPniIdentityKeyIfNecessary()
+                await identityKeyMismatchManager.validateLocalPniIdentityKeyIfNecessary()
             }
 
             errorMessage = .failedDecryption(
@@ -312,7 +316,7 @@ public class OWSMessageDecrypter {
                 timestamp: validatedEnvelope.timestamp,
                 originalSenderDeviceId: unsealedEnvelope.sourceDeviceId.uint32Value
             )
-            return Data(errorMessage.serialize())
+            return errorMessage.serialize()
         } catch {
             owsFailDebug("Could not build DecryptionError: \(error)")
             return nil
@@ -354,9 +358,7 @@ public class OWSMessageDecrypter {
         // resets. When the message decrypt queue is drained, the list of recently
         // reset IDs is cleared.
         let senderId = "\(sourceAci).\(sourceDeviceId)"
-        if !senderIdsResetDuringCurrentBatch.contains(senderId) {
-            senderIdsResetDuringCurrentBatch.add(senderId)
-
+        if senderIdsResetDuringCurrentBatch.update(block: { $0.insert(senderId).inserted }) {
             // We don't reset sessions for messages sent to our PNI because those are
             // receive-only & we don't send retries FROM our PNI back to the sender.
 
@@ -396,7 +398,7 @@ public class OWSMessageDecrypter {
             let protocolAddress = ProtocolAddress(sourceAci, deviceId: sourceDeviceId)
             let signalProtocolStore = DependenciesBridge.shared.signalProtocolStoreManager.signalProtocolStore(for: validatedEnvelope.localIdentity)
 
-            let plaintext: [UInt8]
+            let plaintext: Data
             switch cipherType {
             case .whisper:
                 let message = try SignalMessage(bytes: encryptedData)
@@ -421,7 +423,8 @@ public class OWSMessageDecrypter {
                     preKeyStore: signalProtocolStore.preKeyStore,
                     signedPreKeyStore: signalProtocolStore.signedPreKeyStore,
                     kyberPreKeyStore: signalProtocolStore.kyberPreKeyStore,
-                    context: transaction
+                    context: transaction,
+                    usePqRatchet: false
                 )
             case .senderKey:
                 plaintext = try groupDecrypt(
@@ -443,7 +446,7 @@ public class OWSMessageDecrypter {
                                isRetryable: false)
             }
 
-            plaintextData = Data(plaintext).withoutPadding()
+            plaintextData = plaintext.withoutPadding()
         } catch {
             throw processError(
                 error,

@@ -50,23 +50,22 @@ public class UsernameValidationManagerImpl: UsernameValidationManager {
 
     private let context: Context
     private let keyValueStore: KeyValueStore
-    private let taskQueue: SerialTaskQueue
+    private let taskQueue = ConcurrentTaskQueue(concurrentLimit: 1)
 
     private var logger: UsernameLogger { .shared }
 
     init(context: Context) {
         self.context = context
         self.keyValueStore = KeyValueStore(collection: Constants.collectionName)
-        self.taskQueue = SerialTaskQueue()
     }
 
     // MARK: Username Validation
 
     public func validateUsernameIfNecessary() async {
         do {
-            try await taskQueue.enqueue {
+            try await taskQueue.run {
                 try await self._validateUsernameIfNecessary()
-            }.value
+            }
         } catch {
             logger.error("Error validating username and/or link: \(error)")
         }
@@ -153,12 +152,12 @@ public class UsernameValidationManagerImpl: UsernameValidationManager {
     private func validateLocalUsernameAgainstService(
         localUsername: String?
     ) async throws {
-        let whoamiResponse = try await self.context.whoAmIManager.makeWhoAmIRequest()
+        let whoAmIResponse = try await self.context.whoAmIManager.makeWhoAmIRequest()
 
         let validationSucceeded: Bool = {
-            self.logger.info("Comparing usernames; local: \(localUsername != nil), remote: \(whoamiResponse.usernameHash != nil)")
+            self.logger.info("Comparing usernames; local: \(localUsername != nil), remote: \(whoAmIResponse.usernameHash != nil)")
 
-            switch (localUsername, whoamiResponse.usernameHash) {
+            switch (localUsername, whoAmIResponse.usernameHash) {
             case (nil, nil):
                 // Both missing -> good
                 return true

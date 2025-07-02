@@ -19,7 +19,7 @@ public protocol OrphanedAttachmentCleaner {
     /// Also fires immediately to clean up existing rows in the table, if any remained from prior app launches.
     func beginObserving()
 
-    func runUntilFinished() async
+    func runUntilFinished() async throws(CancellationError)
 
     /// Marks pending attachment files for deletion.
     /// Call `releasePendingAttachment` to un-mark the files for deletion
@@ -33,6 +33,12 @@ public protocol OrphanedAttachmentCleaner {
     func commitPendingAttachmentWithSneakyTransaction(
         _ record: OrphanedAttachmentRecord
     ) throws -> OrphanedAttachmentRecord.IDType
+
+    /// See commitPendingAttachmentWithSneakyTransaction; does the same thing for
+    /// multiple orphan records at once, keyed as chosen by the caller.
+    func commitPendingAttachmentsWithSneakyTransaction<Key: Hashable>(
+        _ records: [Key: OrphanedAttachmentRecord]
+    ) throws -> [Key: OrphanedAttachmentRecord.IDType]
 
     /// Un-marks a pending attachment for deletion IFF currently marked for deletion.
     /// 
@@ -99,34 +105,44 @@ public class OrphanedAttachmentCleanerImpl: OrphanedAttachmentCleaner {
     public func beginObserving() {
         // Kick off a run immediately for any rows already in the database.
         taskScheduler.task { [observer] in
-            await observer!.jobRunner.runNextCleanupJob()
+            try? await observer!.jobRunner.runNextCleanupJob()
         }
         // Begin observing the database for changes.
         dbProvider().add(transactionObserver: observer)
     }
 
-    public func runUntilFinished() async {
-        await observer.jobRunner.runNextCleanupJob()
+    public func runUntilFinished() async throws(CancellationError) {
+        try await observer.jobRunner.runNextCleanupJob()
     }
 
     public func commitPendingAttachmentWithSneakyTransaction(
         _ record: OrphanedAttachmentRecord
     ) throws -> OrphanedAttachmentRecord.IDType {
-        guard record.sqliteId == nil else {
-            throw OWSAssertionError("Reinserting existing record")
-        }
-        let id = try dbProvider().write { db in
-            var record = record
-            // Ensure we mark this attachment as pending.
-            record.isPendingAttachment = true
-            try record.insert(db)
-            guard let id = record.sqliteId else {
-                throw OWSAssertionError("Unable to insert")
+        let id = UUID()
+        return try commitPendingAttachmentsWithSneakyTransaction([id: record])[id]!
+    }
+
+    public func commitPendingAttachmentsWithSneakyTransaction<Key: Hashable>(
+        _ records: [Key: OrphanedAttachmentRecord]
+    ) throws -> [Key: OrphanedAttachmentRecord.IDType] {
+        return try dbProvider().write { db in
+            var results = [Key: OrphanedAttachmentRecord.IDType]()
+            for (key, record) in records {
+                guard record.sqliteId == nil else {
+                    throw OWSAssertionError("Reinserting existing record")
+                }
+                // Ensure we mark this attachment as pending.
+                var record = record
+                record.isPendingAttachment = true
+                try record.insert(db)
+                guard let id = record.sqliteId else {
+                    throw OWSAssertionError("Unable to insert")
+                }
+                skippedRowIds.update(block: { $0.insert(id) })
+                results[key] = id
             }
-            skippedRowIds.update(block: { $0.insert(id) })
-            return id
+            return results
         }
-        return id
     }
 
     public func releasePendingAttachment(withId id: OrphanedAttachmentRecord.IDType, tx: DBWriteTransaction) {
@@ -157,7 +173,7 @@ public class OrphanedAttachmentCleanerImpl: OrphanedAttachmentCleaner {
         private nonisolated let fileSystem: Shims.OWSFileSystem
         private weak var cleaner: OrphanedAttachmentCleanerImpl?
 
-        private let taskQueue = SerialTaskQueue()
+        private let taskQueue = ConcurrentTaskQueue(concurrentLimit: 1)
 
         init(
             dbProvider: @escaping () -> DatabaseWriter,
@@ -169,10 +185,10 @@ public class OrphanedAttachmentCleanerImpl: OrphanedAttachmentCleaner {
             self.cleaner = cleaner
         }
 
-        func runNextCleanupJob() async {
-            try! await taskQueue.enqueue(operation: {
+        func runNextCleanupJob() async throws(CancellationError) {
+            try await taskQueue.run {
                 await self._runNextCleanupJob()
-            }).value
+            }
         }
 
         private func _runNextCleanupJob() async {
@@ -353,7 +369,7 @@ public class OrphanedAttachmentCleanerImpl: OrphanedAttachmentCleaner {
             // When we get a matching event, run the next job _after_ committing.
             // The job should pick up whatever new row(s) got added to the table.
             taskScheduler.task { [jobRunner] in
-                await jobRunner.runNextCleanupJob()
+                try await jobRunner.runNextCleanupJob()
             }
         }
 

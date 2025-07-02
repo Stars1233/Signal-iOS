@@ -119,6 +119,11 @@ public enum Upload {
 
         /// The length of the unencrypted data
         public let plaintextDataLength: UInt32
+
+        /// The total size of all backup-able attachments in the backup.
+        /// Does NOT take into account current backup plan state; just per-attachment
+        /// backup eligibility.
+        public let attachmentByteSize: UInt64
     }
 
     public struct LocalUploadMetadata: AttachmentUploadMetadata, Codable {
@@ -213,9 +218,8 @@ extension Upload.LocalUploadMetadata {
         fileUrl: URL,
         metadata: EncryptionMetadata
     ) throws -> Upload.LocalUploadMetadata {
-        guard let lengthRaw = metadata.length, let plaintextLengthRaw = metadata.plaintextLength else {
-            throw OWSAssertionError("Missing length.")
-        }
+        let lengthRaw = metadata.length
+        let plaintextLengthRaw = metadata.plaintextLength
 
         guard
             lengthRaw > 0,
@@ -236,9 +240,7 @@ extension Upload.LocalUploadMetadata {
             throw OWSAssertionError("Data is too large: \(length).")
         }
 
-        guard let digest = metadata.digest else {
-            throw OWSAssertionError("Digest missing for attachment.")
-        }
+        let digest = metadata.digest
 
         return Upload.LocalUploadMetadata(
             fileUrl: fileUrl,

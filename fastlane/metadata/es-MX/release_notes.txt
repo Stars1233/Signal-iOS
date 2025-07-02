@@ -1,1 +1,1 @@
-• Cambiar de opinión siempre es válido, así que hemos corregido un error que hacía que se abriera el selector de imágenes si pegabas un archivo adjunto en un chat y luego decidías no enviarlo.
+• This update fixes a bug that prevented link previews from appearing for forwarded messages in some cases.

@@ -1,1 +1,1 @@
-• Opravili jsme chybu, která po vložení přílohy do chatu mohla způsobit otevření nástroje pro výběr obrázků.
+• This update fixes a bug that prevented link previews from appearing for forwarded messages in some cases.

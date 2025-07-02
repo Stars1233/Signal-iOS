@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
+import LibSignalClient
+
 extension BackupArchive {
     /// An identifier for the ``BackupProto_AccountData`` backup frame.
     ///
@@ -48,7 +50,8 @@ extension BackupArchive {
 
 /// Archives the ``BackupProto_AccountData`` frame.
 public class BackupArchiveAccountDataArchiver: BackupArchiveProtoStreamWriter {
-    private let backupSettingsStore: BackupSettingsStore
+    private let backupAttachmentUploadEraStore: BackupAttachmentUploadEraStore
+    private let backupPlanManager: BackupPlanManager
     private let backupSubscriptionManager: BackupSubscriptionManager
     private let chatStyleArchiver: BackupArchiveChatStyleArchiver
     private let disappearingMessageConfigurationStore: DisappearingMessagesConfigurationStore
@@ -69,7 +72,8 @@ public class BackupArchiveAccountDataArchiver: BackupArchiveProtoStreamWriter {
     private let usernameEducationManager: UsernameEducationManager
 
     public init(
-        backupSettingsStore: BackupSettingsStore,
+        backupAttachmentUploadEraStore: BackupAttachmentUploadEraStore,
+        backupPlanManager: BackupPlanManager,
         backupSubscriptionManager: BackupSubscriptionManager,
         chatStyleArchiver: BackupArchiveChatStyleArchiver,
         disappearingMessageConfigurationStore: DisappearingMessagesConfigurationStore,
@@ -89,7 +93,8 @@ public class BackupArchiveAccountDataArchiver: BackupArchiveProtoStreamWriter {
         udManager: BackupArchive.Shims.UDManager,
         usernameEducationManager: UsernameEducationManager
     ) {
-        self.backupSettingsStore = backupSettingsStore
+        self.backupAttachmentUploadEraStore = backupAttachmentUploadEraStore
+        self.backupPlanManager = backupPlanManager
         self.backupSubscriptionManager = backupSubscriptionManager
         self.chatStyleArchiver = chatStyleArchiver
         self.disappearingMessageConfigurationStore = disappearingMessageConfigurationStore
@@ -253,9 +258,16 @@ public class BackupArchiveAccountDataArchiver: BackupArchiveProtoStreamWriter {
         accountSettings.phoneNumberSharingMode = phoneNumberSharingMode
         accountSettings.preferredReactionEmoji = reactionManager.customEmojiSet(tx: context.tx) ?? []
         accountSettings.storyViewReceiptsEnabled = storyManager.areViewReceiptsEnabled(tx: context.tx)
-        accountSettings.optimizeOnDeviceStorage = switch backupSettingsStore.backupPlan(tx: context.tx) {
-        case .disabled, .free: false
-        case .paid(let optimizeLocalStorage), .paidExpiringSoon(let optimizeLocalStorage): optimizeLocalStorage
+        switch backupPlanManager.backupPlan(tx: context.tx) {
+        case .disabled:
+            accountSettings.clearBackupTier()
+            accountSettings.optimizeOnDeviceStorage = false
+        case .free:
+            accountSettings.backupTier = UInt64(BackupLevel.free.rawValue)
+            accountSettings.optimizeOnDeviceStorage = false
+        case .paid(let optimizeLocalStorage), .paidExpiringSoon(let optimizeLocalStorage):
+            accountSettings.backupTier = UInt64(BackupLevel.paid.rawValue)
+            accountSettings.optimizeOnDeviceStorage = optimizeLocalStorage
         }
 
         let customChatColorsResult = chatStyleArchiver.archiveCustomChatColors(
@@ -330,9 +342,9 @@ public class BackupArchiveAccountDataArchiver: BackupArchiveProtoStreamWriter {
             typealias IAPSubscriptionID = BackupSubscriptionManager.IAPSubscriberData.IAPSubscriptionId
             let iapSubscriptionID: IAPSubscriptionID = switch protoIapSubscriberID {
             case .purchaseToken(let value):
-                .purchaseToken(value)
+                    .purchaseToken(value)
             case .originalTransactionID(let value):
-                .originalTransactionId(value)
+                    .originalTransactionId(value)
             }
 
             backupSubscriptionManager.restoreIAPSubscriberData(
@@ -342,14 +354,32 @@ public class BackupArchiveAccountDataArchiver: BackupArchiveProtoStreamWriter {
                 ),
                 tx: context.tx
             )
+        }
 
-            uploadEra = backupSubscriptionManager.getUploadEra(tx: context.tx)
+        let backupLevel: BackupLevel?
+        if accountData.accountSettings.hasBackupTier {
+            guard
+                let parsedLevel =
+                    UInt8(exactly: accountData.accountSettings.backupTier)
+                    .map(BackupLevel.init(rawValue:))
+            else {
+                return .failure([.restoreFrameError(
+                    .invalidProtoData(.invalidBackupTier),
+                    .localUser
+                )])
+            }
+            backupLevel = parsedLevel
+        } else {
+            // Backups disabled
+            backupLevel = nil
+        }
+        switch backupLevel {
+        case .paid:
+            uploadEra = backupAttachmentUploadEraStore.currentUploadEra(tx: context.tx)
             backupPlan = .paid(
                 optimizeLocalStorage: accountData.accountSettings.optimizeOnDeviceStorage
             )
-
-            backupSettingsStore.setBackupPlan(backupPlan, tx: context.tx)
-        } else {
+        case .free:
             // The exporting client was not subscribed at export time.
             // It may have subscribed after, or not. We don't know, and we don't
             // know if it was previously subscribed and if so what its subscriberId was.
@@ -359,11 +389,20 @@ public class BackupArchiveAccountDataArchiver: BackupArchiveProtoStreamWriter {
             // invalidating our belief in any attachment uploads.
             // Querying the list endpoint will bring us up to date on the upload status
             // within this "era" otherwise.
-            uploadEra = backupSubscriptionManager.getUploadEra(tx: context.tx)
+            uploadEra = backupAttachmentUploadEraStore.currentUploadEra(tx: context.tx)
             backupPlan = .free
-
-            // TODO[LocalBackups]: if restoring a local backup file don't set remote backup plan.
-            backupSettingsStore.setBackupPlan(backupPlan, tx: context.tx)
+        case .none:
+            // See above comment; the same applies
+            uploadEra = backupAttachmentUploadEraStore.currentUploadEra(tx: context.tx)
+            backupPlan = .disabled
+        }
+        do {
+            try backupPlanManager.setBackupPlan(backupPlan, tx: context.tx)
+        } catch {
+            return .failure([.restoreFrameError(
+                .failedToSetBackupPlan(error),
+                .localUser,
+            )])
         }
 
         // These MUST get set before we restore custom chat colors/wallpapers.

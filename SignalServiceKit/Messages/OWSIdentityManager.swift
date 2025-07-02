@@ -59,13 +59,13 @@ public protocol OWSIdentityManager {
     func clearShouldSharePhoneNumber(with recipient: Aci, tx: DBWriteTransaction)
     func clearShouldSharePhoneNumberForEveryone(tx: DBWriteTransaction)
 
-    func batchUpdateIdentityKeys(for serviceIds: [ServiceId]) -> Promise<Void>
+    func batchUpdateIdentityKeys(for serviceIds: [ServiceId]) async throws
 }
 
 extension OWSIdentityManager {
     @discardableResult
     public func saveIdentityKey(_ identityKey: IdentityKey, for serviceId: ServiceId, tx: DBWriteTransaction) -> Result<IdentityChange, RecipientIdError> {
-        return saveIdentityKey(identityKey.publicKey.keyBytes.asData, for: serviceId, tx: tx)
+        return saveIdentityKey(identityKey.publicKey.keyBytes, for: serviceId, tx: tx)
     }
 }
 
@@ -202,6 +202,7 @@ public class OWSIdentityManagerImpl: OWSIdentityManager {
     private let notificationPresenter: any NotificationPresenter
     private let ownIdentityKeyValueStore: KeyValueStore
     private let pniProtocolStore: SignalProtocolStore
+    private let profileManager: ProfileManager
     private let queuedVerificationStateSyncMessagesKeyValueStore: KeyValueStore
     private let recipientDatabaseTable: RecipientDatabaseTable
     private let recipientFetcher: RecipientFetcher
@@ -219,6 +220,7 @@ public class OWSIdentityManagerImpl: OWSIdentityManager {
         networkManager: NetworkManager,
         notificationPresenter: any NotificationPresenter,
         pniProtocolStore: SignalProtocolStore,
+        profileManager: ProfileManager,
         recipientDatabaseTable: RecipientDatabaseTable,
         recipientFetcher: RecipientFetcher,
         recipientIdFinder: RecipientIdFinder,
@@ -236,6 +238,7 @@ public class OWSIdentityManagerImpl: OWSIdentityManager {
             collection: "TSStorageManagerIdentityKeyStoreCollection"
         )
         self.pniProtocolStore = pniProtocolStore
+        self.profileManager = profileManager
         self.queuedVerificationStateSyncMessagesKeyValueStore = KeyValueStore(
             collection: "OWSIdentityManager_QueuedVerificationStateSyncMessages"
         )
@@ -506,7 +509,7 @@ public class OWSIdentityManagerImpl: OWSIdentityManager {
     ) throws -> Bool {
         let localIdentifiers = tsAccountManager.localIdentifiers(tx: tx)
         if localIdentifiers?.aci == serviceId {
-            return isTrustedLocalKey(identityKey.publicKey.keyBytes.asData, tx: tx)
+            return isTrustedLocalKey(identityKey.publicKey.keyBytes, tx: tx)
         }
 
         switch direction {
@@ -521,7 +524,7 @@ public class OWSIdentityManagerImpl: OWSIdentityManager {
                 uniqueId: recipientUniqueId,
                 transaction: tx
             )
-            if let recipientIdentity, recipientIdentity.identityKey != identityKey.publicKey.keyBytes.asData {
+            if let recipientIdentity, recipientIdentity.identityKey != identityKey.publicKey.keyBytes {
                 Logger.warn("Key mismatch for \(serviceId)")
                 throw IdentityManagerError.identityKeyMismatchForOutgoingMessage
             }
@@ -684,7 +687,7 @@ public class OWSIdentityManagerImpl: OWSIdentityManager {
         return OWSVerificationStateSyncMessage(
             localThread: localThread,
             verificationState: recipientIdentity.verificationState,
-            identityKey: identityKey.serialize().asData,
+            identityKey: identityKey.serialize(),
             verificationForRecipientAddress: recipient.address,
             transaction: tx
         )
@@ -799,6 +802,21 @@ public class OWSIdentityManagerImpl: OWSIdentityManager {
             break
         default:
             if isUserInitiatedChange {
+                switch verificationState {
+                case .verified:
+                    // If you mark someone as verified on this device, add them
+                    // to the profile whitelist so they become a "Signal
+                    // Connection". (Other devices will learn about this via
+                    // Storage Service like normal.)
+                    profileManager.addUser(
+                        toProfileWhitelist: recipient.address,
+                        userProfileWriter: .localUser,
+                        transaction: tx
+                    )
+                case .noLongerVerified, .implicit:
+                    break
+                }
+
                 saveChangeMessages(for: recipient, verificationState: verificationState, isLocalChange: true, tx: tx)
                 enqueueSyncMessage(for: recipientUniqueId, tx: tx)
             } else {
@@ -868,7 +886,7 @@ public class OWSIdentityManagerImpl: OWSIdentityManager {
         let shouldInsertChangeMessages: Bool
 
         if let recipientIdentity {
-            let didChangeIdentityKey = recipientIdentity.identityKey != identityKey.publicKey.keyBytes.asData
+            let didChangeIdentityKey = recipientIdentity.identityKey != identityKey.publicKey.keyBytes
             if didChangeIdentityKey, !overwriteOnConflict {
                 // The conflict case where we receive a verification sync message whose
                 // identity key disagrees with the local identity key for this recipient.
@@ -896,7 +914,7 @@ public class OWSIdentityManagerImpl: OWSIdentityManager {
         guard let recipientIdentity else {
             return owsFailDebug("Missing expected identity for \(aci)")
         }
-        guard recipientIdentity.identityKey == identityKey.publicKey.keyBytes.asData else {
+        guard recipientIdentity.identityKey == identityKey.publicKey.keyBytes else {
             return owsFailDebug("Unexpected identityKey for \(aci)")
         }
 
@@ -978,21 +996,21 @@ public class OWSIdentityManagerImpl: OWSIdentityManager {
 
     // MARK: - Batch Identity Lookup
 
-    public func batchUpdateIdentityKeys(for serviceIds: [ServiceId]) -> Promise<Void> {
-        if serviceIds.isEmpty { return .value(()) }
+    public func batchUpdateIdentityKeys(for serviceIds: [ServiceId]) async throws {
+        let serviceIds = Array(Set(serviceIds))
+        var remainingServiceIds = serviceIds[...]
 
-        let serviceIds = Set(serviceIds)
-        let batchServiceIds = serviceIds.prefix(OWSRequestFactory.batchIdentityCheckElementsLimit)
-        let remainingServiceIds = Array(serviceIds.subtracting(batchServiceIds))
+        while !remainingServiceIds.isEmpty {
+            let batchServiceIds = remainingServiceIds.prefix(OWSRequestFactory.batchIdentityCheckElementsLimit)
+            remainingServiceIds = remainingServiceIds.dropFirst(OWSRequestFactory.batchIdentityCheckElementsLimit)
 
-        return firstly(on: schedulers.global()) { () -> Promise<HTTPResponse> in
-            Logger.info("Performing batch identity key lookup for \(batchServiceIds.count) addresses. \(remainingServiceIds.count) remaining.")
+            Logger.info("Performing batch identity key lookup for \(batchServiceIds.count) recipients. \(remainingServiceIds.count) remaining.")
 
             let elements = self.db.read { tx in
                 batchServiceIds.compactMap { serviceId -> [String: String]? in
                     guard let identityKey = try? self.identityKey(for: serviceId, tx: tx) else { return nil }
 
-                    let externalIdentityKey = identityKey.serialize().asData
+                    let externalIdentityKey = identityKey.serialize()
                     let identityKeyDigest = Data(SHA256.hash(data: externalIdentityKey))
 
                     return ["uuid": serviceId.serviceIdString, "fingerprint": Data(identityKeyDigest.prefix(4)).base64EncodedString()]
@@ -1001,8 +1019,8 @@ public class OWSIdentityManagerImpl: OWSIdentityManager {
 
             let request = OWSRequestFactory.batchIdentityCheckRequest(elements: elements)
 
-            return self.networkManager.makePromise(request: request)
-        }.done(on: schedulers.global()) { response in
+            let response = try await self.networkManager.asyncRequest(request)
+
             guard response.responseStatusCode == 200 else {
                 throw OWSAssertionError("Unexpected response from batch identity request \(response.responseStatusCode)")
             }
@@ -1012,12 +1030,12 @@ public class OWSIdentityManagerImpl: OWSIdentityManager {
             }
 
             guard let responseElements = responseDictionary["elements"] as? [[String: String]], !responseElements.isEmpty else {
-                return // No safety number changes
+                continue // No safety number changes
             }
 
             Logger.info("Detected \(responseElements.count) identity key changes via batch request")
 
-            self.db.write { tx in
+            await self.db.awaitableWrite { tx in
                 for element in responseElements {
                     guard
                         let serviceIdString = element["uuid"],
@@ -1039,10 +1057,6 @@ public class OWSIdentityManagerImpl: OWSIdentityManager {
                     self.saveIdentityKey(identityKey, for: serviceId, tx: tx)
                 }
             }
-        }.then { () -> Promise<Void> in
-            return self.batchUpdateIdentityKeys(for: remainingServiceIds)
-        }.catch { error in
-            owsFailDebug("Batch identity key update failed with error \(error)")
         }
     }
 }

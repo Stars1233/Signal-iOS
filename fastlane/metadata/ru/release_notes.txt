@@ -1,1 +1,1 @@
-• Всегда можно передумать, поэтому мы исправили ошибку, из-за которой меню изображений открывалось после того, как вы помещали вложение в чат, а затем решали его не отправлять.
+• This update fixes a bug that prevented link previews from appearing for forwarded messages in some cases.

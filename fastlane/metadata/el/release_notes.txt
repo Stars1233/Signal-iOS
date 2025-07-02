@@ -1,1 +1,1 @@
-• Διορθώσαμε ένα σφάλμα που μπορούσε να προκαλέσει το άνοιγμα του επιλογέα εικόνων μετά την επικόλληση ενός συνημμένου σε μια συνομιλία.
+• This update fixes a bug that prevented link previews from appearing for forwarded messages in some cases.

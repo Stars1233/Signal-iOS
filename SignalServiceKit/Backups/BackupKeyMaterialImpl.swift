@@ -42,28 +42,29 @@ public struct BackupKeyMaterialImpl: BackupKeyMaterial {
         tx: DBReadTransaction
     ) throws(BackupKeyMaterialError) -> MediaTierEncryptionMetadata {
         let backupKey = try backupKey(type: .media, tx: tx)
-        let mediaId: [UInt8]
+        let mediaId: Data
         do {
             mediaId = try backupKey.deriveMediaId(mediaName)
         } catch {
             throw BackupKeyMaterialError.derivationError(error)
         }
-        let keyBytes: [UInt8]
+        let keyBytes: Data
         do {
             switch type {
-            case .attachment:
+            case .outerLayerFullsizeOrThumbnail:
                 keyBytes = try backupKey.deriveMediaEncryptionKey(mediaId)
-            case .thumbnail:
+            case .transitTierThumbnail:
                 keyBytes = try backupKey.deriveThumbnailTransitEncryptionKey(mediaId)
             }
         } catch {
             throw BackupKeyMaterialError.derivationError(error)
         }
+        owsPrecondition(keyBytes.count >= 64)
         return MediaTierEncryptionMetadata(
             type: type,
-            mediaId: Data(mediaId),
-            hmacKey: Data(Array(keyBytes[0..<32])),
-            aesKey: Data(Array(keyBytes[32..<64]))
+            mediaId: mediaId,
+            hmacKey: keyBytes.prefix(32),
+            aesKey: keyBytes.dropFirst(32).prefix(32),
         )
     }
 }
@@ -71,11 +72,18 @@ public struct BackupKeyMaterialImpl: BackupKeyMaterial {
 #if TESTABLE_BUILD
 
 open class BackupKeyMaterialMock: BackupKeyMaterial {
+
+    public var mediaBackupKey: BackupKey!
+    public var messagesBackupKey: BackupKey!
+
     public func backupKey(
         type: BackupAuthCredentialType,
         tx: DBReadTransaction
     ) throws(BackupKeyMaterialError) -> BackupKey {
-        fatalError("Unimplemented")
+        switch type {
+        case .media: return mediaBackupKey
+        case .messages: return messagesBackupKey
+        }
     }
 
     public func mediaEncryptionMetadata(

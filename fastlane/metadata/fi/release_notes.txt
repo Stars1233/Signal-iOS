@@ -1,1 +1,1 @@
-• Korjasimme virheen, joka aiheutti kuvanvalitsimen avautumisen sen jälkeen, kun liite oli liitetty keskusteluun.
+• This update fixes a bug that prevented link previews from appearing for forwarded messages in some cases.

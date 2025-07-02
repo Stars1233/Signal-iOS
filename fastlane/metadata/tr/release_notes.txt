@@ -1,1 +1,1 @@
-• Bir eklentiyi sohbete yapıştırdıktan sonra resim seçicinin açılmasına neden olan bir hatayı düzelttik.
+• This update fixes a bug that prevented link previews from appearing for forwarded messages in some cases.

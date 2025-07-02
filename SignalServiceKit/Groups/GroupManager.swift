@@ -20,14 +20,6 @@ public class GroupManager: NSObject {
     // GroupsV2 TODO: Finalize this value with the designers.
     public static let groupUpdateTimeoutDuration: TimeInterval = 30
 
-    public static var groupsV2MaxGroupSizeRecommended: UInt {
-        return RemoteConfig.current.groupsV2MaxGroupSizeRecommended
-    }
-
-    public static var groupsV2MaxGroupSizeHardLimit: UInt {
-        return RemoteConfig.current.groupsV2MaxGroupSizeHardLimit
-    }
-
     public static let maxGroupNameEncryptedByteCount: Int = 1024
     public static let maxGroupNameGlyphCount: Int = 32
 
@@ -477,13 +469,7 @@ public class GroupManager: NSObject {
         try await updateGroupV2(groupModel: groupModel, description: "Remove from group or revoke invite") { groupChangeSet in
             for serviceId in serviceIds {
                 owsAssertDebug(!groupModel.groupMembership.isRequestingMember(serviceId))
-
                 groupChangeSet.removeMember(serviceId)
-
-                // Do not ban when revoking an invite
-                if let aci = serviceId as? Aci, !groupModel.groupMembership.isInvitedMember(serviceId) {
-                    groupChangeSet.addBannedMember(aci)
-                }
             }
         }
     }
@@ -571,7 +557,7 @@ public class GroupManager: NSObject {
 
         await SSKEnvironment.shared.databaseStorageRef.awaitableWrite { transaction in
             SSKEnvironment.shared.profileManagerRef.addGroupId(
-                toProfileWhitelist: groupId.serialize().asData,
+                toProfileWhitelist: groupId.serialize(),
                 userProfileWriter: .localUser,
                 transaction: transaction
             )
@@ -589,7 +575,6 @@ public class GroupManager: NSObject {
                 groupChangeSet.addMember(aci)
             } else {
                 groupChangeSet.removeMember(aci)
-                groupChangeSet.addBannedMember(aci)
             }
         }
     }
@@ -631,11 +616,11 @@ public class GroupManager: NSObject {
 
     // MARK: - Removed from Group or Invite Revoked
 
-    public static func handleNotInGroup(groupId: Data) async {
+    public static func handleNotInGroup(groupId: GroupIdentifier) async {
         let databaseStorage = SSKEnvironment.shared.databaseStorageRef
 
         do {
-            let groupThread = databaseStorage.read { tx in TSGroupThread.fetch(groupId: groupId, transaction: tx) }
+            let groupThread = databaseStorage.read { tx in TSGroupThread.fetch(forGroupId: groupId, tx: tx) }
             guard let groupThread else {
                 // We may be be trying to restore a group from storage service
                 // that we are no longer a member of.
@@ -678,7 +663,7 @@ public class GroupManager: NSObject {
                 owsFailDebug("Missing localIdentifiers.")
                 return
             }
-            guard let groupThread = TSGroupThread.fetch(groupId: groupId, transaction: tx) else {
+            guard let groupThread = TSGroupThread.fetch(forGroupId: groupId, tx: tx) else {
                 owsFailDebug("Couldn't fetch thread that's guaranteed to exist.")
                 return
             }
@@ -721,7 +706,7 @@ public class GroupManager: NSObject {
 
     // MARK: - Messages
 
-    public static func sendGroupUpdateMessage(groupId: GroupIdentifier, groupChangeProtoData: Data? = nil) async {
+    public static func sendGroupUpdateMessage(groupId: GroupIdentifier, isUrgent: Bool = false, groupChangeProtoData: Data? = nil) async {
         await SSKEnvironment.shared.databaseStorageRef.awaitableWrite { transaction in
             let dmConfigurationStore = DependenciesBridge.shared.disappearingMessagesConfigurationStore
 
@@ -736,6 +721,7 @@ public class GroupManager: NSObject {
                 expiresInSeconds: dmConfigurationStore.durationSeconds(for: thread, tx: transaction),
                 groupChangeProtoData: groupChangeProtoData,
                 additionalRecipients: Self.invitedMembers(in: thread),
+                isUrgent: isUrgent,
                 transaction: transaction
             )
             // "changeActionsProtoData" is _not_ an attachment, it is just put on
@@ -760,6 +746,7 @@ public class GroupManager: NSObject {
                 groupMetaMessage: .new,
                 expiresInSeconds: dmConfigurationStore.durationSeconds(for: thread, tx: tx),
                 additionalRecipients: Self.invitedMembers(in: thread),
+                isUrgent: true,
                 transaction: tx
             )
             // "changeActionsProtoData" is _not_ an attachment, it is just put on
@@ -1238,6 +1225,8 @@ public class GroupManager: NSObject {
         )
     }
 
+    private static let localProfileCommitmentQueue = ConcurrentTaskQueue(concurrentLimit: 1)
+
     /// Ensure that we have a profile key commitment for our local profile
     /// available on the service.
     ///
@@ -1246,6 +1235,12 @@ public class GroupManager: NSObject {
     /// our profile key credential from the service until we've uploaded a profile
     /// key commitment to the service.
     public static func ensureLocalProfileHasCommitmentIfNecessary() async throws {
+        try await localProfileCommitmentQueue.run {
+            try await _ensureLocalProfileHasCommitmentIfNecessary()
+        }
+    }
+
+    private static func _ensureLocalProfileHasCommitmentIfNecessary() async throws {
         let accountManager = DependenciesBridge.shared.tsAccountManager
 
         func hasProfileKeyCredential() throws -> Bool {

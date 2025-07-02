@@ -42,16 +42,6 @@ public enum BackupSubscription {
                 return false
             }
         }
-
-        fileprivate var uploadEra: String {
-            // We just hash and base64 encode the subscriptionId as the "upload era".
-            // All the "era" means is if it changes, all existing uploads to the backup
-            // tier should be considered invalid and needing reupload.
-            // Hash so as to avoid putting the unsafe-to-log subscription id in more places.
-            var hasher = SHA256()
-            hasher.update(data: subscriberId)
-            return Data(hasher.finalize()).base64EncodedString()
-        }
     }
 
     /// Describes the result of initiating a StoreKit purchase.
@@ -102,7 +92,8 @@ public final class BackupSubscriptionManager {
 
     private let logger = PrefixedLogger(prefix: "[Backups][Sub]")
 
-    private let backupSettingsStore: BackupSettingsStore
+    private let backupAttachmentUploadEraStore: BackupAttachmentUploadEraStore
+    private let backupPlanManager: BackupPlanManager
     private let dateProvider: DateProvider
     private let db: any DB
     private let networkManager: NetworkManager
@@ -112,7 +103,8 @@ public final class BackupSubscriptionManager {
     private let tsAccountManager: TSAccountManager
 
     init(
-        backupSettingsStore: BackupSettingsStore,
+        backupAttachmentUploadEraStore: BackupAttachmentUploadEraStore,
+        backupPlanManager: BackupPlanManager,
         dateProvider: @escaping DateProvider,
         db: any DB,
         networkManager: NetworkManager,
@@ -120,13 +112,14 @@ public final class BackupSubscriptionManager {
         storageServiceManager: StorageServiceManager,
         tsAccountManager: TSAccountManager
     ) {
-        self.backupSettingsStore = backupSettingsStore
+        self.backupAttachmentUploadEraStore = backupAttachmentUploadEraStore
+        self.backupPlanManager = backupPlanManager
         self.dateProvider = dateProvider
         self.db = db
         self.networkManager = networkManager
         self.receiptCredentialRedemptionJobQueue = receiptCredentialRedemptionJobQueue
         self.storageServiceManager = storageServiceManager
-        self.store = Store()
+        self.store = Store(backupAttachmentUploadEraStore: backupAttachmentUploadEraStore)
         self.tsAccountManager = tsAccountManager
 
         listenForTransactionUpdates()
@@ -225,7 +218,9 @@ public final class BackupSubscriptionManager {
 
                     do {
                         /// This transaction entitles us to a subscription, so
-                        /// let's attempt to do so.
+                        /// let's attempt to do so. Because we know we have a
+                        /// novel transaction, we know redemption is necessary.
+                        await setRedemptionAttemptIsNecessary()
                         try await redeemSubscriptionIfNecessary()
                     } catch {
                         owsFailDebug(
@@ -276,7 +271,7 @@ public final class BackupSubscriptionManager {
         subscriptionFetcher: SubscriptionFetcher
     ) async throws -> Subscription? {
         let subscription = try await subscriptionFetcher.fetch(subscriberID: subscriberID)
-        await downgradeBackupPlanIfNecessary(fetchedSubscription: subscription)
+        try await downgradeBackupPlanIfNecessary(fetchedSubscription: subscription)
         return subscription
     }
 
@@ -293,34 +288,40 @@ public final class BackupSubscriptionManager {
     /// code also sets `BackupPlan` as appropriate.
     private func downgradeBackupPlanIfNecessary(
         fetchedSubscription subscription: Subscription?
-    ) async {
-        let currentBackupPlan = db.read { backupSettingsStore.backupPlan(tx: $0) }
+    ) async throws {
+        try await db.awaitableWriteWithRollbackIfThrows { tx in
+            let currentBackupPlan = backupPlanManager.backupPlan(tx: tx)
 
-        let downgradedBackupPlan: BackupPlan? = {
-            if let subscription, subscription.active, subscription.cancelAtEndOfPeriod {
-                switch currentBackupPlan {
-                case .paid(let optimizeLocalStorage):
-                    return .paidExpiringSoon(optimizeLocalStorage: optimizeLocalStorage)
-                case .disabled, .free, .paidExpiringSoon:
-                    break
+            let downgradedBackupPlan: BackupPlan? = {
+                if let subscription, subscription.active {
+                    switch currentBackupPlan {
+                    case .paid(let optimizeLocalStorage) where subscription.cancelAtEndOfPeriod:
+                        return .paidExpiringSoon(optimizeLocalStorage: optimizeLocalStorage)
+                    case .paid:
+                        break
+                    case .disabled, .free, .paidExpiringSoon:
+                        break
+                    }
+                } else {
+                    switch currentBackupPlan {
+                    case .paid, .paidExpiringSoon:
+                        return .free
+                    case .disabled, .free:
+                        break
+                    }
                 }
-            } else if let subscription, subscription.active {
-                // No downgrade – subscription present and active!
-            } else {
-                switch currentBackupPlan {
-                case .paid, .paidExpiringSoon:
-                    return .free
-                case .disabled, .free:
-                    break
+
+                return nil
+            }()
+
+            if let downgradedBackupPlan {
+                do {
+                    try backupPlanManager.setBackupPlan(downgradedBackupPlan, tx: tx)
+                    logger.info("Downgraded BackupPlan: \(currentBackupPlan) -> \(downgradedBackupPlan)")
+                } catch {
+                    owsFailDebug("Failed to downgrade BackupPlan! \(error)")
+                    throw error
                 }
-            }
-
-            return nil
-        }()
-
-        if let downgradedBackupPlan {
-            await db.awaitableWrite { tx in
-                backupSettingsStore.setBackupPlan(downgradedBackupPlan, tx: tx)
             }
         }
     }
@@ -349,6 +350,9 @@ public final class BackupSubscriptionManager {
         case .success(let purchaseResult):
             switch purchaseResult {
             case .verified:
+                // We've successfully purchased, which means a redemption
+                // attempt is necessary.
+                await setRedemptionAttemptIsNecessary()
                 return .success
             case .unverified:
                 throw OWSAssertionError(
@@ -370,13 +374,23 @@ public final class BackupSubscriptionManager {
         }
     }
 
+    // MARK: -
+
+    /// We generally only attempt redemptions 1x/3d, but on occasion we know
+    /// that a redemption is necessary and we should bypass that debounce.
+    private func setRedemptionAttemptIsNecessary() async {
+        await db.awaitableWrite { tx in
+            store.wipeLastRedemptionNecessaryCheck(tx: tx)
+        }
+    }
+
     // MARK: - Redeem subscription
 
     /// - Note
     /// `_redeemSubscriptionIfNecessary()` uses persisted state, so latter
     /// callers may be able to short-circuit based on state persisted by an
     /// earlier caller.
-    private let redemptionTaskQueue = SerialTaskQueue()
+    private let redemptionTaskQueue = ConcurrentTaskQueue(concurrentLimit: 1)
 
     /// Redeems a StoreKit Backups subscription with Signal servers for access
     /// to paid-tier Backup credentials, if there exists a StoreKit transaction
@@ -386,9 +400,9 @@ public final class BackupSubscriptionManager {
     /// This method serializes callers, is safe to call repeatedly, and returns
     /// quickly if there is not a transaction we have yet to redeem.
     public func redeemSubscriptionIfNecessary() async throws {
-        return try await redemptionTaskQueue.enqueue {
+        return try await redemptionTaskQueue.run {
             try await self._redeemSubscriptionIfNecessary()
-        }.value
+        }
     }
 
     private func _redeemSubscriptionIfNecessary() async throws {
@@ -420,7 +434,7 @@ public final class BackupSubscriptionManager {
             if persistedIAPSubscriberData.matches(storeKitTransaction: localEntitlingTransaction) {
                 /// We have an active local subscription that matches our persisted
                 /// identifiers. That's the simplest happy-path! Probably...
-                logger.debug("Local transaction matches persisted: \(localEntitlingTransaction.originalID)")///
+                logger.debug("Local transaction matches persisted: \(localEntitlingTransaction.originalID)")
 
                 /// ...because we may need to register a new subscriber ID.
                 ///
@@ -597,19 +611,6 @@ public final class BackupSubscriptionManager {
         return newSubscriberId
     }
 
-    // MARK: - UploadEra
-
-    // UploadEra is set when we set subscriberId and doesn't change until we affirmatively
-    // set a new subscriberId. The only situation where it is unset is if we have never
-    // subscribed on this device. In this case, we choose an arbitrary string as the era;
-    // it doesn't matter what it is except that if we subscribe in the future it will
-    // change to a different value.
-    private static let initialUploadEra = "initialUploadEra"
-
-    public func getUploadEra(tx: DBReadTransaction) -> String {
-        return store.getIAPSubscriberData(tx: tx)?.uploadEra ?? Self.initialUploadEra
-    }
-
     // MARK: - Persistence
 
     private struct Store: SubscriptionRedemptionNecessityCheckerStore {
@@ -629,9 +630,11 @@ public final class BackupSubscriptionManager {
             static let lastRedemptionNecessaryCheck = "lastRedemptionNecessaryCheck"
         }
 
+        private let backupAttachmentUploadEraStore: BackupAttachmentUploadEraStore
         private let kvStore: KeyValueStore
 
-        init() {
+        init(backupAttachmentUploadEraStore: BackupAttachmentUploadEraStore) {
+            self.backupAttachmentUploadEraStore = backupAttachmentUploadEraStore
             self.kvStore = KeyValueStore(collection: "BackupSubscriptionManager")
         }
 
@@ -670,14 +673,8 @@ public final class BackupSubscriptionManager {
                 kvStore.setString(purchaseToken, key: Keys.purchaseToken, transaction: tx)
             }
 
-            // UploadEra, which is derived from the stored IAPSubscriberData, should ONLY
-            // change when and if we begin a new subscription, and must not be wiped when
-            // a subscription ends. If the semantics of stored IAPSubscriberData ever change
-            // such that we actively delete existing data based on subscription state changes,
-            // we need to start storing uploadEra independently so that we can ensure it
-            // isn't deleted and only changes at the start of a new subscription.
-            let iapSubscriberDataCanary: IAPSubscriberData? = iapSubscriberData
-            owsAssertDebug(iapSubscriberDataCanary != nil, "Canary: we should never wipe IAPSubscriberData")
+            // Any time we set the subscriber ID, rotate the upload era.
+            backupAttachmentUploadEraStore.rotateUploadEra(tx: tx)
         }
 
         // MARK: - SubscriptionRedemptionNecessityCheckerStore
@@ -688,6 +685,10 @@ public final class BackupSubscriptionManager {
 
         func setLastRedemptionNecessaryCheck(_ now: Date, tx: DBWriteTransaction) {
             kvStore.setDate(now, key: Keys.lastRedemptionNecessaryCheck, transaction: tx)
+        }
+
+        func wipeLastRedemptionNecessaryCheck(tx: DBWriteTransaction) {
+            kvStore.removeValue(forKey: Keys.lastRedemptionNecessaryCheck, transaction: tx)
         }
     }
 }

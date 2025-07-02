@@ -61,17 +61,21 @@ public class DependenciesBridge {
     public let audioWaveformManager: AudioWaveformManager
     public let authorMergeHelper: AuthorMergeHelper
     public let avatarDefaultColorManager: AvatarDefaultColorManager
+    public let backgroundMessageFetcherFactory: BackgroundMessageFetcherFactory
     public let backupArchiveErrorPresenter: BackupArchiveErrorPresenter
     public let backupArchiveManager: BackupArchiveManager
     public let backupAttachmentDownloadManager: BackupAttachmentDownloadManager
     public let backupAttachmentDownloadProgress: BackupAttachmentDownloadProgress
     public let backupAttachmentDownloadStore: BackupAttachmentDownloadStore
-    public let backupAttachmentQueueStatusManager: BackupAttachmentQueueStatusManager
-    public let backupAttachmentUploadManager: BackupAttachmentUploadManager
+    public let backupAttachmentDownloadQueueStatusReporter: BackupAttachmentDownloadQueueStatusReporter
     public let backupAttachmentUploadProgress: BackupAttachmentUploadProgress
+    public let backupAttachmentUploadQueueRunner: BackupAttachmentUploadQueueRunner
+    public let backupAttachmentUploadQueueStatusReporter: BackupAttachmentUploadQueueStatusReporter
+    public let backupExportJob: BackupExportJob
     public let backupIdManager: BackupIdManager
     public let backupKeyMaterial: BackupKeyMaterial
     public let backupRequestManager: BackupRequestManager
+    public let backupPlanManager: BackupPlanManager
     public let backupSubscriptionManager: BackupSubscriptionManager
     public let badgeCountFetcher: BadgeCountFetcher
     public let callLinkStore: any CallLinkRecordStore
@@ -104,6 +108,7 @@ public class DependenciesBridge {
     public let groupMemberUpdater: GroupMemberUpdater
     let groupSendEndorsementStore: any GroupSendEndorsementStore
     public let groupUpdateInfoMessageInserter: GroupUpdateInfoMessageInserter
+    public let identityKeyMismatchManager: IdentityKeyMismatchManager
     public let identityManager: OWSIdentityManager
     public let inactiveLinkedDeviceFinder: InactiveLinkedDeviceFinder
     let incomingCallEventSyncMessageManager: IncomingCallEventSyncMessageManager
@@ -115,7 +120,6 @@ public class DependenciesBridge {
     public let interactionStore: InteractionStore
     public let lastVisibleInteractionStore: LastVisibleInteractionStore
     public let learnMyOwnPniManager: LearnMyOwnPniManager
-    public let linkedDevicePniKeyManager: LinkedDevicePniKeyManager
     public let linkAndSyncManager: LinkAndSyncManager
     public let linkPreviewManager: LinkPreviewManager
     public let linkPreviewSettingStore: LinkPreviewSettingStore
@@ -188,17 +192,21 @@ public class DependenciesBridge {
         audioWaveformManager: AudioWaveformManager,
         authorMergeHelper: AuthorMergeHelper,
         avatarDefaultColorManager: AvatarDefaultColorManager,
+        backgroundMessageFetcherFactory: BackgroundMessageFetcherFactory,
         backupArchiveErrorPresenter: BackupArchiveErrorPresenter,
         backupArchiveManager: BackupArchiveManager,
         backupAttachmentDownloadManager: BackupAttachmentDownloadManager,
         backupAttachmentDownloadProgress: BackupAttachmentDownloadProgress,
         backupAttachmentDownloadStore: BackupAttachmentDownloadStore,
-        backupAttachmentQueueStatusManager: BackupAttachmentQueueStatusManager,
-        backupAttachmentUploadManager: BackupAttachmentUploadManager,
+        backupAttachmentDownloadQueueStatusReporter: BackupAttachmentDownloadQueueStatusReporter,
         backupAttachmentUploadProgress: BackupAttachmentUploadProgress,
+        backupAttachmentUploadQueueRunner: BackupAttachmentUploadQueueRunner,
+        backupAttachmentUploadQueueStatusReporter: BackupAttachmentUploadQueueStatusReporter,
+        backupExportJob: BackupExportJob,
         backupIdManager: BackupIdManager,
         backupKeyMaterial: BackupKeyMaterial,
         backupRequestManager: BackupRequestManager,
+        backupPlanManager: BackupPlanManager,
         backupSubscriptionManager: BackupSubscriptionManager,
         badgeCountFetcher: BadgeCountFetcher,
         callLinkStore: any CallLinkRecordStore,
@@ -231,6 +239,7 @@ public class DependenciesBridge {
         groupMemberUpdater: GroupMemberUpdater,
         groupSendEndorsementStore: any GroupSendEndorsementStore,
         groupUpdateInfoMessageInserter: GroupUpdateInfoMessageInserter,
+        identityKeyMismatchManager: IdentityKeyMismatchManager,
         identityManager: OWSIdentityManager,
         inactiveLinkedDeviceFinder: InactiveLinkedDeviceFinder,
         incomingCallEventSyncMessageManager: IncomingCallEventSyncMessageManager,
@@ -242,7 +251,6 @@ public class DependenciesBridge {
         interactionStore: InteractionStore,
         lastVisibleInteractionStore: LastVisibleInteractionStore,
         learnMyOwnPniManager: LearnMyOwnPniManager,
-        linkedDevicePniKeyManager: LinkedDevicePniKeyManager,
         linkAndSyncManager: LinkAndSyncManager,
         linkPreviewManager: LinkPreviewManager,
         linkPreviewSettingStore: LinkPreviewSettingStore,
@@ -314,17 +322,21 @@ public class DependenciesBridge {
         self.audioWaveformManager = audioWaveformManager
         self.authorMergeHelper = authorMergeHelper
         self.avatarDefaultColorManager = avatarDefaultColorManager
+        self.backgroundMessageFetcherFactory = backgroundMessageFetcherFactory
         self.backupArchiveErrorPresenter = backupArchiveErrorPresenter
         self.backupArchiveManager = backupArchiveManager
         self.backupAttachmentDownloadManager = backupAttachmentDownloadManager
         self.backupAttachmentDownloadProgress = backupAttachmentDownloadProgress
         self.backupAttachmentDownloadStore = backupAttachmentDownloadStore
-        self.backupAttachmentQueueStatusManager = backupAttachmentQueueStatusManager
-        self.backupAttachmentUploadManager = backupAttachmentUploadManager
+        self.backupAttachmentDownloadQueueStatusReporter = backupAttachmentDownloadQueueStatusReporter
         self.backupAttachmentUploadProgress = backupAttachmentUploadProgress
+        self.backupAttachmentUploadQueueRunner = backupAttachmentUploadQueueRunner
+        self.backupAttachmentUploadQueueStatusReporter = backupAttachmentUploadQueueStatusReporter
+        self.backupExportJob = backupExportJob
         self.backupIdManager = backupIdManager
         self.backupKeyMaterial = backupKeyMaterial
         self.backupRequestManager = backupRequestManager
+        self.backupPlanManager = backupPlanManager
         self.backupSubscriptionManager = backupSubscriptionManager
         self.badgeCountFetcher = badgeCountFetcher
         self.callLinkStore = callLinkStore
@@ -357,6 +369,7 @@ public class DependenciesBridge {
         self.groupMemberUpdater = groupMemberUpdater
         self.groupSendEndorsementStore = groupSendEndorsementStore
         self.groupUpdateInfoMessageInserter = groupUpdateInfoMessageInserter
+        self.identityKeyMismatchManager = identityKeyMismatchManager
         self.identityManager = identityManager
         self.inactiveLinkedDeviceFinder = inactiveLinkedDeviceFinder
         self.incomingCallEventSyncMessageManager = incomingCallEventSyncMessageManager
@@ -368,7 +381,6 @@ public class DependenciesBridge {
         self.interactionStore = interactionStore
         self.lastVisibleInteractionStore = lastVisibleInteractionStore
         self.learnMyOwnPniManager = learnMyOwnPniManager
-        self.linkedDevicePniKeyManager = linkedDevicePniKeyManager
         self.linkAndSyncManager = linkAndSyncManager
         self.linkPreviewManager = linkPreviewManager
         self.linkPreviewSettingStore = linkPreviewSettingStore

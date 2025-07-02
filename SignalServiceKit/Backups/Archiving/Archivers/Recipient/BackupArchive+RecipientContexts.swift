@@ -132,15 +132,14 @@ extension BackupArchive {
         private let callLinkIdMap = SharedMap<CallLinkRecordId, RecipientId>()
 
         init(
-            backupAttachmentUploadManager: BackupAttachmentUploadManager,
             bencher: BackupArchive.ArchiveBencher,
+            attachmentByteCounter: BackupArchiveAttachmentByteCounter,
             currentBackupAttachmentUploadEra: String,
-            currentBackupPlan: BackupPlan,
             includedContentFilter: IncludedContentFilter,
             localIdentifiers: LocalIdentifiers,
             localRecipientId: RecipientId,
             startTimestampMs: UInt64,
-            tx: DBWriteTransaction
+            tx: DBReadTransaction
         ) {
             self.localIdentifiers = localIdentifiers
             self.localRecipientId = localRecipientId
@@ -159,10 +158,9 @@ extension BackupArchive {
             }
 
             super.init(
-                backupAttachmentUploadManager: backupAttachmentUploadManager,
                 bencher: bencher,
+                attachmentByteCounter: attachmentByteCounter,
                 currentBackupAttachmentUploadEra: currentBackupAttachmentUploadEra,
-                currentBackupPlan: currentBackupPlan,
                 includedContentFilter: includedContentFilter,
                 startTimestampMs: startTimestampMs,
                 tx: tx
@@ -256,11 +254,13 @@ extension BackupArchive {
         init(
             localIdentifiers: LocalIdentifiers,
             startTimestampMs: UInt64,
+            isPrimaryDevice: Bool,
             tx: DBWriteTransaction
         ) {
             self.localIdentifiers = localIdentifiers
             super.init(
                 startTimestampMs: startTimestampMs,
+                isPrimaryDevice: isPrimaryDevice,
                 tx: tx
             )
         }

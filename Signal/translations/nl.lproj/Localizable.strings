@@ -95,7 +95,7 @@
 "ADD_TO_GROUP" = "Aan een andere groep toevoegen";
 
 /* The button on the 'add to group' confirmation to add the user to the group. */
-"ADD_TO_GROUP_ACTION_PROCEED_BUTTON" = "Aan groep toevoegen?";
+"ADD_TO_GROUP_ACTION_PROCEED_BUTTON" = "Aan groep toevoegen";
 
 /* The title on the 'add to group' confirmation action sheet. Embeds {contact name, group name} */
 "ADD_TO_GROUP_ACTION_SHEET_MESSAGE_FORMAT" = "%1$@ toevoegen aan de groep ‘%2$@’?";
@@ -487,6 +487,9 @@
 /* Title for sheet shown when tapping a voice message that has expired and is unavailable for download */
 "AUDIO_UNAVAILABLE_SHEET_TITLE" = "Spraakbericht niet beschikbaar";
 
+/* Username for backup key autofill */
+"AUTOFILL_BACKUP_KEY_USERNAME" = "Signal Backups";
+
 /* Text prompting the user to choose a color when editing their avatar */
 "AVATAR_EDIT_VIEW_CHOOSE_A_COLOR" = "Kies een kleur";
 
@@ -511,8 +514,83 @@
 /* return to the previous screen */
 "BACK_BUTTON" = "Terug";
 
+/* Action text for Backup Key reminder megaphone */
+"BACKUP_ENABLEMENT_REMINDER_MEGAPHONE_ACTION" = "Turn On";
+
+/* Body for Backup enablement reminder megaphone */
+"BACKUP_ENABLEMENT_REMINDER_MEGAPHONE_BODY" = "Never lose a message when you get a new phone or reinstall Signal.";
+
+/* Title for Backup enablement reminder megaphone */
+"BACKUP_ENABLEMENT_REMINDER_MEGAPHONE_TITLE" = "Turn on encrypted backups";
+
+/* Snooze text for Backup enablement reminder megaphone */
+"BACKUP_ENABLEMENT_REMINDER_NOT_NOW_ACTION" = "Not Now";
+
 /* Text used as placeholder in backup key text view. */
 "BACKUP_KEY_PLACEHOLDER" = "Back-upsleutel";
+
+/* Title of button to tap if you forgot your backup key. */
+"BACKUP_KEY_REMINDER_FORGOT_KEY" = "Sleutel vergeten?";
+
+/* Action text for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_MEGAPHONE_ACTION" = "Verifiëren";
+
+/* Body for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_MEGAPHONE_BODY" = "We vragen je af en toe om je sleutel te verifiëren om te bevestigen dat je die nog steeds weet";
+
+/* Title for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_MEGAPHONE_TITLE" = "Verifieer je back-upsleutel";
+
+/* Snooze text for Backup Key reminder megaphone */
+"BACKUP_KEY_REMINDER_NOT_NOW_ACTION" = "Niet nu";
+
+/* Toast indicating that the Backup Key was correct. */
+"BACKUP_KEY_REMINDER_SUCCESSFUL_TOAST" = "Back-upsleutel correct. Bewaar je sleutel op een veilige manier.";
+
+/* Body for a sheet warning users to their 'Backup Key' safe. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_KEEP_KEY_SAFE_SHEET_BODY" = "Signal kan je niet helpen met het herstellen van je back-up als je je sleutel kwijtraakt. Bewaar de sleutel op een veilige manier en deel deze niet met anderen.";
+
+/* Title for a sheet warning users to their 'Backup Key' safe. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_KEEP_KEY_SAFE_SHEET_TITLE" = "Bewaar je sleutel op een veilige manier";
+
+/* Title for a button offering to let users see their 'Backup Key'. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_SEE_KEY_AGAIN_BUTTON_TITLE" = "Sleutel opnieuw weergeven";
+
+/* Subtitle for a view asking users to confirm their 'Backup Key'. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_SUBTITLE" = "Voer de back-upsleutel in die je zojuist hebt vastgelegd";
+
+/* Title for a view asking users to confirm their 'Backup Key'. */
+"BACKUP_ONBOARDING_CONFIRM_KEY_TITLE" = "Bevestig je back-upsleutel";
+
+/* Bullet point on a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_BULLET_1" = "End-to-end versleuteld";
+
+/* Bullet point on a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_BULLET_2" = "Optioneel, altijd";
+
+/* Bullet point on a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_BULLET_3" = "Verwijder je back-up wanneer je wilt";
+
+/* Subtitle for a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_SUBTITLE" = "Maak een back-up van je berichten en media met de veilige, end-to-end versleutelde opslagservice van Signal. Raak nooit meer berichten kwijt op een nieuwe telefoon of als je Signal opnieuw installeert.";
+
+/* Title for a view introducing Backups during an onboarding flow. */
+"BACKUP_ONBOARDING_INTRO_TITLE" = "Signal back-ups";
+
+/* Subtitle for a view introducing the 'Backup Key' during an onboarding flow. */
+"BACKUP_ONBOARDING_KEY_INTRO_SUBTITLE" = "Je back-upsleutel is een code van 64 tekens waarmee je je back-up kunt herstellen wanneer je Signal opnieuw installeert.\n\nAls je je sleutel vergeet, kun je je back-up niet herstellen. Signal kan je niet helpen je back-up te herstellen.";
+
+/* Title for a view introducing the 'Backup Key' during an onboarding flow. */
+"BACKUP_ONBOARDING_KEY_INTRO_TITLE" = "Je back-upsleutel";
+
+/* Title for a button allowing users to copy their 'Backup Key' to the clipboard. */
+"BACKUP_RECORD_KEY_COPY_TO_CLIPBOARD_BUTTON_TITLE" = "Kopiëren naar klembord";
+
+/* Subtitle for a view allowing users to record their 'Backup Key'. */
+"BACKUP_RECORD_KEY_SUBTITLE" = "Deze sleutel is nodig om je account en gegevens te herstellen. Bewaar deze sleutel op een veilige manier. Als je hem kwijtraakt, kun je je account niet meer herstellen.";
+
+/* Title for a view allowing users to record their 'Backup Key'. */
+"BACKUP_RECORD_KEY_TITLE" = "Je back-upsleutel vastleggen";
 
 /* Title for a button allowing users to upgrade from a free to paid backup plan. */
 "BACKUP_SETTINGS_BACKUP_PLAN_FREE_ACTION_BUTTON_TITLE" = "Upgraden";
@@ -547,6 +625,9 @@
 /* Text explaining that a user's paid plan, which has been canceled, will expire on a future date. Embeds {{ the formatted expiration date }}. */
 "BACKUP_SETTINGS_BACKUP_PLAN_PAID_BUT_CANCELED_FUTURE_EXPIRATION_FORMAT" = "Verloopt op %1$@";
 
+/* Text explaining that a user's paid plan, which has been canceled, expired on a past date. Embeds {{ the formatted expiration date }}. */
+"BACKUP_SETTINGS_BACKUP_PLAN_PAID_BUT_CANCELED_PAST_EXPIRATION_FORMAT" = "Verlopen op %1$@";
+
 /* Header describing what the paid backup plan includes. */
 "BACKUP_SETTINGS_BACKUP_PLAN_PAID_HEADER" = "Tekstberichten + alle media";
 
@@ -560,19 +641,19 @@
 "BACKUP_SETTINGS_BACKUPS_DISABLED_SECTION_FOOTER" = "Back-ups zijn uitgeschakeld en je gegevens zijn verwijderd uit de beveiligde opslagservice van Signal.";
 
 /* Message for a view indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_MESSAGE" = "An error occurred. Please contact support.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_MESSAGE" = "Er is een fout opgetreden. Neem contact op met ondersteuning.";
 
 /* Header for a menu section related to settings for when disabling Backups encountered an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "An error occurred when deleting your data from Signal's secure storage service.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "Er is een fout opgetreden bij het verwijderen van je gegevens uit de beveiligde opslagservice van Signal.";
 
 /* Title for a view indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_TITLE" = "Failed to Delete Backup";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_TITLE" = "Kan back-up niet verwijderen";
 
 /* Description for a progress view tracking Backups being disabled. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_PROGRESS_VIEW_DESCRIPTION" = "Deleting Backup...";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_PROGRESS_VIEW_DESCRIPTION" = "Back-up aan het verwijderen…";
 
 /* Header for a menu section related to disabling Backups. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "Backups have been turned off and your data will be deleted from Signal's secure storage service.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "Back-ups zijn uitgeschakeld en je gegevens worden verwijderd uit de beveiligde opslagservice van Signal.";
 
 /* Header for a menu section related to settings for when Backups are enabled. */
 "BACKUP_SETTINGS_BACKUPS_ENABLED_SECTION_HEADER" = "Back-updetails";
@@ -584,13 +665,13 @@
 "BACKUP_SETTINGS_DISABLE_BACKUPS_BUTTON_TITLE" = "Back-ups uitschakelen en verwijderen";
 
 /* Message shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "An error occurred when deleting your data from Signal's secure storage service.";
+"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "Er is een fout opgetreden bij het verwijderen van je gegevens uit de beveiligde opslagservice van Signal.";
 
 /* Title shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_TITLE" = "Failed to Delete Backup";
+"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_TITLE" = "Kan back-up niet verwijderen";
 
 /* Message shown in an action sheet when the user tries to disable Backups, but is not registered. */
-"BACKUP_SETTINGS_DISABLING_ERROR_NOT_REGISTERED" = "You must be registered to disable Backups.";
+"BACKUP_SETTINGS_DISABLING_ERROR_NOT_REGISTERED" = "Je moet geregistreerd zijn om back-ups uit te schakelen.";
 
 /* Text describing that a user's backup will be automatically performed daily. */
 "BACKUP_SETTINGS_ENABLED_BACKUP_FREQUENCY_DAILY" = "Dagelijks";
@@ -633,6 +714,15 @@
 
 /* Title for a button allowing users to re-enable Backups, after it had been previously disabled. */
 "BACKUP_SETTINGS_REENABLE_BACKUPS_BUTTON_TITLE" = "Back-ups opnieuw inschakelen";
+
+/* Subtitle for a progress bar tracking uploads that are paused because of low battery. */
+"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_PAUSED_LOW_BATTERY" = "Upload gepauzeerd: batterij van apparaat is bijna leeg";
+
+/* Subtitle for a progress bar tracking uploads that are paused because they need WiFi. */
+"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_PAUSED_NEEDS_WIFI" = "Upload gepauzeerd: wachten op wifi";
+
+/* Subtitle for a progress bar tracking active uploading. Embeds 1:{{ the amount uploaded as a file size, e.g. 100 MB }}; 2:{{ the total amount to upload as a file size, e.g. 1 GB }}; 3:{{ the amount uploaded as a percentage, e.g. 10% }}. */
+"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_RUNNING" = "%1$@ van %2$@ (%3$@%%) aan het uploaden";
 
 /* Message for a sheet shown after the user enables backups. */
 "BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_MESSAGE" = "Afhankelijk van de grootte van je back-up kan dit even duren. Tijdens het maken van de back-up kun je je telefoon gebruiken zoals je normaal doet.";
@@ -1334,7 +1424,7 @@
 "CHOOSE_BACKUP_PLAN_BULLET_RECENT_MEDIA_BACKUP" = "Media van de afgelopen 45 dagen";
 
 /* Text for a bullet point in a list of Backup features, describing the amount of included storage. */
-"CHOOSE_BACKUP_PLAN_BULLET_STORAGE_AMOUNT" = "1 TB opslagruimte (~250.000 foto's)";
+"CHOOSE_BACKUP_PLAN_BULLET_STORAGE_AMOUNT" = "1 TB opslagruimte (~250K foto's)";
 
 /* Message shown in an action sheet when the user tries to confirm a plan selection, but encountered a generic error. */
 "CHOOSE_BACKUP_PLAN_CONFIRMATION_ERROR_GENERIC_ERROR" = "Er ging iets mis. Neem contact op met ondersteuning.";
@@ -1370,7 +1460,7 @@
 "CHOOSE_BACKUP_PLAN_SUBSCRIBE_PAID_BUTTON_TEXT" = "Abonneren voor %1$@/maand";
 
 /* Subtitle for a view allowing users to choose a Backup plan. */
-"CHOOSE_BACKUP_PLAN_SUBTITLE" = "Alle back-ups zijn end-to-end versleuteld. Signal is een non-profitorganisatie—door te betalen voor back-ups help je onze missie te ondersteunen.";
+"CHOOSE_BACKUP_PLAN_SUBTITLE" = "Alle back-ups zijn end-to-end versleuteld. Signal is een non-profitorganisatie — door te betalen voor back-ups help je onze missie te ondersteunen.";
 
 /* Title for a view allowing users to choose a Backup plan. */
 "CHOOSE_BACKUP_PLAN_TITLE" = "Kies je back-upabonnement";
@@ -2336,10 +2426,10 @@
 "DISAPPEARING_MESSAGES_CUSTOM_TIME" = "Zelfgekozen tijd";
 
 /* Title for a picker for the unit of time to use for disappearing messages. */
-"DISAPPEARING_MESSAGES_CUSTOM_TIME_UNIT_PICKER" = "Unit";
+"DISAPPEARING_MESSAGES_CUSTOM_TIME_UNIT_PICKER" = "Eenheid";
 
 /* Title for a picker for the amount of time, in a given unit, to use for disappearing messages. */
-"DISAPPEARING_MESSAGES_CUSTOM_TIME_VALUE_PICKER" = "Value";
+"DISAPPEARING_MESSAGES_CUSTOM_TIME_VALUE_PICKER" = "Waarde";
 
 /* The unit for a number of days */
 "DISAPPEARING_MESSAGES_DAYS" = "dagen";
@@ -2542,12 +2632,6 @@
 /* When users make donations on a friend's behalf, a message is sent. This text tells senders that their message will disappear, if the conversation has disappearing messages enabled. Embeds {{duration}}, such as \"1 week\". */
 "DONATION_ON_BEHALF_OF_A_FRIEND_DISAPPEARING_MESSAGES_NOTICE_FORMAT" = "Verdwijnende berichten zijn ingeschakeld voor deze chat. Je donatiebericht verdwijnt over %1$@.";
 
-/* Users can donate on a friend's behalf. If something goes wrong during this donation, such as a network error, this error message is shown. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_GENERIC_SEND_ERROR_BODY" = "Kan niet doneren. Controleer je internetverbinding en probeer het opnieuw.";
-
-/* Users can donate on a friend's behalf. If something goes wrong during this donation, such as a network error, an error dialog is shown. This is the title of that dialog. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_GENERIC_SEND_ERROR_TITLE" = "Kan niet doneren";
-
 /* Users can donate on a friend's behalf. This tells users that this will be a one-time donation. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_DESCRIPTION" = "Eenmalige donatie";
 
@@ -2726,7 +2810,7 @@
 "DONATION_SETTINGS_MY_SUPPORT_TABLE_CELL_SUBTITLE_BANK_PAYMENT_PROCESSING" = "Donatie is in behandeling";
 
 /* A label describing a donation payment that was made by a method other than bank transfer (such as by credit card), which is still processing and has not completed. */
-"DONATION_SETTINGS_MY_SUPPORT_TABLE_CELL_SUBTITLE_NON_BANK_PAYMENT_PROCESSING" = "Donatie wordt verwerkt...";
+"DONATION_SETTINGS_MY_SUPPORT_TABLE_CELL_SUBTITLE_NON_BANK_PAYMENT_PROCESSING" = "Donatie wordt verwerkt…";
 
 /* A label describing a donation payment that has failed to process. */
 "DONATION_SETTINGS_MY_SUPPORT_TABLE_CELL_SUBTITLE_PAYMENT_FAILED" = "Fout bij het verwerken van donatie";
@@ -2868,6 +2952,12 @@
 
 /* Call setup status label */
 "END_CALL_UNCATEGORIZED_FAILURE" = "Oproep mislukt";
+
+/* Label explaining that an entered 'Backup Key' is incorrect. */
+"ENTER_ACCOUNT_ENTROPY_POOL_VIEW_INCORRECT_AEP_LABEL" = "Onjuiste back-upsleutel";
+
+/* Label explaining that an entered 'Backup Key' is malformed. */
+"ENTER_ACCOUNT_ENTROPY_POOL_VIEW_MALFORMED_AEP_LABEL" = "Ongeldige back-upsleutel";
 
 /* Error indicating that a message could not be forwarded. */
 "ERROR_COULD_NOT_FORWARD_MESSAGES_1" = "Kan bericht niet doorsturen";
@@ -3214,6 +3304,9 @@
 /* Button to leave a group call */
 "GROUP_CALL_LEAVE_BUTTON" = "Oproep verlaten";
 
+/* Title for a 'done' button on a sheet showing the group call members list */
+"GROUP_CALL_MEMBER_LIST_DONE_BUTTON_TITLE" = "Klaar";
+
 /* Title for the section of the group call member list which displays the list of all members in the call. */
 "GROUP_CALL_MEMBER_LIST_IN_CALL_SECTION_HEADER" = "In de oproep";
 
@@ -3422,7 +3515,7 @@
 "GROUP_INVITE_LINK_SET_TO_REQUIRE_APPROVAL_BY_REMOTE_USER_FORMAT" = "%1$@ heeft beheerdersgoedkeuring van nieuwe leden ingeschakeld voor de groepslink.";
 
 /* Format for the message for an alert indicating that a member was invited to a group. Embeds: {{ the name of the member. }} */
-"GROUP_INVITES_SENT_ALERT_MESSAGE_1_FORMAT" = "%1$@ personen kunnen door jou niet direct worden toegevoegd aan de groep. Ze zijn uitgenodigd om lid te worden van de groep, en ze zullen geen groepsberichten ontvangen totdat ze de uitnodiging hebben geaccepteerd.";
+"GROUP_INVITES_SENT_ALERT_MESSAGE_1_FORMAT" = "%1$@ kan door jou niet direct worden toegevoegd aan de groep. Ze zijn uitgenodigd om lid te worden van de groep, en ze zullen geen groepsberichten ontvangen totdat ze de uitnodiging hebben geaccepteerd.";
 
 /* Message for an alert indicating that some members were invited to a group. */
 "GROUP_INVITES_SENT_ALERT_TITLE_N_MESSAGE" = "Deze personen kunnen door jou niet direct worden toegevoegd aan de groep. Ze zijn uitgenodigd om lid te worden van de groep, en ze zullen geen groepsberichten ontvangen totdat ze de uitnodiging hebben geaccepteerd.";
@@ -3446,7 +3539,7 @@
 "GROUP_IS_ANNOUNCEMENT_ONLY_ENABLED_BY_REMOTE_USER_FORMAT" = "%1$@ heeft de groepsinstellingen aangepast zodat uitsluitend beheerders berichten kunnen verzenden en oproepen kunnen beginnen.";
 
 /* Subtitle indicating that the local user has been blocked from joining the group */
-"GROUP_LINK_ACTION_SHEET_VIEW_BLOCKED_FROM_JOINING_SUBTITLE" = "Je kunt niet via de groepslink lid worden van deze groep omdat je door een beheerder uit deze groep bent verwijderd.";
+"GROUP_LINK_ACTION_SHEET_VIEW_BLOCKED_FROM_JOINING_SUBTITLE" = "Je kunt niet via de groepslink lid worden van deze groep omdat je door een beheerder uit deze groep bent verwijderd. Neem contact op met een beheerder om weer aan de groep te worden toegevoegd.";
 
 /* Title indicating that you cannot join a group in the 'group invite link' action sheet. */
 "GROUP_LINK_ACTION_SHEET_VIEW_CANNOT_JOIN_GROUP_TITLE" = "Kan niet lid worden van de groep";
@@ -4331,10 +4424,10 @@
 "LINKED_DEVICE_MANAGE_CONTACTS_LEARN_MORE" = "Meer informatie";
 
 /* Body for system notification when a new device is linked. Embeds {{ time the device was linked }} */
-"LINKED_DEVICE_NOTIFICATION_BODY" = "Een nieuw apparaat werd gekoppeld aan je account om %1$@. Tik om te bekijken.";
+"LINKED_DEVICE_NOTIFICATION_BODY" = "Er is een nieuw apparaat gekoppeld aan je account om %1$@. Tik om te bekijken.";
 
 /* Body for megaphone notification when a new device is linked. Embeds {{ time the device was linked }} */
-"LINKED_DEVICE_NOTIFICATION_MEGAPHONE_BODY" = "Een nieuw apparaat werd gekoppeld aan je account om %1$@.";
+"LINKED_DEVICE_NOTIFICATION_MEGAPHONE_BODY" = "Er is een nieuw apparaat gekoppeld aan je account om %1$@.";
 
 /* Title for system notification when a new device is linked. */
 "LINKED_DEVICE_NOTIFICATION_TITLE" = "Je hebt een nieuw apparaat gekoppeld";
@@ -5230,6 +5323,9 @@
 /* The body for the skip restore 'choice' option */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_BODY" = "Ga door zonder je berichten en media over te zetten";
 
+/* The title for a less-prominent skip restore 'choice' option */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_SMALL_TITLE" = "Herstel overslaan";
+
 /* The title for the skip restore 'choice' option */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_TITLE" = "Registreren zonder overzetten";
 
@@ -5258,10 +5354,10 @@
 "ONBOARDING_CONFIRM_BACKUP_RESTORE_CONFIRM_ACTION" = "Back-upgegevens terugzetten";
 
 /* Description for form confirming restore from backup. */
-"ONBOARDING_CONFIRM_BACKUP_RESTORE_DESCRIPTION" = "Je laatste back-up is gemaakt op %1$@ om %2$@. Je kunt een recentere back-up maken als je je oude apparaat nog hebt. [Bekijk hier hoe het werkt](https://signal.org)";
+"ONBOARDING_CONFIRM_BACKUP_RESTORE_DESCRIPTION" = "Je laatste back-up is gemaakt op %1$@ om %2$@. Je back-upgrootte is %3$@";
 
-/* Text for action button to explore other options. */
-"ONBOARDING_CONFIRM_BACKUP_RESTORE_MORE_OPTIONS_ACTION" = "Meer opties";
+/* Text for action button to skip the restore. */
+"ONBOARDING_CONFIRM_BACKUP_RESTORE_SKIP_ACTION" = "Skip Restore";
 
 /* Title for form confirming restore from backup. */
 "ONBOARDING_CONFIRM_BACKUP_RESTORE_TITLE" = "Gegevens vanuit een back-up terugzetten";
@@ -5771,7 +5867,7 @@
 "PENDING_CHANGES_ACTION_SHEET_TITLE" = "Niet-opgeslagen wijzigingen";
 
 /* Title of 'accept member request to join group' button. */
-"PENDING_GROUP_MEMBERS_ACCEPT_REQUEST_BUTTON" = "Aan groep toevoegen?";
+"PENDING_GROUP_MEMBERS_ACCEPT_REQUEST_BUTTON" = "Aan groep toevoegen";
 
 /* Title of 'accept member request to join group' confirmation alert. Embeds {{ the name of the requesting group member. }}. */
 "PENDING_GROUP_MEMBERS_ACCEPT_REQUEST_CONFIRMATION_TITLE_FORMAT" = "%1$@ toevoegen aan de groep?";
@@ -6664,17 +6760,23 @@
 /* Subtitle shown on chat list banner for restoring media from a backup when paused because the device has low battery */
 "RESTORING_MEDIA_BANNER_PAUSED_BATTERY_SUBTITLE" = "Batterij van apparaat bijna leeg";
 
+/* Subtitle shown on chat list banner for restoring media from a backup when paused because the device has no internet connection */
+"RESTORING_MEDIA_BANNER_PAUSED_NOT_REACHABLE_SUBTITLE" = "No internet…";
+
 /* Title shown on chat list banner for restoring media from a backup when paused for some reason */
 "RESTORING_MEDIA_BANNER_PAUSED_TITLE" = "Herstellen gepauzeerd";
-
-/* Subtitle shown on chat list banner for restoring media from a backup when paused because the device has no wifi connection */
-"RESTORING_MEDIA_BANNER_PAUSED_WIFI_SUBTITLE" = "Wachten op wifi…";
 
 /* Download progress for media from a backup. Embeds {{ %1$@ formatted number of bytes downloaded, e.g. '100 MB', %2$@ formatted total number of bytes to download, e.g. '3 GB' }} */
 "RESTORING_MEDIA_BANNER_PROGRESS_FORMAT" = "%1$@ van %2$@";
 
+/* Button title shown on chat list banner for restoring media from a backup when paused because the device needs WiFi to continue, to resume downloads without WiFi. */
+"RESTORING_MEDIA_BANNER_RESUME_WITHOUT_WIFI_BUTTON" = "Resume";
+
 /* Title shown on chat list banner for restoring media from a backup */
 "RESTORING_MEDIA_BANNER_TITLE" = "Media aan het herstellen";
+
+/* Title shown on chat list banner for restoring media from a backup when waiting for wifi */
+"RESTORING_MEDIA_BANNER_WAITING_FOR_WIFI_TITLE" = "Waiting for Wi-Fi";
 
 /* Button to skip restoring media, shown on a bottom sheet for restoring media from a backup when paused because the device has insufficient disk space. */
 "RESTORING_MEDIA_DISK_SPACE_SHEET_SKIP_BUTTON" = "Herstel overslaan";

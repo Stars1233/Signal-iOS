@@ -1,1 +1,1 @@
-• Opravili sme chybu, ktorá mohla spôsobiť, že sa po vložení prílohy do četu otvoril výber obrázkov.
+• This update fixes a bug that prevented link previews from appearing for forwarded messages in some cases.

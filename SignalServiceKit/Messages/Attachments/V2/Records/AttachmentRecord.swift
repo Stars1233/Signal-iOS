@@ -13,29 +13,28 @@ extension Attachment {
 
         var sqliteId: IDType?
         let blurHash: String?
-        let sha256ContentHash: Data?
+        var sha256ContentHash: Data?
         let encryptedByteCount: UInt32?
         let unencryptedByteCount: UInt32?
         let mimeType: String
         let encryptionKey: Data
         let digestSHA256Ciphertext: Data?
-        var contentType: UInt32?
-        var transitCdnNumber: UInt32?
-        var transitCdnKey: String?
-        var transitUploadTimestamp: UInt64?
-        var transitEncryptionKey: Data?
-        var transitUnencryptedByteCount: UInt32?
-        var transitDigestSHA256Ciphertext: Data?
-        var lastTransitDownloadAttemptTimestamp: UInt64?
+        let contentType: UInt32?
+        let transitCdnNumber: UInt32?
+        let transitCdnKey: String?
+        let transitUploadTimestamp: UInt64?
+        let transitEncryptionKey: Data?
+        let transitUnencryptedByteCount: UInt32?
+        let transitDigestSHA256Ciphertext: Data?
+        let lastTransitDownloadAttemptTimestamp: UInt64?
         let mediaName: String?
-        var mediaTierCdnNumber: UInt32?
-        var mediaTierDigestSHA256Ciphertext: Data?
-        var mediaTierUnencryptedByteCount: UInt32?
-        var mediaTierUploadEra: String?
-        var lastMediaTierDownloadAttemptTimestamp: UInt64?
-        var thumbnailCdnNumber: UInt32?
-        var thumbnailUploadEra: String?
-        var lastThumbnailDownloadAttemptTimestamp: UInt64?
+        let mediaTierCdnNumber: UInt32?
+        let mediaTierUnencryptedByteCount: UInt32?
+        let mediaTierUploadEra: String?
+        let lastMediaTierDownloadAttemptTimestamp: UInt64?
+        let thumbnailCdnNumber: UInt32?
+        let thumbnailUploadEra: String?
+        let lastThumbnailDownloadAttemptTimestamp: UInt64?
         let localRelativeFilePath: String?
         let localRelativeFilePathThumbnail: String?
         let cachedAudioDurationSeconds: Double?
@@ -45,8 +44,8 @@ extension Attachment {
         let audioWaveformRelativeFilePath: String?
         let videoStillFrameRelativeFilePath: String?
         let originalAttachmentIdForQuotedReply: Int64?
-        var mediaTierIncrementalMac: Data?
-        var mediaTierIncrementalMacChunkSize: UInt32?
+        let mediaTierIncrementalMac: Data?
+        let mediaTierIncrementalMacChunkSize: UInt32?
         let transitTierIncrementalMac: Data?
         let transitTierIncrementalMacChunkSize: UInt32?
         let lastFullscreenViewTimestamp: UInt64?
@@ -74,7 +73,6 @@ extension Attachment {
             case mediaTierCdnNumber
             case mediaTierUnencryptedByteCount
             case mediaTierUploadEra
-            case mediaTierDigestSHA256Ciphertext
             case lastMediaTierDownloadAttemptTimestamp
             case thumbnailCdnNumber
             case thumbnailUploadEra
@@ -138,7 +136,6 @@ extension Attachment {
             lastTransitDownloadAttemptTimestamp: UInt64?,
             mediaName: String?,
             mediaTierCdnNumber: UInt32?,
-            mediaTierDigestSHA256Ciphertext: Data?,
             mediaTierUnencryptedByteCount: UInt32?,
             mediaTierUploadEra: String?,
             lastMediaTierDownloadAttemptTimestamp: UInt64?,
@@ -178,7 +175,6 @@ extension Attachment {
             self.lastTransitDownloadAttemptTimestamp = lastTransitDownloadAttemptTimestamp
             self.mediaName = mediaName
             self.mediaTierCdnNumber = mediaTierCdnNumber
-            self.mediaTierDigestSHA256Ciphertext = mediaTierDigestSHA256Ciphertext
             self.mediaTierUnencryptedByteCount = mediaTierUnencryptedByteCount
             self.mediaTierUploadEra = mediaTierUploadEra
             self.lastMediaTierDownloadAttemptTimestamp = lastMediaTierDownloadAttemptTimestamp
@@ -207,6 +203,7 @@ extension Attachment {
                 blurHash: attachment.blurHash,
                 mimeType: attachment.mimeType,
                 encryptionKey: attachment.encryptionKey,
+                sha256ContentHash: attachment.sha256ContentHash,
                 mediaName: attachment.mediaName,
                 localRelativeFilePathThumbnail: attachment.localRelativeFilePathThumbnail,
                 streamInfo: attachment.streamInfo,
@@ -224,6 +221,7 @@ extension Attachment {
                 blurHash: params.blurHash,
                 mimeType: params.mimeType,
                 encryptionKey: params.encryptionKey,
+                sha256ContentHash: params.sha256ContentHash,
                 mediaName: params.mediaName,
                 localRelativeFilePathThumbnail: params.localRelativeFilePathThumbnail,
                 streamInfo: params.streamInfo,
@@ -240,6 +238,7 @@ extension Attachment {
             blurHash: String?,
             mimeType: String,
             encryptionKey: Data,
+            sha256ContentHash: Data?,
             mediaName: String?,
             localRelativeFilePathThumbnail: String?,
             streamInfo: Attachment.StreamInfo?,
@@ -254,6 +253,7 @@ extension Attachment {
                 blurHash: blurHash,
                 mimeType: mimeType,
                 encryptionKey: encryptionKey,
+                sha256ContentHash: sha256ContentHash,
                 mediaName: mediaName,
                 localRelativeFilePathThumbnail: localRelativeFilePathThumbnail,
                 streamInfo: streamInfo,
@@ -271,6 +271,7 @@ extension Attachment {
             blurHash: String?,
             mimeType: String,
             encryptionKey: Data,
+            sha256ContentHash: Data?,
             mediaName: String?,
             localRelativeFilePathThumbnail: String?,
             streamInfo: Attachment.StreamInfo?,
@@ -282,7 +283,7 @@ extension Attachment {
         ) {
             self.sqliteId = optionalSqliteId
             self.blurHash = blurHash
-            self.sha256ContentHash = streamInfo?.sha256ContentHash
+            self.sha256ContentHash = sha256ContentHash
             self.encryptedByteCount = streamInfo?.encryptedByteCount
             self.unencryptedByteCount = streamInfo?.unencryptedByteCount
             self.mimeType = mimeType
@@ -294,13 +295,17 @@ extension Attachment {
             self.transitUploadTimestamp = transitTierInfo?.uploadTimestamp
             self.transitEncryptionKey = transitTierInfo?.encryptionKey
             self.transitUnencryptedByteCount = transitTierInfo?.unencryptedByteCount
-            self.transitDigestSHA256Ciphertext = transitTierInfo?.digestSHA256Ciphertext
+            switch transitTierInfo?.integrityCheck {
+            case .digestSHA256Ciphertext(let data):
+                self.transitDigestSHA256Ciphertext = data
+            case nil, .sha256ContentHash:
+                self.transitDigestSHA256Ciphertext = nil
+            }
             self.transitTierIncrementalMac = transitTierInfo?.incrementalMacInfo?.mac
             self.transitTierIncrementalMacChunkSize = transitTierInfo?.incrementalMacInfo?.chunkSize
             self.lastTransitDownloadAttemptTimestamp = transitTierInfo?.lastDownloadAttemptTimestamp
             self.mediaName = mediaName
             self.mediaTierCdnNumber = mediaTierInfo?.cdnNumber
-            self.mediaTierDigestSHA256Ciphertext = mediaTierInfo?.digestSHA256Ciphertext
             self.mediaTierUnencryptedByteCount = mediaTierInfo?.unencryptedByteCount
             self.mediaTierIncrementalMac = mediaTierInfo?.incrementalMacInfo?.mac
             self.mediaTierIncrementalMacChunkSize = mediaTierInfo?.incrementalMacInfo?.chunkSize

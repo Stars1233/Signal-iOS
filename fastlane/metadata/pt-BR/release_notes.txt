@@ -1,1 +1,1 @@
-• Corrigimos um erro em que o seletor de imagens era aberto após colar um anexo em uma conversa e cancelar o envio. 
+• This update fixes a bug that prevented link previews from appearing for forwarded messages in some cases.

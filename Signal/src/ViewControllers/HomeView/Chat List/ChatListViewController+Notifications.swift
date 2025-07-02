@@ -51,7 +51,11 @@ extension ChatListViewController {
                                                object: nil)
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(appExpiryDidChange),
-                                               name: AppExpiryImpl.AppExpiryDidChange,
+                                               name: AppExpiry.AppExpiryDidChange,
+                                               object: nil)
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(significantTimeChangeNotification),
+                                               name: UIApplication.significantTimeChangeNotification,
                                                object: nil)
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(preferContactAvatarsPreferenceDidChange),
@@ -78,26 +82,26 @@ extension ChatListViewController {
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(backupAttachmentDownloadQueueStatusDidChange(_:)),
-            name: BackupAttachmentQueueStatus.didChangeNotification,
+            name: .backupAttachmentDownloadQueueStatusDidChange,
             object: nil
         )
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(backupPlanDidChange(_:)),
-            name: BackupSettingsStore.Notifications.backupPlanChanged,
+            name: .backupPlanChanged,
             object: nil
         )
 
-        viewState.backupProgressViewState.downloadQueueStatus =
-            DependenciesBridge.shared.backupAttachmentQueueStatusManager.currentStatus(type: .download)
+        viewState.backupDownloadProgressViewState.downloadQueueStatus =
+            DependenciesBridge.shared.backupAttachmentDownloadQueueStatusReporter.currentStatus()
         Task { @MainActor in
-            self.viewState.backupProgressViewState.downloadProgressObserver = await DependenciesBridge.shared
+            self.viewState.backupDownloadProgressViewState.downloadProgressObserver = await DependenciesBridge.shared
                 .backupAttachmentDownloadProgress
                 .addObserver { [weak self] progress in
                     DispatchQueue.main.asyncIfNecessary {
                         guard let self else { return }
-                        self.viewState.backupProgressViewState.downloadProgress = progress
-                        self.viewState.backupProgressView.update(viewState: self.viewState.backupProgressViewState)
+                        self.viewState.backupDownloadProgressViewState.downloadProgress = progress
+                        self.viewState.backupDownloadProgressView.update(viewState: self.viewState.backupDownloadProgressViewState)
                     }
                 }
         }
@@ -169,6 +173,14 @@ extension ChatListViewController {
     }
 
     @objc
+    private func significantTimeChangeNotification(_ notification: NSNotification) {
+        AssertIsOnMainThread()
+
+        updateExpirationReminderView()
+        loadCoordinator.loadIfNecessary()
+    }
+
+    @objc
     private func applicationWillEnterForeground(_ notification: NSNotification) {
         AssertIsOnMainThread()
 
@@ -184,8 +196,6 @@ extension ChatListViewController {
         if !ExperienceUpgradeManager.presentNext(fromViewController: self) {
             presentGetStartedBannerIfNecessary()
         }
-
-        updateExpirationReminderView()
     }
 
     @objc
@@ -264,18 +274,16 @@ extension ChatListViewController {
 
     @objc
     private func backupAttachmentDownloadQueueStatusDidChange(_ notification: Notification) {
-        let type = notification.userInfo?[BackupAttachmentQueueStatus.notificationQueueTypeKey]
-        guard type as? BackupAttachmentQueueType == .download else { return }
-        self.viewState.backupProgressViewState.downloadQueueStatus =
-            DependenciesBridge.shared.backupAttachmentQueueStatusManager.currentStatus(type: .download)
-        self.viewState.backupProgressView.update(viewState: self.viewState.backupProgressViewState)
+        self.viewState.backupDownloadProgressViewState.downloadQueueStatus =
+            DependenciesBridge.shared.backupAttachmentDownloadQueueStatusReporter.currentStatus()
+        self.viewState.backupDownloadProgressView.update(viewState: self.viewState.backupDownloadProgressViewState)
     }
 
     @objc
     private func backupPlanDidChange(_ notification: Notification) {
         let db = DependenciesBridge.shared.db
-        db.read { viewState.backupProgressViewState.refetchDBState(tx: $0) }
-        viewState.backupProgressView.update(viewState: viewState.backupProgressViewState)
+        db.read { viewState.backupDownloadProgressViewState.refetchDBState(tx: $0) }
+        viewState.backupDownloadProgressView.update(viewState: viewState.backupDownloadProgressViewState)
     }
 }
 

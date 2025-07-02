@@ -996,7 +996,7 @@ public class StickerManager: NSObject {
         }!
 
         let temporaryDecryptedFile = OWSFileSystem.temporaryFileUrl(isAvailableWhileDeviceLocked: true)
-        try Cryptography.decryptFile(at: url, metadata: .init(key: Data(stickerKey)), output: temporaryDecryptedFile)
+        try Cryptography.decryptFile(at: url, metadata: .init(key: stickerKey), output: temporaryDecryptedFile)
         return temporaryDecryptedFile
     }
 
@@ -1014,7 +1014,7 @@ public class StickerManager: NSObject {
         let (promise, future) = Promise<Void>.pending()
         DispatchQueue.global().async {
             SSKEnvironment.shared.databaseStorageRef.read { (transaction) in
-                firstly {
+                _ = firstly {
                     ensureDownloads(forStickerPack: stickerPack, transaction: transaction)
                 }.done {
                     future.resolve()

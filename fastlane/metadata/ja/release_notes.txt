@@ -1,1 +1,1 @@
-•添付ファイルをチャットに貼り付けた後に、画像ピッカーが開いてしまう不具合を修正しました。
+• This update fixes a bug that prevented link previews from appearing for forwarded messages in some cases.

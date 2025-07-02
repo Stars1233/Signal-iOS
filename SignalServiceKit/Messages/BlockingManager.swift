@@ -25,7 +25,6 @@ public enum BlockMode {
 // MARK: -
 
 public class BlockingManager {
-    private let appReadiness: AppReadiness
     private let blockedGroupStore: BlockedGroupStore
     private let blockedRecipientStore: BlockedRecipientStore
 
@@ -42,23 +41,20 @@ public class BlockingManager {
         blockedGroupStore: BlockedGroupStore,
         blockedRecipientStore: BlockedRecipientStore
     ) {
-        self.appReadiness = appReadiness
         self.blockedGroupStore = blockedGroupStore
         self.blockedRecipientStore = blockedRecipientStore
 
         SwiftSingletons.register(self)
-        appReadiness.runNowOrWhenAppWillBecomeReady {
+        appReadiness.runNowOrWhenAppDidBecomeReadyAsync {
             self.observeNotifications()
+            // Once we're ready to send a message, check to see if we need to sync.
+            self.syncIfNeeded()
         }
-        // Once we're ready to send a message, check to see if we need to sync.
-        syncIfNeeded()
     }
 
     private func syncIfNeeded() {
-        appReadiness.runNowOrWhenMainAppDidBecomeReadyAsync {
-            self.syncQueue.enqueue {
-                await self.sendBlockListSyncMessage(force: false)
-            }
+        self.syncQueue.enqueue {
+            await self.sendBlockListSyncMessage(force: false)
         }
     }
 
@@ -97,8 +93,16 @@ public class BlockingManager {
         return (try? blockedRecipientStore.isBlocked(recipientId: recipientId, tx: transaction)) ?? false
     }
 
-    public func isGroupIdBlocked(_ groupId: Data, transaction: DBReadTransaction) -> Bool {
-        return (try? blockedGroupStore.isBlocked(groupId: groupId, tx: transaction)) ?? false
+    public func isGroupIdBlocked(_ groupId: GroupIdentifier, transaction tx: DBReadTransaction) -> Bool {
+        return _isGroupIdBlocked(groupId.serialize(), tx: tx)
+    }
+
+    public func isGroupIdBlocked_deprecated(_ groupId: Data, tx: DBReadTransaction) -> Bool {
+        return _isGroupIdBlocked(groupId, tx: tx)
+    }
+
+    private func _isGroupIdBlocked(_ groupId: Data, tx: DBReadTransaction) -> Bool {
+        return (try? blockedGroupStore.isBlocked(groupId: groupId, tx: tx)) ?? false
     }
 
     public func blockedRecipientIds(tx: DBReadTransaction) throws -> Set<SignalRecipient.RowId> {
@@ -252,7 +256,7 @@ public class BlockingManager {
         owsAssertDebug(groupThread != nil, "Must have TSGroupThread in order to block it.")
 
         if blockMode.locallyInitiated, let masterKey = try? (groupThread?.groupModel as? TSGroupModelV2)?.masterKey() {
-            SSKEnvironment.shared.storageServiceManagerRef.recordPendingUpdates(updatedGroupV2MasterKeys: [masterKey.serialize().asData])
+            SSKEnvironment.shared.storageServiceManagerRef.recordPendingUpdates(updatedGroupV2MasterKeys: [masterKey])
         }
 
         if let groupThread {
@@ -309,7 +313,7 @@ public class BlockingManager {
                 return nil
             }()
             if let masterKey {
-                SSKEnvironment.shared.storageServiceManagerRef.recordPendingUpdates(updatedGroupV2MasterKeys: [masterKey.serialize().asData])
+                SSKEnvironment.shared.storageServiceManagerRef.recordPendingUpdates(updatedGroupV2MasterKeys: [masterKey])
             }
         }
 
@@ -335,7 +339,7 @@ public class BlockingManager {
         if let contactThread = thread as? TSContactThread {
             return isAddressBlocked(contactThread.contactAddress, transaction: transaction)
         } else if let groupThread = thread as? TSGroupThread {
-            return isGroupIdBlocked(groupThread.groupModel.groupId, transaction: transaction)
+            return _isGroupIdBlocked(groupThread.groupModel.groupId, tx: transaction)
         } else if thread is TSPrivateStoryThread {
             return false
         } else {

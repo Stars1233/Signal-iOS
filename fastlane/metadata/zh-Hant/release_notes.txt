@@ -1,1 +1,1 @@
-• 改變主意當然沒問題，因此我們修復了一個錯誤，以後在聊天中貼上附件之後決定不傳送時，圖片選擇器就不會再打開。
+• This update fixes a bug that prevented link previews from appearing for forwarded messages in some cases.

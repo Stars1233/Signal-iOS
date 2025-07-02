@@ -1,1 +1,1 @@
-• Vi rettet opp i en feil som førte til at bildevelgeren plutselig dukket opp etter innliming av et vedlegg i en samtale.
+• This update fixes a bug that prevented link previews from appearing for forwarded messages in some cases.

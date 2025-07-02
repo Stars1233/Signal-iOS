@@ -22,21 +22,10 @@ public class MessageFetcherJob {
 
     // MARK: -
 
-    public func startFetchingViaWebSocket() async {
-        owsPrecondition(CurrentAppContext().shouldProcessIncomingMessages)
-        owsPrecondition(self.appReadiness.isAppReady)
-        owsPrecondition(self.shouldUseWebSocket)
-        owsAssertDebug(DependenciesBridge.shared.tsAccountManager.registrationStateWithMaybeSneakyTransaction.isRegistered)
-
-        DependenciesBridge.shared.chatConnectionManager.didReceivePush()
-        await self.startGroupMessageProcessorsIfNeeded()
-    }
-
     public func fetchViaRest() async throws {
         owsPrecondition(CurrentAppContext().shouldProcessIncomingMessages)
         owsPrecondition(CurrentAppContext().isNSE)
         owsPrecondition(self.appReadiness.isAppReady)
-        owsPrecondition(!self.shouldUseWebSocket)
         owsAssertDebug(DependenciesBridge.shared.tsAccountManager.registrationStateWithMaybeSneakyTransaction.isRegistered)
 
         await self.startGroupMessageProcessorsIfNeeded()
@@ -44,28 +33,20 @@ public class MessageFetcherJob {
     }
 
     private func startGroupMessageProcessorsIfNeeded() async {
-        SSKEnvironment.shared.groupMessageProcessorManagerRef.startAllProcessors()
-    }
-
-    private var shouldUseWebSocket: Bool {
-        return OWSChatConnection.canAppUseSocketsToMakeRequests
+        await SSKEnvironment.shared.groupMessageProcessorManagerRef.startAllProcessors()
     }
 
     public var hasCompletedInitialFetch: Bool {
-        if shouldUseWebSocket {
-            return (
-                DependenciesBridge.shared.chatConnectionManager.identifiedConnectionState == .open &&
-                DependenciesBridge.shared.chatConnectionManager.hasEmptiedInitialQueue
-            )
-        } else {
-            return self.didFinishFetchingViaREST.get()
+        get async {
+            let chatConnectionManager = DependenciesBridge.shared.chatConnectionManager
+            return await chatConnectionManager.hasEmptiedInitialQueue || self.didFinishFetchingViaREST.get()
         }
     }
 
     func preconditionForFetchingComplete() -> some Precondition {
         return NotificationPrecondition(
-            notificationName: shouldUseWebSocket ? OWSChatConnection.chatConnectionStateDidChange : Self.didChangeStateNotificationName,
-            isSatisfied: { self.hasCompletedInitialFetch }
+            notificationNames: [OWSChatConnection.chatConnectionStateDidChange, Self.didChangeStateNotificationName],
+            isSatisfied: { await self.hasCompletedInitialFetch }
         )
     }
 
@@ -226,6 +207,12 @@ public class MessageFetcherJob {
             }
             if let token = try params.optionalBase64EncodedData(key: "reportSpamToken") {
                 builder.setSpamReportingToken(token)
+            }
+            if let updatedPni: String = try params.optional(key: "updatedPni") {
+                builder.setUpdatedPni(updatedPni)
+            }
+            if let urgent: Bool = try params.optional(key: "urgent") {
+                builder.setUrgent(urgent)
             }
 
             return try builder.build()

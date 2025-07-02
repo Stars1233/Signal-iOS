@@ -1,1 +1,1 @@
-• 채팅에 첨부 파일을 붙여 넣으면 이미지 선택기가 열리는 버그를 수정했습니다.
+• This update fixes a bug that prevented link previews from appearing for forwarded messages in some cases.

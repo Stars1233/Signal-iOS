@@ -60,11 +60,6 @@ import Foundation
 /// * NSProgress requires you to know unit counts for all children up-front and they must all share units.
 /// OWSProgress lets you add children lazily and renormalizes disparate units at each level of the tree.
 public struct OWSProgress: Equatable, SomeOWSProgress {
-    /// The completed unit count across all direct children.
-    public let completedUnitCount: UInt64
-    /// The total unit count of all direct children.
-    public let totalUnitCount: UInt64
-
     public struct SourceProgress: Equatable, SomeOWSProgress {
         /// The completed unit count of this particular source.
         /// The units DO NOT necessarily correspond to the units of the root OWSProgress.
@@ -77,9 +72,28 @@ public struct OWSProgress: Equatable, SomeOWSProgress {
         public let labels: [String]
     }
 
+    /// The completed unit count across all direct children.
+    public let completedUnitCount: UInt64
+    /// The total unit count of all direct children.
+    public let totalUnitCount: UInt64
+
     /// All sources at all layers of the progress tree, which have emitted progress values.
     /// Maps from source label to the source.
     public let sourceProgresses: [String: SourceProgress]
+
+    public init(
+        completedUnitCount: UInt64,
+        totalUnitCount: UInt64,
+        sourceProgresses: [String: SourceProgress]
+    ) {
+        self.completedUnitCount = completedUnitCount
+        self.totalUnitCount = totalUnitCount
+        self.sourceProgresses = sourceProgresses
+    }
+
+    public static var zero: OWSProgress {
+        OWSProgress(completedUnitCount: 0, totalUnitCount: 0, sourceProgresses: [:])
+    }
 
     /// Create a root sink, taking the single observer block of progress updates.
     /// See class docs for this type for usage.
@@ -153,7 +167,7 @@ extension OWSProgressSource {
     }
 }
 
-extension OWSProgressSource {
+extension OWSProgressSource where Self: Sendable {
 
     /// Given some block of asynchronous work, update progress
     /// on the current source periodically (every ``timeInterval`` seconds)
@@ -224,6 +238,7 @@ private actor OWSProgressRootNode: OWSProgressSink {
 
     private var latestEmittedProgress: OWSProgress?
     private let observer: Observer
+    private var observerQueue = SerialTaskQueue()
 
     private var totalDirectChildUnitCount: UInt64 = 0
     /// Children hold strong references to their parent, so parents hold weak references to children.
@@ -254,7 +269,6 @@ private actor OWSProgressRootNode: OWSProgressSink {
     }
 
     func addChild(withLabel label: String, unitCount: UInt64) async -> OWSProgressSink {
-        owsAssertDebug(unitCount > 0)
         self.totalDirectChildUnitCount += unitCount
         let child = OWSProgressSinkNode(
             label: label,
@@ -272,7 +286,6 @@ private actor OWSProgressRootNode: OWSProgressSink {
     }
 
     func addSource(withLabel label: String, unitCount: UInt64) async -> OWSProgressSource {
-        owsAssertDebug(unitCount > 0)
         self.totalDirectChildUnitCount += unitCount
         let source = OWSProgressSourceNode(
             label: label,
@@ -340,7 +353,7 @@ private actor OWSProgressRootNode: OWSProgressSink {
         }
         if progressDidChange {
             latestEmittedProgress = progress
-            Task { [progress] in
+            observerQueue.enqueue { [observer, progress] in
                 await observer(progress)
             }
         }
@@ -444,7 +457,6 @@ private actor OWSProgressSinkNode: OWSProgressSink, OWSProgressChildNode {
     }
 
     func addSource(withLabel label: String, unitCount: UInt64) async -> OWSProgressSource {
-        owsAssertDebug(unitCount > 0)
         self.totalDirectChildUnitCount += unitCount
         let source = OWSProgressSourceNode(
             label: label,

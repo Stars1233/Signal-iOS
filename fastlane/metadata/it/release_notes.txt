@@ -1,1 +1,1 @@
-• Cambiare idea è normale, ecco perché abbiamo risolto un bug che causa un comportamento anomalo nel selettore delle immagini, che si apriva dopo aver incollato un allegato in chat e poi aver deciso di non inviarlo.
+• This update fixes a bug that prevented link previews from appearing for forwarded messages in some cases.

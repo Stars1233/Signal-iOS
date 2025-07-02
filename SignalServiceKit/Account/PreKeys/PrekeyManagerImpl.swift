@@ -50,8 +50,8 @@ public class PreKeyManagerImpl: PreKeyManager {
     init(
         dateProvider: @escaping DateProvider,
         db: any DB,
+        identityKeyMismatchManager: IdentityKeyMismatchManager,
         identityManager: PreKey.Shims.IdentityManager,
-        linkedDevicePniKeyManager: LinkedDevicePniKeyManager,
         messageProcessor: MessageProcessor,
         preKeyTaskAPIClient: PreKeyTaskAPIClient,
         protocolStoreManager: SignalProtocolStoreManager,
@@ -70,8 +70,8 @@ public class PreKeyManagerImpl: PreKeyManager {
             apiClient: preKeyTaskAPIClient,
             dateProvider: dateProvider,
             db: db,
+            identityKeyMismatchManager: identityKeyMismatchManager,
             identityManager: identityManager,
-            linkedDevicePniKeyManager: linkedDevicePniKeyManager,
             messageProcessor: messageProcessor,
             protocolStoreManager: protocolStoreManager,
             remoteConfigProvider: remoteConfigProvider,
@@ -158,7 +158,7 @@ public class PreKeyManagerImpl: PreKeyManager {
         let shouldPerformPniOp = hasPniIdentityKey(tx: tx)
 
         return Self.taskQueue.enqueue { [weak self, chatConnectionManager, taskManager, targets] in
-            if OWSChatConnection.canAppUseSocketsToMakeRequests {
+            if OWSChatConnection.mustAppUseSocketsToMakeRequests {
                 try await chatConnectionManager.waitForIdentifiedConnectionToOpen()
             } else {
                 // TODO: Migrate the NSE to use web sockets.
@@ -306,7 +306,7 @@ public class PreKeyManagerImpl: PreKeyManager {
                 return
             }
             do {
-                if OWSChatConnection.canAppUseSocketsToMakeRequests {
+                if OWSChatConnection.mustAppUseSocketsToMakeRequests {
                     try await chatConnectionManager.waitForIdentifiedConnectionToOpen()
                 } else {
                     // TODO: Migrate the NSE to use web sockets.

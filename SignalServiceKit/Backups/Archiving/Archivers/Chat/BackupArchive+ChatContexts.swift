@@ -105,23 +105,21 @@ extension BackupArchive {
         private let threadCache = SharedMap<ChatId, CachedThreadInfo>()
 
         init(
-            backupAttachmentUploadManager: BackupAttachmentUploadManager,
             bencher: BackupArchive.ArchiveBencher,
+            attachmentByteCounter: BackupArchiveAttachmentByteCounter,
             currentBackupAttachmentUploadEra: String,
-            currentBackupPlan: BackupPlan,
             customChatColorContext: CustomChatColorArchivingContext,
             includedContentFilter: IncludedContentFilter,
             recipientContext: RecipientArchivingContext,
             startTimestampMs: UInt64,
-            tx: DBWriteTransaction
+            tx: DBReadTransaction
         ) {
             self.customChatColorContext = customChatColorContext
             self.recipientContext = recipientContext
             super.init(
-                backupAttachmentUploadManager: backupAttachmentUploadManager,
                 bencher: bencher,
+                attachmentByteCounter: attachmentByteCounter,
                 currentBackupAttachmentUploadEra: currentBackupAttachmentUploadEra,
-                currentBackupPlan: currentBackupPlan,
                 includedContentFilter: includedContentFilter,
                 startTimestampMs: startTimestampMs,
                 tx: tx
@@ -178,12 +176,14 @@ extension BackupArchive {
             customChatColorContext: CustomChatColorRestoringContext,
             recipientContext: RecipientRestoringContext,
             startTimestampMs: UInt64,
+            isPrimaryDevice: Bool,
             tx: DBWriteTransaction
         ) {
             self.customChatColorContext = customChatColorContext
             self.recipientContext = recipientContext
             super.init(
                 startTimestampMs: startTimestampMs,
+                isPrimaryDevice: isPrimaryDevice,
                 tx: tx
             )
         }
@@ -344,19 +344,17 @@ extension BackupArchive {
         private let map = SharedMap<CustomChatColor.Key, CustomChatColorId>()
 
         override init(
-            backupAttachmentUploadManager: BackupAttachmentUploadManager,
             bencher: BackupArchive.ArchiveBencher,
+            attachmentByteCounter: BackupArchiveAttachmentByteCounter,
             currentBackupAttachmentUploadEra: String,
-            currentBackupPlan: BackupPlan,
             includedContentFilter: IncludedContentFilter,
             startTimestampMs: UInt64,
-            tx: DBWriteTransaction
+            tx: DBReadTransaction
         ) {
             super.init(
-                backupAttachmentUploadManager: backupAttachmentUploadManager,
                 bencher: bencher,
+                attachmentByteCounter: attachmentByteCounter,
                 currentBackupAttachmentUploadEra: currentBackupAttachmentUploadEra,
-                currentBackupPlan: currentBackupPlan,
                 includedContentFilter: includedContentFilter,
                 startTimestampMs: startTimestampMs,
                 tx: tx
@@ -385,12 +383,14 @@ extension BackupArchive {
 
         init(
             startTimestampMs: UInt64,
+            isPrimaryDevice: Bool,
             accountDataContext: AccountDataRestoringContext,
             tx: DBWriteTransaction
         ) {
             self.accountDataContext = accountDataContext
             super.init(
                 startTimestampMs: startTimestampMs,
+                isPrimaryDevice: isPrimaryDevice,
                 tx: tx
             )
         }
