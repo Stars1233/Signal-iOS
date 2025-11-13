@@ -37,10 +37,10 @@ class BackupBGProcessingTaskRunner: BGProcessingTaskRunner {
 
     // MARK: - BGProcessingTaskRunner
 
-    public static let taskIdentifier = "BackupBGProcessingTaskRunner"
-
-    public static let requiresNetworkConnectivity = true
-    public static let requiresExternalPower = true
+    static let taskIdentifier = "BackupBGProcessingTaskRunner"
+    static let logPrefix: String? = "[Backups][ExportJob]"
+    static let requiresNetworkConnectivity = true
+    static let requiresExternalPower = true
 
     func run() async throws {
         try await runWithChatConnection(
@@ -67,10 +67,6 @@ class BackupBGProcessingTaskRunner: BGProcessingTaskRunner {
     }
 
     public func startCondition() -> BGProcessingTaskStartCondition {
-        guard BuildFlags.Backups.supported else {
-            return .never
-        }
-
         return db.read { (tx) -> BGProcessingTaskStartCondition in
             guard tsAccountManager().registrationState(tx: tx).isRegisteredPrimaryDevice else {
                 return .never

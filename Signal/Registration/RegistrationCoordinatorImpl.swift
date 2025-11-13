@@ -1890,7 +1890,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         }
 
         if inMemoryState.needsToAskForDeviceTransfer && persistedState.restoreMethod == nil {
-            if deps.buildFlags.backupSupported {
+            if BuildFlags.Backups.registrationFlow {
                 return .chooseRestoreMethod(.unspecified)
             } else if !persistedState.hasDeclinedTransfer {
                 return .transferSelection
@@ -2440,7 +2440,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         }
 
         if inMemoryState.needsToAskForDeviceTransfer && !persistedState.hasDeclinedTransfer {
-            if deps.buildFlags.backupSupported {
+            if BuildFlags.Backups.registrationFlow {
                 return .chooseRestoreMethod(.unspecified)
             } else {
                 return .transferSelection
@@ -2761,7 +2761,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
             return await nextStep()
         case .deviceTransferPossible:
             inMemoryState.needsToAskForDeviceTransfer = true
-            if deps.buildFlags.backupSupported {
+            if BuildFlags.Backups.registrationFlow {
                 return .chooseRestoreMethod(.unspecified)
             } else {
                 return .transferSelection
@@ -3421,6 +3421,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
             let accountEntropyPool = getOrGenerateAccountEntropyPool()
 
             if let backupStepGuarantee = await performSVRBackupStepsIfNeeded(
+                resetPINReminderInterval: false,
                 accountEntropyPool: accountEntropyPool,
                 accountIdentity: accountIdentity
             ) {
@@ -3520,6 +3521,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         //    the master key / reglock token that was used for registration.
         if !isBackup {
             if let backupStepNextStep = await performSVRBackupStepsIfNeeded(
+                resetPINReminderInterval: true,
                 accountEntropyPool: accountEntropyPool,
                 accountIdentity: accountIdentity
             ) {
@@ -3667,6 +3669,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         }
 
         if let step = await performSVRBackupStepsIfNeeded(
+            resetPINReminderInterval: false,
             accountEntropyPool: accountEntropyPool,
             accountIdentity: accountIdentity
         ) {
@@ -3762,6 +3765,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
 
     // returns nil if no steps performed.
     private func performSVRBackupStepsIfNeeded(
+        resetPINReminderInterval: Bool,
         accountEntropyPool: SignalServiceKit.AccountEntropyPool,
         accountIdentity: AccountIdentity
     ) async -> RegistrationStep? {
@@ -3776,6 +3780,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
                 // If we haven't backed up, do so now.
                 return await backupToSVR(
                     pin: pin,
+                    resetPINReminderInterval: resetPINReminderInterval,
                     accountEntropyPool: accountEntropyPool,
                     accountIdentity: accountIdentity
                 )
@@ -3876,6 +3881,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
     @MainActor
     private func backupToSVR(
         pin: String,
+        resetPINReminderInterval: Bool,
         accountEntropyPool: SignalServiceKit.AccountEntropyPool,
         accountIdentity: AccountIdentity,
         retriesLeft: Int = Constants.networkErrorRetries
@@ -3905,7 +3911,11 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
                     masterKey: backedUpMasterKey,
                     tx: tx
                 )
-                deps.ows2FAManager.markPinEnabled(pin, tx)
+                deps.ows2FAManager.markPinEnabled(
+                    pin: pin,
+                    resetReminderInterval: resetPINReminderInterval,
+                    tx: tx
+                )
             }
 
             return await nextStep()
@@ -3914,6 +3924,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
                 if retriesLeft > 0 {
                     return await backupToSVR(
                         pin: pin,
+                        resetPINReminderInterval: resetPINReminderInterval,
                         accountEntropyPool: accountEntropyPool,
                         accountIdentity: accountIdentity,
                         retriesLeft: retriesLeft - 1
@@ -4957,7 +4968,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         switch mode {
         case .registering:
             return
-                deps.buildFlags.backupSupported
+                BuildFlags.Backups.registrationFlow
                 && inMemoryState.accountEntropyPool != nil
                 && inMemoryState.hasBackedUpToSVR
                 && inMemoryState.backupRestoreState == .none

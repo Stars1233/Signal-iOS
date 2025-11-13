@@ -302,6 +302,18 @@ public class UserNotificationPresenter {
         await cancel(cancellation: .storyMessage(storyMessageUniqueId))
     }
 
+    func cancelPendingNotificationsForBackupsEnabled() async {
+        let backupsEnabledRequests = await Self.notificationCenter
+            .pendingNotificationRequests()
+            .filter {
+                $0.content.categoryIdentifier == AppNotificationCategory.backupsEnabled.identifier
+            }
+
+        Self.notificationCenter.removePendingNotificationRequests(
+            withIdentifiers: backupsEnabledRequests.map(\.identifier),
+        )
+    }
+
     public func clearAllNotifications() {
         Logger.info("Clearing all notifications")
 
@@ -363,6 +375,21 @@ public class UserNotificationPresenter {
 
     private func cancel(cancellation: CancellationType) async {
         self.cancelSync(notificationRequests: await getNotificationsRequests(), matching: cancellation)
+    }
+
+    func existingPollVoteNotification(author: Data, pollId: String) async -> Bool {
+        let notificationRequests = await getNotificationsRequests()
+        for request in notificationRequests {
+            let userInfo = AppNotificationUserInfo(request.content.userInfo)
+            if let requestPollAuthor = userInfo.voteAuthorServiceIdBinary,
+               let requestPollId = userInfo.messageId,
+               requestPollAuthor == author,
+               requestPollId == pollId
+            {
+                return true
+            }
+        }
+        return false
     }
 
     @discardableResult

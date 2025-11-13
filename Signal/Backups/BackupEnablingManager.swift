@@ -14,9 +14,11 @@ final class BackupEnablingManager {
     private let backupKeyService: BackupKeyService
     private let backupPlanManager: BackupPlanManager
     private let backupSettingsStore: BackupSettingsStore
+    private let backupSubscriptionIssueStore: BackupSubscriptionIssueStore
     private let backupSubscriptionManager: BackupSubscriptionManager
     private let backupTestFlightEntitlementManager: BackupTestFlightEntitlementManager
     private let db: DB
+    private let logger: PrefixedLogger
     private let tsAccountManager: TSAccountManager
     private let notificationPresenter: NotificationPresenter
 
@@ -25,6 +27,8 @@ final class BackupEnablingManager {
         backupDisablingManager: BackupDisablingManager,
         backupKeyService: BackupKeyService,
         backupPlanManager: BackupPlanManager,
+        backupSettingsStore: BackupSettingsStore,
+        backupSubscriptionIssueStore: BackupSubscriptionIssueStore,
         backupSubscriptionManager: BackupSubscriptionManager,
         backupTestFlightEntitlementManager: BackupTestFlightEntitlementManager,
         db: DB,
@@ -35,10 +39,12 @@ final class BackupEnablingManager {
         self.backupDisablingManager = backupDisablingManager
         self.backupKeyService = backupKeyService
         self.backupPlanManager = backupPlanManager
-        self.backupSettingsStore = BackupSettingsStore()
+        self.backupSettingsStore = backupSettingsStore
+        self.backupSubscriptionIssueStore = backupSubscriptionIssueStore
         self.backupSubscriptionManager = backupSubscriptionManager
         self.backupTestFlightEntitlementManager = backupTestFlightEntitlementManager
         self.db = db
+        self.logger = PrefixedLogger(prefix: "[Backups]")
         self.tsAccountManager = tsAccountManager
         self.notificationPresenter = notificationPresenter
     }
@@ -105,9 +111,41 @@ final class BackupEnablingManager {
             )
         } catch where error.isNetworkFailureOrTimeout {
             throw .networkError
+        } catch let error as OWSHTTPError where error.responseStatusCode == 429 {
+            logger.error("Rate limited when Registering Backup ID! \(error)")
+            if
+                let retryAfterHeader = error.responseHeaders?["retry-after"],
+                let retryAfterTime = TimeInterval(retryAfterHeader)
+            {
+                let title = OWSLocalizedString(
+                    "CHOOSE_BACKUP_PLAN_CONFIRMATION_ERROR_RATE_LIMITED_TITLE",
+                    comment: "Message shown in an action sheet when the user tries to confirm a plan selection, but encounters a rate limit. They should wait the requested amount of time and try again. {{ Embeds 1 & 2: the preformatted time they must wait before enabling backups, such as \"1 week\" or \"6 hours\". }}"
+                )
+                let message = OWSLocalizedString(
+                    "CHOOSE_BACKUP_PLAN_CONFIRMATION_ERROR_RATE_LIMITED",
+                    comment: "Message shown in an action sheet when the user tries to confirm a plan selection, but encounters a rate limit. They should wait the requested amount of time and try again."
+                )
+                let nextRetryString = DateUtil.formatDuration(
+                    seconds: UInt32(retryAfterTime),
+                    useShortFormat: false
+                )
+                throw .custom(
+                    localizedTitle: title,
+                    localizedMessage: String(format: message, nextRetryString)
+                )
+            } else {
+                throw .genericError
+            }
         } catch {
-            owsFailDebug("Unexpectedly failed to register Backup ID! \(error)")
+            owsFailDebug("Unexpectedly failed to register Backup ID! \(error)", logger: logger)
             throw .genericError
+        }
+
+        // Proactively clear persisted subscription-related issues, as they'll
+        // be superceded, and/or re-set, by our imminent enabling attempt.
+        await db.awaitableWrite { tx in
+            backupSubscriptionIssueStore.setStopWarningIAPSubscriptionAlreadyRedeemed(tx: tx)
+            backupSubscriptionIssueStore.setStopWarningIAPSubscriptionNotFoundLocally(tx: tx)
         }
 
         switch planSelection {
@@ -146,7 +184,7 @@ final class BackupEnablingManager {
         } catch StoreKitError.networkError {
             throw .networkError
         } catch {
-            owsFailDebug("StoreKit purchase unexpectedly failed: \(error)")
+            owsFailDebug("StoreKit purchase unexpectedly failed: \(error)", logger: logger)
             throw .custom(localizedMessage: OWSLocalizedString(
                 "CHOOSE_BACKUP_PLAN_CONFIRMATION_ERROR_PURCHASE",
                 comment: "Message shown in an action sheet when the user tries to confirm selecting the paid plan, but encountered an error from Apple while purchasing."
@@ -158,7 +196,7 @@ final class BackupEnablingManager {
             do {
                 try await self.backupSubscriptionManager.redeemSubscriptionIfNecessary()
             } catch {
-                owsFailDebug("Unexpectedly failed to redeem subscription! \(error)")
+                owsFailDebug("Unexpectedly failed to redeem subscription! \(error)", logger: logger)
                 throw .custom(localizedMessage: OWSLocalizedString(
                     "CHOOSE_BACKUP_PLAN_CONFIRMATION_ERROR_PURCHASE_REDEMPTION",
                     comment: "Message shown in an action sheet when the user tries to confirm selecting the paid plan, but encountered an error while redeeming their completed purchase."
@@ -188,11 +226,7 @@ final class BackupEnablingManager {
             try await setBackupPlan { _ in .free }
 
         case .userCancelled:
-            // Do nothing – don't even dismiss "choose plan", to give
-            // the user the chance to try again. We've reserved a Backup
-            // ID at this point, but that's fine even if they don't end
-            // up enabling Backups at all.
-            break
+            throw .userCancelled
 
         }
     }
@@ -203,7 +237,7 @@ final class BackupEnablingManager {
         } catch where error.isNetworkFailureOrTimeout {
             throw .networkError
         } catch {
-            owsFailDebug("Unexpectedly failed to renew Backup entitlement for tester! \(error)")
+            owsFailDebug("Unexpectedly failed to renew Backup entitlement for tester! \(error)", logger: logger)
             throw .genericError
         }
 
@@ -227,7 +261,7 @@ final class BackupEnablingManager {
                 try backupPlanManager.setBackupPlan(newBackupPlan, tx: tx)
             }
         } catch {
-            owsFailDebug("Failed to set BackupPlan! \(error)")
+            owsFailDebug("Failed to set BackupPlan! \(error)", logger: logger)
             throw .genericError
         }
     }

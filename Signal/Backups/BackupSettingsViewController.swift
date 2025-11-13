@@ -26,8 +26,10 @@ class BackupSettingsViewController:
     private let backupEnablingManager: BackupEnablingManager
     private let backupExportJobRunner: BackupExportJobRunner
     private let backupFailureStateManager: BackupFailureStateManager
+    private let backupIdService: BackupIdService
     private let backupPlanManager: BackupPlanManager
     private let backupSettingsStore: BackupSettingsStore
+    private let backupSubscriptionIssueStore: BackupSubscriptionIssueStore
     private let backupSubscriptionManager: BackupSubscriptionManager
     private let db: DB
     private let deviceSleepManager: DeviceSleepManager
@@ -59,8 +61,10 @@ class BackupSettingsViewController:
             backupEnablingManager: AppEnvironment.shared.backupEnablingManager,
             backupExportJobRunner: DependenciesBridge.shared.backupExportJobRunner,
             backupFailureStateManager: DependenciesBridge.shared.backupFailureStateManager,
+            backupIdService: DependenciesBridge.shared.backupIdService,
             backupPlanManager: DependenciesBridge.shared.backupPlanManager,
             backupSettingsStore: BackupSettingsStore(),
+            backupSubscriptionIssueStore: BackupSubscriptionIssueStore(),
             backupSubscriptionManager: DependenciesBridge.shared.backupSubscriptionManager,
             db: DependenciesBridge.shared.db,
             deviceSleepManager: deviceSleepManager,
@@ -82,8 +86,10 @@ class BackupSettingsViewController:
         backupEnablingManager: BackupEnablingManager,
         backupExportJobRunner: BackupExportJobRunner,
         backupFailureStateManager: BackupFailureStateManager,
+        backupIdService: BackupIdService,
         backupPlanManager: BackupPlanManager,
         backupSettingsStore: BackupSettingsStore,
+        backupSubscriptionIssueStore: BackupSubscriptionIssueStore,
         backupSubscriptionManager: BackupSubscriptionManager,
         db: DB,
         deviceSleepManager: DeviceSleepManager,
@@ -110,8 +116,10 @@ class BackupSettingsViewController:
         self.backupEnablingManager = backupEnablingManager
         self.backupExportJobRunner = backupExportJobRunner
         self.backupFailureStateManager = backupFailureStateManager
+        self.backupIdService = backupIdService
         self.backupPlanManager = backupPlanManager
         self.backupSettingsStore = backupSettingsStore
+        self.backupSubscriptionIssueStore = backupSubscriptionIssueStore
         self.backupSubscriptionManager = backupSubscriptionManager
         self.db = db
         self.deviceSleepManager = deviceSleepManager
@@ -123,6 +131,7 @@ class BackupSettingsViewController:
             let viewModel = BackupSettingsViewModel(
                 backupSubscriptionConfiguration: subscriptionConfigManager.backupConfigurationOrDefault(tx: tx),
                 backupSubscriptionLoadingState: .loading,
+                backupSubscriptionAlreadyRedeemed: backupSubscriptionIssueStore.shouldShowIAPSubscriptionAlreadyRedeemedWarning(tx: tx),
                 backupPlan: backupPlanManager.backupPlan(tx: tx),
                 failedToDisableBackupsRemotely: backupDisablingManager.disableRemotelyFailed(tx: tx),
                 latestBackupExportProgressUpdate: nil,
@@ -134,9 +143,10 @@ class BackupSettingsViewController:
                 mediaTierCapacityOverflow: Self.getMediaTierCapacityOverflow(
                     backupAttachmentUploadStore: backupAttachmentUploadStore,
                     backupSettingsStore: backupSettingsStore,
-                    tx: tx
+                    tx: tx,
                 ),
-                hasBackupFailed: backupFailureStateManager.hasFailedBackup(tx: tx)
+                hasBackupFailed: backupFailureStateManager.hasFailedBackup(tx: tx),
+                isBackgroundAppRefreshDisabled: Self.isBackgroundAppRefreshDisabled(),
             )
 
             return viewModel
@@ -168,7 +178,7 @@ class BackupSettingsViewController:
         case nil:
             break
         case .presentWelcomeToBackupsSheet:
-            presentWelcomeToBackupsSheet()
+            presentWelcomeToBackupsSheetIfNecessary()
         }
     }
 
@@ -295,11 +305,41 @@ class BackupSettingsViewController:
             },
             Task.detached { [weak self] in
                 for await _ in NotificationCenter.default.notifications(
+                    named: .backupSubscriptionAlreadyRedeemedDidChange,
+                ) {
+                    await MainActor.run { [weak self] in
+                        guard let self else { return }
+                        _backupSubscriptionAlreadyRedeemedDidChange()
+                    }
+                }
+            },
+            Task.detached { [weak self] in
+                for await _ in NotificationCenter.default.notifications(
+                    named: .backupIAPNotFoundLocallyDidChange,
+                ) {
+                    await MainActor.run { [weak self] in
+                        guard let self else { return }
+                        _backupIAPNotFoundLocallyDidChange()
+                    }
+                }
+            },
+            Task.detached { [weak self] in
+                for await _ in NotificationCenter.default.notifications(
                     named: .hasConsumedMediaTierCapacityStatusDidChange
                 ) {
                     await MainActor.run { [weak self] in
                         guard let self else { return }
                         _hasConsumedMediaTierCapacityDidChange()
+                    }
+                }
+            },
+            Task.detached { [weak self] in
+                for await _ in NotificationCenter.default.notifications(
+                    named: UIApplication.backgroundRefreshStatusDidChangeNotification,
+                ) {
+                    await MainActor.run { [weak self] in
+                        guard let self else { return }
+                        _isBackgroundAppRefreshDisabledDidChange()
                     }
                 }
             }
@@ -383,6 +423,18 @@ class BackupSettingsViewController:
         }
     }
 
+    private func _backupSubscriptionAlreadyRedeemedDidChange() {
+        db.read { tx in
+            viewModel.backupSubscriptionAlreadyRedeemed = backupSubscriptionIssueStore.shouldShowIAPSubscriptionAlreadyRedeemedWarning(tx: tx)
+        }
+    }
+
+    private func _backupIAPNotFoundLocallyDidChange() {
+        // This property isn't directly on the view model, but is fetched as
+        // part of loading the subscription view.
+        loadBackupSubscription()
+    }
+
     private func _hasConsumedMediaTierCapacityDidChange() {
         db.read { tx in
             viewModel.mediaTierCapacityOverflow = Self.getMediaTierCapacityOverflow(
@@ -406,6 +458,18 @@ class BackupSettingsViewController:
         }
     }
 
+    private func _isBackgroundAppRefreshDisabledDidChange() {
+        viewModel.isBackgroundAppRefreshDisabled = Self.isBackgroundAppRefreshDisabled()
+    }
+
+    private static func isBackgroundAppRefreshDisabled() -> Bool {
+        switch UIApplication.shared.backgroundRefreshStatus {
+        case .restricted, .denied: true
+        case .available: false
+        @unknown default: false
+        }
+    }
+
     // MARK: - BackupSettingsViewModel.ActionsDelegate
 
     fileprivate func enableBackups(
@@ -420,13 +484,13 @@ class BackupSettingsViewController:
                     planSelection: planSelection
                 )
             } else {
-                await showChooseBackupPlan(initialPlanSelection: nil)
+                await _showChooseBackupPlan(initialPlanSelection: nil)
             }
         }
     }
 
     @MainActor
-    private func showChooseBackupPlan(
+    private func _showChooseBackupPlan(
         initialPlanSelection: ChooseBackupPlanViewController.PlanSelection?
     ) async {
         do throws(ActionSheetDisplayableError) {
@@ -466,20 +530,28 @@ class BackupSettingsViewController:
             )
 
             navigationController?.popToViewController(self, animated: true) { [self] in
-                presentWelcomeToBackupsSheet()
+                presentWelcomeToBackupsSheetIfNecessary()
             }
         } catch {
             error.showActionSheet(from: fromViewController)
         }
     }
 
-    private func presentWelcomeToBackupsSheet() {
+    private func presentWelcomeToBackupsSheetIfNecessary() {
+        let hasNeverRunBackups = db.read { tx in
+            backupSettingsStore.firstBackupDate(tx: tx) == nil
+        }
+
+        if hasNeverRunBackups {
+            _presentWelcomeToBackupsSheet()
+        }
+    }
+
+    private func _presentWelcomeToBackupsSheet() {
         final class WelcomeToBackupsSheet: HeroSheetViewController {
             override var canBeDismissed: Bool { false }
 
-            init(
-                onConfirm: @escaping () -> Void,
-            ) {
+            init(onConfirm: @escaping () -> Void) {
                 super.init(
                     hero: .image(.backupsSubscribed),
                     title: OWSLocalizedString(
@@ -490,10 +562,10 @@ class BackupSettingsViewController:
                         "BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_MESSAGE",
                         comment: "Message for a sheet shown after the user enables backups."
                     ),
-                    primary: .button(HeroSheetViewController.Button(
+                    primaryButton: HeroSheetViewController.Button(
                         title: CommonStrings.okButton,
                         action: { _ in onConfirm() }
-                    )),
+                    ),
                 )
             }
         }
@@ -609,7 +681,7 @@ class BackupSettingsViewController:
                 ),
                 handler: { [weak self] _ in
                     guard let self else { return }
-                    manageOrCancelPaidPlan()
+                    showAppStoreManageSubscriptions()
                 }
             ))
             cancelSubscriptionSheet.addAction(.cancel)
@@ -671,30 +743,51 @@ class BackupSettingsViewController:
 
         switch currentBackupPlan {
         case .free:
-            return .free
+            return .freeAndEnabled
         case .paidAsTester:
             return .paidButFreeForTesters
-        case .disabling, .disabled, .paid, .paidExpiringSoon:
+        case .disabling, .disabled:
+            // Our IAP subscription may be active even if Backups are disabled,
+            // and if so we want to load the state of said subscription.
+            break
+        case .paid, .paidExpiringSoon:
             break
         }
 
-        guard
-            let backupSubscription = try await backupSubscriptionManager
-                .fetchAndMaybeDowngradeSubscription()
-        else {
-            return .free
+        let fetchedBackupSubscription: Subscription? = try await backupSubscriptionManager
+            .fetchAndMaybeDowngradeSubscription()
+
+        // Now that we've fetched a subscription, refetch state that may have
+        // changed as a result.
+        var backupIAPNotFoundLocally: Bool!
+        db.read { tx in
+            currentBackupPlan = backupPlanManager.backupPlan(tx: tx)
+            backupIAPNotFoundLocally = backupSubscriptionIssueStore.shouldShowIAPSubscriptionNotFoundLocallyWarning(tx: tx)
         }
 
-        // The subscription fetch may have updated our local Backup plan.
-        currentBackupPlan = db.read { backupPlanManager.backupPlan(tx: $0) }
+        if backupIAPNotFoundLocally {
+            return .paidButIAPNotFoundLocally
+        }
 
+        let backupSubscription: Subscription
         switch currentBackupPlan {
         case .free:
-            return .free
+            return .freeAndEnabled
         case .paidAsTester:
             return .paidButFreeForTesters
-        case .disabling, .disabled, .paid, .paidExpiringSoon:
-            break
+        case .disabling, .disabled:
+            if let fetchedBackupSubscription {
+                backupSubscription = fetchedBackupSubscription
+            } else {
+                return .freeAndDisabled
+            }
+        case .paid, .paidExpiringSoon:
+            if let fetchedBackupSubscription {
+                backupSubscription = fetchedBackupSubscription
+            } else {
+                owsFailDebug("Missing Backups subscription after fetch, but still on paid plan!")
+                return .freeAndEnabled
+            }
         }
 
         switch backupSubscription.status {
@@ -726,13 +819,13 @@ class BackupSettingsViewController:
 
     // MARK: -
 
-    fileprivate func upgradeFromFreeToPaidPlan() {
+    fileprivate func showChooseBackupPlan(initialPlanSelection: ChooseBackupPlanViewController.PlanSelection?) {
         Task {
-            await showChooseBackupPlan(initialPlanSelection: .free)
+            await _showChooseBackupPlan(initialPlanSelection: initialPlanSelection)
         }
     }
 
-    fileprivate func manageOrCancelPaidPlan() {
+    fileprivate func showAppStoreManageSubscriptions() {
         guard let windowScene = view.window?.windowScene else {
             owsFailDebug("Missing window scene!")
             return
@@ -748,12 +841,6 @@ class BackupSettingsViewController:
             // Reload the BackupPlan, since our subscription may now be in a
             // different state (e.g., set to not renew).
             loadBackupSubscription()
-        }
-    }
-
-    fileprivate func managePaidPlanAsTester() {
-        Task {
-            await showChooseBackupPlan(initialPlanSelection: .paid)
         }
     }
 
@@ -1026,18 +1113,21 @@ class BackupSettingsViewController:
             onCreateNewKeyPressed: { [weak self] recordKeyViewController in
                 guard let self else { return }
 
-                // If appropriate, the warning sheet will let the user continue
-                // in a "create new AEP" flow.
-                showCreateNewRecoveryKeyWarningSheet(fromViewController: recordKeyViewController)
+                Task {
+                    // If appropriate, the warning sheet will let the user continue
+                    // in a "create new AEP" flow.
+                    await self.showCreateNewRecoveryKeyWarningSheet(fromViewController: recordKeyViewController)
+                }
             },
         )
 
         navigationController?.pushViewController(recordKeyViewController, animated: true)
     }
 
+    @MainActor
     private func showCreateNewRecoveryKeyWarningSheet(
         fromViewController: BackupRecordKeyViewController,
-    ) {
+    ) async {
         let (
             currentBackupPlan,
             isRegisteredPrimaryDevice,
@@ -1059,6 +1149,70 @@ class BackupSettingsViewController:
             return
         }
 
+        let showCreateKeySheet = {
+            self._showCreateNewRecoveryKeyWarningSheet(
+                fromViewController: fromViewController,
+                currentBackupPlan: currentBackupPlan
+            )
+        }
+
+        // Check if we've hit the limit for registering new backupIDs and warn the user
+        if
+            let limits = try? await backupIdService.fetchBackupIDLimits(auth: .implicit()),
+            !limits.hasPermitsRemaining
+        {
+            let bodyText = String(
+                format: OWSLocalizedString(
+                    "BACKUP_SETTINGS_CREATE_NEW_KEY_LIMIT_REACHED_WARNING_SHEET_BODY",
+                    comment: "Explanation text for a sheet warning users they've reached a rate limit for creating Recovery Key. {{ Embeds 1: the preformatted time they must wait before enabling backups, such as \"1 week\" or \"6 hours\". }}"
+                ),
+                DateUtil.formatDuration(
+                    seconds: UInt32(clamping: limits.retryAfterSeconds),
+                    useShortFormat: false
+                )
+            )
+            let actionSheet = ActionSheetController(
+                title: OWSLocalizedString(
+                    "BACKUP_SETTINGS_CREATE_NEW_KEY_LIMIT_REACHED_WARNING_SHEET_TITLE",
+                    comment: "Title for a sheet warning users they've reached a rate limit for creating Recovery Key."
+                ),
+                message: bodyText
+           )
+
+            actionSheet.addAction(ActionSheetAction(
+                title: OWSLocalizedString(
+                    "BACKUP_SETTINGS_CREATE_NEW_KEY_LIMIT_REACHED_WARNING_SHEET_CONTINUE_ACTION",
+                    comment: "Action in an action sheet allowing to continue to rotate their key"
+                ),
+                style: .destructive,
+                handler: { _ in
+                    showCreateKeySheet()
+                }
+            ))
+            actionSheet.addAction(ActionSheetAction(
+                title: CommonStrings.learnMore,
+                handler: { _ in
+                    CurrentAppContext().open(
+                        URL.Support.backups,
+                        completion: nil
+                    )
+                }
+            ))
+            actionSheet.addAction(ActionSheetAction(
+                title: CommonStrings.okButton,
+                handler: { _ in }
+            ))
+
+            presentActionSheet(actionSheet)
+        } else {
+            showCreateKeySheet()
+        }
+    }
+
+    private func _showCreateNewRecoveryKeyWarningSheet(
+        fromViewController: BackupRecordKeyViewController,
+        currentBackupPlan: BackupPlan
+    ) {
         let primaryButtonTitle: String
         switch currentBackupPlan {
         case .disabling:
@@ -1167,6 +1321,107 @@ class BackupSettingsViewController:
             }
         }
     }
+
+    // MARK: -
+
+    fileprivate func showBackupSubscriptionAlreadyRedeemedSheet() {
+        let alreadyRedeemedSheet = HeroSheetViewController(
+            hero: .circleIcon(icon: .backupErrorBold, iconSize: 40, tintColor: .orange, backgroundColor: UIColor(rgbHex: 0xF9E4B6)),
+            title: OWSLocalizedString(
+                "BACKUP_SETTINGS_SUBSCRIPTION_ALREADY_REDEEMED_SHEET_TITLE",
+                comment: "Title for a sheet explaining that the user's Backups subscription was already redeemed.",
+            ),
+            body: OWSLocalizedString(
+                "BACKUP_SETTINGS_SUBSCRIPTION_ALREADY_REDEEMED_SHEET_BODY",
+                comment: "Body for a sheet explaining that the user's Backups subscription was already redeemed.",
+            ),
+            primaryButton: .dismissing(title: OWSLocalizedString(
+                "BACKUP_SETTINGS_SUBSCRIPTION_ALREADY_REDEEMED_SHEET_GOT_IT_BUTTON",
+                comment: "Button for a sheet explaining that the user's Backups subscription was already redeemed.",
+            )),
+            secondaryButton: HeroSheetViewController.Button(
+                title: CommonStrings.learnMore,
+                style: .secondary,
+                action: .custom({ sheet in
+                    sheet.dismiss(animated: true) { [weak self] in
+                        guard let self else { return }
+                        ContactSupportActionSheet.present(
+                            emailFilter: .custom("BackupSubscriptionAlreadyRedeemed"),
+                            logDumper: .fromGlobals(),
+                            fromViewController: self,
+                        )
+                    }
+                }),
+            )
+        )
+
+        present(alreadyRedeemedSheet, animated: true)
+    }
+
+    fileprivate func showBackupIAPNotFoundLocallySheet() {
+        let notFoundLocallySheet = HeroSheetViewController(
+            hero: .circleIcon(icon: .backupErrorBold, iconSize: 40, tintColor: .orange, backgroundColor: UIColor(rgbHex: 0xF9E4B6)),
+            title: OWSLocalizedString(
+                "BACKUP_SETTINGS_IAP_NOT_FOUND_LOCALLY_SHEET_TITLE",
+                comment: "Title for a sheet explaining that the user's Backups subscription was not found on this device.",
+            ),
+            body: OWSLocalizedString(
+                "BACKUP_SETTINGS_IAP_NOT_FOUND_LOCALLY_SHEET_BODY",
+                comment: "Body for a sheet explaining that the user's Backups subscription was not found on this device.",
+            ),
+            primaryButton: .dismissing(title: OWSLocalizedString(
+                "BACKUP_SETTINGS_IAP_NOT_FOUND_LOCALLY_SHEET_GOT_IT_BUTTON",
+                comment: "Button for a sheet explaining that the user's Backups subscription was not found on this device.",
+            )),
+            secondaryButton: HeroSheetViewController.Button(
+                title: CommonStrings.contactSupport,
+                style: .secondary,
+                action: .custom({ sheet in
+                    sheet.dismiss(animated: true) { [weak self] in
+                        guard let self else { return }
+                        ContactSupportActionSheet.present(
+                            emailFilter: .custom("BackupIAPNotFoundLocally"),
+                            logDumper: .fromGlobals(),
+                            fromViewController: self,
+                        )
+                    }
+                }),
+            )
+        )
+
+        present(notFoundLocallySheet, animated: true)
+    }
+
+    fileprivate func showBackgroundAppRefreshDisabledWarningSheet() {
+        let disabledSheet = HeroSheetViewController(
+            hero: .circleIcon(icon: .backupErrorBold, iconSize: 40, tintColor: .orange, backgroundColor: UIColor(rgbHex: 0xF9E4B6)),
+            title: OWSLocalizedString(
+                "BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_SHEET_TITLE",
+                comment: "Title for a sheet warning the user about the Background App Refresh permission. \"Background App Refresh\" should be localized the same way it is in iOS Settings app permissions.",
+            ),
+            body: OWSLocalizedString(
+                "BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_SHEET_MESSAGE",
+                comment: "Message for a sheet warning the user about the Background App Refresh permission. \"Background App Refresh\" should be localized the same way it is in iOS Settings app permissions.",
+            ),
+            primaryButton: HeroSheetViewController.Button(
+                title: OWSLocalizedString(
+                    "BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_SHEET_GO_TO_SETTINGS_BUTTON",
+                    comment: "Title for a button that takes the users to Signal's iOS Settings page.",
+                ),
+                action: { sheet in
+                    sheet.dismiss(animated: true) {
+                        UIApplication.shared.openSystemSettings()
+                    }
+                },
+            ),
+            secondaryButton: .dismissing(
+                title: CommonStrings.dismissButton,
+                style: .secondary,
+            ),
+        )
+
+        present(disabledSheet, animated: true)
+    }
 }
 
 // MARK: -
@@ -1178,9 +1433,8 @@ private class BackupSettingsViewModel: ObservableObject {
         func disableBackups()
 
         func loadBackupSubscription()
-        func upgradeFromFreeToPaidPlan()
-        func manageOrCancelPaidPlan()
-        func managePaidPlanAsTester()
+        func showChooseBackupPlan(initialPlanSelection: ChooseBackupPlanViewController.PlanSelection?)
+        func showAppStoreManageSubscriptions()
 
         func performManualBackup()
         func cancelManualBackup()
@@ -1194,16 +1448,22 @@ private class BackupSettingsViewModel: ObservableObject {
         func setShouldAllowBackupDownloadsOnCellular()
 
         func showViewRecoveryKey()
+
+        func showBackupSubscriptionAlreadyRedeemedSheet()
+        func showBackupIAPNotFoundLocallySheet()
+        func showBackgroundAppRefreshDisabledWarningSheet()
     }
 
     enum BackupSubscriptionLoadingState {
         enum LoadedBackupSubscription {
-            case free
+            case freeAndEnabled
+            case freeAndDisabled
             case paidButFreeForTesters
             case paid(price: FiatMoney, renewalDate: Date)
             case paidButExpiring(expirationDate: Date)
             case paidButExpired(expirationDate: Date)
             case paidButFailedToRenew
+            case paidButIAPNotFoundLocally
         }
 
         case loading
@@ -1215,6 +1475,8 @@ private class BackupSettingsViewModel: ObservableObject {
     @Published var backupSubscriptionConfiguration: BackupSubscriptionConfiguration
 
     @Published var backupSubscriptionLoadingState: BackupSubscriptionLoadingState
+    @Published var backupSubscriptionAlreadyRedeemed: Bool
+
     @Published var backupPlan: BackupPlan
     @Published var failedToDisableBackupsRemotely: Bool
 
@@ -1225,17 +1487,25 @@ private class BackupSettingsViewModel: ObservableObject {
     @Published var lastBackupDate: Date?
     @Published var lastBackupSizeBytes: UInt64?
     @Published var shouldAllowBackupUploadsOnCellular: Bool
+
     /// Nil means has not consumed capacity; non-nil value represents the total byte count over
     /// the server side capacity all local attachments consume (meaning that's how many bytes
     /// the user has to delete to go back under storage quota).
     @Published var mediaTierCapacityOverflow: UInt64?
+    /// Indicates that the user's Backup has failed recently, and we should show
+    /// a corresponding error.
     @Published var hasBackupFailed: Bool
+    /// Indicates that the "Background App Refresh" permission is disabled, and
+    /// we should show a corresponding error. (This prevents `BGProcessingTask`
+    /// from running.)
+    @Published var isBackgroundAppRefreshDisabled: Bool
 
     weak var actionsDelegate: ActionsDelegate?
 
     init(
         backupSubscriptionConfiguration: BackupSubscriptionConfiguration,
         backupSubscriptionLoadingState: BackupSubscriptionLoadingState,
+        backupSubscriptionAlreadyRedeemed: Bool,
         backupPlan: BackupPlan,
         failedToDisableBackupsRemotely: Bool,
         latestBackupExportProgressUpdate: OWSSequentialProgress<BackupExportJobStep>?,
@@ -1246,10 +1516,13 @@ private class BackupSettingsViewModel: ObservableObject {
         shouldAllowBackupUploadsOnCellular: Bool,
         mediaTierCapacityOverflow: UInt64?,
         hasBackupFailed: Bool,
+        isBackgroundAppRefreshDisabled: Bool,
     ) {
         self.backupSubscriptionConfiguration = backupSubscriptionConfiguration
 
         self.backupSubscriptionLoadingState = backupSubscriptionLoadingState
+        self.backupSubscriptionAlreadyRedeemed = backupSubscriptionAlreadyRedeemed
+
         self.backupPlan = backupPlan
         self.failedToDisableBackupsRemotely = failedToDisableBackupsRemotely
 
@@ -1260,8 +1533,10 @@ private class BackupSettingsViewModel: ObservableObject {
         self.lastBackupDate = lastBackupDate
         self.lastBackupSizeBytes = lastBackupSizeBytes
         self.shouldAllowBackupUploadsOnCellular = shouldAllowBackupUploadsOnCellular
+
         self.mediaTierCapacityOverflow = mediaTierCapacityOverflow
         self.hasBackupFailed = hasBackupFailed
+        self.isBackgroundAppRefreshDisabled = isBackgroundAppRefreshDisabled
     }
 
     // MARK: -
@@ -1291,16 +1566,12 @@ private class BackupSettingsViewModel: ObservableObject {
         actionsDelegate?.loadBackupSubscription()
     }
 
-    func upgradeFromFreeToPaidPlan() {
-        actionsDelegate?.upgradeFromFreeToPaidPlan()
+    func showChooseBackupPlan(initialPlanSelection: ChooseBackupPlanViewController.PlanSelection?) {
+        actionsDelegate?.showChooseBackupPlan(initialPlanSelection: initialPlanSelection)
     }
 
-    func manageOrCancelPaidPlan() {
-        actionsDelegate?.manageOrCancelPaidPlan()
-    }
-
-    func managePaidPlanAsTester() {
-        actionsDelegate?.managePaidPlanAsTester()
+    func showAppStoreManageSubscriptions() {
+        actionsDelegate?.showAppStoreManageSubscriptions()
     }
 
     // MARK: -
@@ -1365,6 +1636,20 @@ private class BackupSettingsViewModel: ObservableObject {
     func showViewRecoveryKey() {
         actionsDelegate?.showViewRecoveryKey()
     }
+
+    // MARK: -
+
+    func showBackupSubscriptionAlreadyRedeemedSheet() {
+        actionsDelegate?.showBackupSubscriptionAlreadyRedeemedSheet()
+    }
+
+    func showBackupIAPNotFoundLocallySheet() {
+        actionsDelegate?.showBackupIAPNotFoundLocallySheet()
+    }
+
+    func showBackgroundAppRefreshDisabledWarningSheet() {
+        actionsDelegate?.showBackgroundAppRefreshDisabledWarningSheet()
+    }
 }
 
 // MARK: -
@@ -1422,6 +1707,37 @@ struct BackupSettingsView: View {
                 .foregroundColor(Color.Signal.label)
             }
 
+            if viewModel.backupSubscriptionAlreadyRedeemed {
+                SignalSection {
+                    HStack(alignment: .center, spacing: 16) {
+                        Image(.backupErrorBold)
+                            .resizable()
+                            .frame(width: 24, height: 24)
+                            .foregroundStyle(Color.Signal.orange)
+
+                        Text(OWSLocalizedString(
+                            "BACKUP_SETTINGS_SUBSCRIPTION_ALREADY_REDEEMED_NOTICE_TITLE",
+                            comment: "Title for notice that the user's Backups subscription couldn't be redeemed."
+                        ))
+                        .font(.subheadline)
+                        .foregroundColor(Color.Signal.label)
+
+                        Button {
+                            viewModel.showBackupSubscriptionAlreadyRedeemedSheet()
+                        } label: {
+                            Text(OWSLocalizedString(
+                                "BACKUP_SETTINGS_SUBSCRIPTION_ALREADY_REDEEMED_NOTICE_DETAIL_BUTTON",
+                                comment: "Title for detail button in notice that the user's Backups subscription couldn't be redeemed."
+                            ))
+                            .font(.subheadline)
+                            .fontWeight(.bold)
+                            .foregroundColor(Color.Signal.label)
+                        }
+                    }
+                }
+                .listRowBackground(Color.Signal.quaternaryFill)
+            }
+
             SignalSection {
                 BackupSubscriptionView(
                     backupSubscriptionConfiguration: viewModel.backupSubscriptionConfiguration,
@@ -1432,22 +1748,73 @@ struct BackupSettingsView: View {
 
             switch contents {
             case .enabled:
+                if let latestBackupAttachmentDownloadUpdate = viewModel.latestBackupAttachmentDownloadUpdate {
+                    SignalSection {
+                        BackupAttachmentDownloadProgressView(
+                            backupPlan: viewModel.backupPlan,
+                            latestDownloadUpdate: latestBackupAttachmentDownloadUpdate,
+                            viewModel: viewModel,
+                        )
+                    }
+                }
+
+            case .disablingDownloadsRunning(let lastDownloadUpdate):
                 SignalSection {
+                    BackupAttachmentDownloadProgressView(
+                        backupPlan: viewModel.backupPlan,
+                        latestDownloadUpdate: lastDownloadUpdate,
+                        viewModel: viewModel
+                    )
+                } header: {
+                    Text(OWSLocalizedString(
+                        "BACKUP_SETTINGS_BACKUPS_DISABLING_DOWNLOADING_MEDIA_PROGRESS_VIEW_DESCRIPTION",
+                        comment: "Description for a progress view tracking media being downloaded in service of disabling Backups."
+                    ))
+                    .font(.subheadline)
+                    .foregroundStyle(Color.Signal.secondaryLabel)
+                }
+
+            case .disabled, .disabling, .disabledFailedToDisableRemotely:
+                EmptyView()
+            }
+
+            switch contents {
+            case .enabled:
+                SignalSection {
+                    if viewModel.isBackgroundAppRefreshDisabled {
+                        Label {
+                            Text(OWSLocalizedString(
+                                "BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_MESSAGE",
+                                comment: "Message describing that the Background App Refresh permission is disabled for Signal. \"Background App Refresh\" should be localized the same way it is in iOS Settings app permissions."
+                            ))
+                            .appendLink(
+                                OWSLocalizedString(
+                                    "BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_MESSAGE_UPDATE_NOW",
+                                    comment: "Add-on to a message describing that the Background App Refresh permission is disabled for Signal. \"Background App Refresh\" should be localized the same way it is in iOS Settings app permissions."
+                                ),
+                                useBold: true,
+                                tint: .Signal.label,
+                                action: {
+                                    viewModel.showBackgroundAppRefreshDisabledWarningSheet()
+                                },
+                            )
+                            .font(.subheadline)
+                            .multilineTextAlignment(.leading)
+                        } icon: {
+                            YellowBadgeView()
+                        }
+                    }
+
                     if viewModel.hasBackupFailed {
                         Label {
                             Text(OWSLocalizedString(
                                 "BACKUP_SETTINGS_BACKUP_FAILED_MESSAGE",
                                 comment: "Message describing to the user that the last backup failed."
                             ))
-                            .font(.footnote)
+                            .font(.subheadline)
                             .multilineTextAlignment(.leading)
                         } icon: {
-                            Image(
-                                uiImage: UIImage.buildBadgeImage(
-                                    size: .square(10),
-                                    color: UIColor.Signal.yellow
-                                )
-                            )
+                            YellowBadgeView()
                         }
                     }
 
@@ -1491,9 +1858,7 @@ struct BackupSettingsView: View {
                                 .monospacedDigit()
                                 .multilineTextAlignment(.leading)
                             } icon: {
-                                Image(
-                                    uiImage: UIImage(named: "error-circle-fill-compact")!
-                                )
+                                Image(.errorCircleFillCompact)
                             }
                         }
                         VStack(alignment: .leading) {
@@ -1509,20 +1874,6 @@ struct BackupSettingsView: View {
                             viewModel.suspendUploads()
                         }
                     } else {
-                        if let latestBackupAttachmentDownloadUpdate = viewModel.latestBackupAttachmentDownloadUpdate {
-                            switch contents {
-                            case .disabling, .disablingDownloadsRunning:
-                                // We'll show a download progress bar below if necessary.
-                                EmptyView()
-                            case .enabled, .disabled, .disabledFailedToDisableRemotely:
-                                BackupAttachmentDownloadProgressView(
-                                    backupPlan: viewModel.backupPlan,
-                                    latestDownloadUpdate: latestBackupAttachmentDownloadUpdate,
-                                    viewModel: viewModel,
-                                )
-                            }
-                        }
-
                         PerformManualBackupButton {
                             viewModel.performManualBackup()
                         }
@@ -1600,22 +1951,10 @@ struct BackupSettingsView: View {
                     .foregroundStyle(Color.Signal.secondaryLabel)
                 }
 
-            case .disablingDownloadsRunning(let lastDownloadUpdate):
-                SignalSection {
-                    BackupAttachmentDownloadProgressView(
-                        backupPlan: viewModel.backupPlan,
-                        latestDownloadUpdate: lastDownloadUpdate,
-                        viewModel: viewModel
-                    )
-                } header: {
-                    Text(OWSLocalizedString(
-                        "BACKUP_SETTINGS_BACKUPS_DISABLING_DOWNLOADING_MEDIA_PROGRESS_VIEW_DESCRIPTION",
-                        comment: "Description for a progress view tracking media being downloaded in service of disabling Backups."
-                    ))
-                    .font(.subheadline)
-                    .foregroundStyle(Color.Signal.secondaryLabel)
-                }
-
+            case .disablingDownloadsRunning:
+                // Download progress is shown in the section above this, so don't show
+                // anything here until the downloads complete.
+                EmptyView()
             case .disabling:
                 SignalSection {
                     VStack(alignment: .leading) {
@@ -1641,7 +1980,10 @@ struct BackupSettingsView: View {
 
             case .disabled:
                 SignalSection {
-                    reenableBackupsButton
+                    ReenableBackupsButton(
+                        backupSubscriptionLoadingState: viewModel.backupSubscriptionLoadingState,
+                        viewModel: viewModel,
+                    )
                 } header: {
                     Text(OWSLocalizedString(
                         "BACKUP_SETTINGS_BACKUPS_DISABLED_SECTION_FOOTER",
@@ -1685,7 +2027,10 @@ struct BackupSettingsView: View {
                 }
 
                 SignalSection {
-                    reenableBackupsButton
+                    ReenableBackupsButton(
+                        backupSubscriptionLoadingState: viewModel.backupSubscriptionLoadingState,
+                        viewModel: viewModel,
+                    )
                 }
 
                 SignalSection {
@@ -1694,29 +2039,48 @@ struct BackupSettingsView: View {
             }
         }
     }
+}
 
-    /// A button to enable Backups if it was previously disabled, if we can let
-    /// the user reenable.
-    private var reenableBackupsButton: AnyView {
-        let implicitPlanSelection: ChooseBackupPlanViewController.PlanSelection?
-        switch viewModel.backupSubscriptionLoadingState {
-        case .loading, .networkError:
-            // Don't let them reenable until we know if they're already paying
-            // or not.
-            return AnyView(EmptyView())
-        case .loaded(.paidButFreeForTesters):
-            // Let them reenable with anything; there was no purchase.
-            implicitPlanSelection = nil
-        case .loaded(.free), .loaded(.paidButExpired), .loaded(.paidButFailedToRenew), .genericError:
-            // Let them reenable with anything.
-            implicitPlanSelection = nil
-        case .loaded(.paid), .loaded(.paidButExpiring):
-            // Only let the user reenable with .paid, because they're already
-            // paying.
-            implicitPlanSelection = .paid
+private struct YellowBadgeView: View {
+    var body: some View {
+        VStack {
+            Spacer().frame(height: 6)
+            Circle()
+                .frame(width: 10, height: 10)
+                .foregroundStyle(Color.Signal.yellow)
+            Spacer()
         }
+        .frame(maxHeight: .infinity)
+    }
+}
 
-        return AnyView(
+private struct ReenableBackupsButton: View {
+    let backupSubscriptionLoadingState: BackupSettingsViewModel.BackupSubscriptionLoadingState
+    let viewModel: BackupSettingsViewModel
+
+    private var implicitPlanSelection: ChooseBackupPlanViewController.PlanSelection?? {
+        switch backupSubscriptionLoadingState {
+        case .loading, .networkError:
+            // Don't let them reenable until we know more.
+            return nil
+        case
+                .loaded(.freeAndEnabled),
+                .loaded(.freeAndDisabled),
+                .loaded(.paidButFreeForTesters),
+                .loaded(.paidButExpired),
+                .loaded(.paidButFailedToRenew),
+                .loaded(.paidButIAPNotFoundLocally),
+                .genericError:
+            // Let them choose with which plan to reenable.
+            return .some(nil)
+        case .loaded(.paid), .loaded(.paidButExpiring):
+            // They're currently paid, so automatically reenable with paid.
+            return .paid
+        }
+    }
+
+    var body: some View {
+        if let implicitPlanSelection: ChooseBackupPlanViewController.PlanSelection? {
             Button {
                 viewModel.enableBackups(implicitPlanSelection: implicitPlanSelection)
             } label: {
@@ -1726,7 +2090,7 @@ struct BackupSettingsView: View {
                 ))
                 .foregroundStyle(Color.Signal.label)
             }
-        )
+        }
     }
 }
 
@@ -2218,10 +2582,10 @@ private struct BackupSubscriptionView: View {
             .frame(maxWidth: .infinity)
             .frame(height: 140)
         case .loaded(let loadedBackupSubscription):
-            loadedView(
+            BackupSubscriptionLoadedView(
                 backupSubscriptionConfiguration: backupSubscriptionConfiguration,
                 loadedBackupSubscription: loadedBackupSubscription,
-                viewModel: viewModel
+                viewModel: viewModel,
             )
         case .networkError:
             VStack(alignment: .center) {
@@ -2277,162 +2641,257 @@ private struct BackupSubscriptionView: View {
             .frame(minHeight: 140)
         }
     }
+}
 
-    private func loadedView(
-        backupSubscriptionConfiguration: BackupSubscriptionConfiguration,
-        loadedBackupSubscription: BackupSettingsViewModel.BackupSubscriptionLoadingState.LoadedBackupSubscription,
-        viewModel: BackupSettingsViewModel
-    ) -> some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading) {
+private struct BackupSubscriptionLoadedView: View {
+    let backupSubscriptionConfiguration: BackupSubscriptionConfiguration
+    let loadedBackupSubscription: BackupSettingsViewModel.BackupSubscriptionLoadingState.LoadedBackupSubscription
+    let viewModel: BackupSettingsViewModel
+
+    var body: some View {
+        VStack(alignment: .leading) {
+            HStack {
+                VStack(alignment: .leading) {
+                    headerView()
+                    descriptionView()
+                }
+
+                Spacer()
+
                 Group {
                     switch loadedBackupSubscription {
-                    case .free:
-                        Text(String.localizedStringWithFormat(
-                            OWSLocalizedString(
-                                "BACKUP_SETTINGS_BACKUP_PLAN_FREE_HEADER_%d",
-                                tableName: "PluralAware",
-                                comment: "Header describing what the free backup plan includes. Embeds {{ the number of days that files are available, e.g. '45' }}."
-                            ),
-                            backupSubscriptionConfiguration.freeTierMediaDays,
-                        ))
-                    case .paidButFreeForTesters, .paid, .paidButExpiring, .paidButExpired, .paidButFailedToRenew:
-                        Text(OWSLocalizedString(
-                            "BACKUP_SETTINGS_BACKUP_PLAN_PAID_HEADER",
-                            comment: "Header describing what the paid backup plan includes."
-                        ))
+                    case
+                            .freeAndEnabled,
+                            .freeAndDisabled,
+                            .paidButFreeForTesters,
+                            .paid,
+                            .paidButExpiring,
+                            .paidButExpired,
+                            .paidButFailedToRenew:
+                        Image(.backupsSubscribed).resizable()
+                    case .paidButIAPNotFoundLocally:
+                        Image(.backupsLogoWarningBadged).resizable()
                     }
                 }
-                .font(.subheadline)
-                .foregroundStyle(Color.Signal.secondaryLabel)
-
-                Spacer().frame(height: 8)
-
-                switch loadedBackupSubscription {
-                case .free:
-                    Text(OWSLocalizedString(
-                        "BACKUP_SETTINGS_BACKUP_PLAN_FREE_DESCRIPTION",
-                        comment: "Text describing the user's free backup plan."
-                    ))
-                case .paidButFreeForTesters:
-                    Text(OWSLocalizedString(
-                        "BACKUP_SETTINGS_BACKUP_PLAN_PAID_BUT_FREE_FOR_TESTERS_DESCRIPTION",
-                        comment: "Text describing that the user's backup plan is paid, but free for them as a tester."
-                    ))
-                case .paid(let price, let renewalDate):
-                    let renewalStringFormat = OWSLocalizedString(
-                        "BACKUP_SETTINGS_BACKUP_PLAN_PAID_RENEWAL_FORMAT",
-                        comment: "Text explaining when the user's paid backup plan renews. Embeds {{ the formatted renewal date }}."
-                    )
-                    let priceStringFormat = OWSLocalizedString(
-                        "BACKUP_SETTINGS_BACKUP_PLAN_PAID_PRICE_FORMAT",
-                        comment: "Text explaining the price of the user's paid backup plan. Embeds {{ the formatted price }}."
-                    )
-
-                    Text(String(
-                        format: priceStringFormat,
-                        CurrencyFormatter.format(money: price)
-                    ))
-                    Text(String(
-                        format: renewalStringFormat,
-                        DateFormatter.localizedString(from: renewalDate, dateStyle: .medium, timeStyle: .none)
-                    ))
-                case .paidButExpiring(let expirationDate), .paidButExpired(let expirationDate):
-                    let expirationDateFormatString = switch loadedBackupSubscription {
-                    case .free, .paidButFreeForTesters, .paid, .paidButFailedToRenew:
-                        owsFail("Not possible")
-                    case .paidButExpiring:
-                        OWSLocalizedString(
-                            "BACKUP_SETTINGS_BACKUP_PLAN_PAID_BUT_CANCELED_FUTURE_EXPIRATION_FORMAT",
-                            comment: "Text explaining that a user's paid plan, which has been canceled, will expire on a future date. Embeds {{ the formatted expiration date }}."
-                        )
-                    case .paidButExpired:
-                        OWSLocalizedString(
-                            "BACKUP_SETTINGS_BACKUP_PLAN_PAID_BUT_CANCELED_PAST_EXPIRATION_FORMAT",
-                            comment: "Text explaining that a user's paid plan, which has been canceled, expired on a past date. Embeds {{ the formatted expiration date }}."
-                        )
-                    }
-
-                    Text(OWSLocalizedString(
-                        "BACKUP_SETTINGS_BACKUP_PLAN_PAID_BUT_CANCELED_DESCRIPTION",
-                        comment: "Text describing that the user's paid backup plan has been canceled."
-                    ))
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Color.Signal.red)
-                    Text(String(
-                        format: expirationDateFormatString,
-                        DateFormatter.localizedString(from: expirationDate, dateStyle: .medium, timeStyle: .none)
-                    ))
-                case .paidButFailedToRenew:
-                    Text(OWSLocalizedString(
-                        "BACKUP_SETTINGS_BACKUP_PLAN_PAID_BUT_FAILED_TO_RENEW_DESCRIPTION_1",
-                        comment: "Text describing that the user's paid backup plan has been canceled."
-                    ))
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Color.Signal.red)
-                    Text(OWSLocalizedString(
-                        "BACKUP_SETTINGS_BACKUP_PLAN_PAID_BUT_FAILED_TO_RENEW_DESCRIPTION_2",
-                        comment: "Text describing that the user's paid backup plan has been canceled."
-                    ))
-                }
-
-                Spacer().frame(height: 16)
-
-                Button {
-                    switch loadedBackupSubscription {
-                    case .free:
-                        viewModel.upgradeFromFreeToPaidPlan()
-                    case .paidButFreeForTesters:
-                        viewModel.managePaidPlanAsTester()
-                    case .paid, .paidButExpiring, .paidButExpired, .paidButFailedToRenew:
-                        viewModel.manageOrCancelPaidPlan()
-                    }
-                } label: {
-                    switch loadedBackupSubscription {
-                    case .free:
-                        Text(OWSLocalizedString(
-                            "BACKUP_SETTINGS_BACKUP_PLAN_FREE_ACTION_BUTTON_TITLE",
-                            comment: "Title for a button allowing users to upgrade from a free to paid backup plan."
-                        ))
-                    case .paidButFreeForTesters:
-                        Text(OWSLocalizedString(
-                            "BACKUP_SETTINGS_BACKUP_PLAN_PAID_BUT_FREE_FOR_TESTERS_ACTION_BUTTON_TITLE",
-                            comment: "Title for a button allowing users to manage their backup plan as a tester."
-                        ))
-                    case .paid:
-                        Text(OWSLocalizedString(
-                            "BACKUP_SETTINGS_BACKUP_PLAN_PAID_ACTION_BUTTON_TITLE",
-                            comment: "Title for a button allowing users to manage or cancel their paid backup plan."
-                        ))
-                    case .paidButExpiring, .paidButExpired:
-                        Text(OWSLocalizedString(
-                            "BACKUP_SETTINGS_BACKUP_PLAN_PAID_BUT_CANCELED_ACTION_BUTTON_TITLE",
-                            comment: "Title for a button allowing users to reenable a paid backup plan that has been canceled."
-                        ))
-                    case .paidButFailedToRenew:
-                        Text(OWSLocalizedString(
-                            "BACKUP_SETTINGS_BACKUP_PLAN_PAID_BUT_FAILED_TO_RENEW_ACTION_BUTTON_TITLE",
-                            comment: "Title for a button allowing users to manage a paid backup plan that failed to renew."
-                        ))
-                    }
-                }
-                .buttonStyle(.bordered)
-                .buttonBorderShape(.capsule)
-                .foregroundStyle(Color.Signal.label)
-                .font(.subheadline)
-                .padding(.top, 8)
+                .frame(width: 64, height: 64)
+                .padding(.leading, 16)
             }
 
-            Spacer()
-
-            Image("backups-subscribed")
-                .resizable()
-                .frame(width: 64, height: 64)
+            buttonsView()
         }
-        .padding(.horizontal, 4)
-        .padding(.vertical, 8)
+        .padding(4)
+    }
+
+    @ViewBuilder
+    private func headerView() -> some View {
+        switch loadedBackupSubscription {
+        case .freeAndEnabled, .freeAndDisabled:
+            Text(String.localizedStringWithFormat(
+                OWSLocalizedString(
+                    "BACKUP_SETTINGS_BACKUP_PLAN_FREE_HEADER_%d",
+                    tableName: "PluralAware",
+                    comment: "Header describing what the free backup plan includes. Embeds {{ the number of days that files are available, e.g. '45' }}."
+                ),
+                backupSubscriptionConfiguration.freeTierMediaDays,
+            ))
+            .font(.subheadline)
+            .foregroundStyle(Color.Signal.secondaryLabel)
+
+            Spacer().frame(height: 8)
+        case .paidButFreeForTesters, .paid, .paidButExpiring, .paidButExpired, .paidButFailedToRenew:
+            Text(OWSLocalizedString(
+                "BACKUP_SETTINGS_BACKUP_PLAN_PAID_HEADER",
+                comment: "Header describing what the paid backup plan includes."
+            ))
+            .font(.subheadline)
+            .foregroundStyle(Color.Signal.secondaryLabel)
+
+            Spacer().frame(height: 8)
+        case .paidButIAPNotFoundLocally:
+            EmptyView()
+        }
+    }
+
+    @ViewBuilder
+    private func descriptionView() -> some View {
+        switch loadedBackupSubscription {
+        case .freeAndEnabled:
+            Text(OWSLocalizedString(
+                "BACKUP_SETTINGS_BACKUP_PLAN_FREE_DESCRIPTION",
+                comment: "Text describing the user's free backup plan."
+            ))
+        case .freeAndDisabled:
+            Text(OWSLocalizedString(
+                "BACKUP_SETTINGS_BACKUP_PLAN_FREE_AND_DISABLED_DESCRIPTION",
+                comment: "Text describing the user's free backup plan when they have Backups disabled."
+            ))
+        case .paidButFreeForTesters:
+            Text(OWSLocalizedString(
+                "BACKUP_SETTINGS_BACKUP_PLAN_PAID_BUT_FREE_FOR_TESTERS_DESCRIPTION",
+                comment: "Text describing that the user's backup plan is paid, but free for them as a tester."
+            ))
+        case .paid(let price, let renewalDate):
+            let priceStringFormat = OWSLocalizedString(
+                "BACKUP_SETTINGS_BACKUP_PLAN_PAID_PRICE_FORMAT",
+                comment: "Text explaining the price of the user's paid backup plan. Embeds {{ the formatted price }}."
+            )
+            Text(String(
+                format: priceStringFormat,
+                CurrencyFormatter.format(money: price)
+            ))
+
+            let renewalStringFormat = OWSLocalizedString(
+                "BACKUP_SETTINGS_BACKUP_PLAN_PAID_RENEWAL_FORMAT",
+                comment: "Text explaining when the user's paid backup plan renews. Embeds {{ the formatted renewal date }}."
+            )
+            Text(String(
+                format: renewalStringFormat,
+                DateFormatter.localizedString(from: renewalDate, dateStyle: .medium, timeStyle: .none)
+            ))
+        case .paidButExpiring(let expirationDate), .paidButExpired(let expirationDate):
+            let expirationDateFormatString = switch loadedBackupSubscription {
+            case .freeAndEnabled, .freeAndDisabled, .paidButFreeForTesters, .paid, .paidButFailedToRenew, .paidButIAPNotFoundLocally:
+                owsFail("Not possible")
+            case .paidButExpiring:
+                OWSLocalizedString(
+                    "BACKUP_SETTINGS_BACKUP_PLAN_PAID_BUT_CANCELED_FUTURE_EXPIRATION_FORMAT",
+                    comment: "Text explaining that a user's paid plan, which has been canceled, will expire on a future date. Embeds {{ the formatted expiration date }}."
+                )
+            case .paidButExpired:
+                OWSLocalizedString(
+                    "BACKUP_SETTINGS_BACKUP_PLAN_PAID_BUT_CANCELED_PAST_EXPIRATION_FORMAT",
+                    comment: "Text explaining that a user's paid plan, which has been canceled, expired on a past date. Embeds {{ the formatted expiration date }}."
+                )
+            }
+
+            Text(OWSLocalizedString(
+                "BACKUP_SETTINGS_BACKUP_PLAN_PAID_BUT_CANCELED_DESCRIPTION",
+                comment: "Text describing that the user's paid backup plan has been canceled."
+            ))
+            .font(.subheadline)
+            .fontWeight(.semibold)
+            .foregroundStyle(Color.Signal.red)
+
+            Text(String(
+                format: expirationDateFormatString,
+                DateFormatter.localizedString(from: expirationDate, dateStyle: .medium, timeStyle: .none)
+            ))
+        case .paidButFailedToRenew:
+            Text(OWSLocalizedString(
+                "BACKUP_SETTINGS_BACKUP_PLAN_PAID_BUT_FAILED_TO_RENEW_DESCRIPTION_1",
+                comment: "Text describing that the user's paid backup plan has failed to renew."
+            ))
+            .font(.subheadline)
+            .fontWeight(.semibold)
+            .foregroundStyle(Color.Signal.red)
+
+            Text(OWSLocalizedString(
+                "BACKUP_SETTINGS_BACKUP_PLAN_PAID_BUT_FAILED_TO_RENEW_DESCRIPTION_2",
+                comment: "Text describing that the user's paid backup plan has failed to renew."
+            ))
+        case .paidButIAPNotFoundLocally:
+            Text(OWSLocalizedString(
+                "BACKUP_SETTINGS_BACKUP_PLAN_PAID_BUT_IAP_NOT_FOUND_LOCALLY_DESCRIPTION",
+                comment: "Text describing that the user's paid backup plan did not correspond to a App Store subscription on this device."
+            ))
+        }
+    }
+
+    @ViewBuilder
+    private func buttonsView() -> some View {
+        switch loadedBackupSubscription {
+        case .freeAndEnabled:
+            loadedViewButton(
+                label: OWSLocalizedString(
+                    "BACKUP_SETTINGS_BACKUP_PLAN_FREE_ACTION_BUTTON_TITLE",
+                    comment: "Title for a button allowing users to upgrade from a free to paid backup plan."
+                ), action: {
+                    viewModel.showChooseBackupPlan(initialPlanSelection: .free)
+                }
+            )
+        case .freeAndDisabled:
+            // We already expose a "reenable Backups" button, so no need here.
+            EmptyView()
+        case .paidButFreeForTesters:
+            loadedViewButton(
+                label: OWSLocalizedString(
+                    "BACKUP_SETTINGS_BACKUP_PLAN_PAID_BUT_FREE_FOR_TESTERS_ACTION_BUTTON_TITLE",
+                    comment: "Title for a button allowing users to manage their backup plan as a tester."
+                ), action: {
+                    viewModel.showChooseBackupPlan(initialPlanSelection: .paid)
+                }
+            )
+        case .paid:
+            loadedViewButton(
+                label: OWSLocalizedString(
+                    "BACKUP_SETTINGS_BACKUP_PLAN_PAID_ACTION_BUTTON_TITLE",
+                    comment: "Title for a button allowing users to manage or cancel their paid backup plan."
+                ), action: {
+                    viewModel.showAppStoreManageSubscriptions()
+                }
+            )
+        case .paidButExpiring, .paidButExpired:
+            loadedViewButton(
+                label: OWSLocalizedString(
+                    "BACKUP_SETTINGS_BACKUP_PLAN_PAID_BUT_CANCELED_ACTION_BUTTON_TITLE",
+                    comment: "Title for a button allowing users to reenable a paid backup plan that has been canceled."
+                ), action: {
+                    viewModel.showAppStoreManageSubscriptions()
+                }
+            )
+        case .paidButFailedToRenew:
+            loadedViewButton(
+                label: OWSLocalizedString(
+                    "BACKUP_SETTINGS_BACKUP_PLAN_PAID_BUT_FAILED_TO_RENEW_ACTION_BUTTON_TITLE",
+                    comment: "Title for a button allowing users to manage a paid backup plan that failed to renew."
+                ), action: {
+                    viewModel.showAppStoreManageSubscriptions()
+                }
+            )
+        case .paidButIAPNotFoundLocally:
+            HStack(spacing: 16) {
+                loadedViewButton(
+                    label: OWSLocalizedString(
+                        "BACKUP_SETTINGS_BACKUP_PLAN_PAID_BUT_IAP_NOT_FOUND_LOCALLY_ACTION_BUTTON_TITLE",
+                        comment: "Title for a button allowing users to renew their backup subscription on this device.",
+                    ),
+                    expandWidth: true,
+                    action: {
+                        viewModel.showChooseBackupPlan(initialPlanSelection: nil)
+                    },
+                )
+
+                loadedViewButton(
+                    label: CommonStrings.learnMore,
+                    expandWidth: true,
+                    action: {
+                        viewModel.showBackupIAPNotFoundLocallySheet()
+                    },
+                )
+            }
+        }
+    }
+
+    /// - Parameter expandWidth
+    /// If true, the returned Button will expand its width to fill its container
+    /// rather than just encapsulate its label.
+    @ViewBuilder
+    private func loadedViewButton(
+        label: String,
+        expandWidth: Bool = false,
+        action: @escaping () -> Void,
+    ) -> some View {
+        Button {
+            action()
+        } label: {
+            Text(label)
+                .frame(maxWidth: expandWidth ? .infinity : nil)
+        }
+        .buttonStyle(.bordered)
+        .buttonBorderShape(.capsule)
+        .foregroundStyle(Color.Signal.label)
+        .font(.subheadline.weight(.medium))
+        .padding(.top, 4)
     }
 }
 
@@ -2543,23 +3002,46 @@ private struct BackupViewKeyView: View {
 
 #if DEBUG
 
+private extension OWSSequentialProgress<BackupExportJobStep> {
+    static func forPreview(
+        _ step: BackupExportJobStep,
+        _ progress: Float
+    ) -> OWSSequentialProgress<BackupExportJobStep> {
+        return OWSProgress(
+            completedUnitCount: UInt64(progress * 100),
+            totalUnitCount: 100,
+            childProgresses: [
+                step.rawValue: [OWSProgress.ChildProgress(
+                    completedUnitCount: 1,
+                    totalUnitCount: 2,
+                    label: step.rawValue,
+                    parentLabel: nil
+                )]
+            ]
+        ).sequential(BackupExportJobStep.self)
+    }
+}
+
 private extension BackupSettingsViewModel {
     static func forPreview(
+        backupSubscriptionLoadingState: BackupSubscriptionLoadingState,
         backupPlan: BackupPlan,
+        backupSubscriptionAlreadyRedeemed: Bool = false,
         failedToDisableBackupsRemotely: Bool = false,
         latestBackupExportProgressUpdate: OWSSequentialProgress<BackupExportJobStep>? = nil,
         latestBackupAttachmentDownloadUpdateState: BackupSettingsAttachmentDownloadTracker.DownloadUpdate.State? = nil,
         latestBackupAttachmentUploadUpdateState: BackupSettingsAttachmentUploadTracker.UploadUpdate.State? = nil,
-        backupSubscriptionLoadingState: BackupSubscriptionLoadingState,
+        mediaTierCapacityOverflow: UInt64? = nil,
+        hasBackupFailed: Bool = false,
+        isBackgroundAppRefreshDisabled: Bool = false,
     ) -> BackupSettingsViewModel {
         class PreviewActionsDelegate: ActionsDelegate {
             func enableBackups(implicitPlanSelection: ChooseBackupPlanViewController.PlanSelection?) { print("Enabling! implicitPlanSelection: \(implicitPlanSelection as Any)") }
             func disableBackups() { print("Disabling!") }
 
             func loadBackupSubscription() { print("Loading BackupSubscription!") }
-            func upgradeFromFreeToPaidPlan() { print("Upgrading!") }
-            func manageOrCancelPaidPlan() { print("Managing or canceling!") }
-            func managePaidPlanAsTester() { print("Managing as tester!") }
+            func showChooseBackupPlan(initialPlanSelection: ChooseBackupPlanViewController.PlanSelection?) { print("ChooseBackupPlan! \(initialPlanSelection as Any)") }
+            func showAppStoreManageSubscriptions() { print("AppStore Manage Subscriptions!") }
 
             func performManualBackup() { print("Manually backing up!") }
             func cancelManualBackup() { print("Canceling manual backup!") }
@@ -2573,6 +3055,10 @@ private extension BackupSettingsViewModel {
             func setShouldAllowBackupDownloadsOnCellular() { print("Downloads on cellular: true") }
 
             func showViewRecoveryKey() { print("Showing View Recovery Key!") }
+
+            func showBackupSubscriptionAlreadyRedeemedSheet() { print("Showing Backup subscription already redeemed sheet!") }
+            func showBackupIAPNotFoundLocallySheet() { print("Showing Backup IAP not found locally sheet!") }
+            func showBackgroundAppRefreshDisabledWarningSheet() { print("Showing Background App Refresh warning sheet!") }
         }
 
         let viewModel = BackupSettingsViewModel(
@@ -2581,6 +3067,7 @@ private extension BackupSettingsViewModel {
                 freeTierMediaDays: 45,
             ),
             backupSubscriptionLoadingState: backupSubscriptionLoadingState,
+            backupSubscriptionAlreadyRedeemed: backupSubscriptionAlreadyRedeemed,
             backupPlan: backupPlan,
             failedToDisableBackupsRemotely: failedToDisableBackupsRemotely,
             latestBackupExportProgressUpdate: latestBackupExportProgressUpdate,
@@ -2601,8 +3088,9 @@ private extension BackupSettingsViewModel {
             lastBackupDate: Date().addingTimeInterval(-1 * .day),
             lastBackupSizeBytes: 2_400_000_000,
             shouldAllowBackupUploadsOnCellular: false,
-            mediaTierCapacityOverflow: nil,
-            hasBackupFailed: false
+            mediaTierCapacityOverflow: mediaTierCapacityOverflow,
+            hasBackupFailed: hasBackupFailed,
+            isBackgroundAppRefreshDisabled: isBackgroundAppRefreshDisabled,
         )
         let actionsDelegate = PreviewActionsDelegate()
         viewModel.actionsDelegate = actionsDelegate
@@ -2614,266 +3102,296 @@ private extension BackupSettingsViewModel {
 
 #Preview("Plan: Free") {
     BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .loaded(.freeAndEnabled),
         backupPlan: .free,
-        backupSubscriptionLoadingState: .loaded(.free)
     ))
 }
 
 #Preview("Plan: Free For Testers") {
     BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .loaded(.paidButFreeForTesters),
         backupPlan: .paidAsTester(optimizeLocalStorage: false),
-        backupSubscriptionLoadingState: .loaded(.paidButFreeForTesters)
     ))
 }
 
 #Preview("Plan: Paid") {
     BackupSettingsView(viewModel: .forPreview(
-        backupPlan: .paid(optimizeLocalStorage: false),
         backupSubscriptionLoadingState: .loaded(.paid(
             price: FiatMoney(currencyCode: "USD", value: 1.99),
             renewalDate: Date().addingTimeInterval(.week)
         )),
+        backupPlan: .paid(optimizeLocalStorage: false),
     ))
 }
 
 #Preview("Plan: Expiring") {
     BackupSettingsView(viewModel: .forPreview(
-        backupPlan: .paidExpiringSoon(optimizeLocalStorage: false),
         backupSubscriptionLoadingState: .loaded(.paidButExpiring(
             expirationDate: Date().addingTimeInterval(.week)
-        ))
+        )),
+        backupPlan: .paidExpiringSoon(optimizeLocalStorage: false),
     ))
 }
 
 #Preview("Plan: Expired") {
     BackupSettingsView(viewModel: .forPreview(
-        backupPlan: .paidExpiringSoon(optimizeLocalStorage: false),
         backupSubscriptionLoadingState: .loaded(.paidButExpired(
             expirationDate: Date().addingTimeInterval(-1 * .week)
-        ))
+        )),
+        backupPlan: .paidExpiringSoon(optimizeLocalStorage: false),
     ))
 }
 
 #Preview("Plan: Failed to Renew") {
     BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .loaded(.paidButFailedToRenew),
         backupPlan: .paidExpiringSoon(optimizeLocalStorage: false),
-        backupSubscriptionLoadingState: .loaded(.paidButFailedToRenew)
+    ))
+}
+
+#Preview("Plan: Already Redeemed") {
+    BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .loaded(.paid(
+            price: FiatMoney(currencyCode: "USD", value: 1.99),
+            renewalDate: Date().addingTimeInterval(.week),
+        )),
+        backupPlan: .paidExpiringSoon(optimizeLocalStorage: false),
+        backupSubscriptionAlreadyRedeemed: true,
+    ))
+}
+
+#Preview("Plan: Paid but No IAP") {
+    BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .loaded(.paidButIAPNotFoundLocally),
+        backupPlan: .paid(optimizeLocalStorage: false),
     ))
 }
 
 #Preview("Plan: Network Error") {
     BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .networkError,
         backupPlan: .paid(optimizeLocalStorage: false),
-        backupSubscriptionLoadingState: .networkError
     ))
 }
 
 #Preview("Plan: Generic Error") {
     BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .genericError,
         backupPlan: .paid(optimizeLocalStorage: false),
-        backupSubscriptionLoadingState: .genericError
     ))
 }
 
-extension OWSSequentialProgress<BackupExportJobStep> {
-    static func forPreview(
-        _ step: BackupExportJobStep,
-        _ progress: Float
-    ) -> OWSSequentialProgress<BackupExportJobStep> {
-        return OWSProgress(
-            completedUnitCount: UInt64(progress * 100),
-            totalUnitCount: 100,
-            childProgresses: [
-                step.rawValue: [OWSProgress.ChildProgress(
-                    completedUnitCount: 1,
-                    totalUnitCount: 2,
-                    label: step.rawValue,
-                    parentLabel: nil
-                )]
-            ]
-        ).sequential(BackupExportJobStep.self)
-    }
+#Preview("Failed Backup") {
+    BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .loaded(.freeAndEnabled),
+        backupPlan: .free,
+        hasBackupFailed: true,
+    ))
+}
+
+#Preview("Out of Quota") {
+    BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .loaded(.paidButFreeForTesters),
+        backupPlan: .paidAsTester(optimizeLocalStorage: false),
+        mediaTierCapacityOverflow: 1_000_000_000,
+    ))
+}
+
+#Preview("Background App Refresh Disabled") {
+    BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .loaded(.paidButFreeForTesters),
+        backupPlan: .paidAsTester(optimizeLocalStorage: false),
+        isBackgroundAppRefreshDisabled: true,
+    ))
 }
 
 #Preview("Manual Backup: Backup Export") {
     BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .loaded(.freeAndEnabled),
         backupPlan: .free,
         latestBackupExportProgressUpdate: .forPreview(.backupExport, 0.33),
-        backupSubscriptionLoadingState: .loaded(.free)
     ))
 }
 
 #Preview("Manual Backup: Listing Media") {
     BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .loaded(.freeAndEnabled),
         backupPlan: .free,
         latestBackupExportProgressUpdate: .forPreview(.listMedia, 0.50),
-        backupSubscriptionLoadingState: .loaded(.free)
     ))
 }
 
 #Preview("Manual Backup: Media Upload") {
     BackupSettingsView(viewModel: .forPreview(
-        backupPlan: .free,
+        backupSubscriptionLoadingState: .loaded(.paidButFreeForTesters),
+        backupPlan: .paidAsTester(optimizeLocalStorage: false),
         latestBackupExportProgressUpdate: .forPreview(.attachmentUpload, 0.80),
         latestBackupAttachmentUploadUpdateState: .running,
-        backupSubscriptionLoadingState: .loaded(.paidButFreeForTesters)
     ))
 }
 
 #Preview("Manual Backup: Media Upload Paused (Low Battery)") {
     BackupSettingsView(viewModel: .forPreview(
-        backupPlan: .free,
+        backupSubscriptionLoadingState: .loaded(.paidButFreeForTesters),
+        backupPlan: .paidAsTester(optimizeLocalStorage: false),
         latestBackupExportProgressUpdate: .forPreview(.attachmentUpload, 0.80),
         latestBackupAttachmentUploadUpdateState: .pausedLowBattery,
-        backupSubscriptionLoadingState: .loaded(.paidButFreeForTesters)
     ))
 }
 
 #Preview("Manual Backup: Media Upload Paused (Low Power Mode)") {
     BackupSettingsView(viewModel: .forPreview(
-        backupPlan: .free,
+        backupSubscriptionLoadingState: .loaded(.paidButFreeForTesters),
+        backupPlan: .paidAsTester(optimizeLocalStorage: false),
         latestBackupExportProgressUpdate: .forPreview(.attachmentUpload, 0.80),
         latestBackupAttachmentUploadUpdateState: .pausedLowPowerMode,
-        backupSubscriptionLoadingState: .loaded(.paidButFreeForTesters)
     ))
 }
 
 #Preview("Manual Backup: Media Upload Paused (WiFi)") {
     BackupSettingsView(viewModel: .forPreview(
-        backupPlan: .free,
+        backupSubscriptionLoadingState: .loaded(.paidButFreeForTesters),
+        backupPlan: .paidAsTester(optimizeLocalStorage: false),
         latestBackupExportProgressUpdate: .forPreview(.attachmentUpload, 0.80),
         latestBackupAttachmentUploadUpdateState: .pausedNeedsWifi,
-        backupSubscriptionLoadingState: .loaded(.paidButFreeForTesters)
     ))
 }
 
 #Preview("Manual Backup: Media Upload Paused (Internet)") {
     BackupSettingsView(viewModel: .forPreview(
-        backupPlan: .free,
+        backupSubscriptionLoadingState: .loaded(.paidButFreeForTesters),
+        backupPlan: .paidAsTester(optimizeLocalStorage: false),
         latestBackupExportProgressUpdate: .forPreview(.attachmentUpload, 0.80),
         latestBackupAttachmentUploadUpdateState: .pausedNeedsInternet,
-        backupSubscriptionLoadingState: .loaded(.paidButFreeForTesters)
     ))
 }
 
 #Preview("Manual Backup: Offloading") {
     BackupSettingsView(viewModel: .forPreview(
-        backupPlan: .free,
+        backupSubscriptionLoadingState: .loaded(.paidButFreeForTesters),
+        backupPlan: .paidAsTester(optimizeLocalStorage: false),
         latestBackupExportProgressUpdate: .forPreview(.offloading, 0.90),
-        backupSubscriptionLoadingState: .loaded(.paidButFreeForTesters)
     ))
 }
 
 #Preview("Downloads: Suspended") {
     BackupSettingsView(viewModel: .forPreview(
-        backupPlan: .paid(optimizeLocalStorage: false),
-        latestBackupAttachmentDownloadUpdateState: .suspended,
         backupSubscriptionLoadingState: .loaded(.paid(
             price: FiatMoney(currencyCode: "USD", value: 1.99),
             renewalDate: Date().addingTimeInterval(.week)
-        ))
+        )),
+        backupPlan: .paid(optimizeLocalStorage: false),
+        latestBackupAttachmentDownloadUpdateState: .suspended,
     ))
 }
 
 #Preview("Downloads: Suspended w/o Paid Plan") {
     BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .loaded(.freeAndEnabled),
         backupPlan: .free,
         latestBackupAttachmentDownloadUpdateState: .suspended,
-        backupSubscriptionLoadingState: .loaded(.free)
     ))
 }
 
 #Preview("Downloads: Running") {
     BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .loaded(.freeAndEnabled),
         backupPlan: .free,
         latestBackupAttachmentDownloadUpdateState: .running,
-        backupSubscriptionLoadingState: .loaded(.free)
     ))
 }
 
 #Preview("Downloads: Paused (Low Battery)") {
     BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .loaded(.freeAndEnabled),
         backupPlan: .free,
         latestBackupAttachmentDownloadUpdateState: .pausedLowBattery,
-        backupSubscriptionLoadingState: .loaded(.free)
     ))
 }
 
 #Preview("Downloads: Paused (Low Power Mode)") {
     BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .loaded(.freeAndEnabled),
         backupPlan: .free,
         latestBackupAttachmentDownloadUpdateState: .pausedLowPowerMode,
-        backupSubscriptionLoadingState: .loaded(.free)
     ))
 }
 
 #Preview("Downloads: Paused (WiFi)") {
     BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .loaded(.freeAndEnabled),
         backupPlan: .free,
         latestBackupAttachmentDownloadUpdateState: .pausedNeedsWifi,
-        backupSubscriptionLoadingState: .loaded(.free)
     ))
 }
 
 #Preview("Downloads: Paused (Internet)") {
     BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .loaded(.freeAndEnabled),
         backupPlan: .free,
         latestBackupAttachmentDownloadUpdateState: .pausedNeedsInternet,
-        backupSubscriptionLoadingState: .loaded(.free)
     ))
 }
 
 #Preview("Downloads: Disk Space Error") {
     BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .loaded(.freeAndEnabled),
         backupPlan: .free,
         latestBackupAttachmentDownloadUpdateState: .outOfDiskSpace(bytesRequired: 200_000_000),
-        backupSubscriptionLoadingState: .loaded(.free)
     ))
 }
 
 #Preview("Uploads: Running") {
     BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .loaded(.freeAndEnabled),
         backupPlan: .free,
         latestBackupAttachmentUploadUpdateState: .running,
-        backupSubscriptionLoadingState: .loaded(.free)
     ))
 }
 
 #Preview("Uploads: Paused (WiFi)") {
     BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .loaded(.freeAndEnabled),
         backupPlan: .free,
         latestBackupAttachmentUploadUpdateState: .pausedNeedsWifi,
-        backupSubscriptionLoadingState: .loaded(.free)
     ))
 }
 
 #Preview("Uploads: Paused (Battery)") {
     BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .loaded(.freeAndEnabled),
         backupPlan: .free,
         latestBackupAttachmentUploadUpdateState: .pausedLowBattery,
-        backupSubscriptionLoadingState: .loaded(.free)
     ))
 }
 
 #Preview("Disabling: Success") {
     BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .loaded(.freeAndDisabled),
         backupPlan: .disabled,
-        backupSubscriptionLoadingState: .loaded(.free),
     ))
 }
 
 #Preview("Disabling: Remotely") {
     BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .loaded(.freeAndDisabled),
         backupPlan: .disabling,
-        backupSubscriptionLoadingState: .loaded(.free),
+    ))
+}
+
+#Preview("Disabling: Remotely (w/ Downloads)") {
+    BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .loaded(.freeAndDisabled),
+        backupPlan: .disabling,
+        latestBackupAttachmentDownloadUpdateState: .pausedNeedsInternet,
     ))
 }
 
 #Preview("Disabling: Remotely Failed") {
     BackupSettingsView(viewModel: .forPreview(
+        backupSubscriptionLoadingState: .loaded(.freeAndDisabled),
         backupPlan: .disabled,
         failedToDisableBackupsRemotely: true,
-        backupSubscriptionLoadingState: .loaded(.free),
     ))
 }
 

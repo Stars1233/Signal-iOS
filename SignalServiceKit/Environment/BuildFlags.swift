@@ -42,8 +42,7 @@ public enum BuildFlags {
     public static let periodicallyCheckDatabaseIntegrity: Bool = false
 
     public enum Backups {
-        public static let supported = true
-        public static let alwaysShowSettings = build <= .beta
+        public static let registrationFlow = true
         public static let showMegaphones = build <= .internal
         public static let showOptimizeMedia = build <= .dev
 
@@ -54,19 +53,12 @@ public enum BuildFlags {
         public static let avoidAppAttestForDevs = build <= .dev
         public static let avoidStoreKitForTesters = build <= .beta
 
+        public static let useLowerDefaultListMediaRefreshInterval = build <= .beta
         public static let performListMediaIntegrityChecks = build <= .beta
     }
 
     public static let runTSAttachmentMigrationInMainAppBackground = true
     public static let runTSAttachmentMigrationBlockingOnLaunch = true
-
-    public static let useNewConversationLoadIndex = true
-
-    public static let libsignalEnforceMinTlsVersion = false
-
-    public static let moveDraftsUpChatList = true
-
-    public static let useLowerDefaultListMediaRefreshInterval = build <= .beta
 
     /// We are still making Xcode 16 builds as of writing this, and some iOS 26
     /// changes must only be applied if the SDK is also iOS 26.
@@ -76,9 +68,8 @@ public enum BuildFlags {
     public static let iOS26SDKIsAvailable = false
 #endif
 
-    public static let pollSend = build <= .internal
+    public static let pollSend = true
     public static let pollReceive = true
-    public static let pollKeepProtoVersion = build <= .internal
 
     static let netBuildVariant: Net.BuildVariant = build <= .beta ? .beta : .production
 

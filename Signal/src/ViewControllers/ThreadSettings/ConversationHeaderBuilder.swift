@@ -219,11 +219,13 @@ struct ConversationHeaderBuilder {
                 ),
                 action: { [weak delegate] in
                     guard let delegate = delegate else { return }
-                    SignalApp.shared.presentConversationForThread(
-                        threadUniqueId: delegate.thread.uniqueId,
-                        action: .compose,
-                        animated: true
-                    )
+                    SignalApp.shared.dismissAllModals(animated: true, completion: {
+                        SignalApp.shared.presentConversationForThread(
+                            threadUniqueId: delegate.thread.uniqueId,
+                            action: .compose,
+                            animated: true
+                        )
+                    })
                 }
             ))
         }
@@ -378,7 +380,6 @@ struct ConversationHeaderBuilder {
         previewView.textAlignment = .center
         previewView.numberOfLines = 2
 
-        subviews.append(UIView.spacer(withHeight: hasSubtitleLabel ? 4 : 8))
         subviews.append(previewView)
         hasSubtitleLabel = true
     }
@@ -391,8 +392,9 @@ struct ConversationHeaderBuilder {
         ), for: .normal)
         button.setTitleColor(Theme.secondaryTextAndIconColor, for: .normal)
         button.titleLabel?.font = .dynamicTypeSubheadlineClamped
+        // For some reason, setting edge insets to 0 uses a default, non-zero inset
+        button.ows_contentEdgeInsets = .init(hMargin: 0, vMargin: .ulpOfOne)
 
-        subviews.append(UIView.spacer(withHeight: hasSubtitleLabel ? 4 : 8))
         subviews.append(button)
         hasSubtitleLabel = true
     }

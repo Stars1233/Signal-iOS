@@ -29,13 +29,10 @@ open class CustomKeyboard: UIInputView {
     open func wasDismissed() {}
 
     open override func willMove(toSuperview newSuperview: UIView?) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
-            if newSuperview != nil {
-                self.willPresent()
-            } else {
-                self.willDismiss()
-            }
+        if newSuperview != nil {
+            self.willPresent()
+        } else {
+            self.willDismiss()
         }
     }
 
@@ -67,6 +64,9 @@ open class CustomKeyboard: UIInputView {
         if CustomKeyboard.cachedKeyboardHeights[key] == nil {
             CustomKeyboard.cachedKeyboardHeights[key] = height
         }
+    }
+
+    public func updateHeightForPresentation() {
         updateHeightConstraint()
     }
 

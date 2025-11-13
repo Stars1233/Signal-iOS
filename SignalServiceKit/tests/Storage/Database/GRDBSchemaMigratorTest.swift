@@ -1006,7 +1006,7 @@ class GRDBSchemaMigratorTest: XCTestCase {
         }
     }
 
-    func testUniquifyUsernameLookupRecord() throws {
+    func testUniquifyUsernameLookupRecord_CaseSensitive() throws {
         let databaseQueue = DatabaseQueue()
         try databaseQueue.write { db in
             let aci1 = Aci.randomForTesting().rawUUID.data
@@ -1024,7 +1024,10 @@ class GRDBSchemaMigratorTest: XCTestCase {
             do {
                 let tx = DBWriteTransaction(database: db)
                 defer { tx.finalizeTransaction() }
-                try GRDBSchemaMigrator.uniquifyUsernameLookupRecord(tx: tx)
+                try GRDBSchemaMigrator.uniquifyUsernameLookupRecord(
+                    caseInsensitive: false,
+                    tx: tx,
+                )
             }
 
             let usernames = try Row.fetchAll(db, sql: "SELECT * FROM UsernameLookupRecord")
@@ -1034,6 +1037,37 @@ class GRDBSchemaMigratorTest: XCTestCase {
             XCTAssertEqual(usernames[0]["username"], "blorp.01")
             XCTAssertEqual(usernames[1]["aci"], aci3)
             XCTAssertEqual(usernames[1]["username"], "florp.01")
+        }
+    }
+
+    func testUniquifyUsernameLookupRecord_CaseInsensitive() throws {
+        let databaseQueue = DatabaseQueue()
+        try databaseQueue.write { db in
+            let aci1 = Aci.randomForTesting().rawUUID.data
+            let aci2 = Aci.randomForTesting().rawUUID.data
+
+            try db.execute(
+                sql: """
+                CREATE TABLE UsernameLookupRecord (aci BLOB PRIMARY KEY NOT NULL, username TEXT NOT NULL);
+                INSERT INTO UsernameLookupRecord VALUES (?, ?), (?, ?);
+                """,
+                arguments: [aci1, "florp.01", aci2, "FLORP.01"]
+            )
+
+            do {
+                let tx = DBWriteTransaction(database: db)
+                defer { tx.finalizeTransaction() }
+                try GRDBSchemaMigrator.uniquifyUsernameLookupRecord(
+                    caseInsensitive: true,
+                    tx: tx,
+                )
+            }
+
+            let usernames = try Row.fetchAll(db, sql: "SELECT * FROM UsernameLookupRecord")
+
+            XCTAssertEqual(usernames.count, 1)
+            XCTAssertEqual(usernames[0]["aci"], aci2)
+            XCTAssertEqual(usernames[0]["username"], "FLORP.01")
         }
     }
 
@@ -1069,6 +1103,59 @@ class GRDBSchemaMigratorTest: XCTestCase {
             XCTAssertEqual(callLinks[3][0] as Bool?, false)
             XCTAssertEqual(callLinks[4][0] as Bool?, false)
             XCTAssertEqual(callLinks[5][0] as Bool?, nil)
+        }
+    }
+
+    func testFixRevokedForRestoredCallLinks() throws {
+        let databaseQueue = DatabaseQueue()
+        try databaseQueue.write { db in
+            try db.execute(
+                sql: """
+                CREATE TABLE "CallLink" (revoked BOOLEAN, expiration INTEGER);
+                INSERT INTO "CallLink" VALUES (?, ?), (?, ?), (?, ?);
+                """,
+                arguments: [
+                    true, 0,
+                    nil as Bool?, nil as Int?,
+                    nil as Bool?, 0,
+                ]
+            )
+
+            do {
+                let tx = DBWriteTransaction(database: db)
+                defer { tx.finalizeTransaction() }
+                try GRDBSchemaMigrator.fixRevokedForRestoredCallLinks(tx: tx)
+            }
+
+            let callLinks = try Row.fetchAll(db, sql: "SELECT * FROM CallLink")
+            XCTAssertEqual(callLinks.count, 3)
+            XCTAssertEqual(callLinks[0][0] as Bool?, true)
+            XCTAssertEqual(callLinks[1][0] as Bool?, nil)
+            XCTAssertEqual(callLinks[2][0] as Bool?, false)
+        }
+    }
+
+    func testFixNameForRestoredCallLinks() throws {
+        let databaseQueue = DatabaseQueue()
+        try databaseQueue.write { db in
+            try db.execute(
+                sql: """
+                CREATE TABLE "CallLink" (name TEXT);
+                INSERT INTO "CallLink" VALUES (NULL), (''), ('Something');
+                """,
+            )
+
+            do {
+                let tx = DBWriteTransaction(database: db)
+                defer { tx.finalizeTransaction() }
+                try GRDBSchemaMigrator.fixNameForRestoredCallLinks(tx: tx)
+            }
+
+            let callLinks = try Row.fetchAll(db, sql: "SELECT * FROM CallLink")
+            XCTAssertEqual(callLinks.count, 3)
+            XCTAssertEqual(callLinks[0][0] as String?, nil)
+            XCTAssertEqual(callLinks[1][0] as String?, nil)
+            XCTAssertEqual(callLinks[2][0] as String?, "Something")
         }
     }
 }

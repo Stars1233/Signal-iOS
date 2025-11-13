@@ -112,6 +112,12 @@ private class NewPollViewModel {
 }
 
 struct NewPollView: View {
+    private enum LayoutMetrics {
+        static let minTextViewHeight: CGFloat = 35
+        static let maxTextViewHeight: CGFloat = 142
+        static let oneLineHeight: CGFloat = 40
+    }
+
     struct NewOption: Identifiable, Equatable {
         let id = UUID()
         var text: String
@@ -125,21 +131,103 @@ struct NewPollView: View {
     @FocusState private var focusedItemID: UUID?
     @FocusState private var focusQuestionField: Bool
 
-    let characterLimit: Int = 100
-
     fileprivate init(viewModel: NewPollViewModel) {
         self.viewModel = viewModel
+    }
+
+    struct PollResizingTextEditor: View {
+        @Binding var text: String
+        @State private var editorWidth: CGFloat = 0
+        var placeholder: String
+
+        // Submit
+        var onSubmit: (() -> Void)
+
+        // Focus
+        var questionFieldFocus: FocusState<Bool>.Binding?
+        var optionFieldFocus: FocusState<UUID?>.Binding?
+        var optionFieldId: UUID?
+
+        static let characterLimit: Int = 100
+
+        var body: some View {
+            ZStack(alignment: .topLeading) {
+                if text.isEmpty {
+                    Text(placeholder)
+                    .foregroundColor(Color.Signal.secondaryLabel)
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 8)
+                    .accessibilityHidden(true)
+                }
+                textEditor()
+            }
+            .frame(height: NewPollView.calculateHeight(text: text, textViewWidth: editorWidth))
+        }
+
+        @ViewBuilder
+        private func textEditor() -> some View {
+            let editor = TextEditor(text: $text)
+                .onChange(of: text) { newText in
+                    // remove newlines but detect them and subsitute with onSubmit.
+                    text = text.components(separatedBy: CharacterSet.newlines).joined()
+                    if let last = newText.last, last.isNewline {
+                        onSubmit()
+                        return
+                   }
+                    if newText.count > PollResizingTextEditor.characterLimit {
+                        let resizedText = String(newText.prefix(PollResizingTextEditor.characterLimit))
+                        if text != resizedText {
+                            text = resizedText
+                        }
+                    }
+                    if text.stripped.isEmpty {
+                        text = ""
+                    }
+                }
+                .background(
+                    GeometryReader { geo in
+                        Color.clear
+                        .onAppear {
+                            editorWidth = geo.size.width
+                        }
+                        .onChange(of: geo.size.width) { newWidth in
+                            editorWidth = newWidth
+                        }
+                    }
+                )
+                .accessibilityLabel(placeholder)
+
+            if let questionFieldFocus {
+                editor.focused(questionFieldFocus)
+            } else if let optionFieldFocus, let optionFieldId {
+                editor.focused(optionFieldFocus, equals: optionFieldId)
+            } else {
+                editor
+            }
+        }
     }
 
     struct OptionRow: View {
         @Binding var option: NewOption
         let optionIndex: Int
         let totalCount: Int
+        var focusedField: FocusState<UUID?>.Binding
+        var onSubmit: (() -> Void)
+
         var body: some View {
+            let remainingChars = PollResizingTextEditor.characterLimit - option.text.count
+            let displayRemainingChars = remainingChars <= 20 ? NewPollView.localizedNumber(from: remainingChars) : ""
+            let countdownColor = remainingChars <= 5 ? Color.Signal.red : Color.Signal.tertiaryLabel
+            let shouldHaveEmptyPlaceholder = totalCount > 2 && optionIndex != totalCount - 1
+            let placeholder = shouldHaveEmptyPlaceholder ? "" : localizedOptionPlaceholderText(index: optionIndex + 1)
+
             HStack {
-                TextField(localizedOptionPlaceholderText(index: optionIndex + 1), text: Binding(
-                    get: { return option.text },
-                    set: { option.text = $0 })
+                PollResizingTextEditor(
+                    text: $option.text,
+                    placeholder: placeholder,
+                    onSubmit: onSubmit,
+                    optionFieldFocus: focusedField,
+                    optionFieldId: option.id,
                 )
 
                 if !option.text.isEmpty && totalCount > 2 {
@@ -147,6 +235,12 @@ struct NewPollView: View {
                     Image("poll-drag")
                 }
             }
+            .overlay(
+                Text("\(displayRemainingChars)")
+                    .font(.system(size: 15))
+                    .foregroundColor(countdownColor),
+                alignment: .bottomTrailing
+            )
         }
 
         private func localizedOptionPlaceholderText(index: Int) -> String {
@@ -171,29 +265,31 @@ struct NewPollView: View {
         VStack(spacing: 0) {
             SignalList {
                 SignalSection {
-                    TextField(
-                        OWSLocalizedString(
+                    let remainingChars = PollResizingTextEditor.characterLimit - pollQuestion.count
+                    let displayRemainingChars = remainingChars <= 20 ? NewPollView.localizedNumber(from: remainingChars) : ""
+                    let countdownColor = remainingChars <= 5 ? Color.Signal.red : Color.Signal.tertiaryLabel
+
+                    PollResizingTextEditor(
+                        text: $pollQuestion,
+                        placeholder: OWSLocalizedString(
                             "POLL_QUESTION_PLACEHOLDER_TEXT",
                             comment: "Placeholder text for poll question"
                         ),
-                        text: $pollQuestion
+                        onSubmit: {
+                            if let nextBlankRow = findFirstBlankRow() {
+                                focusedItemID = nextBlankRow.id
+                            }
+                        },
+                        questionFieldFocus: $focusQuestionField
                     )
-                    .focused($focusQuestionField)
-                    .onChange(of: pollQuestion) { newText in
-                        if newText.count > characterLimit {
-                            pollQuestion = String(newText.prefix(characterLimit))
-                        }
-                        if pollQuestion.stripped.isEmpty {
-                            pollQuestion = ""
-                        }
-                    }
+                    .overlay(
+                        Text("\(displayRemainingChars)")
+                            .font(.system(size: 15))
+                            .foregroundColor(countdownColor),
+                        alignment: .bottomTrailing
+                    )
                     .onAppear {
                         focusQuestionField = true
-                    }
-                    .onSubmit {
-                        if let nextBlankRow = findFirstBlankRow() {
-                            focusedItemID = nextBlankRow.id
-                        }
                     }
                 } header: {
                     Text(
@@ -208,21 +304,17 @@ struct NewPollView: View {
                 SignalSection {
                     ForEach($pollOptions) { $option in
                         let index = indexForOption(option: option)
-                        OptionRow(option: $option, optionIndex: index, totalCount: pollOptions.count)
-                            .onChange(of: option.text) { newText in
-                                if newText.count > characterLimit {
-                                    option.text = String(newText.prefix(characterLimit))
-                                }
-                                if option.text.stripped.isEmpty {
-                                    option.text = ""
-                                }
-                            }
-                            .onSubmit {
+                        OptionRow(
+                            option: $option,
+                            optionIndex: index,
+                            totalCount: pollOptions.count,
+                            focusedField: $focusedItemID,
+                            onSubmit: {
                                 if let nextBlankRow = findFirstBlankRow() {
                                     focusedItemID = nextBlankRow.id
                                 }
                             }
-                            .focused($focusedItemID, equals: option.id)
+                        )
                     }
                     .onMove(perform: { from, to in
                         pollOptions.move(fromOffsets: from, toOffset: to)
@@ -304,6 +396,42 @@ struct NewPollView: View {
         }
     }
 
+    fileprivate static func calculateHeight(text: String, textViewWidth: CGFloat) -> CGFloat {
+        let heightPadding = 16.0
+        let characterCountBuffer = 15.0
+        let maxSize = CGSize(
+            width: textViewWidth - characterCountBuffer,
+            height: CGFloat.greatestFiniteMagnitude
+        )
+        var textToMeasure: NSAttributedString = NSAttributedString(string: text, attributes: [.font: UIFont.dynamicTypeBody])
+
+        if textToMeasure.isEmpty {
+            textToMeasure = NSAttributedString(string: "M", attributes: [.font: UIFont.dynamicTypeBody])
+        }
+        var contentSize = textToMeasure.boundingRect(with: maxSize, options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil).size
+        contentSize.height += heightPadding
+
+        let newHeight = CGFloat.clamp(
+            contentSize.height.rounded(),
+            min: LayoutMetrics.minTextViewHeight,
+            max: LayoutMetrics.maxTextViewHeight
+        )
+
+        // Measured height for one line is taller than the average one-line TextField and looks strange.
+        // Reduce to minTextViewHeight in this case.
+        return newHeight <= LayoutMetrics.oneLineHeight ? LayoutMetrics.minTextViewHeight : newHeight
+    }
+
+    static func localizedNumber(from number: Int) -> String {
+        let formatter: NumberFormatter = {
+            let f = NumberFormatter()
+            f.numberStyle = .decimal
+            return f
+        }()
+
+        return formatter.string(from: NSNumber(value: number))!
+    }
+
     private func findFirstBlankRow() -> NewOption? {
         for option in pollOptions {
             if option.text.isEmpty {
@@ -333,7 +461,7 @@ struct NewPollView: View {
 
     private func onChange() {
         // Filter out all blank fields since user may have deleted a middle option.
-        var filteredPollOptions = pollOptions.filter({ !$0.text.stripped.isEmpty })
+        let filteredPollOptions = pollOptions.filter({ !$0.text.stripped.isEmpty })
 
         if filteredPollOptions.count >= 10 {
             return
@@ -353,9 +481,11 @@ struct NewPollView: View {
 
         // Add back a blank field at the end since we aren't at the option limit.
         // Note this will call onChange() again since we are changing the pollOptions array.
-        filteredPollOptions.append(NewOption(text: ""))
         let oldPollRowCount = pollOptions.count
-        pollOptions = filteredPollOptions
+        withAnimation {
+            pollOptions = filteredPollOptions
+            pollOptions.append(NewOption(text: ""))
+        }
 
         // Re-focus latest row if this is a deletion so we don't lose
         // first responder status.

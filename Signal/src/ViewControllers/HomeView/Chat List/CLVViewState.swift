@@ -76,6 +76,32 @@ class CLVViewState {
         }
     }
 
+    public enum BackupSubscriptionFailedToRedeemAlertType: CaseIterable {
+        case avatarBadge
+        case menuItem
+    }
+    var backupSubscriptionFailedToRedeemAlerts: Set<BackupSubscriptionFailedToRedeemAlertType> = [] {
+        didSet {
+            settingsButtonCreator.updateState(
+                showBackupsSubscriptionAlreadyRedeemedAvatarBadge: backupSubscriptionFailedToRedeemAlerts.contains(.avatarBadge),
+                showBackupsSubscriptionAlreadyRedeemedMenuItem: backupSubscriptionFailedToRedeemAlerts.contains(.menuItem),
+            )
+        }
+    }
+
+    public enum BackupIAPNotFoundLocallyAlertType: CaseIterable {
+        case avatarBadge
+        case menuItem
+    }
+    var backupIAPNotFoundLocallyAlerts: Set<BackupIAPNotFoundLocallyAlertType> = [] {
+        didSet {
+            settingsButtonCreator.updateState(
+                showBackupsIAPNotFoundLocallyAvatarBadge: backupIAPNotFoundLocallyAlerts.contains(.avatarBadge),
+                showBackupsIAPNotFoundLocallyMenuItem: backupIAPNotFoundLocallyAlerts.contains(.menuItem),
+            )
+        }
+    }
+
     var hasConsumedMediaTierCapacity: Bool? {
         didSet {
             settingsButtonCreator.updateState(hasConsumedMediaTierCapacity: hasConsumedMediaTierCapacity)
