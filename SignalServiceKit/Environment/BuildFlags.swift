@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
+public import AVFoundation
 import Foundation
 import LibSignalClient
 
@@ -219,6 +220,36 @@ public enum DebugFlags {
         details: LocalizationNotNeeded("All outgoing message sends will fail."),
     )
 
+    public static let voiceMessageBitRate = TestableFlag<Int>(
+        32000,
+        title: LocalizationNotNeeded("Bitrate"),
+        details: LocalizationNotNeeded("The bitrate to use for new voice message recordings."),
+    )
+
+    public enum VoiceMessageAudioQuality: CaseIterable {
+        case min
+        case low
+        case medium
+        case high
+        case max
+
+        public var avAudioQuality: AVAudioQuality {
+            switch self {
+            case .min: .min
+            case .low: .low
+            case .medium: .medium
+            case .high: .high
+            case .max: .max
+            }
+        }
+    }
+
+    public static let voiceMessageAudioQuality = MenuTestableFlag<VoiceMessageAudioQuality>(
+        nil,
+        title: LocalizationNotNeeded("Audio Quality"),
+        details: LocalizationNotNeeded("The encoder audio quality to use for new voice message recordings."),
+    )
+
     public static let callingTestableFlags: [AnyTestableFlag] = [
         callingBitRate,
         callingUseTestSFU,
@@ -232,6 +263,11 @@ public enum DebugFlags {
         fastPlaceholderExpiration,
         messageSendsFail,
     ]
+
+    public static let voiceMessageTestableFlags: [AnyTestableFlag] = [
+        voiceMessageBitRate,
+        voiceMessageAudioQuality,
+    ]
 }
 
 // MARK: -
@@ -240,7 +276,9 @@ extension Notification.Name {
     public static let resetAllTestableFlags = Notification.Name("ResetAllTestableFlags")
 }
 
+/// A type-erased `TestableFlag`, for heterogenous collections.
 public protocol AnyTestableFlag {
+    var title: String { get }
     var details: String { get }
 }
 
@@ -288,6 +326,47 @@ public class TestableFlag<Value>: AnyTestableFlag {
         flag.update {
             $0 = value
             onSet(value)
+        }
+    }
+}
+
+// MARK: -
+
+public struct MenuTestableFlagOption {
+    public let title: String
+    public let isSelected: Bool
+    public let select: () -> Void
+}
+
+/// See `AnyTestableFlag`.
+public protocol AnyMenuTestableFlag: AnyTestableFlag {
+    var menuOptions: [MenuTestableFlagOption] { get }
+}
+
+/// A `TestableFlag` whose discrete options are presented in a menu.
+public class MenuTestableFlag<Value: CaseIterable & Equatable>:
+    TestableFlag<Value?>,
+    AnyMenuTestableFlag
+{
+    public var menuOptions: [MenuTestableFlagOption] {
+        let selectedValue = get()
+
+        let nilOption = MenuTestableFlagOption(
+            title: "unset",
+            isSelected: selectedValue == nil,
+            select: { [weak self] in
+                self?.set(nil)
+            },
+        )
+
+        return [nilOption] + Value.allCases.map { value in
+            MenuTestableFlagOption(
+                title: String(describing: value),
+                isSelected: selectedValue == value,
+                select: { [weak self] in
+                    self?.set(value)
+                },
+            )
         }
     }
 }
