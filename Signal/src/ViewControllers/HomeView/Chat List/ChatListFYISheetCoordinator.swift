@@ -648,7 +648,19 @@ class ChatListFYISheetCoordinator {
         logger.warn("Showing ChooseNewLocalBackupLocation FYI sheet.")
 
         let warningSheet = ChooseNewLocalBackupLocationHeroSheet(onChooseNewFileLocation: { [self] in
-            localFileBackupManager.promptUserToChooseFileLocationForArchiving(fromViewController: chatListViewController, completion: nil)
+            LocalFileBackupArchiveFolderPicker.present(
+                fromViewController: chatListViewController,
+                manager: localFileBackupManager,
+                onSuccess: {
+                    chatListViewController.presentToast(
+                        text: OWSLocalizedString(
+                            "SETTINGS_LOCAL_FILE_BACKUP_FOLDER_UPDATED",
+                            comment: "Text for a toast confirming the user changed their local file backup location.",
+                        ),
+                        image: .checkCircle,
+                    )
+                },
+            )
         })
 
         chatListViewController.present(warningSheet, animated: true) { [self] in

@@ -414,8 +414,15 @@ class RegistrationChooseRestoreMethodViewController: OWSViewController, UIDocume
             try localFileBackupManager.saveSecurityScopedBookmark(url: signalBackupsURL, type: .restore)
             presenter?.didChooseRestoreMethod(method: .local(fileUrl: signalBackupsURL))
         } catch {
-            // TODO: [KC] show error screen.
-            Logger.error("Failed to save bookmark: \(error)")
+            Logger.error("Failed to save bookmark: \(error.shortDescription)")
+            let actionSheet = LocalFileBackupChooseFolderErrorActionSheet(
+                fromViewController: self,
+                onTryAgain: { [weak self] in
+                    guard let self else { return }
+                    promptUserToChooseFileLocationForRestoring(fromViewController: self)
+                },
+            )
+            presentActionSheet(actionSheet)
         }
     }
 

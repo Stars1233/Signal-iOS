@@ -224,10 +224,7 @@ extension DonationViewsUtil {
         }))
         actionSheet.addAction(
             .init(
-                title: OWSLocalizedString(
-                    "DONATION_BADGE_ISSUE_SHEET_TRY_AGAIN_BUTTON_TITLE",
-                    comment: "Title for a button asking the user to try their donation again, because something went wrong.",
-                ),
+                title: CommonStrings.tryAgainButton,
                 style: .default,
                 handler: { _ in
                     clearPendingDonation()

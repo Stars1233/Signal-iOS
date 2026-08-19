@@ -64,7 +64,7 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
 
     private static let maxAllowedNumberOfBackups: Int = 2
 
-    private var folderPickerCompletion: (() -> Void)?
+    private var folderPickerCompletion: ((Error?) -> Void)?
 
     public static let attachmentBatchSize = 50
 
@@ -611,7 +611,7 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
 
     /// This should only be used when choosing a file location for archiving a local file backup.
     /// When the file is chosen, it will be stored with an archive-specific DB key.
-    public func promptUserToChooseFileLocationForArchiving(fromViewController: UIViewController, completion: (() -> Void)?) {
+    public func promptUserToChooseFileLocationForArchiving(fromViewController: UIViewController, completion: ((Error?) -> Void)?) {
         let pickerController = UIDocumentPickerViewController(
             forOpeningContentTypes: [.folder],
             asCopy: false,
@@ -676,16 +676,17 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
 
         defer { securityScopedBookmarkAccess.stopAccessToSecurityScopedBookmark(url: url) }
 
+        var saveError: Error?
         do {
             try saveSecurityScopedBookmark(url: url, type: .archive)
         } catch {
-            // TODO: [KC] show error screen.
-            logger.error("Failed to save bookmark: \(error)")
+            saveError = error
+            logger.error("Failed to save bookmark: \(error.shortDescription)")
         }
 
         let completion = folderPickerCompletion
         folderPickerCompletion = nil
-        completion?()
+        completion?(saveError)
     }
 
     // MARK: - Prompt user to enable local backups, e.g. after restoring

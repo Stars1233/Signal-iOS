@@ -181,10 +181,7 @@ struct TransferStatusView: View {
                 .font(.body)
                 .foregroundStyle(Color.Signal.secondaryLabel)
                 Spacer()
-                Button(OWSLocalizedString(
-                    "DEVICE_TRANSFER_TRY_AGAIN_ACTION",
-                    comment: "Action asking user to try again after transfer failure.",
-                )) {
+                Button(CommonStrings.tryAgainButton) {
                     viewModel.onFailure(error)
                 }
                 .buttonStyle(Registration.UI.MediumSecondaryButtonStyle())

@@ -209,9 +209,10 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
                         LocalFileBackupSelectFolderHeroSheetViewController(
                             onContinue: { [weak self] in
                                 guard let self else { return }
-                                localFileBackupManager.promptUserToChooseFileLocationForArchiving(
+                                LocalFileBackupArchiveFolderPicker.present(
                                     fromViewController: self,
-                                    completion: { [weak self] in
+                                    manager: self.localFileBackupManager,
+                                    onSuccess: { [weak self] in
                                         self?.presentToast(
                                             text: OWSLocalizedString(
                                                 "SETTINGS_LOCAL_FILE_BACKUP_FOLDER_UPDATED",

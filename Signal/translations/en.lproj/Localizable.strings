@@ -2464,9 +2464,6 @@
 /* Alert body */
 "CONTACT_SUPPORT_PROMPT_ERROR_ALERT_BODY" = "Signal was unable to complete your support request.";
 
-/* button text */
-"CONTACT_SUPPORT_PROMPT_ERROR_TRY_AGAIN" = "Try Again";
-
 /* Alert body */
 "CONTACT_SUPPORT_PROMPT_TO_INCLUDE_DEBUG_LOG_MESSAGE" = "Your debug logs will help us troubleshoot your issue faster. Submitting your logs is optional.";
 
@@ -3196,9 +3193,6 @@
 /* Status message on old device when transfer is starting. */
 "DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING" = "Waiting to connect to new device…";
 
-/* Action asking user to try again after transfer failure. */
-"DEVICE_TRANSFER_TRY_AGAIN_ACTION" = "Try Again";
-
 /* table cell label in conversation settings */
 "DISAPPEARING_MESSAGES" = "Disappearing Messages";
 
@@ -3385,9 +3379,6 @@
 /* Title for a button asking the user to renew their subscription, because it has expired. */
 "DONATION_BADGE_ISSUE_SHEET_RENEW_SUBSCRIPTION_BUTTON_TITLE" = "Renew Subscription";
 
-/* Title for a button asking the user to try their donation again, because something went wrong. */
-"DONATION_BADGE_ISSUE_SHEET_TRY_AGAIN_BUTTON_TITLE" = "Try Again";
-
 /* When donating on behalf of a friend, a badge will be sent. This shows how long the badge lasts. Embeds {{formatted duration}}. */
 "DONATION_FOR_A_FRIEND_ROW_DURATION" = "Lasts %@";
 
@@ -3555,9 +3546,6 @@
 
 /* Title for an action in an action sheet asking the user to renew a subscription that has failed to renew. */
 "DONATION_SETTINGS_MY_SUPPORT_ACTION_SHEET_ACTION_TITLE_RENEW_SUBSCRIPTION" = "Renew Subscription";
-
-/* Title for an action in an action sheet asking the user to try again, in reference to a donation that failed. */
-"DONATION_SETTINGS_MY_SUPPORT_ACTION_SHEET_ACTION_TITLE_TRY_AGAIN" = "Try Again";
 
 /* Prompt the user asking if they want to keep the current in-flight, but unauthorized donation, or try again. */
 "DONATION_SETTINGS_MY_SUPPORT_BANK_PAYMENT_AWAITING_AUTHORIZATION_MESSAGE" = "Your iDEAL | Wero donation couldn't be confirmed. Check your banking app to approve your donation or try again.";
@@ -5451,6 +5439,12 @@
 
 /* Title for a sheet asking the user to select their backup to restore from during registration. */
 "LOCAL_BACKUPS_SELECT_HERO_SHEET_TITLE" = "Select Your Backup Folder";
+
+/* Message for an action sheet informing the user we were unable to save their local backup location */
+"LOCAL_FILE_BACKUP_CHOOSE_FOLDER_ERROR_MESSAGE" = "Something went wrong and the folder location you selected couldn’t be saved. Try again. If this problem persists, please contact support.";
+
+/* Title for an action sheet informing the user we were unable to save their local backup location */
+"LOCAL_FILE_BACKUP_CHOOSE_FOLDER_ERROR_TITLE" = "Couldn’t Save Folder Location";
 
 /* Button for a sheet asking the user to choose a new local file backup folder */
 "LOCAL_FILE_BACKUP_CHOOSE_NEW_FOLDER_SHEET_BUTTON" = "Choose Folder";
@@ -7912,9 +7906,6 @@
 /* Skip restore action label for backup restore error recovery. */
 "REGISTRATION_BACKUP_RESTORE_ERROR_SKIP_RESTORE_ACTION" = "Skip Restore";
 
-/* Try again action label for backup restore error recovery. */
-"REGISTRATION_BACKUP_RESTORE_ERROR_TRY_AGAIN_ACTION" = "Try Again";
-
 /* Body for a sheet telling users restoring a backup unrecoverably failed. */
 "REGISTRATION_BACKUP_RESTORE_ERROR_UNRETRYABLE_SERVER_ERROR_BODY" = "An error occurred while restoring your backup. Your backup is not recoverable. Please contact support for help.";
 
@@ -10359,6 +10350,9 @@
 
 /* Notification prompting the user to relaunch Signal after a device transfer completed. */
 "TRANSFER_RELAUNCH_NOTIFICATION" = "Open Signal to start messaging";
+
+/* Label for a button that says 'Try Again'. */
+"TRY_AGAIN_BUTTON_TITLE" = "Try Again";
 
 /* Label for the cancel button in an alert or action sheet. */
 "TXT_CANCEL_TITLE" = "Cancel";

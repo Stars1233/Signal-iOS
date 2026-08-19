@@ -126,10 +126,7 @@ public class RegistrationCoordinatorBackupErrorPresenterImpl:
     ) {
         let title: String
         let message: String
-        let tryAgainString = OWSLocalizedString(
-            "REGISTRATION_BACKUP_RESTORE_ERROR_TRY_AGAIN_ACTION",
-            comment: "Try again action label for backup restore error recovery.",
-        )
+        let tryAgainString = CommonStrings.tryAgainButton
         let skipRestoreString = OWSLocalizedString(
             "REGISTRATION_BACKUP_RESTORE_ERROR_SKIP_RESTORE_ACTION",
             comment: "Skip restore action label for backup restore error recovery.",

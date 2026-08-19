@@ -521,10 +521,7 @@ class DonationSettingsViewController: OWSTableViewController2 {
             )
 
             actionSheet.addAction(ActionSheetAction(
-                title: OWSLocalizedString(
-                    "DONATION_BADGE_ISSUE_SHEET_TRY_AGAIN_BUTTON_TITLE",
-                    comment: "Title for a button asking the user to try their donation again, because something went wrong.",
-                ),
+                title: CommonStrings.tryAgainButton,
                 handler: { [weak self] _ in
                     guard let self else { return }
                     self.presentAwaitingIDEALAuthorizationActionSheet(donateMode: donationMode)

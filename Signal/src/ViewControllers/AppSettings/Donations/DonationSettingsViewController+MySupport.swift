@@ -468,10 +468,7 @@ extension DonationSettingsViewController {
         )
         actionSheet.addAction(OWSActionSheets.okayAction)
         actionSheet.addAction(ActionSheetAction(
-            title: OWSLocalizedString(
-                "DONATION_BADGE_ISSUE_SHEET_TRY_AGAIN_BUTTON_TITLE",
-                comment: "Title for a button asking the user to try their donation again, because something went wrong.",
-            ),
+            title: CommonStrings.tryAgainButton,
             handler: { [weak self] _ in
                 guard let self else { return }
                 self.presentAwaitingIDEALAuthorizationActionSheet(donateMode: donateMode)
@@ -562,10 +559,7 @@ extension DonationSettingsViewController {
                     comment: "Title for an action in an action sheet asking the user to renew a subscription that has failed to renew.",
                 )
             case .tryAgain:
-                return OWSLocalizedString(
-                    "DONATION_SETTINGS_MY_SUPPORT_ACTION_SHEET_ACTION_TITLE_TRY_AGAIN",
-                    comment: "Title for an action in an action sheet asking the user to try again, in reference to a donation that failed.",
-                )
+                return CommonStrings.tryAgainButton
             }
         }
     }

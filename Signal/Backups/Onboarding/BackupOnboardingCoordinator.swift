@@ -120,10 +120,15 @@ class BackupOnboardingCoordinator {
                     let presentChooseFile: () -> Void = { [self] in
                         fromViewController.present(
                             LocalFileBackupSelectFolderHeroSheetViewController(
-                                onContinue: { [self] in
-                                    localFileBackupManager.promptUserToChooseFileLocationForArchiving(fromViewController: fromViewController, completion: { [self] in
-                                        showRecoveryKeyIntro()
-                                    })
+                                onContinue: { [weak self] in
+                                    guard let self else { return }
+                                    LocalFileBackupArchiveFolderPicker.present(
+                                        fromViewController: fromViewController,
+                                        manager: localFileBackupManager,
+                                        onSuccess: { [weak self] in
+                                            self?.showRecoveryKeyIntro()
+                                        },
+                                    )
                                 },
                             ),
                             animated: true,
