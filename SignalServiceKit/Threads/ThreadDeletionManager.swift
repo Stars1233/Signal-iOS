@@ -203,7 +203,7 @@ final class ThreadDeletionManagerImpl: ThreadDeletionManager {
     private func shouldHardDeleteThread(_ thread: TSThread, localIdentifiers: LocalIdentifiers) -> Bool {
         switch thread {
         case let thread as TSGroupThread:
-            if !thread.isTerminatedGroup {
+            if thread.isGroupV2Thread, !thread.isTerminatedGroup {
                 let groupMembership = thread.groupModel.groupMembership
                 if groupMembership.isMemberOfAnyKind(localIdentifiers.aci) {
                     return false
