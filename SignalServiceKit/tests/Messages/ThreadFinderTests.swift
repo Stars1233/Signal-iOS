@@ -62,6 +62,62 @@ class ThreadFinderTests: XCTestCase {
         )
     }
 
+    func testUnreadFilter() throws {
+        let authorAci = Aci.randomForTesting()
+
+        try db.write { transaction in
+            let fixtures: [(
+                uniqueId: String,
+                lastInteractionRowId: UInt64,
+                isMarkedUnread: Bool,
+                isArchived: Bool,
+                interactionIsRead: Bool?,
+            )] = [
+                ("marked-unread", 5, true, false, true),
+                ("unread-interaction", 4, false, false, false),
+                ("read", 3, false, false, true),
+                ("required-visible", 2, false, false, true),
+                ("archived-unread", 1, true, true, false),
+            ]
+
+            for fixture in fixtures {
+                let thread = buildThreadRecord(
+                    uniqueID: fixture.uniqueId,
+                    draft: nil,
+                    lastInteractionRowID: fixture.lastInteractionRowId,
+                    lastDraftInteractionRowId: 0,
+                    lastDraftUpdateTimestamp: 0,
+                )
+                try thread.insert(transaction.database)
+                try buildThreadAssociatedData(
+                    uniqueID: fixture.uniqueId,
+                    isMarkedUnread: fixture.isMarkedUnread,
+                    isArchived: fixture.isArchived,
+                ).insert(transaction.database)
+
+                if let interactionIsRead = fixture.interactionIsRead {
+                    let message = TSIncomingMessageBuilder.withDefaultValues(
+                        thread: thread,
+                        timestamp: fixture.lastInteractionRowId,
+                        receivedAtTimestamp: fixture.lastInteractionRowId,
+                        authorAci: authorAci,
+                        read: interactionIsRead,
+                    ).build()
+                    try message.asRecord().insert(transaction.database)
+                }
+            }
+        }
+
+        try db.read { transaction in
+            let threadUniqueIds = try threadFinder.visibleInboxThreadUniqueIds(
+                filteredBy: .unread,
+                requiredVisibleThreadIds: ["required-visible"],
+                transaction: transaction,
+            )
+            XCTAssertEqual(threadUniqueIds, ["marked-unread", "unread-interaction", "required-visible"])
+        }
+    }
+
     func newDraftGoesToTop(chatListType: ChatListType) throws {
         try db.write { transaction in
             let database = transaction.database

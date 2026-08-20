@@ -410,53 +410,40 @@ public class ThreadFinder {
         requiredVisibleThreadIds: Set<String> = [],
         transaction: DBReadTransaction,
     ) throws -> [String] {
-        switch inboxFilter {
+        let inboxFilterClause: String = switch inboxFilter {
         case .unread:
-            let sql = """
-            SELECT
-                \(threadColumnFullyQualified: .uniqueId) AS thread_uniqueId,
-                \(ThreadAssociatedData.databaseTableName).isMarkedUnread AS thread_isMarkedUnread,
-                COUNT(i.\(interactionColumn: .uniqueId)) AS interactions_unreadCount
-            FROM \(TSThread.databaseTableName)
-            INNER JOIN \(ThreadAssociatedData.databaseTableName)
-                ON \(ThreadAssociatedData.databaseTableName).threadUniqueId = \(threadColumnFullyQualified: .uniqueId)
-                AND \(ThreadAssociatedData.databaseTableName).isArchived = 0
-            LEFT OUTER JOIN \(InteractionRecord.databaseTableName) AS i
-                \(DEBUG_INDEXED_BY("index_model_TSInteraction_UnreadMessages"))
-                ON i.\(interactionColumn: .threadUniqueId) = thread_uniqueId
-                AND \(InteractionFinder.sqlClauseForUnreadInteractionCounts(interactionsAlias: "i"))
-            WHERE \(threadColumnFullyQualified: .shouldThreadBeVisible) = 1
-            GROUP BY thread_uniqueId
-            HAVING (
-                thread_isMarkedUnread = 1
-                OR interactions_unreadCount > 0
+            """
+            AND (
+                \(ThreadAssociatedData.databaseTableName).isMarkedUnread = 1
+                OR EXISTS (
+                    SELECT 1
+                    FROM \(InteractionRecord.databaseTableName)
+                    \(DEBUG_INDEXED_BY("index_model_TSInteraction_UnreadMessages"))
+                    WHERE \(interactionColumn: .threadUniqueId) = \(threadColumnFullyQualified: .uniqueId)
+                    AND \(InteractionFinder.sqlClauseForUnreadInteractionCounts())
+                )
                 \(requiredVisibleThreadsClause(forThreadIds: requiredVisibleThreadIds))
             )
-            ORDER BY
-                CASE WHEN \(threadColumn: .lastDraftInteractionRowId) > \(threadColumn: .lastInteractionRowId)
-                    THEN \(threadColumn: .lastDraftInteractionRowId) ELSE \(threadColumn: .lastInteractionRowId)
-                END DESC,
-                \(threadColumn: .lastDraftUpdateTimestamp) DESC
             """
-
-            return try String.fetchAll(transaction.database, sql: sql, adapter: RangeRowAdapter(0..<1))
-
         case .unfiltered, nil:
-            let sql = """
-            SELECT \(threadColumn: .uniqueId)
-            FROM \(TSThread.databaseTableName)
-            INNER JOIN \(ThreadAssociatedData.databaseTableName)
-                ON \(ThreadAssociatedData.databaseTableName).threadUniqueId = \(threadColumnFullyQualified: .uniqueId)
-                AND \(ThreadAssociatedData.databaseTableName).isArchived = 0
-            WHERE \(threadColumn: .shouldThreadBeVisible) = 1
-            ORDER BY
-                CASE WHEN \(threadColumn: .lastDraftInteractionRowId) > \(threadColumn: .lastInteractionRowId)
-                    THEN \(threadColumn: .lastDraftInteractionRowId) ELSE \(threadColumn: .lastInteractionRowId)
-                END DESC,
-                \(threadColumn: .lastDraftUpdateTimestamp) DESC
-            """
-            return try String.fetchAll(transaction.database, sql: sql)
+            ""
         }
+
+        let sql = """
+        SELECT \(threadColumn: .uniqueId)
+        FROM \(TSThread.databaseTableName)
+        INNER JOIN \(ThreadAssociatedData.databaseTableName)
+            ON \(ThreadAssociatedData.databaseTableName).threadUniqueId = \(threadColumnFullyQualified: .uniqueId)
+            AND \(ThreadAssociatedData.databaseTableName).isArchived = 0
+        WHERE \(threadColumn: .shouldThreadBeVisible) = 1
+        \(inboxFilterClause)
+        ORDER BY
+            CASE WHEN \(threadColumn: .lastDraftInteractionRowId) > \(threadColumn: .lastInteractionRowId)
+                THEN \(threadColumn: .lastDraftInteractionRowId) ELSE \(threadColumn: .lastInteractionRowId)
+            END DESC,
+            \(threadColumn: .lastDraftUpdateTimestamp) DESC
+        """
+        return try String.fetchAll(transaction.database, sql: sql)
     }
 
     public func visibleArchivedThreadUniqueIds(
