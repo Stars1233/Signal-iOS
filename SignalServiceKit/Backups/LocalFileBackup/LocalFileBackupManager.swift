@@ -241,10 +241,17 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
 
     /// - Parameter backupsRootDirectory
     /// The SignalBackups directory.
-    func writeQueuedAttachmentsToDisk(backupsRootDirectory: URL, currentBackupDirectoryName: String) throws {
+    func writeQueuedAttachmentsToDisk(
+        backupsRootDirectory: URL,
+        currentBackupDirectoryName: String,
+        progress progressSink: OWSProgressSink?,
+    ) async throws {
         let fileCoordinator = NSFileCoordinator()
 
         let existingFiles = try existingFilesInBackupDirectory(backupsRootDirectory: backupsRootDirectory)
+
+        let totalAttachmentCount = db.read { tx in localFileBackupStore.exportRecordsCount(tx: tx) }
+        let source = progressSink?.addSource(withLabel: "writeQueuedAttachment", unitCount: UInt64(totalAttachmentCount))
 
         while true {
             try Task.checkCancellation()
@@ -281,6 +288,7 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
 
             for attachmentWithMetadata in attachmentsWithMetadata {
                 guard let attachmentStream = attachmentWithMetadata.attachment.asStream() else {
+                    source?.incrementCompletedUnitCount(by: 1)
                     continue
                 }
 
@@ -297,6 +305,7 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
                     var fileProto = LocalBackupProto_FilesFrame()
                     fileProto.item = .mediaName(localFileBackupMediaName)
                     try manifestStream.write(data: fileProto.serializedData())
+                    source?.incrementCompletedUnitCount(by: 1)
                     continue
                 }
 
@@ -332,19 +341,23 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
                     var fileProto = LocalBackupProto_FilesFrame()
                     fileProto.item = .mediaName(localFileBackupMediaName)
                     try manifestStream.write(data: fileProto.serializedData())
+
+                    source?.incrementCompletedUnitCount(by: 1)
                 }
+                await Task.yield()
             }
 
             try manifestStream.close()
 
-            failIfThrows {
-                try db.write { tx in
+            await db.awaitableWrite { tx in
+                failIfThrows {
                     for localFileExport in localFileExports {
                         try localFileExport.delete(tx.database)
                     }
                 }
             }
         }
+        source?.complete()
     }
 
     func mediaNameForAttachment(localKey: Data, plaintextHash: Data) -> String {
@@ -391,12 +404,17 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
         return metadataProto
     }
 
-    func ensureAttachmentMetadataExists() async {
+    func ensureAttachmentMetadataExists(progressSink: OWSProgressSink?) async {
         struct TxContextAttachmentMetadata {
             var cursor: FailIfThrowsRecordCursor<Attachment.Record>
             var lastEnumeratedAttachmentId: Attachment.IDType?
             var didFinish: Bool
         }
+        let totalRemainingAttachmentCount = db.read { tx in
+            localFileBackupStore.attachmentCountSinceLastFetched(tx: tx)
+        }
+        let source = progressSink?.addSource(withLabel: "ensureAttachmentMetadataExists", unitCount: UInt64(totalRemainingAttachmentCount))
+
         await TimeGatedBatch.processAll(
             db: db,
             buildTxContext: { tx -> TxContextAttachmentMetadata in
@@ -419,6 +437,8 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
                     return .done(())
                 }
 
+                source?.incrementCompletedUnitCount(by: 1)
+
                 let attachmentRecordId = nextAttachmentRecord.sqliteId!
                 txContext.lastEnumeratedAttachmentId = attachmentRecordId
 
@@ -440,6 +460,7 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
             concludeTx: { tx, txContext in
                 if txContext.didFinish {
                     localFileBackupStore.clearLastEnumeratedAttachmentRowId(tx: tx)
+                    source?.complete()
                 } else if let lastEnumeratedAttachmentId = txContext.lastEnumeratedAttachmentId {
                     localFileBackupStore.updateLastEnumeratedAttachmentRowId(lastEnumeratedAttachmentId, tx: tx)
                 }

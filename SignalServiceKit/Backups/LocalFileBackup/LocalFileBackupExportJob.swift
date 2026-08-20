@@ -5,6 +5,22 @@
 
 import LibSignalClient
 
+public enum LocalFileBackupExportJobStage: String, OWSSequentialProgressStep {
+    /// Steps related to making sure we have all metadata for attachments
+    case attachmentMetadataPrep
+    /// Steps related to exporting the Backup file.
+    case backupFileExport
+    /// Steps related to copying attachments to disk.
+    case attachmentCopy
+
+    public var progressUnitCount: UInt64 {
+        // Callers are only interested in the progress through a given stage,
+        // note relative to other stages. Use a large value here so the progress
+        // through a given stage can be granular.
+        return 1000
+    }
+}
+
 public enum LocalFileBackupExportJobMode: CustomStringConvertible {
     case manual
     case bgProcessingTask
@@ -56,16 +72,19 @@ class LocalFileBackupExportJob {
     func run(
         mode: LocalFileBackupExportJobMode,
         resumptionPoint: LocalFileBackupExportJobStore.ResumptionPoint?,
+        progress: OWSSequentialProgressRootSink<LocalFileBackupExportJobStage>,
     ) async throws {
         try await _run(
             mode: mode,
             resumptionPoint: resumptionPoint,
+            progress: progress,
         )
     }
 
     private func _run(
         mode: LocalFileBackupExportJobMode,
         resumptionPoint: LocalFileBackupExportJobStore.ResumptionPoint?,
+        progress: OWSSequentialProgressRootSink<LocalFileBackupExportJobStage>,
     ) async throws {
         let (localIdentifiers, backupKey) = try db.read { tx in
             guard
@@ -106,14 +125,13 @@ class LocalFileBackupExportJob {
             switch resumptionPoint {
             case nil:
                 logger.info("Ensuring attachment metadata exists...")
-                await localFileBackupManager.ensureAttachmentMetadataExists()
+                await localFileBackupManager.ensureAttachmentMetadataExists(progressSink: progress.child(for: .attachmentMetadataPrep))
 
                 logger.info("Exporting backup...")
-                // TODO: [KC] backup progress
                 let metadata = try await backupArchiveManager.exportEncryptedBackup(
                     localIdentifiers: localIdentifiers,
                     backupPurpose: .localExport(key: backupKey, attachmentCollector: localFileBackupAttachmentCollector),
-                    progress: nil,
+                    progress: progress.child(for: .backupFileExport),
                     logger: logger,
                 )
 
@@ -143,6 +161,8 @@ class LocalFileBackupExportJob {
                     localFileBackupExportJobStore.setReachedResumptionPoint(.postBackupFileCopy(directoryName: currentDirectoryName), tx: tx)
                 }
             case .postBackupFileCopy(let directoryName):
+                await performWithDummyProgress(progress.child(for: .attachmentMetadataPrep), work: {})
+                await performWithDummyProgress(progress.child(for: .backupFileExport), work: {})
                 currentDirectoryName = directoryName
             }
 
@@ -150,6 +170,7 @@ class LocalFileBackupExportJob {
             try await localFileBackupManager.writeQueuedAttachmentsToDisk(
                 backupsRootDirectory: backupsRootDirectory,
                 currentBackupDirectoryName: currentDirectoryName,
+                progress: progress.child(for: .attachmentCopy),
             )
 
             logger.info("Cleaning up orphaned attachments and old backups...")
@@ -172,5 +193,16 @@ class LocalFileBackupExportJob {
             logger.warn("Failed! \(error)")
             throw error
         }
+    }
+
+    /// Run the given block, which does not itself track progress, and complete
+    /// the given "dummy" progress when the block is complete.
+    private func performWithDummyProgress(
+        _ progress: OWSProgressSink,
+        work: () async throws -> Void,
+    ) async rethrows {
+        try await work()
+
+        progress.addSource(withLabel: "", unitCount: 1).complete()
     }
 }

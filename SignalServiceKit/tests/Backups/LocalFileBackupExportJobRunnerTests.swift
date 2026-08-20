@@ -98,7 +98,7 @@ struct LocalFileBackupExportJobRunnerTests {
             return (id1, id2)
         }
 
-        await localFileBackupManager.ensureAttachmentMetadataExists()
+        await localFileBackupManager.ensureAttachmentMetadataExists(progressSink: nil)
 
         let localFileBackupAttachmentCollector = LocalFileBackupAttachmentCollector()
         localFileBackupAttachmentCollector.append(id: id1)

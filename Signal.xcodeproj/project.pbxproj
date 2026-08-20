@@ -80,6 +80,7 @@
 		044EA2272FC87611005B5A3E /* BlockedReleaseNotesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044EA2262FC8760A005B5A3E /* BlockedReleaseNotesStore.swift */; };
 		045313BE3035FBF1002D4F90 /* LocalFileBackupChooseFolderErrorActionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045313BD3035FBF1002D4F90 /* LocalFileBackupChooseFolderErrorActionSheet.swift */; };
 		045313C03036136E002D4F90 /* LocalFileBackupFolderPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045313BF30361364002D4F90 /* LocalFileBackupFolderPicker.swift */; };
+		045313C230373CB4002D4F90 /* PulsingProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045313C130373CAF002D4F90 /* PulsingProgressBar.swift */; };
 		04538D342FE9B61500F8E084 /* ReleaseNoteStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04538D332FE9B61500F8E084 /* ReleaseNoteStore.swift */; };
 		04538D372FEB14CF00F8E084 /* LocalFileBackupManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04538D362FEB14C900F8E084 /* LocalFileBackupManager.swift */; };
 		04538D392FEDC0CD00F8E084 /* BackupLocalFileAttachmentExportRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04538D382FEDC0BD00F8E084 /* BackupLocalFileAttachmentExportRecord.swift */; };
@@ -4297,6 +4298,7 @@
 		044EA2262FC8760A005B5A3E /* BlockedReleaseNotesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedReleaseNotesStore.swift; sourceTree = "<group>"; };
 		045313BD3035FBF1002D4F90 /* LocalFileBackupChooseFolderErrorActionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalFileBackupChooseFolderErrorActionSheet.swift; sourceTree = "<group>"; };
 		045313BF30361364002D4F90 /* LocalFileBackupFolderPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalFileBackupFolderPicker.swift; sourceTree = "<group>"; };
+		045313C130373CAF002D4F90 /* PulsingProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PulsingProgressBar.swift; sourceTree = "<group>"; };
 		04538D332FE9B61500F8E084 /* ReleaseNoteStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseNoteStore.swift; sourceTree = "<group>"; };
 		04538D362FEB14C900F8E084 /* LocalFileBackupManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalFileBackupManager.swift; sourceTree = "<group>"; };
 		04538D382FEDC0BD00F8E084 /* BackupLocalFileAttachmentExportRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupLocalFileAttachmentExportRecord.swift; sourceTree = "<group>"; };
@@ -13743,6 +13745,7 @@
 				045313BF30361364002D4F90 /* LocalFileBackupFolderPicker.swift */,
 				04B285083023989100BCF018 /* LocalFileBackupSelectHeroSheet.swift */,
 				0441ECBE3007F9C3005673AC /* LocalFileBackupsSettingsViewController.swift */,
+				045313C130373CAF002D4F90 /* PulsingProgressBar.swift */,
 			);
 			path = Backups;
 			sourceTree = "<group>";
@@ -18956,6 +18959,7 @@
 				888CC15928E3CE8100A13493 /* ProxyConnectionChecker.swift in Sources */,
 				88DF81A128E1538000F8BA80 /* ProxyLinkSheetViewController.swift in Sources */,
 				88DF81A328E15D1600F8BA80 /* ProxySettingsViewController.swift in Sources */,
+				045313C230373CB4002D4F90 /* PulsingProgressBar.swift in Sources */,
 				4539B5861F79348F007141FF /* PushRegistrationManager.swift in Sources */,
 				D9DCFDB02A3BC4A400C73C0B /* QRCodeGenerator.swift in Sources */,
 				D9BF53362D0814A000EC3DF0 /* QRCodeView.swift in Sources */,

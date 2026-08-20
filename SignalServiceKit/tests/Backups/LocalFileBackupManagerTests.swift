@@ -55,7 +55,7 @@ struct LocalFileBackupManagerTests {
             LocalFileBackupTestSupport.insertMockAttachment(mockAttachment, tx: tx)
         }
 
-        await localFileBackupManager.ensureAttachmentMetadataExists()
+        await localFileBackupManager.ensureAttachmentMetadataExists(progressSink: nil)
 
         let metadata = try db.read { tx in
             try BackupLocalFileAttachmentMetadataRecord
@@ -166,7 +166,7 @@ struct LocalFileBackupManagerTests {
             return (id1, id2)
         }
 
-        await localFileBackupManager.ensureAttachmentMetadataExists()
+        await localFileBackupManager.ensureAttachmentMetadataExists(progressSink: nil)
 
         let localFileBackupAttachmentCollector = LocalFileBackupAttachmentCollector()
         localFileBackupAttachmentCollector.append(id: id1)
@@ -195,6 +195,7 @@ struct LocalFileBackupManagerTests {
         try await localFileBackupManager.writeQueuedAttachmentsToDisk(
             backupsRootDirectory: localBackupURL,
             currentBackupDirectoryName: currentBackupDirectoryName,
+            progress: nil,
         )
 
         #expect(FileManager.default.fileExists(atPath: filesDir.path))
@@ -248,7 +249,7 @@ struct LocalFileBackupManagerTests {
             mockAttachments.map { LocalFileBackupTestSupport.insertMockAttachment($0, tx: tx) }
         }
 
-        await localFileBackupManager.ensureAttachmentMetadataExists()
+        await localFileBackupManager.ensureAttachmentMetadataExists(progressSink: nil)
 
         let collector = LocalFileBackupAttachmentCollector()
         for id in ids {
@@ -275,6 +276,7 @@ struct LocalFileBackupManagerTests {
         try await localFileBackupManager.writeQueuedAttachmentsToDisk(
             backupsRootDirectory: localBackupURL,
             currentBackupDirectoryName: currentBackupDirectoryName,
+            progress: nil,
         )
 
         // Read the manifest back and count frames.
@@ -468,7 +470,7 @@ struct LocalFileBackupManagerTests {
             return (id1, id2)
         }
 
-        await localFileBackupManager.ensureAttachmentMetadataExists()
+        await localFileBackupManager.ensureAttachmentMetadataExists(progressSink: nil)
 
         let localFileBackupAttachmentCollector = LocalFileBackupAttachmentCollector()
         localFileBackupAttachmentCollector.append(id: id1)
@@ -479,6 +481,7 @@ struct LocalFileBackupManagerTests {
         try await localFileBackupManager.writeQueuedAttachmentsToDisk(
             backupsRootDirectory: localBackupURL,
             currentBackupDirectoryName: currentBackup1,
+            progress: nil,
         )
 
         let localKey1 = try db.read { tx in

@@ -5,6 +5,7 @@
 
 import SignalServiceKit
 import SignalUI
+import SwiftUI
 import UIKit
 
 class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
@@ -14,6 +15,11 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
     private let accountKeyStore: AccountKeyStore
     private let localFileBackupManager: LocalFileBackupManager
     private let localFileBackupExportJobStore: LocalFileBackupExportJobStore
+
+    private var latestProgressUpdate: OWSSequentialProgress<LocalFileBackupExportJobStage>?
+    private var progressUpdatesTask: Task<Void, Never>?
+    private lazy var progressBarHostingController = UIHostingController(rootView: PulsingProgressBar(value: 0))
+    private weak var progressLabel: UILabel?
 
     init(
         localFileBackupExportJobRunner: LocalFileBackupExportJobRunner,
@@ -29,6 +35,10 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
         self.accountKeyStore = accountKeyStore
         self.localFileBackupManager = localFileBackupManager
         self.localFileBackupExportJobStore = localFileBackupExportJobStore
+    }
+
+    deinit {
+        progressUpdatesTask?.cancel()
     }
 
     override func viewDidLoad() {
@@ -50,6 +60,38 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
             name: .lastLocalBackupDetailsDidChange,
             object: nil,
         )
+
+        addChild(progressBarHostingController)
+        progressBarHostingController.view.backgroundColor = .clear
+        progressBarHostingController.view.tintColor = .Signal.accent
+        progressBarHostingController.didMove(toParent: self)
+
+        observeExportJobUpdates()
+    }
+
+    private func observeExportJobUpdates() {
+        let stream = localFileBackupExportJobRunner.updates()
+        progressUpdatesTask = Task { @MainActor [weak self] in
+            for await update in stream {
+                guard let self else { return }
+                let previous = self.latestProgressUpdate
+                switch update {
+                case .progress(let progress):
+                    self.latestProgressUpdate = progress
+                case .completion, nil:
+                    self.latestProgressUpdate = nil
+                }
+
+                // Avoid rebuilding the whole table contents every time.
+                let hadRow = previous != nil
+                let hasRow = self.latestProgressUpdate != nil
+                if hadRow != hasRow {
+                    self.updateTableContents()
+                } else if hasRow {
+                    self.updateProgressCellInPlace()
+                }
+            }
+        }
     }
 
     override func themeDidChange() {
@@ -85,13 +127,147 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
     private func updateTableContents() {
         let contents = OWSTableContents()
 
-        contents.add(sections: [
-            makeBackUpNowSection(),
-            makeDetailsSection(),
-            makeTurnOffSection(),
-        ])
+        var sections: [OWSTableSection] = []
+        if let progressSection = makeProgressSection() {
+            sections.append(progressSection)
+        } else {
+            sections.append(makeBackUpNowSection())
+        }
+        sections.append(makeDetailsSection())
+        sections.append(makeTurnOffSection())
+
+        contents.add(sections: sections)
 
         self.contents = contents
+    }
+
+    // MARK: - Progress
+
+    private func makeProgressSection() -> OWSTableSection? {
+        guard let update = latestProgressUpdate else { return nil }
+
+        let section = OWSTableSection()
+        section.add(OWSTableItem(
+            customCellBlock: { [weak self] in
+                let cell = OWSTableItem.newCell()
+                cell.preservesSuperviewLayoutMargins = true
+                cell.contentView.preservesSuperviewLayoutMargins = true
+                cell.selectionStyle = .none
+
+                guard let self else { return UITableViewCell() }
+
+                let (percent, labelText) = self.progressDisplay(for: update)
+                let hostingController = self.progressBarHostingController
+                hostingController.rootView = PulsingProgressBar(value: percent)
+
+                let label = UILabel()
+                label.font = .monospacedDigitSystemFont(
+                    ofSize: UIFont.dynamicTypeSubheadlineClamped.pointSize,
+                    weight: .regular,
+                )
+                label.textColor = .Signal.secondaryLabel
+                label.numberOfLines = 0
+                label.adjustsFontForContentSizeCategory = true
+                label.text = labelText
+
+                let stack = UIStackView(arrangedSubviews: [hostingController.view, label])
+                stack.axis = .vertical
+                stack.spacing = 12
+                stack.alignment = .fill
+                stack.isLayoutMarginsRelativeArrangement = true
+                stack.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 12, leading: 0, bottom: 0, trailing: 0)
+
+                cell.contentView.addSubview(stack)
+                stack.autoPinEdgesToSuperviewMargins()
+
+                self.progressLabel = label
+
+                return cell
+            },
+            actionBlock: nil,
+        ))
+        section.add(OWSTableItem(
+            customCellBlock: {
+                let cell = OWSTableItem.newCell()
+                cell.preservesSuperviewLayoutMargins = true
+                cell.contentView.preservesSuperviewLayoutMargins = true
+
+                let label = UILabel()
+                label.text = OWSLocalizedString(
+                    "BACKUP_SETTINGS_MANUAL_BACKUP_CANCEL_BUTTON",
+                    comment: "Title for a button shown under a progress bar tracking a manual backup, which lets the user cancel the backup.",
+                )
+                label.font = OWSTableItem.primaryLabelFont
+                label.textColor = Theme.primaryTextColor
+                label.adjustsFontForContentSizeCategory = true
+
+                cell.contentView.addSubview(label)
+                label.autoPinEdgesToSuperviewMargins()
+
+                return cell
+            },
+            actionBlock: { [weak self] in
+                guard let self else { return }
+                _ = self.localFileBackupExportJobRunner.cancelIfRunning()
+            },
+        ))
+
+        return section
+    }
+
+    private func updateProgressCellInPlace() {
+        guard
+            let update = latestProgressUpdate,
+            let progressLabel
+        else {
+            return
+        }
+        let (percent, labelText) = progressDisplay(for: update)
+        progressBarHostingController.rootView = PulsingProgressBar(value: percent)
+
+        let oldText = progressLabel.text
+        progressLabel.text = labelText
+
+        if oldText != labelText {
+            tableView.recomputeRowHeights()
+        }
+    }
+
+    private func progressDisplay(
+        for update: OWSSequentialProgress<LocalFileBackupExportJobStage>,
+    ) -> (percent: Float, label: String) {
+        switch update.currentStep {
+        case .attachmentMetadataPrep:
+            let percent = update.progress(for: .attachmentMetadataPrep)?.percentComplete ?? 0
+            let label = String.nonPluralLocalizedStringWithFormat(
+                OWSLocalizedString(
+                    "SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_ATTACHMENTS",
+                    comment: "Label for a progress bar while the attachments are being prepared for an on-device backup. Embeds 1:{{ percentage complete }}.",
+                ),
+                percent.formatted(.owsPercent()),
+            )
+            return (percent, label)
+        case .backupFileExport:
+            let percent = update.progress(for: .backupFileExport)?.percentComplete ?? 0
+            let label = String.nonPluralLocalizedStringWithFormat(
+                OWSLocalizedString(
+                    "SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_BACKUP",
+                    comment: "Label for a progress bar while the on-device backup is being prepared. Embeds 1:{{ percentage complete }}.",
+                ),
+                percent.formatted(.owsPercent()),
+            )
+            return (percent, label)
+        case .attachmentCopy:
+            let percent = update.progress(for: .attachmentCopy)?.percentComplete ?? 0
+            let label = String.nonPluralLocalizedStringWithFormat(
+                OWSLocalizedString(
+                    "SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS",
+                    comment: "Label for a progress bar while attachments are being copied for an on-device backup. Embeds 1:{{ percentage complete }}.",
+                ),
+                percent.formatted(.owsPercent()),
+            )
+            return (percent, label)
+        }
     }
 
     // MARK: - Sections

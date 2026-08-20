@@ -46,6 +46,24 @@ public struct LocalFileBackupStore {
         }
     }
 
+    func exportRecordsCount(tx: DBReadTransaction) -> Int {
+        failIfThrows {
+            try BackupLocalFileAttachmentExportRecord
+                .fetchCount(tx.database)
+        }
+    }
+
+    func attachmentCountSinceLastFetched(tx: DBReadTransaction) -> Int {
+        failIfThrows {
+            var query = Attachment.Record
+                .filter(Column(Attachment.Record.CodingKeys.plaintextHash) != nil)
+            if let lastId = fetchLastEnumeratedAttachmentRowId(tx: tx) {
+                query = query.filter(Column(Attachment.Record.CodingKeys.sqliteId) > lastId)
+            }
+            return try query.fetchCount(tx.database)
+        }
+    }
+
     func metadataRecord(attachmentId: Attachment.IDType, failIfNotExists: Bool, tx: DBReadTransaction) -> BackupLocalFileAttachmentMetadataRecord? {
         failIfThrows {
             guard
