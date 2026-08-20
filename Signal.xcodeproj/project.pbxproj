@@ -741,6 +741,7 @@
 		504861AA2EEB4D0D00B13C49 /* SendableAttachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5011C8D72ED77478005DF488 /* SendableAttachment.swift */; };
 		504861AB2EEB4D1500B13C49 /* SignalAttachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D913491F62D4A500722898 /* SignalAttachment.swift */; };
 		5049246F2F209DA8006469B3 /* OutgoingMessageRequestResponseSyncMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5049246E2F209DA8006469B3 /* OutgoingMessageRequestResponseSyncMessage.swift */; };
+		50498C6C3037574400BD86EB /* GroupStoreTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50498C6B3037574400BD86EB /* GroupStoreTest.swift */; };
 		5049FA2F28BEAABE00D6E099 /* ContactDiscoveryV2Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5049FA2D28BEAABE00D6E099 /* ContactDiscoveryV2Operation.swift */; };
 		504B8BAC2F802FA2002B8AB9 /* DeferredContinuation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504B8BAB2F802FA2002B8AB9 /* DeferredContinuation.swift */; };
 		504F397C29D23B1700E849A6 /* ValidatedIncomingEnvelope.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504F397B29D23B1700E849A6 /* ValidatedIncomingEnvelope.swift */; };
@@ -5079,6 +5080,7 @@
 		50468F2829EE130A00948E02 /* InteractionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractionStore.swift; sourceTree = "<group>"; };
 		50468F2A29EE19C300948E02 /* PhoneNumberChangedMessageInserterTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneNumberChangedMessageInserterTest.swift; sourceTree = "<group>"; };
 		5049246E2F209DA8006469B3 /* OutgoingMessageRequestResponseSyncMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutgoingMessageRequestResponseSyncMessage.swift; sourceTree = "<group>"; };
+		50498C6B3037574400BD86EB /* GroupStoreTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupStoreTest.swift; sourceTree = "<group>"; };
 		5049FA2D28BEAABE00D6E099 /* ContactDiscoveryV2Operation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactDiscoveryV2Operation.swift; sourceTree = "<group>"; };
 		504B8BAB2F802FA2002B8AB9 /* DeferredContinuation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeferredContinuation.swift; sourceTree = "<group>"; };
 		504F397B29D23B1700E849A6 /* ValidatedIncomingEnvelope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidatedIncomingEnvelope.swift; sourceTree = "<group>"; };
@@ -14591,6 +14593,7 @@
 				50FA17113006F244007529C6 /* GroupInviteLinkTest.swift */,
 				5090B1A02F8D7239003F029D /* GroupMembershipTest.swift */,
 				F94261E3289B1B5400460798 /* GroupModelsTest.swift */,
+				50498C6B3037574400BD86EB /* GroupStoreTest.swift */,
 			);
 			name = Groups;
 			path = SignalServiceKit/tests/Groups;
@@ -20534,6 +20537,7 @@
 				5075C21729CA1EE700A260D2 /* GroupMemberUpdaterTest.swift in Sources */,
 				50925DEC2DA87AEF00DAB484 /* GroupMessageProcessorJobTest.swift in Sources */,
 				F9426251289B1B5500460798 /* GroupModelsTest.swift in Sources */,
+				50498C6C3037574400BD86EB /* GroupStoreTest.swift in Sources */,
 				F9426243289B1B5500460798 /* HttpHeadersTest.swift in Sources */,
 				50A0B3D0301015050053607C /* HydratedMessageBodyTest.swift in Sources */,
 				D9F399B02A967664001599EC /* IdentityKeyCheckerTest.swift in Sources */,

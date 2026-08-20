@@ -29,7 +29,7 @@ public struct GroupRecord: Codable, FetchableRecord, PersistableRecord {
     private(set) var threadId: ThreadId?
 
     /// Missing for GV1 groups; potentially missing for GV2 groups you've left.
-    let masterKey: GroupMasterKey?
+    private(set) var masterKey: GroupMasterKey?
 
     /// The timestamp when the group was most recently auto-refreshed.
     private(set) var refreshedAt: Int64
@@ -98,6 +98,12 @@ public struct GroupRecord: Codable, FetchableRecord, PersistableRecord {
                 ],
             ).owsFailUnwrap("must return value or error")
         }
+    }
+
+    mutating func setMasterKey(secretParams: GroupSecretParams, tx: DBWriteTransaction) {
+        let groupId = failIfThrows { try secretParams.getPublicParams().getGroupIdentifier() }
+        owsPrecondition(groupId.serialize() == self.groupId, "can't change ID for a group")
+        self.masterKey = failIfThrows { try secretParams.getMasterKey() }
     }
 
     func deriveSecretParams() -> GroupSecretParams? {

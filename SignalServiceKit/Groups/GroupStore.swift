@@ -24,7 +24,10 @@ struct GroupStore {
         tx: DBWriteTransaction,
     ) -> GroupRecord {
         let groupId = failIfThrows { try secretParams.getPublicParams().getGroupIdentifier() }
-        if let existingRecord = fetchGroup(forGroupId: groupId, tx: tx) {
+        if var existingRecord = fetchGroup(forGroupId: groupId, tx: tx) {
+            if existingRecord.masterKey == nil {
+                existingRecord.setMasterKey(secretParams: secretParams, tx: tx)
+            }
             return existingRecord
         }
         let masterKey = failIfThrows { try secretParams.getMasterKey() }
