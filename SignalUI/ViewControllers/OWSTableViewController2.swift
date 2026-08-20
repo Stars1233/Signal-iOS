@@ -226,24 +226,6 @@ open class OWSTableViewController2: OWSViewController, OWSNavigationChildControl
         tableView.separatorStyle = .none
     }
 
-    public var shouldHideBottomFooter = false {
-        didSet {
-            guard let bottomFooterView, oldValue != shouldHideBottomFooter, isViewLoaded else { return }
-
-            // When making footer visible we want it to have the final layout.
-            if bottomFooterView.isHidden {
-                UIView.performWithoutAnimation {
-                    bottomFooterView.setNeedsLayout()
-                    bottomFooterView.layoutIfNeeded()
-                }
-            }
-            bottomFooterView.isHidden = shouldHideBottomFooter
-
-            // Trigger layout pass to update table view's bottom content inset.
-            view.setNeedsLayout()
-        }
-    }
-
     private var bottomEdgeConstraints: [NSLayoutConstraint]?
 
     private func updateBottomEdgeConstraints() {
@@ -276,7 +258,6 @@ open class OWSTableViewController2: OWSViewController, OWSNavigationChildControl
         }
         NSLayoutConstraint.activate(bottomEdgeConstraints)
 
-        bottomFooterView?.isHidden = shouldHideBottomFooter
         self.bottomEdgeConstraints = bottomEdgeConstraints
 
         guard hasViewAppeared else {

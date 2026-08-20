@@ -146,8 +146,21 @@ public class ApprovalFooterView: UIView, UITextFieldDelegate {
     }
 
     public func setNamesText(_ newValue: String?, animated: Bool) {
+        let text: String
+        let textColor: UIColor
+        if let recipientList = newValue?.nilIfEmpty {
+            text = recipientList
+            textColor = .Signal.label
+        } else {
+            text = OWSLocalizedString(
+                "CONVERSATION_PICKER_CHOOSE_RECIPIENT",
+                comment: "Displayed at the bottom of chat picker in gray if no chats are selected.",
+            )
+            textColor = .Signal.secondaryLabel
+        }
         let changes = {
-            self.namesLabel.text = newValue
+            self.namesLabel.text = text
+            self.namesLabel.textColor = textColor
 
             self.layoutIfNeeded()
 
@@ -186,13 +199,14 @@ public class ApprovalFooterView: UIView, UITextFieldDelegate {
     private lazy var namesLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.dynamicTypeBody
-        label.textColor = .Signal.secondaryLabel
         return label
     }()
 
     private lazy var textField: UITextField = {
         let textField = UITextField()
         textField.delegate = self
+        textField.textColor = .Signal.label
+        textField.tintColor = .Signal.label
         textField.font = UIFont.dynamicTypeBody
         return textField
     }()
@@ -236,7 +250,7 @@ public class ApprovalFooterView: UIView, UITextFieldDelegate {
     private var proceedLoadingIndicator: UIActivityIndicatorView?
 
     private lazy var proceedButton: UIButton = {
-        var buttonConfig = UIButton.Configuration.bordered()
+        var buttonConfig: UIButton.Configuration = if #available(iOS 26, *) { .prominentGlass() } else { .borderedProminent() }
         buttonConfig.baseForegroundColor = .white // `updateContents()` temporarily changes this.
         buttonConfig.baseBackgroundColor = .Signal.accent
         buttonConfig.cornerStyle = .capsule
@@ -266,7 +280,10 @@ public class ApprovalFooterView: UIView, UITextFieldDelegate {
             textField.resignFirstResponder()
         case .active(let placeholderText):
             textFieldContainer.isHidden = false
-            textField.placeholder = placeholderText
+            textField.attributedPlaceholder = NSAttributedString(
+                string: placeholderText,
+                attributes: [.foregroundColor: UIColor.Signal.secondaryLabel],
+            )
         }
 
         if approvalMode == .loading {
