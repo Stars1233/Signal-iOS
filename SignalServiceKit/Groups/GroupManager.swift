@@ -1450,9 +1450,6 @@ extension GroupManager {
                 title != existingGroupModel.groupName
             {
                 groupChangeSet.setTitle(title)
-
-                // Updated verified group name hash in storage service.
-                SSKEnvironment.shared.storageServiceManagerRef.recordPendingUpdates(groupModel: existingGroupModel)
             }
 
             if
