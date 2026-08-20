@@ -160,7 +160,6 @@ public class FindByPhoneNumberViewController: OWSTableViewController2 {
             style: .done,
             target: self,
             action: #selector(tryToSelectPhoneNumber),
-            accessibilityIdentifier: UIView.accessibilityIdentifier(in: self, name: "button"),
         )
         navigationItem.rightBarButtonItem?.isEnabled = false
 

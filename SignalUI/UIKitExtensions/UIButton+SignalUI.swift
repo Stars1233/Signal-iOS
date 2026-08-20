@@ -261,55 +261,6 @@ public extension UIButton.Configuration {
 
 public extension UIBarButtonItem {
 
-    convenience init(
-        image: UIImage?,
-        style: UIBarButtonItem.Style,
-        target: Any?,
-        action: Selector?,
-        accessibilityIdentifier: String,
-    ) {
-        self.init(image: image, style: style, target: target, action: action)
-        self.accessibilityIdentifier = accessibilityIdentifier
-    }
-
-    convenience init(
-        image: UIImage?,
-        landscapeImagePhone: UIImage?,
-        style: UIBarButtonItem.Style,
-        target: Any?,
-        action: Selector?,
-        accessibilityIdentifier: String,
-    ) {
-        self.init(image: image, landscapeImagePhone: landscapeImagePhone, style: style, target: target, action: action)
-        self.accessibilityIdentifier = accessibilityIdentifier
-    }
-
-    convenience init(
-        title: String?,
-        style: UIBarButtonItem.Style,
-        target: Any?,
-        action: Selector?,
-        accessibilityIdentifier: String,
-    ) {
-        self.init(title: title, style: style, target: target, action: action)
-        self.accessibilityIdentifier = accessibilityIdentifier
-    }
-
-    convenience init(
-        barButtonSystemItem systemItem: UIBarButtonItem.SystemItem,
-        target: Any?,
-        action: Selector?,
-        accessibilityIdentifier: String,
-    ) {
-        self.init(barButtonSystemItem: systemItem, target: target, action: action)
-        self.accessibilityIdentifier = accessibilityIdentifier
-    }
-
-    convenience init(customView: UIView, accessibilityIdentifier: String) {
-        self.init(customView: customView)
-        self.accessibilityIdentifier = accessibilityIdentifier
-    }
-
     private class ClosureBarButtonItem: UIBarButtonItem {
         private class Handler {
             var actionClosure: () -> Void

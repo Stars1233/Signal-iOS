@@ -158,10 +158,7 @@ class RegistrationPinViewController: OWSViewController {
         return result
     }()
 
-    private lazy var backBarButton = UIBarButtonItem(
-        customView: backButton,
-        accessibilityIdentifier: "registration.pin.backButton",
-    )
+    private lazy var backBarButton = UIBarButtonItem(customView: backButton)
 
     private var stackView: UIStackView!
 

@@ -161,7 +161,6 @@ public extension ChatListViewController {
             style: .plain,
             target: nil,
             action: nil,
-            accessibilityIdentifier: "back",
         )
     }
 }

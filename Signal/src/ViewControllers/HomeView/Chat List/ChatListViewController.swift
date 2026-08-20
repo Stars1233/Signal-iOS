@@ -882,7 +882,6 @@ public class ChatListViewController: OWSViewController, HomeTabViewController {
             style: .plain,
             target: nil,
             action: nil,
-            accessibilityIdentifier: "back",
         )
     }
 
