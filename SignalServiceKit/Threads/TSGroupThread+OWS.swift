@@ -27,6 +27,10 @@ extension TSGroupThread {
             return nil
         }
 
+        return threadUniqueId(forThreadId: threadId, tx: tx)
+    }
+
+    public static func threadUniqueId(forThreadId threadId: TSThread.RowId, tx: DBReadTransaction) -> String? {
         let fetchQuery = TSGroupThread
             .filter(key: threadId)
             .select(TSThread.Columns.uniqueId, as: TSThread.UniqueId.self)

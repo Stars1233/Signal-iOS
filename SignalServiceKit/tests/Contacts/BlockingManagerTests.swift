@@ -130,6 +130,7 @@ class BlockingManagerTests: SSKBaseTest {
                     groupId: thread.groupId,
                     threadId: thread.sqliteRowId!,
                     masterKey: try noLongerBlockedGroupParams.getMasterKey(),
+                    refreshedAt: .distantPast,
                     tx: tx,
                 )
             }
@@ -156,6 +157,7 @@ class BlockingManagerTests: SSKBaseTest {
                     groupId: thread.groupId,
                     threadId: thread.sqliteRowId!,
                     masterKey: try stillBlockedGroupParams.getMasterKey(),
+                    refreshedAt: .distantPast,
                     tx: tx,
                 )
             }

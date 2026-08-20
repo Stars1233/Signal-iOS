@@ -8,10 +8,6 @@ public import LibSignalClient
 
 public class GroupV2UpdatesImpl: GroupV2Updates {
 
-    // This tracks the last time that groups were updated to the current
-    // revision.
-    private static let groupRefreshStore = NewKeyValueStore(collection: "groupRefreshStore")
-
     private var lastSuccessfulRefreshMap = LRUCache<GroupIdentifier, Date>(maxSize: 256)
 
     private let operationQueue = ConcurrentTaskQueue(concurrentLimit: 1)
@@ -20,106 +16,107 @@ public class GroupV2UpdatesImpl: GroupV2Updates {
 
     // MARK: -
 
-    // On launch, we refresh a randomly-selected group.
-    public func autoRefreshGroup() async throws(CancellationError) {
+    /// Periodically refresh stale groups.
+    public func autoRefreshGroups() async throws {
+        let databaseStorage = SSKEnvironment.shared.databaseStorageRef
+        let messageProcessor = SSKEnvironment.shared.messageProcessorRef
         let tsAccountManager = DependenciesBridge.shared.tsAccountManager
-        guard tsAccountManager.registrationStateWithMaybeSneakyTransaction.isRegistered else {
-            return
+        let localIdentifiers = tsAccountManager.localIdentifiersWithMaybeSneakyTransaction.owsFailUnwrap("must be registered")
+
+        var refreshedGroupCount = 0
+        while true {
+            try await messageProcessor.waitForFetchingAndProcessing()
+
+            let groupToRefresh = databaseStorage.read(block: { tx in GroupStore().fetchMostStaleGroup(tx: tx) })
+            guard let groupToRefresh else {
+                break
+            }
+
+            let formattedDays = String(format: "%.1f", -groupToRefresh.refreshedAtDate.timeIntervalSinceNow / TimeInterval.day)
+            Logger.info("group \(groupToRefresh.groupId.hexadecimalString) refreshing after \(formattedDays) days")
+
+            try await self.autoRefreshGroup(groupIdData: groupToRefresh.groupId, localIdentifiers: localIdentifiers)
+
+            // If there's lots of groups to refresh, space out the network requests.
+            refreshedGroupCount += 1
+            let refreshDelay = OWSOperation.retryIntervalForExponentialBackoff(
+                failureCount: refreshedGroupCount,
+                minAverageBackoff: 0.01,
+                maxAverageBackoff: .minute,
+            )
+            try await Task.sleep(nanoseconds: refreshDelay.clampedNanoseconds)
+        }
+    }
+
+    private func autoRefreshGroup(groupIdData: Data, localIdentifiers: LocalIdentifiers) async throws {
+        let databaseStorage = SSKEnvironment.shared.databaseStorageRef
+
+        enum RefreshBehavior {
+            case skip(reason: String)
+            case refresh(GroupSecretParams)
         }
 
-        try await SSKEnvironment.shared.messageProcessorRef.waitForFetchingAndProcessing()
+        let refreshBehavior = await databaseStorage.awaitableWrite { tx -> RefreshBehavior in
+            guard var groupRecord = GroupStore().fetchGroup(forGroupIdData: groupIdData, tx: tx) else {
+                return .skip(reason: "the group has disappeared")
+            }
 
-        guard let groupInfoToRefresh = Self.findGroupToAutoRefresh() else {
-            // We didn't find a group to refresh; abort.
-            return
+            let groupThread = groupRecord.threadId.map {
+                // If we have a FOREIGN KEY to a TSThread, that thread must exist.
+                return TSGroupThread.threadUniqueId(forThreadId: $0, tx: tx).owsFailUnwrap("must exist")
+            }.flatMap {
+                // However, that thread might not be a TSGroupThread, so this may fail.
+                return TSGroupThread.fetchViaCache(uniqueId: $0, transaction: tx)
+            }
+
+            guard let secretParams = groupRecord.deriveSecretParams() else {
+                markAsRefreshed(groupRecord: &groupRecord, tx: tx)
+                return .skip(reason: "the group has no secret params")
+            }
+
+            // If we're a member of a non-terminated group, refresh it.
+            if
+                let groupThread,
+                let groupModel = groupThread.groupModel as? TSGroupModelV2,
+                groupModel.groupMembership.isLocalUserFullOrInvitedMember,
+                !groupModel.isTerminated
+            {
+                return .refresh(secretParams)
+            }
+
+            markAsRefreshed(groupRecord: &groupRecord, tx: tx)
+            return .skip(reason: "the group isn't active")
         }
 
-        let groupId = groupInfoToRefresh.groupId
-        let groupSecretParams = groupInfoToRefresh.groupSecretParams
-        if let lastRefreshDate = groupInfoToRefresh.lastRefreshDate {
-            let formattedDays = String(format: "%.1f", -lastRefreshDate.timeIntervalSinceNow / TimeInterval.day)
-            Logger.info("auto-refreshing group: \(groupId) which hasn't been refreshed in \(formattedDays) days")
-        } else {
-            Logger.info("auto-refreshing group: \(groupId) which has never been refreshed")
+        let secretParamsToRefresh: GroupSecretParams
+        switch refreshBehavior {
+        case .skip(let reason):
+            Logger.warn("group \(groupIdData.hexadecimalString) refresh skipped: \(reason)")
+            return
+        case .refresh(let secretParams):
+            secretParamsToRefresh = secretParams
         }
 
         do {
-            try await self.refreshGroup(secretParams: groupSecretParams)
-        } catch GroupsV2Error.localUserNotInGroup {
-            Logger.warn("can't auto-refresh group unless we're a member")
+            try await refreshGroup(secretParams: secretParamsToRefresh)
+            Logger.warn("group \(groupIdData.hexadecimalString) refreshed")
+        } catch where error.isCancellation || error.isNetworkFailureOrTimeout {
+            Logger.warn("group \(groupIdData.hexadecimalString) refresh interrupted: \(error)")
+            throw error
         } catch {
-            owsFailDebugUnlessNetworkFailure(error)
+            Logger.warn("group \(groupIdData.hexadecimalString) refresh rescheduled due to error: \(error)")
         }
-    }
 
-    private struct GroupInfo {
-        let groupId: GroupIdentifier
-        let groupSecretParams: GroupSecretParams
-        let lastRefreshDate: Date?
-    }
-
-    private static func findGroupToAutoRefresh() -> GroupInfo? {
-        // Enumerate the all v2 groups, trying to find the "best" one to refresh.
-        // The "best" is the group that hasn't been refreshed in the longest time.
-        SSKEnvironment.shared.databaseStorageRef.read { transaction in
-            var groupInfoToRefresh: GroupInfo?
-            TSThread.anyEnumerate(transaction: transaction, batchingPreference: .batched(Batching.kDefaultBatchSize)) { thread, stop in
-                guard
-                    let groupThread = thread as? TSGroupThread,
-                    let groupModel = groupThread.groupModel as? TSGroupModelV2,
-                    groupModel.groupMembership.isLocalUserFullOrInvitedMember,
-                    !groupModel.isTerminated,
-                    let groupSecretParams = try? groupModel.secretParams(),
-                    let groupId = try? groupSecretParams.getPublicParams().getGroupIdentifier(),
-                    !SSKEnvironment.shared.blockingManagerRef.isGroupIdBlocked(groupId, transaction: transaction)
-                else {
-                    // Refreshing a group we're not a member of will throw errors
-                    return
-                }
-
-                let storeKey = groupId.serialize().toHex()
-                guard
-                    let lastRefreshDate: Date = Self.groupRefreshStore.fetchValue(
-                        Date.self,
-                        forKey: storeKey,
-                        tx: transaction,
-                    )
-                else {
-                    // If we find a group that we have no record of refreshing,
-                    // pick that one immediately.
-                    groupInfoToRefresh = GroupInfo(
-                        groupId: groupId,
-                        groupSecretParams: groupSecretParams,
-                        lastRefreshDate: nil,
-                    )
-                    stop = true
-                    return
-                }
-
-                // Don't auto-refresh groups more than once a week.
-                let maxRefreshFrequencyInternal: TimeInterval = .week
-                guard abs(lastRefreshDate.timeIntervalSinceNow) > maxRefreshFrequencyInternal else {
-                    return
-                }
-
-                if
-                    let otherGroupInfo = groupInfoToRefresh,
-                    let otherLastRefreshDate = otherGroupInfo.lastRefreshDate,
-                    otherLastRefreshDate < lastRefreshDate
-                {
-                    // We already found another group with an older refresh
-                    // date, so prefer that one.
-                    return
-                }
-
-                groupInfoToRefresh = GroupInfo(
-                    groupId: groupId,
-                    groupSecretParams: groupSecretParams,
-                    lastRefreshDate: lastRefreshDate,
-                )
+        await databaseStorage.awaitableWrite { tx in
+            guard var groupToReschedule = GroupStore().fetchGroup(forGroupIdData: groupIdData, tx: tx) else {
+                return
             }
-            return groupInfoToRefresh
+            markAsRefreshed(groupRecord: &groupToReschedule, tx: tx)
         }
+    }
+
+    private func markAsRefreshed(groupRecord: inout GroupRecord, tx: DBWriteTransaction) {
+        groupRecord.setRefreshedAt(GroupRecord.addingRefreshJitter(toDate: Date()), tx: tx)
     }
 
     public func updateGroupWithChangeActions(
@@ -267,9 +264,6 @@ public class GroupV2UpdatesImpl: GroupV2Updates {
 
     private func didUpdateGroupToLatestRevision(groupId: GroupIdentifier) async {
         lastSuccessfulRefreshMap[groupId] = Date()
-        await SSKEnvironment.shared.databaseStorageRef.awaitableWrite { tx in
-            Self.groupRefreshStore.writeValue(Date(), forKey: groupId.serialize().hexadecimalString, tx: tx)
-        }
     }
 
     private func runUpdateOperation(

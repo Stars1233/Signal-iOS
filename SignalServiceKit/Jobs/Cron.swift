@@ -77,7 +77,6 @@ public class Cron {
         case fetchLocalProfile
         case fetchMegaphones
         case fetchSenderCertificates
-        case fetchStaleGroup
         case fetchStaleProfiles
         case fetchStorageService
         case fetchSubscriptionConfig

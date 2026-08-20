@@ -352,6 +352,7 @@ public class GRDBSchemaMigrator {
         case addGroup
         case removeInteractionAttachmentIdsIndex
         case rebuildInteractionTimestampIndex
+        case addGroupRefreshedAt
 
         // NOTE: Every time we add a migration id, consider
         // incrementing grdbSchemaVersionLatest.
@@ -5495,6 +5496,12 @@ public class GRDBSchemaMigrator {
             return .success(())
         }
 
+        migrator.registerMigration(.addGroupRefreshedAt) { tx in
+            try addGroupRefreshedAt(tx: tx)
+            try migrateGroupRefreshedAt(tx: tx)
+            return .success(())
+        }
+
         // MARK: - Schema Migration Insertion Point
     }
 
@@ -8383,6 +8390,33 @@ public class GRDBSchemaMigrator {
             on: "CombinedGroupSendEndorsement",
             columns: ["expiration"],
         )
+    }
+
+    static func addGroupRefreshedAt(tx: DBWriteTransaction) throws {
+        try tx.database.alter(table: "GroupRecord") {
+            $0.add(column: "refreshedAt", .integer).notNull().defaults(to: Int64(Date.distantPast.timeIntervalSince1970))
+        }
+        try tx.database.create(
+            index: "GroupRecord_refreshedAt",
+            on: "GroupRecord",
+            columns: ["refreshedAt"],
+        )
+    }
+
+    static func migrateGroupRefreshedAt(tx: DBWriteTransaction) throws {
+        let collection = "groupRefreshStore"
+        if BuildFlags.migrateGroupRefreshedAt {
+            try tx.database.execute(
+                sql: """
+                UPDATE "GroupRecord"
+                SET "refreshedAt" = CAST("keyvalue"."value" AS INTEGER)
+                FROM (SELECT "key", "value" FROM "keyvalue" WHERE "collection" = ?) "keyvalue"
+                WHERE lower(hex("GroupRecord"."groupId")) = "keyvalue"."key"
+                """,
+                arguments: [collection],
+            )
+        }
+        try tx.database.execute(sql: "DELETE FROM keyvalue WHERE collection = ?", arguments: [collection])
     }
 
     static func dedupeSignalRecipients(tx: DBWriteTransaction) throws {

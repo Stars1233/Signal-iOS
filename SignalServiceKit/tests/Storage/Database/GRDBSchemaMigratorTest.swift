@@ -2383,4 +2383,106 @@ struct GRDBSchemaMigratorTest {
             #expect(individualRecords.isEmpty)
         }
     }
+
+    @Test
+    func testMigrateGroupRefreshedAt() throws {
+        let groupId1 = Randomness.generateRandomBytes(32)
+        let groupId2 = Randomness.generateRandomBytes(32)
+        let groupId3 = Randomness.generateRandomBytes(32)
+        let groupId4 = Randomness.generateRandomBytes(32)
+
+        let databaseQueue = DatabaseQueue()
+        try databaseQueue.write { db in
+            try db.execute(sql: """
+            CREATE TABLE "keyvalue" (
+                "collection" TEXT NOT NULL,
+                "key" TEXT NOT NULL,
+                "value" BLOB NOT NULL,
+                PRIMARY KEY ("collection", "key")
+            );
+
+            CREATE TABLE "GroupRecord" (
+                "rowId" INTEGER PRIMARY KEY,
+                "groupId" BLOB NOT NULL UNIQUE
+            );
+            """)
+
+            for groupId in [groupId1, groupId2, groupId3, groupId4] {
+                try db.execute(
+                    sql: """
+                    INSERT INTO "GroupRecord" ("groupId") VALUES (?)
+                    """,
+                    arguments: [groupId],
+                )
+            }
+
+            try db.execute(
+                sql: """
+                INSERT INTO "keyvalue" ("collection", "key", "value") VALUES (?, ?, ?)
+                """,
+                arguments: [
+                    "groupRefreshStore",
+                    groupId1.hexadecimalString,
+                    1234.5,
+                ],
+            )
+
+            try db.execute(
+                sql: """
+                INSERT INTO "keyvalue" ("collection", "key", "value") VALUES (?, ?, ?)
+                """,
+                arguments: [
+                    "groupRefreshStore2",
+                    groupId2.hexadecimalString,
+                    1235.6,
+                ],
+            )
+
+            try db.execute(
+                sql: """
+                INSERT INTO "keyvalue" ("collection", "key", "value") VALUES (?, ?, ?)
+                """,
+                arguments: [
+                    "groupRefreshStore2",
+                    groupId4.hexadecimalString,
+                    "Blah",
+                ],
+            )
+
+            do {
+                let tx = DBWriteTransaction(database: db)
+                defer { tx.finalizeTransaction() }
+                try GRDBSchemaMigrator.addGroupRefreshedAt(tx: tx)
+                try GRDBSchemaMigrator.migrateGroupRefreshedAt(tx: tx)
+            }
+
+            var groupRecords = try Row.fetchAll(db, sql: "SELECT * FROM GroupRecord ORDER BY rowId")[...]
+
+            do {
+                let groupRecord = groupRecords.removeFirst()
+                #expect(groupRecord["rowId"] as Int64 == 1)
+                #expect(groupRecord["groupId"] as Data? == groupId1)
+                #expect(groupRecord["refreshedAt"] as Int64 == 1234)
+            }
+            do {
+                let groupRecord = groupRecords.removeFirst()
+                #expect(groupRecord["rowId"] as Int64 == 2)
+                #expect(groupRecord["groupId"] as Data? == groupId2)
+                #expect(groupRecord["refreshedAt"] as Int64 == Int64(Date.distantPast.timeIntervalSince1970))
+            }
+            do {
+                let groupRecord = groupRecords.removeFirst()
+                #expect(groupRecord["rowId"] as Int64 == 3)
+                #expect(groupRecord["groupId"] as Data? == groupId3)
+                #expect(groupRecord["refreshedAt"] as Int64 == Int64(Date.distantPast.timeIntervalSince1970))
+            }
+            do {
+                let groupRecord = groupRecords.removeFirst()
+                #expect(groupRecord["rowId"] as Int64 == 4)
+                #expect(groupRecord["groupId"] as Data? == groupId4)
+                #expect(groupRecord["refreshedAt"] as Int64 == Int64(Date.distantPast.timeIntervalSince1970))
+            }
+            #expect(groupRecords.isEmpty)
+        }
+    }
 }

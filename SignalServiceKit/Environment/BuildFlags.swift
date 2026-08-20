@@ -69,6 +69,10 @@ public enum BuildFlags {
     // expires. Then, delete all the code that's now dead.
     public static let decodeOldSenderKeys = true
 
+    // Turn this off 7 days after the last release without this change expires.
+    // Then, delete all the code that's now dead.
+    public static let migrateGroupRefreshedAt = true
+
     public enum KeyTransparency {
         public static let enabled = true
         public static let conservativeSelfCheck = build <= .internal

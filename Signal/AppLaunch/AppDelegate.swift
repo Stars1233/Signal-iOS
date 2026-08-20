@@ -631,12 +631,10 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         )
 
         let groupV2Updates = SSKEnvironment.shared.groupV2UpdatesRef
-        cron.schedulePeriodically(
-            uniqueKey: .fetchStaleGroup,
-            approximateInterval: .day,
+        cron.scheduleFrequently(
             mustBeRegistered: true,
             mustBeConnected: true,
-            operation: { try await groupV2Updates.autoRefreshGroup() },
+            operation: { try await groupV2Updates.autoRefreshGroups() },
         )
 
         appReadiness.runNowOrWhenAppDidBecomeReadyAsync {

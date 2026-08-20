@@ -9,12 +9,20 @@ import LibSignalClient
 
 struct GroupStore {
     func fetchGroup(forGroupId groupId: GroupIdentifier, tx: DBReadTransaction) -> GroupRecord? {
+        return fetchGroup(forGroupIdData: groupId.serialize(), tx: tx)
+    }
+
+    func fetchGroup(forGroupIdData groupIdData: Data, tx: DBReadTransaction) -> GroupRecord? {
         let fetchRequest = GroupRecord
-            .filter(GroupRecord.Columns.groupId == groupId.serialize())
+            .filter(GroupRecord.Columns.groupId == groupIdData)
         return failIfThrows { try fetchRequest.fetchOne(tx.database) }
     }
 
-    func fetchGroupOrInsert(secretParams: GroupSecretParams, tx: DBWriteTransaction) -> GroupRecord {
+    func fetchGroupOrInsert(
+        secretParams: GroupSecretParams,
+        refreshedAt: Date = GroupRecord.addingRefreshJitter(toDate: Date()),
+        tx: DBWriteTransaction,
+    ) -> GroupRecord {
         let groupId = failIfThrows { try secretParams.getPublicParams().getGroupIdentifier() }
         if let existingRecord = fetchGroup(forGroupId: groupId, tx: tx) {
             return existingRecord
@@ -24,6 +32,7 @@ struct GroupStore {
             groupId: groupId.serialize(),
             threadId: nil, // set later
             masterKey: masterKey,
+            refreshedAt: refreshedAt,
             tx: tx,
         )
     }
@@ -62,5 +71,13 @@ struct GroupStore {
         while let record = cursor.next() {
             try block(record)
         }
+    }
+
+    func fetchMostStaleGroup(now: Date = Date(), tx: DBReadTransaction) -> GroupRecord? {
+        let staleDate = now.addingTimeInterval(-GroupRecord.Constants.refreshInterval)
+        let fetchRequest = GroupRecord
+            .filter(GroupRecord.Columns.refreshedAt < Int64(staleDate.timeIntervalSince1970))
+            .order(GroupRecord.Columns.refreshedAt)
+        return failIfThrows { try fetchRequest.fetchOne(tx.database) }
     }
 }
