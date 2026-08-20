@@ -270,7 +270,6 @@
 		3402AA96271D9E180084CBAE /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A95564271B510400B05242 /* Toast.swift */; };
 		3402AA97271D9E180084CBAE /* VideoEditorModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A9551B271B510400B05242 /* VideoEditorModel.swift */; };
 		3402AA98271D9E180084CBAE /* ImageEditorPanGestureRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A95552271B510400B05242 /* ImageEditorPanGestureRecognizer.swift */; };
-		3402AA99271D9E180084CBAE /* OWSButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A95530271B510400B05242 /* OWSButton.swift */; };
 		3402AA9B271D9E180084CBAE /* TooltipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A9554D271B510400B05242 /* TooltipView.swift */; };
 		3402AA9C271D9E180084CBAE /* ManualLayoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A9551D271B510400B05242 /* ManualLayoutView.swift */; };
 		3402AA9D271D9E180084CBAE /* CircleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A9553F271B510400B05242 /* CircleView.swift */; };
@@ -4696,7 +4695,6 @@
 		34A9552C271B510400B05242 /* MentionPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MentionPicker.swift; sourceTree = "<group>"; };
 		34A9552D271B510400B05242 /* BodyRangesTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyRangesTextView.swift; sourceTree = "<group>"; };
 		34A9552F271B510400B05242 /* LoopingVideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopingVideoView.swift; sourceTree = "<group>"; };
-		34A95530271B510400B05242 /* OWSButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OWSButton.swift; sourceTree = "<group>"; };
 		34A95535271B510400B05242 /* OWSBubbleShapeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OWSBubbleShapeView.swift; sourceTree = "<group>"; };
 		34A95536271B510400B05242 /* ContactTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTableViewCell.swift; sourceTree = "<group>"; };
 		34A95538271B510400B05242 /* OWSLayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OWSLayerView.swift; sourceTree = "<group>"; };
@@ -9320,7 +9318,6 @@
 				34A95578271B510500B05242 /* MediaMessageView.swift */,
 				76A2EB0F28B578B800A29C24 /* MediaTextView.swift */,
 				34A95535271B510400B05242 /* OWSBubbleShapeView.swift */,
-				34A95530271B510400B05242 /* OWSButton.swift */,
 				34A95511271B510400B05242 /* OWSFlatButton.swift */,
 				34A95538271B510400B05242 /* OWSLayerView.swift */,
 				34A95544271B510400B05242 /* OWSNavigationBar.swift */,
@@ -18168,7 +18165,6 @@
 				507C07402F116E9200ECFEFA /* NormalizedImage.swift in Sources */,
 				3402AAAB271D9E180084CBAE /* OWSActionSheets.swift in Sources */,
 				3402AA74271D9E180084CBAE /* OWSBubbleShapeView.swift in Sources */,
-				3402AA99271D9E180084CBAE /* OWSButton.swift in Sources */,
 				D9B2E1182E748E1900A823E4 /* OWSByteCountFormatStyle.swift in Sources */,
 				3402AA83271D9E180084CBAE /* OWSFlatButton.swift in Sources */,
 				3402AA71271D9E180084CBAE /* OWSLayerView.swift in Sources */,
