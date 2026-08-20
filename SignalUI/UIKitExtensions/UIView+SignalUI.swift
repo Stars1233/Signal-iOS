@@ -150,12 +150,28 @@ public extension UIView {
         return self
     }
 
-    func addCircleBadge(color: UIColor) {
-        let badge = OWSLayerView.circleView(size: 12)
+    func addCircleBadge(
+        color: UIColor,
+        onCircleView circleView: UIView,
+        circleDiameter: CGFloat,
+        badgeDiameter: CGFloat = 12,
+        overlap: CGFloat = 4,
+    ) {
+        let badge = OWSLayerView.circleView(size: badgeDiameter)
         badge.backgroundColor = color
         self.addSubview(badge)
-        badge.autoPinEdge(toSuperviewEdge: .top, withInset: -3)
-        badge.autoPinEdge(toSuperviewEdge: .trailing, withInset: -3)
+
+        // Overlap the two circles, on a 45deg diagonal, by the given amount.
+
+        let circleRadius = circleDiameter / 2
+        let badgeRadius = badgeDiameter / 2
+
+        let centerDiagonalOffset = circleRadius + badgeRadius - overlap
+        let centerSquareOffset = centerDiagonalOffset / CGFloat(2).squareRoot()
+        let edgeInset = circleRadius - badgeRadius - centerSquareOffset
+
+        badge.autoPinEdge(.top, to: .top, of: circleView, withOffset: edgeInset)
+        badge.autoPinEdge(.trailing, to: .trailing, of: circleView, withOffset: -edgeInset)
     }
 }
 
