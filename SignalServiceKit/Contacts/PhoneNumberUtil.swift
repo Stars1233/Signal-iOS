@@ -301,7 +301,7 @@ public class PhoneNumberUtil: NSObject {
             localPhoneNumber
                 .flatMap { parseE164($0)?.getCallingCode() }
                 .flatMap { getFilteredRegionCodeForCallingCode($0) },
-        ].compacted().removingDuplicates(uniquingElementsBy: { $0 })
+        ].compacted().removingDuplicates()
 
         for countryCode in countryCodes {
             guard let transformRule = nationalPrefixTransformRule(countryCode: countryCode) else {
