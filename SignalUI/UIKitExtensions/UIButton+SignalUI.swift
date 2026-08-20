@@ -309,31 +309,50 @@ public extension UIBarButtonItem {
         }
     }
 
+    private static var prominentBarButtonItemStyle: UIBarButtonItem.Style {
+        if #available(iOS 26, *) { .prominent } else { .done }
+    }
+
     /// Creates a bar button with the given title that performs the action in the provided closure.
     static func button(
         title: String,
-        style: UIBarButtonItem.Style,
         action: @escaping () -> Void,
     ) -> UIBarButtonItem {
-        ClosureBarButtonItem(title: title, style: style, action: action)
+        ClosureBarButtonItem(title: title, style: .plain, action: action)
+    }
+
+    /// Creates a prominent bar button with the given title that performs the action in the provided closure.
+    static func prominentButton(
+        title: String,
+        action: @escaping () -> Void,
+    ) -> UIBarButtonItem {
+        ClosureBarButtonItem(title: title, style: prominentBarButtonItemStyle, action: action)
     }
 
     /// Creates a bar button with the given icon that performs the action in the provided closure.
     static func button(
         icon: ThemeIcon,
-        style: UIBarButtonItem.Style,
+        isProminent: Bool = false,
         action: @escaping () -> Void,
     ) -> UIBarButtonItem {
-        ClosureBarButtonItem(image: Theme.iconImage(icon), style: style, action: action)
+        ClosureBarButtonItem(
+            image: Theme.iconImage(icon),
+            style: isProminent ? prominentBarButtonItemStyle : .plain,
+            action: action,
+        )
     }
 
     /// Creates a bar button with the given image that performs the action in the provided closure.
     static func button(
         image: UIImage,
-        style: UIBarButtonItem.Style,
+        isProminent: Bool = false,
         action: @escaping () -> Void,
     ) -> UIBarButtonItem {
-        ClosureBarButtonItem(image: image, style: style, action: action)
+        ClosureBarButtonItem(
+            image: image,
+            style: isProminent ? prominentBarButtonItemStyle : .plain,
+            action: action,
+        )
     }
 
     // Keep this static function public instead of exposing ClosureBarButtonItem
@@ -424,7 +443,7 @@ public extension UIBarButtonItem {
             .systemItem(.close, action: action)
         } else {
             // This looks better without the circular background that system item has.
-            .button(icon: .buttonX, style: .plain, action: action)
+            .button(icon: .buttonX, isProminent: false, action: action)
         }
     }
 
@@ -451,24 +470,32 @@ public extension UIBarButtonItem {
 
     /// Creates ••• bar button that presents a popup menu with the provided actions.
     static func contextMenuButton(actions: [UIAction]) -> UIBarButtonItem {
-        UIBarButtonItem(
-            image: Theme.iconImage(.buttonMore),
+        let buttonImageName: String = if #available(iOS 26, *) { "more" } else { "more-circle" }
+        let barButtonItem = UIBarButtonItem(
+            image: UIImage(named: buttonImageName),
             menu: UIMenu(children: actions),
         )
+        barButtonItem.landscapeImagePhone = UIImage(named: buttonImageName + "-20")
+        return barButtonItem
     }
 
+    /// Creates a prominent button that uses "Set" as the title on iOS 15-18 and a system checkmark on iOS 26 and later.
     static func setButton(action: @escaping () -> Void) -> UIBarButtonItem {
         if #available(iOS 26, *) {
             // iOS 26 done buttons appear as a big blue checkmark
             return .systemItem(.done, action: action)
         } else {
             // For iOS 18 and older, we want to use the text "Set"
-            return .button(
+            return .prominentButton(
                 title: CommonStrings.setButton,
-                style: .done,
                 action: action,
             )
         }
+    }
+
+    /// Creates a prominent "Next" button.
+    static func nextButton(action: @escaping () -> Void) -> UIBarButtonItem {
+        .prominentButton(title: CommonStrings.nextButton, action: action)
     }
 
     // Feel free to add more system item functions as the need arises

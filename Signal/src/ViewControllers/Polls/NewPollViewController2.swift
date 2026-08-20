@@ -61,20 +61,13 @@ class NewPollViewController2: OWSViewController, UITableViewDelegate, OWSNavigat
 
         let cancelBarButtonItem: UIBarButtonItem
         if #available(iOS 26, *) {
-            cancelBarButtonItem = .systemItem(
-                .close,
-                action: { [weak self] in
-                    self?.dismiss(animated: true)
-                },
-            )
+            cancelBarButtonItem = .systemItem(.close) { [weak self] in
+                self?.dismiss(animated: true)
+            }
         } else {
-            cancelBarButtonItem = .button(
-                title: CommonStrings.cancelButton,
-                style: .plain,
-                action: { [weak self] in
-                    self?.dismiss(animated: true)
-                },
-            )
+            cancelBarButtonItem = .cancelButton { [weak self] in
+                self?.dismiss(animated: true)
+            }
             cancelBarButtonItem.setTitleTextAttributes(
                 [.foregroundColor: UIColor.Signal.label],
                 for: .normal,
@@ -89,22 +82,14 @@ class NewPollViewController2: OWSViewController, UITableViewDelegate, OWSNavigat
 
         let sendBarButtonItem: UIBarButtonItem
         if #available(iOS 26, *) {
-            sendBarButtonItem = .button(
-                image: .arrowUp30,
-                style: .prominent,
-                action: { [weak self] in
-                    self?.didTapSendButton()
-                },
-            )
+            sendBarButtonItem = .button(image: .arrowUp30, isProminent: true) { [weak self] in
+                self?.didTapSendButton()
+            }
             sendBarButtonItem.accessibilityLabel = MessageStrings.sendButton
         } else {
-            sendBarButtonItem = .button(
-                title: MessageStrings.sendButton,
-                style: .done,
-                action: { [weak self] in
-                    self?.didTapSendButton()
-                },
-            )
+            sendBarButtonItem = .prominentButton(title: MessageStrings.sendButton) { [weak self] in
+                self?.didTapSendButton()
+            }
         }
         navigationItem.rightBarButtonItem = sendBarButtonItem
 

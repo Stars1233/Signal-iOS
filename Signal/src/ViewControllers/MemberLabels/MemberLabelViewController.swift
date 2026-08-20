@@ -66,11 +66,8 @@ class MemberLabelViewController: OWSViewController, UITextFieldDelegate {
 
         view.backgroundColor = UIColor.Signal.groupedBackground
         addNavigationTitleView(groupName: groupModel.groupNameOrDefault)
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
-            systemItem: .done,
-            primaryAction: UIAction { [weak self] _ in self?.didTapDone() },
-        )
 
+        navigationItem.rightBarButtonItem = .doneButton { [weak self] in self?.didTapDone() }
         navigationItem.leftBarButtonItem = .cancelButton(
             dismissingFrom: self,
             hasUnsavedChanges: { [weak self] in

@@ -778,11 +778,9 @@ public class ChatListViewController: OWSViewController, HomeTabViewController {
 
         var rightBarButtonItems = [UIBarButtonItem]()
 
-        let compose = UIBarButtonItem(
-            image: Theme.iconImage(.buttonCompose),
-            primaryAction: UIAction { [weak self] _ in self?.showNewConversationView() },
-        )
-        compose.accessibilityIdentifier = "ChatListViewController.compose"
+        let compose = UIBarButtonItem.button(icon: .buttonCompose) { [weak self] in
+            self?.showNewConversationView()
+        }
         compose.accessibilityLabel = NSLocalizedString("COMPOSE_BUTTON_LABEL", comment: "Accessibility label from compose button.")
         compose.accessibilityHint = NSLocalizedString(
             "COMPOSE_BUTTON_HINT",
@@ -790,11 +788,9 @@ public class ChatListViewController: OWSViewController, HomeTabViewController {
         )
         rightBarButtonItems.append(compose)
 
-        let camera = UIBarButtonItem(
-            image: Theme.iconImage(.buttonCamera),
-            primaryAction: UIAction { [weak self] _ in self?.showCameraView() },
-        )
-        camera.accessibilityIdentifier = "ChatListViewController.camera"
+        let camera = UIBarButtonItem.button(icon: .buttonCamera) { [weak self] in
+            self?.showCameraView()
+        }
         camera.accessibilityLabel = NSLocalizedString("CAMERA_BUTTON_LABEL", comment: "Accessibility label for camera button.")
         camera.accessibilityHint = NSLocalizedString(
             "CAMERA_BUTTON_HINT",
@@ -877,12 +873,7 @@ public class ChatListViewController: OWSViewController, HomeTabViewController {
         let paddingLength: Int = 3
         let paddingString = "".padding(toLength: paddingLength, withPad: " ", startingAt: 0)
 
-        navigationItem.backBarButtonItem = UIBarButtonItem(
-            title: paddingString,
-            style: .plain,
-            target: nil,
-            action: nil,
-        )
+        navigationItem.backBarButtonItem = .button(title: paddingString) {}
     }
 
     // We want to delay asking for a review until an opportune time.

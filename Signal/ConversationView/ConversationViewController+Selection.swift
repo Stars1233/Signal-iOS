@@ -597,16 +597,12 @@ extension ConversationViewController {
     }
 
     var deleteAllBarButtonItem: UIBarButtonItem {
-        return .button(
-            title: OWSLocalizedString(
-                "CONVERSATION_VIEW_DELETE_ALL_MESSAGES",
-                comment: "button text to delete all items in the current conversation",
-            ),
-            style: .plain,
-            action: { [weak self] in
-                self?.didTapDeleteAll()
-            },
-        )
+        .button(title: OWSLocalizedString(
+            "CONVERSATION_VIEW_DELETE_ALL_MESSAGES",
+            comment: "button text to delete all items in the current conversation",
+        )) { [weak self] in
+            self?.didTapDeleteAll()
+        }
     }
 
     func didTapDeleteAll() {

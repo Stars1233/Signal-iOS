@@ -64,12 +64,9 @@ class RegistrationEnterAccountEntropyPoolViewController: EnterAccountEntropyPool
 
         navigationItem.hidesBackButton = true
         if state.canShowBackButton {
-            navigationItem.leftBarButtonItem = UIBarButtonItem(
-                image: UIImage(named: "chevron-left-bold-28"),
-                primaryAction: UIAction { [weak presenter] _ in
-                    presenter?.cancelKeyEntry()
-                },
-            )
+            navigationItem.leftBarButtonItem = UIBarButtonItem.button(image: .chevronLeftBold28) { [weak presenter] in
+                presenter?.cancelKeyEntry()
+            }
         }
     }
 

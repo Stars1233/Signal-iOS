@@ -145,10 +145,9 @@ extension ChatListViewController {
     private func makeToolbarButtons() -> [UIBarButtonItem] {
         let hasSelectedEntries = !(tableView.indexPathsForSelectedRows ?? []).isEmpty
 
-        let archiveBtn = UIBarButtonItem(
+        let archiveBtn = UIBarButtonItem.button(
             title: viewState.chatListMode == .archive ? CommonStrings.unarchiveAction : CommonStrings.archiveAction,
-            primaryAction: UIAction { [weak self] _ in self?.performArchive() },
-        )
+        ) { [weak self] in self?.performArchive() }
         if #available(iOS 26, *) {
             archiveBtn.image = UIImage(resource: .archive)
         }
@@ -156,10 +155,9 @@ extension ChatListViewController {
 
         let readButton: UIBarButtonItem
         if hasSelectedEntries {
-            readButton = UIBarButtonItem(
-                title: CommonStrings.readAction,
-                primaryAction: UIAction { [weak self] _ in self?.performRead() },
-            )
+            readButton = UIBarButtonItem.button(title: CommonStrings.readAction) { [weak self] in
+                self?.performRead()
+            }
             readButton.isEnabled = false
             for path in tableView.indexPathsForSelectedRows ?? [] {
                 if let thread = tableDataSource.threadViewModel(forIndexPath: path), thread.hasUnreadMessages {
@@ -174,22 +172,20 @@ extension ChatListViewController {
                 }
             }
 
-            readButton = UIBarButtonItem(
-                title: OWSLocalizedString(
-                    "HOME_VIEW_TOOLBAR_READ_ALL",
-                    comment: "Title 'Read All' button in the toolbar of the ChatList if multi-section is active.",
-                ),
-                primaryAction: UIAction { [weak self] _ in self?.performReadAll() },
-            )
+            readButton = UIBarButtonItem.button(title: OWSLocalizedString(
+                "HOME_VIEW_TOOLBAR_READ_ALL",
+                comment: "Title 'Read All' button in the toolbar of the ChatList if multi-section is active.",
+            )) { [weak self] in
+                self?.performReadAll()
+            }
             readButton.isEnabled = false
             readButton.isEnabled = readButton.isEnabled || hasUnreadEntry(threadUniqueIds: renderState.pinnedThreadUniqueIds)
             readButton.isEnabled = readButton.isEnabled || hasUnreadEntry(threadUniqueIds: renderState.unpinnedThreadUniqueIds)
         }
 
-        let deleteBtn = UIBarButtonItem(
-            title: CommonStrings.deleteButton,
-            primaryAction: UIAction { [weak self] _ in self?.performDelete() },
-        )
+        let deleteBtn = UIBarButtonItem.button(title: CommonStrings.deleteButton) { [weak self] in
+            self?.performDelete()
+        }
         if #available(iOS 26, *) {
             deleteBtn.image = UIImage(resource: .trash)
         }

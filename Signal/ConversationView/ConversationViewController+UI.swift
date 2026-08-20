@@ -83,12 +83,7 @@ extension ConversationViewController {
         if #unavailable(iOS 26) {
             // Don't include "Back" text on view controllers pushed above us, just use the arrow.
             // iOS 26 already doesn't show back button text
-            navigationItem.backBarButtonItem = UIBarButtonItem(
-                title: "",
-                style: .plain,
-                target: nil,
-                action: nil,
-            )
+            navigationItem.backBarButtonItem = .button(title: "") {}
         }
 
         navigationItem.hidesBackButton = false
@@ -153,10 +148,9 @@ extension ConversationViewController {
                     groupCallBarButtonItem = videoCallButton
                     barButtons.append(videoCallButton)
                 } else {
-                    let audioCallButton = UIBarButtonItem(
-                        image: Theme.iconImage(.buttonVoiceCall),
-                        primaryAction: UIAction { [weak self] _ in self?.startIndividualAudioCall() },
-                    )
+                    let audioCallButton = UIBarButtonItem.button(icon: .buttonVoiceCall) { [weak self] in
+                        self?.startIndividualAudioCall()
+                    }
                     audioCallButton.isEnabled = AppEnvironment.shared.callService.callServiceState.currentCall == nil
                     audioCallButton.accessibilityLabel = OWSLocalizedString(
                         "VOICE_CALL_LABEL",
@@ -164,10 +158,9 @@ extension ConversationViewController {
                     )
                     barButtons.append(audioCallButton)
 
-                    let videoCallButton = UIBarButtonItem(
-                        image: Theme.iconImage(.buttonVideoCall),
-                        primaryAction: UIAction { [weak self] _ in self?.startIndividualVideoCall() },
-                    )
+                    let videoCallButton = UIBarButtonItem.button(icon: .buttonVideoCall) { [weak self] in
+                        self?.startIndividualVideoCall()
+                    }
                     videoCallButton.isEnabled = AppEnvironment.shared.callService.callServiceState.currentCall == nil
                     videoCallButton.accessibilityLabel = OWSLocalizedString(
                         "VIDEO_CALL_LABEL",

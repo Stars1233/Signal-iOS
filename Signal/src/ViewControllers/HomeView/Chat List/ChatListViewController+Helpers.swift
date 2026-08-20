@@ -143,10 +143,11 @@ public extension ChatListViewController {
         chatList.hidesBottomBarWhenPushed = true
 
         if offerMultiSelectMode {
-            chatList.navigationItem.rightBarButtonItem = UIBarButtonItem(
+            chatList.navigationItem.rightBarButtonItem = .button(
                 title: CommonStrings.selectButton,
-                primaryAction: UIAction { [unowned chatList] _ in chatList.switchMultiSelectState() },
-            )
+            ) { [unowned chatList] in
+                chatList.switchMultiSelectState()
+            }
         }
         show(chatList, sender: self)
     }
@@ -156,12 +157,7 @@ public extension ChatListViewController {
 
         if #available(iOS 26, *) { return }
 
-        navigationItem.backBarButtonItem = UIBarButtonItem(
-            title: CommonStrings.backButton,
-            style: .plain,
-            target: nil,
-            action: nil,
-        )
+        navigationItem.backBarButtonItem = .button(title: CommonStrings.backButton) { }
     }
 }
 

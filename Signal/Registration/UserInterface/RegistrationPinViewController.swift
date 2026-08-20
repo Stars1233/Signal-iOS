@@ -311,15 +311,9 @@ class RegistrationPinViewController: OWSViewController {
         super.viewDidLoad()
 
         view.backgroundColor = .Signal.background
-        navigationItem.rightBarButtonItem = {
-            let button = UIBarButtonItem(
-                title: CommonStrings.nextButton,
-                primaryAction: UIAction { [weak self] _ in self?.didTapNext() },
-            )
-            button.style = if #available(iOS 26, *) { .prominent } else { .done }
-            button.accessibilityIdentifier = "registration.pin.nextButton"
-            return button
-        }()
+        navigationItem.rightBarButtonItem = .nextButton { [weak self] in
+            self?.didTapNext()
+        }
 
         stackView = addStaticContentStackView(
             arrangedSubviews: [titleLabel, explanationView, pinTextField],

@@ -113,13 +113,9 @@ class CustomColorViewController: OWSTableViewController2 {
             comment: "Title for the custom chat color settings view.",
         )
 
-        navigationItem.rightBarButtonItem = .button(
-            title: CommonStrings.setButton,
-            style: .done,
-            action: { [weak self] in
-                self?.didTapSet()
-            },
-        )
+        navigationItem.rightBarButtonItem = .setButton { [weak self] in
+            self?.didTapSet()
+        }
 
         view.backgroundColor = .Signal.groupedBackground
 
@@ -207,13 +203,9 @@ class CustomColorViewController: OWSTableViewController2 {
         }
 
         if hasUnsavedChanges {
-            navigationItem.rightBarButtonItem = .button(
-                title: CommonStrings.setButton,
-                style: .done,
-                action: { [weak self] in
-                    self?.didTapDone()
-                },
-            )
+            navigationItem.rightBarButtonItem = .setButton { [weak self] in
+                self?.didTapDone()
+            }
         } else {
             navigationItem.rightBarButtonItem = nil
         }

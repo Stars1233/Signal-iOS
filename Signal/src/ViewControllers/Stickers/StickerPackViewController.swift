@@ -219,14 +219,9 @@ class StickerPackViewController: OWSViewController {
 
     // MARK: Layout
 
-    private lazy var shareBarButtonItem: UIBarButtonItem = {
-        UIBarButtonItem(
-            image: UIImage(named: "forward"),
-            primaryAction: UIAction { [weak self] _ in
-                self?.shareButtonPressed()
-            },
-        )
-    }()
+    private lazy var shareBarButtonItem = UIBarButtonItem.button(image: .forward) { [weak self] in
+        self?.shareButtonPressed()
+    }
 
     private let coverView = StickerReusableView()
 

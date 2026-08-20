@@ -87,7 +87,7 @@ class RegistrationChangePhoneNumberViewController: OWSTableViewController2 {
         navigationItem.leftBarButtonItem = .cancelButton { [weak self] in
             self?.presenter?.exitRegistration()
         }
-        navigationItem.rightBarButtonItem = .button(title: CommonStrings.nextButton, style: .done) { [weak self] in
+        navigationItem.rightBarButtonItem = .nextButton { [weak self] in
             self?.tryToContinue()
         }
 

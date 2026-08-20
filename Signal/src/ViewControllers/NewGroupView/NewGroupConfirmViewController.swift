@@ -56,17 +56,12 @@ public class NewGroupConfirmViewController: OWSTableViewController2 {
             comment: "The title for the 'name new group' view.",
         )
 
-        navigationItem.rightBarButtonItem = {
-            let button = UIBarButtonItem(
-                title: OWSLocalizedString(
-                    "NEW_GROUP_CREATE_BUTTON",
-                    comment: "The title for the 'create group' button.",
-                ),
-                primaryAction: UIAction { [weak self] _ in self?.createNewGroup() },
-            )
-            button.accessibilityIdentifier = UIView.accessibilityIdentifier(in: self, name: "create")
-            return button
-        }()
+        navigationItem.rightBarButtonItem = .prominentButton(title: OWSLocalizedString(
+            "NEW_GROUP_CREATE_BUTTON",
+            comment: "The title for the 'create group' button.",
+        )) { [weak self] in
+            self?.createNewGroup()
+        }
 
         // First section.
 

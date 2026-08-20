@@ -260,15 +260,9 @@ class RegistrationProfileViewController: OWSViewController {
 
         view.backgroundColor = .Signal.background
 
-        navigationItem.rightBarButtonItem = {
-            let button = UIBarButtonItem(
-                title: CommonStrings.nextButton,
-                primaryAction: UIAction { [weak self] _ in self?.didTapNext() },
-            )
-            button.style = if #available(iOS 26, *) { .prominent } else { .done }
-            button.accessibilityIdentifier = "registration.profile.nextButton"
-            return button
-        }()
+        navigationItem.rightBarButtonItem = .nextButton { [weak self] in
+            self?.didTapNext()
+        }
 
         let avatarContainerView = UIView.container()
         avatarContainerView.addSubview(avatarView)

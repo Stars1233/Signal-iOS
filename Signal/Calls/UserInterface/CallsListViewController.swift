@@ -233,10 +233,9 @@ class CallsListViewController: OWSViewController, HomeTabViewController, CallSer
         multiselectToolbarContainer?.toolbar
     }
 
-    private lazy var toolbarDeleteButton = UIBarButtonItem(
-        title: CommonStrings.deleteButton,
-        primaryAction: UIAction { [weak self] _ in self?.deleteSelectedCalls() },
-    )
+    private lazy var toolbarDeleteButton = UIBarButtonItem.button(title: CommonStrings.deleteButton) { [weak self] in
+        self?.deleteSelectedCalls()
+    }
 
     private func showToolbar() {
         if #available(iOS 26, *) {
@@ -317,10 +316,9 @@ class CallsListViewController: OWSViewController, HomeTabViewController, CallSer
     // MARK: New call button
 
     private func newCallButton() -> UIBarButtonItem {
-        let barButtonItem = UIBarButtonItem(
-            image: Theme.iconImage(.buttonNewCall),
-            primaryAction: UIAction { [weak self] _ in self?.newCall() },
-        )
+        let barButtonItem = UIBarButtonItem.button(icon: .buttonNewCall) { [weak self] in
+            self?.newCall()
+        }
         barButtonItem.accessibilityLabel = OWSLocalizedString(
             "NEW_CALL_LABEL",
             comment: "Accessibility label for the new call button on the Calls Tab",
@@ -376,10 +374,11 @@ class CallsListViewController: OWSViewController, HomeTabViewController, CallSer
 
     // MARK: Delete All button
 
-    private lazy var deleteAllCallsButton = UIBarButtonItem(
+    private lazy var deleteAllCallsButton = UIBarButtonItem.button(
         title: Strings.deleteAllCallsButtonTitle,
-        primaryAction: UIAction { [weak self] _ in self?.promptAboutDeletingAllCalls() },
-    )
+    ) { [weak self] in
+        self?.promptAboutDeletingAllCalls()
+    }
 
     private func promptAboutDeletingAllCalls() {
         OWSActionSheets.showConfirmationAlert(
