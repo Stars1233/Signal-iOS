@@ -255,7 +255,6 @@
 		3402AA7C271D9E180084CBAE /* ContactsViewHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A9551E271B510400B05242 /* ContactsViewHelper.swift */; };
 		3402AA7D271D9E180084CBAE /* ImageEditorContents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A9555F271B510400B05242 /* ImageEditorContents.swift */; };
 		3402AA7F271D9E180084CBAE /* LinkingTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A95529271B510400B05242 /* LinkingTextView.swift */; };
-		3402AA83271D9E180084CBAE /* OWSFlatButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A95511271B510400B05242 /* OWSFlatButton.swift */; };
 		3402AA87271D9E180084CBAE /* CVCellMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A95523271B510400B05242 /* CVCellMeasurement.swift */; };
 		3402AA88271D9E180084CBAE /* ContactCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A9550B271B510400B05242 /* ContactCellView.swift */; };
 		3402AA89271D9E180084CBAE /* ImageEditorPinchGestureRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A95558271B510400B05242 /* ImageEditorPinchGestureRecognizer.swift */; };
@@ -4677,7 +4676,6 @@
 		34A9550A271B510400B05242 /* NonContactTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NonContactTableViewCell.swift; sourceTree = "<group>"; };
 		34A9550B271B510400B05242 /* ContactCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactCellView.swift; sourceTree = "<group>"; };
 		34A9550C271B510400B05242 /* ManualStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualStackView.swift; sourceTree = "<group>"; };
-		34A95511271B510400B05242 /* OWSFlatButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OWSFlatButton.swift; sourceTree = "<group>"; };
 		34A95515271B510400B05242 /* LinkPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkPreviewView.swift; sourceTree = "<group>"; };
 		34A95516271B510400B05242 /* LinkPreviewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkPreviewState.swift; sourceTree = "<group>"; };
 		34A95517271B510400B05242 /* LinkPreviewGroupLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkPreviewGroupLink.swift; sourceTree = "<group>"; };
@@ -9318,7 +9316,6 @@
 				34A95578271B510500B05242 /* MediaMessageView.swift */,
 				76A2EB0F28B578B800A29C24 /* MediaTextView.swift */,
 				34A95535271B510400B05242 /* OWSBubbleShapeView.swift */,
-				34A95511271B510400B05242 /* OWSFlatButton.swift */,
 				34A95538271B510400B05242 /* OWSLayerView.swift */,
 				34A95544271B510400B05242 /* OWSNavigationBar.swift */,
 				34A9554E271B510400B05242 /* OWSStackView.swift */,
@@ -18166,7 +18163,6 @@
 				3402AAAB271D9E180084CBAE /* OWSActionSheets.swift in Sources */,
 				3402AA74271D9E180084CBAE /* OWSBubbleShapeView.swift in Sources */,
 				D9B2E1182E748E1900A823E4 /* OWSByteCountFormatStyle.swift in Sources */,
-				3402AA83271D9E180084CBAE /* OWSFlatButton.swift in Sources */,
 				3402AA71271D9E180084CBAE /* OWSLayerView.swift in Sources */,
 				3402AAB1271D9E180084CBAE /* OWSNavigationBar.swift in Sources */,
 				665EF86D290C385B00F490D2 /* OWSNavigationController.swift in Sources */,
