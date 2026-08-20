@@ -408,6 +408,26 @@ public class RemoteConfig {
         return valueFlag.split(separator: ".").map { String($0) }
     }
 
+    /// SVC toggle.
+    public var ringrtcSvcEnabled: Bool {
+        return isEnabled(.ringrtcSvcEnabled, defaultValue: false)
+    }
+
+    /// When SVC is enabled, this value will be used to identify the required SVC mode.
+    public var ringrtcSvcMode: String {
+        return getStringConvertibleValue(forFlag: .ringrtcSvcMode, defaultValue: "L3T3_KEY")
+    }
+
+    /// When SVC is enabled, this value will be used to identify the required screenshare SVC mode.
+    public var ringrtcSvcModeForScreenshare: String {
+        return getStringConvertibleValue(forFlag: .ringrtcSvcModeForScreenshare, defaultValue: "L1T3")
+    }
+
+    /// When SVC is enabled, the maximum bandwidth will be set to this value.
+    public var ringrtcSvcMaxBitrateBps: UInt32 {
+        return getUInt32Value(forFlag: .ringrtcSvcMaxBitrateBps, defaultValue: 0)
+    }
+
     // MARK: -
 
 #if TESTABLE_BUILD
@@ -642,6 +662,7 @@ private enum IsEnabledFlag: String, FlagType {
     case paypalMonthlyDonationKillSwitch = "ios.paypalMonthlyDonationKillSwitch"
     case paypalOneTimeDonationKillSwitch = "ios.paypalOneTimeDonationKillSwitch"
     case ringrtcNwPathMonitorTrialKillSwitch = "ios.ringrtcNwPathMonitorTrialKillSwitch"
+    case ringrtcSvcEnabled = "ios.ringrtcSvcEnabled"
     case ringrtcVp9Enabled = "ios.ringrtcVp9Enabled.2"
     case serviceExtensionFailureKillSwitch = "ios.serviceExtensionFailureKillSwitch"
 
@@ -670,6 +691,7 @@ private enum IsEnabledFlag: String, FlagType {
         case .paypalMonthlyDonationKillSwitch: false
         case .paypalOneTimeDonationKillSwitch: false
         case .ringrtcNwPathMonitorTrialKillSwitch: true // cached during launch, so not hot-swapped in practice
+        case .ringrtcSvcEnabled: false
         case .ringrtcVp9Enabled: true
         case .serviceExtensionFailureKillSwitch: true
 #if TESTABLE_BUILD
@@ -714,6 +736,9 @@ private enum ValueFlag: String, FlagType {
     case reactiveProfileKeyAttemptInterval = "ios.reactiveProfileKeyAttemptInterval"
     case replaceableInteractionExpiration = "ios.replaceableInteractionExpiration"
     case ringrtcDredDuration = "ios.ringrtcDredDuration"
+    case ringrtcSvcMaxBitrateBps = "ios.ringrtcSvcMaxBitrateBps"
+    case ringrtcSvcMode = "ios.ringrtcSvcMode"
+    case ringrtcSvcModeForScreenshare = "ios.ringrtcSvcModeForScreenshare"
     case ringrtcVp9DeviceModelDecodeDenylist = "ios.ringrtcVp9DeviceModelDecodeDenylist"
     case ringrtcVp9DeviceModelDenylist = "ios.ringrtcVp9DeviceModelDenylist"
     case sepaEnabledRegions = "global.donations.sepaEnabledRegions"
@@ -760,6 +785,9 @@ private enum ValueFlag: String, FlagType {
         case .reactiveProfileKeyAttemptInterval: true
         case .replaceableInteractionExpiration: false
         case .ringrtcDredDuration: true
+        case .ringrtcSvcMaxBitrateBps: true
+        case .ringrtcSvcMode: true
+        case .ringrtcSvcModeForScreenshare: true
         case .ringrtcVp9DeviceModelDecodeDenylist: true
         case .ringrtcVp9DeviceModelDenylist: true
         case .sepaEnabledRegions: true

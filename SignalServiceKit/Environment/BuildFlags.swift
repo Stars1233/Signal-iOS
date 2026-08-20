@@ -169,10 +169,16 @@ public enum DebugFlags {
 
     public static let extraDebugLogs = build <= .internal
 
-    public static let callingBitRate = TestableFlag<Int>(
-        10,
-        title: LocalizationNotNeeded("Bitrate"),
-        details: LocalizationNotNeeded("The bitrate to use for new calls."),
+    public static let callingSvcMaxBitrateBps = TestableFlag<Int>(
+        0,
+        title: LocalizationNotNeeded("SVC Maximum Bitrate (bps)"),
+        details: LocalizationNotNeeded("The bitrate to use for new calls (overrides remote config). 0 = use default bitrate."),
+    )
+
+    public static let callingStatsIntervalSecs = TestableFlag<Int>(
+        0,
+        title: LocalizationNotNeeded("Stats Interval (secs)"),
+        details: LocalizationNotNeeded("The interval in seconds between logging call stats. 0 = use default interval."),
     )
 
     public static let callingUseTestSFU = TestableFlag<Bool>(
@@ -187,16 +193,28 @@ public enum DebugFlags {
         details: LocalizationNotNeeded("1:1 calls will not connect to a TURN server (remote party may still use TURN)."),
     )
 
-    public static let callingForceVp9Off = TestableFlag<Bool>(
+    public static let callingOverrideCodecs = TestableFlag<Bool>(
         false,
-        title: LocalizationNotNeeded("Never use VP9"),
-        details: LocalizationNotNeeded("1:1 calls will never use VP9 (overrides remote config)."),
+        title: LocalizationNotNeeded("Use codec overrides below"),
+        details: LocalizationNotNeeded("Must be enabled to use the codec overrides below."),
     )
 
-    public static let callingForceVp9On = TestableFlag<Bool>(
+    public static let callingEnableVp9Encode = TestableFlag<Bool>(
         false,
-        title: LocalizationNotNeeded("Always offer VP9"),
-        details: LocalizationNotNeeded("1:1 calls will always offer VP9 (overrides remote config and \"Never use VP9\")."),
+        title: LocalizationNotNeeded("Enable VP9 Encode"),
+        details: LocalizationNotNeeded("Calls will offer VP9 encode (overrides remote config)."),
+    )
+
+    public static let callingEnableVp9Decode = TestableFlag<Bool>(
+        false,
+        title: LocalizationNotNeeded("Enable VP9 Decode"),
+        details: LocalizationNotNeeded("Calls will offer VP9 decode (overrides remote config)."),
+    )
+
+    public static let callingEnableSvc = TestableFlag(
+        false,
+        title: LocalizationNotNeeded("Enable SVC"),
+        details: LocalizationNotNeeded("Group calls will always use SVC (overrides remote config)"),
     )
 
     public static let delayedMessageResend = TestableFlag<Bool>(
@@ -251,11 +269,14 @@ public enum DebugFlags {
     )
 
     public static let callingTestableFlags: [AnyTestableFlag] = [
-        callingBitRate,
         callingUseTestSFU,
+        callingStatsIntervalSecs,
         callingNeverRelay,
-        callingForceVp9Off,
-        callingForceVp9On,
+        callingOverrideCodecs,
+        callingEnableVp9Encode,
+        callingEnableVp9Decode,
+        callingEnableSvc,
+        callingSvcMaxBitrateBps,
     ]
 
     public static let messagingTestableFlags: [AnyTestableFlag] = [

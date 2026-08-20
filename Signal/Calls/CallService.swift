@@ -613,16 +613,29 @@ final class CallService: CallServiceStateObserver, CallServiceStateDelegate {
 
     private static let audioLevelsIntervalMillis: UInt64 = 200
 
+    static func buildSvcConfig() -> SvcConfig? {
+        if RingrtcSvcConfig.enableSvc(with: RemoteConfig.current), RingrtcVp9Config.enableVp9Encode(with: RemoteConfig.current) {
+            let mode = RingrtcSvcConfig.svcMode(with: RemoteConfig.current)
+            let modeForScreenshare = RingrtcSvcConfig.svcModeForScreenshare(with: RemoteConfig.current)
+            let maxBitrateBps = RingrtcSvcConfig.svcMaxBitrateBps(with: RemoteConfig.current)
+            return SvcConfig(mode: mode, modeForScreenshare: modeForScreenshare, maxBitrateBps: maxBitrateBps != 0 ? maxBitrateBps : nil)
+        } else {
+            return nil
+        }
+    }
+
     func buildAndConnectGroupCall(for groupId: GroupIdentifier, isVideoMuted: Bool) -> (SignalCall, GroupThreadCall)? {
         return _buildAndConnectGroupCall(isOutgoingVideoMuted: isVideoMuted) { () -> (SignalCall, GroupThreadCall)? in
             let videoCaptureController = VideoCaptureController()
             let sfuUrl = DebugFlags.callingUseTestSFU.get() ? TSConstants.sfuTestURL : TSConstants.sfuURL
+            let svcConfig = CallService.buildSvcConfig()
             let ringRtcCall = callManager.createGroupCall(
                 groupId: groupId.serialize(),
                 sfuUrl: sfuUrl,
                 hkdfExtraInfo: Data(),
                 audioLevelsIntervalMillis: Self.audioLevelsIntervalMillis,
                 dredDuration: RemoteConfig.current.ringrtcDredDuration,
+                svcConfig: svcConfig,
                 videoCaptureController: videoCaptureController,
             )
             guard let ringRtcCall else {
@@ -677,6 +690,7 @@ final class CallService: CallServiceStateObserver, CallServiceStateDelegate {
             let sfuUrl = DebugFlags.callingUseTestSFU.get() ? TSConstants.sfuTestURL : TSConstants.sfuURL
             let secretParams = CallLinkSecretParams.deriveFromRootKey(callLink.rootKey.bytes)
             let authCredentialPresentation = authCredential.present(callLinkParams: secretParams)
+            let svcConfig = CallService.buildSvcConfig()
             let ringRtcCall = callManager.createCallLinkCall(
                 sfuUrl: sfuUrl,
                 endorsementPublicKey: serverPublicParams.endorsementPublicKey,
@@ -686,6 +700,7 @@ final class CallService: CallServiceStateObserver, CallServiceStateDelegate {
                 hkdfExtraInfo: Data(),
                 audioLevelsIntervalMillis: Self.audioLevelsIntervalMillis,
                 dredDuration: RemoteConfig.current.ringrtcDredDuration,
+                svcConfig: svcConfig,
                 videoCaptureController: videoCaptureController,
             )
             guard let ringRtcCall else {
