@@ -47,7 +47,7 @@ public final class GroupCallInteractionFinder {
         let sql: String = """
         SELECT *
         FROM \(InteractionRecord.databaseTableName)
-        \(DEBUG_INDEXED_BY("Interaction_unendedGroupCall_partial", or: "index_model_TSInteraction_on_uniqueThreadId_and_hasEnded_and_recordType"))
+        \(DEBUG_INDEXED_BY("Interaction_unendedGroupCall_partial"))
         WHERE \(interactionColumn: .recordType) = \(SDSRecordType.groupCallMessage.rawValue)
         AND \(interactionColumn: .hasEnded) = 0
         AND \(interactionColumn: .threadUniqueId) = ?
