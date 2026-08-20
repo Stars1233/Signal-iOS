@@ -261,54 +261,6 @@ public extension UIButton.Configuration {
 
 public extension UIBarButtonItem {
 
-    private class ClosureBarButtonItem: UIBarButtonItem {
-        private class Handler {
-            var actionClosure: () -> Void
-            init(actionClosure: @escaping () -> Void) {
-                self.actionClosure = actionClosure
-            }
-
-            @objc
-            func action() {
-                actionClosure()
-            }
-        }
-
-        private var handler: Handler?
-
-        convenience init(
-            systemItem: UIBarButtonItem.SystemItem,
-            action: @escaping () -> Void,
-        ) {
-            let handler = Handler(actionClosure: action)
-            // The `Handler` type exists because we can't
-            // reference `self` in its own initializer call.
-            self.init(barButtonSystemItem: systemItem, target: handler, action: #selector(handler.action))
-            // Keep a strong reference to the Handler
-            self.handler = handler
-        }
-
-        convenience init(
-            title: String,
-            style: UIBarButtonItem.Style,
-            action: @escaping () -> Void,
-        ) {
-            let handler = Handler(actionClosure: action)
-            self.init(title: title, style: style, target: handler, action: #selector(handler.action))
-            self.handler = handler
-        }
-
-        convenience init(
-            image: UIImage,
-            style: UIBarButtonItem.Style,
-            action: @escaping () -> Void,
-        ) {
-            let handler = Handler(actionClosure: action)
-            self.init(image: image, style: style, target: handler, action: #selector(handler.action))
-            self.handler = handler
-        }
-    }
-
     private static var prominentBarButtonItemStyle: UIBarButtonItem.Style {
         if #available(iOS 26, *) { .prominent } else { .done }
     }
@@ -318,7 +270,7 @@ public extension UIBarButtonItem {
         title: String,
         action: @escaping () -> Void,
     ) -> UIBarButtonItem {
-        ClosureBarButtonItem(title: title, style: .plain, action: action)
+        UIBarButtonItem(primaryAction: UIAction(title: title) { _ in action() })
     }
 
     /// Creates a prominent bar button with the given title that performs the action in the provided closure.
@@ -326,7 +278,9 @@ public extension UIBarButtonItem {
         title: String,
         action: @escaping () -> Void,
     ) -> UIBarButtonItem {
-        ClosureBarButtonItem(title: title, style: prominentBarButtonItemStyle, action: action)
+        let item = button(title: title, action: action)
+        item.style = prominentBarButtonItemStyle
+        return item
     }
 
     /// Creates a bar button with the given icon that performs the action in the provided closure.
@@ -335,11 +289,7 @@ public extension UIBarButtonItem {
         isProminent: Bool = false,
         action: @escaping () -> Void,
     ) -> UIBarButtonItem {
-        ClosureBarButtonItem(
-            image: Theme.iconImage(icon),
-            style: isProminent ? prominentBarButtonItemStyle : .plain,
-            action: action,
-        )
+        .button(image: Theme.iconImage(icon), isProminent: isProminent, action: action)
     }
 
     /// Creates a bar button with the given image that performs the action in the provided closure.
@@ -348,11 +298,11 @@ public extension UIBarButtonItem {
         isProminent: Bool = false,
         action: @escaping () -> Void,
     ) -> UIBarButtonItem {
-        ClosureBarButtonItem(
-            image: image,
-            style: isProminent ? prominentBarButtonItemStyle : .plain,
-            action: action,
-        )
+        let item = UIBarButtonItem(primaryAction: UIAction(image: image) { _ in action() })
+        if isProminent {
+            item.style = prominentBarButtonItemStyle
+        }
+        return item
     }
 
     // Keep this static function public instead of exposing ClosureBarButtonItem
@@ -368,12 +318,12 @@ public extension UIBarButtonItem {
         _ systemItem: UIBarButtonItem.SystemItem,
         action: @escaping () -> Void,
     ) -> UIBarButtonItem {
-        ClosureBarButtonItem(systemItem: systemItem, action: action)
+        UIBarButtonItem(systemItem: systemItem, primaryAction: UIAction { _ in action() })
     }
 
     /// Creates a "Cancel" bar button which performs the action in the provided closure.
     static func cancelButton(action: @escaping () -> Void) -> UIBarButtonItem {
-        Self.systemItem(.cancel, action: action)
+        .systemItem(.cancel, action: action)
     }
 
     /// Creates a "Cancel" bar button which dismisses the view using the provided view controller.
@@ -387,7 +337,7 @@ public extension UIBarButtonItem {
         animated: Bool = true,
         completion: (() -> Void)? = nil,
     ) -> UIBarButtonItem {
-        Self.cancelButton { [weak viewController] in
+        .cancelButton { [weak viewController] in
             viewController?.dismiss(animated: animated, completion: completion)
         }
     }
@@ -407,7 +357,7 @@ public extension UIBarButtonItem {
         animated: Bool = true,
         completion: (() -> Void)? = nil,
     ) -> UIBarButtonItem {
-        Self.cancelButton { [weak viewController] in
+        .cancelButton { [weak viewController] in
             if hasUnsavedChanges() == true {
                 OWSActionSheets.showPendingChangesActionSheet(discardAction: { [weak viewController] in
                     viewController?.dismiss(animated: animated, completion: completion)
@@ -427,14 +377,14 @@ public extension UIBarButtonItem {
         poppingFrom navigationController: UINavigationController?,
         animated: Bool = true,
     ) -> UIBarButtonItem {
-        Self.cancelButton { [weak navigationController] in
+        .cancelButton { [weak navigationController] in
             navigationController?.popViewController(animated: animated)
         }
     }
 
     /// Creates a "Done" bar button which performs the action in the provided closure.
     static func doneButton(action: @escaping () -> Void) -> UIBarButtonItem {
-        Self.systemItem(.done, action: action)
+        .systemItem(.done, action: action)
     }
 
     /// Creates a "X" (Close) bar button which performs the action in the provided closure.
@@ -443,7 +393,7 @@ public extension UIBarButtonItem {
             .systemItem(.close, action: action)
         } else {
             // This looks better without the circular background that system item has.
-            .button(icon: .buttonX, isProminent: false, action: action)
+            .button(icon: .buttonX, action: action)
         }
     }
 
@@ -458,12 +408,8 @@ public extension UIBarButtonItem {
         animated: Bool = true,
         completion: (() -> Void)? = nil,
     ) -> UIBarButtonItem {
-        let systemItem: SystemItem = if #available(iOS 26, *) {
-            .close
-        } else {
-            .done
-        }
-        return Self.systemItem(systemItem) { [weak viewController] in
+        let systemItem: SystemItem = if #available(iOS 26, *) { .close } else { .done }
+        return .systemItem(systemItem) { [weak viewController] in
             viewController?.dismiss(animated: animated, completion: completion)
         }
     }
@@ -483,13 +429,10 @@ public extension UIBarButtonItem {
     static func setButton(action: @escaping () -> Void) -> UIBarButtonItem {
         if #available(iOS 26, *) {
             // iOS 26 done buttons appear as a big blue checkmark
-            return .systemItem(.done, action: action)
+            .systemItem(.done, action: action)
         } else {
             // For iOS 18 and older, we want to use the text "Set"
-            return .prominentButton(
-                title: CommonStrings.setButton,
-                action: action,
-            )
+            .prominentButton(title: CommonStrings.setButton, action: action)
         }
     }
 
