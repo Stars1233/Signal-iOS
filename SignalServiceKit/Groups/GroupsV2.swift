@@ -58,11 +58,6 @@ public protocol GroupsV2 {
 
     func updateLocalProfileKeyInGroup(groupId: GroupIdentifier, tx: DBWriteTransaction)
 
-    func isGroupKnownToStorageService(
-        groupModel: TSGroupModelV2,
-        transaction: DBReadTransaction,
-    ) -> Bool
-
     func createNewGroupOnService(
         _ newGroup: GroupsV2Protos.NewGroupParams,
         downloadedAvatars: GroupAvatarStateMap,
@@ -484,13 +479,6 @@ public class MockGroupsV2: GroupsV2 {
         groupSecretParams: GroupSecretParams,
     ) async throws -> String {
         owsFail("Not implemented.")
-    }
-
-    public func isGroupKnownToStorageService(
-        groupModel: TSGroupModelV2,
-        transaction: DBReadTransaction,
-    ) -> Bool {
-        return true
     }
 
     public func groupRecordPendingStorageServiceRestore(masterKeyData: Data, transaction: DBReadTransaction) -> StorageServiceProtoGroupV2Record? {

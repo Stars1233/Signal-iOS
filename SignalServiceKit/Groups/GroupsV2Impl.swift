@@ -1452,13 +1452,6 @@ public class GroupsV2Impl: GroupsV2 {
 
     // MARK: - Restore Groups
 
-    public func isGroupKnownToStorageService(
-        groupModel: TSGroupModelV2,
-        transaction: DBReadTransaction,
-    ) -> Bool {
-        GroupsV2Impl.isGroupKnownToStorageService(groupModel: groupModel, transaction: transaction)
-    }
-
     public func groupRecordPendingStorageServiceRestore(
         masterKeyData: Data,
         transaction: DBReadTransaction,

@@ -176,42 +176,42 @@ public class OWSProfileManager: ProfileManagerProtocol {
         owsAssertDebug(!groupId.isEmpty)
         let groupIdKey = groupKey(groupId: groupId)
         whitelistedGroupsStore.removeValue(forKey: groupIdKey, tx: transaction)
-        groupIdWhitelistWasUpdated(groupId, userProfileWriter: userProfileWriter, transaction: transaction)
+        didUpdateGroupWhitelist(groupId: groupId, userProfileWriter: userProfileWriter, transaction: transaction)
     }
 
     private func addConfirmedUnwhitelistedGroupId(_ groupId: Data, userProfileWriter: UserProfileWriter, transaction: DBWriteTransaction) {
         owsAssertDebug(!groupId.isEmpty)
         let groupIdKey = groupKey(groupId: groupId)
         whitelistedGroupsStore.writeValue(true, forKey: groupIdKey, tx: transaction)
-        groupIdWhitelistWasUpdated(groupId, userProfileWriter: userProfileWriter, transaction: transaction)
+        didUpdateGroupWhitelist(groupId: groupId, userProfileWriter: userProfileWriter, transaction: transaction)
     }
 
-    private func groupIdWhitelistWasUpdated(_ groupId: Data, userProfileWriter: UserProfileWriter, transaction: DBWriteTransaction) {
+    private func didUpdateGroupWhitelist(groupId: Data, userProfileWriter: UserProfileWriter, transaction: DBWriteTransaction) {
         if let groupThread = TSGroupThread.fetchThread(forGroupIdData: groupId, tx: transaction) {
             SSKEnvironment.shared.databaseStorageRef.touch(thread: groupThread, shouldReindex: false, tx: transaction)
         }
 
+        let masterKeyForStorageServiceUpdate: GroupMasterKey?
+        if
+            OWSUserProfile.shouldUpdateStorageServiceForUserProfileWriter(userProfileWriter),
+            let groupId = try? GroupIdentifier(contents: groupId)
+        {
+            let groupRecord = GroupStore().fetchGroup(forGroupId: groupId, tx: transaction)
+            masterKeyForStorageServiceUpdate = groupRecord?.masterKey
+            owsAssertDebug(masterKeyForStorageServiceUpdate != nil, "missing master key for group whitelist update")
+        } else {
+            masterKeyForStorageServiceUpdate = nil
+        }
+
         transaction.addSyncCompletion {
-            // Mark the group for update
-            if OWSUserProfile.shouldUpdateStorageServiceForUserProfileWriter(userProfileWriter) {
-                self.recordPendingUpdatesForStorageService(groupId: groupId)
+            if let masterKeyForStorageServiceUpdate {
+                SSKEnvironment.shared.storageServiceManagerRef.recordPendingUpdates(updatedGroupV2MasterKeys: [masterKeyForStorageServiceUpdate])
             }
 
             NotificationCenter.default.postOnMainThread(name: UserProfileNotifications.profileWhitelistDidChange, object: nil, userInfo: [
                 UserProfileNotifications.profileGroupIdKey: groupId,
                 Self.notificationKeyUserProfileWriter: NSNumber(value: userProfileWriter.rawValue),
             ])
-        }
-    }
-
-    private func recordPendingUpdatesForStorageService(groupId: Data) {
-        owsAssertDebug(!groupId.isEmpty)
-        SSKEnvironment.shared.databaseStorageRef.asyncRead { transaction in
-            guard let groupThread = TSGroupThread.fetchThread(forGroupIdData: groupId, tx: transaction) else {
-                owsFailDebug("Missing groupThread.")
-                return
-            }
-            SSKEnvironment.shared.storageServiceManagerRef.recordPendingUpdates(groupModel: groupThread.groupModel)
         }
     }
 

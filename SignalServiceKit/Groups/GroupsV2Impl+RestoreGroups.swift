@@ -26,15 +26,10 @@ public extension GroupsV2Impl {
     // Values are irrelevant (bools).
     private static let failedStorageServiceGroupMasterKeys = NewKeyValueStore(collection: "GroupsV2Impl.groupsFromStorageService_Failed")
 
-    static func isGroupKnownToStorageService(groupModel: TSGroupModelV2, transaction: DBReadTransaction) -> Bool {
-        do {
-            let masterKeyData = try groupModel.masterKey().serialize()
-            let key = restoreGroupKey(forMasterKeyData: masterKeyData)
-            return allStorageServiceGroupMasterKeys.fetchValue(Bool.self, forKey: key, tx: transaction) != nil
-        } catch {
-            owsFailDebug("Error: \(error)")
-            return false
-        }
+    internal static func isGroupKnownToStorageService(secretParams: GroupSecretParams, tx: DBReadTransaction) -> Bool {
+        let masterKey = failIfThrows { try secretParams.getMasterKey() }
+        let key = restoreGroupKey(forMasterKeyData: masterKey.serialize())
+        return allStorageServiceGroupMasterKeys.fetchValue(Bool.self, forKey: key, tx: tx) != nil
     }
 
     static func enqueuedGroupRecordForRestore(

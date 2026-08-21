@@ -860,10 +860,7 @@ public class GroupManager: NSObject {
             break
         }
 
-        notifyStorageServiceOfInsertedGroup(
-            groupModel: groupModel,
-            transaction: transaction,
-        )
+        notifyStorageServiceOfInsertedGroup(secretParams: secretParams, tx: transaction)
 
         return (groupThread, groupRecord)
     }
@@ -1191,27 +1188,15 @@ public class GroupManager: NSObject {
 
     // MARK: - Storage Service
 
-    private static func notifyStorageServiceOfInsertedGroup(
-        groupModel: TSGroupModel,
-        transaction: DBReadTransaction,
-    ) {
-        guard let groupModel = groupModel as? TSGroupModelV2 else {
-            // We only need to notify the storage service about v2 groups.
-            return
-        }
-        guard
-            !SSKEnvironment.shared.groupsV2Ref.isGroupKnownToStorageService(
-                groupModel: groupModel,
-                transaction: transaction,
-            )
-        else {
-            // To avoid redundant storage service writes,
-            // don't bother notifying the storage service
-            // about v2 groups it already knows about.
+    private static func notifyStorageServiceOfInsertedGroup(secretParams: GroupSecretParams, tx: DBReadTransaction) {
+        if GroupsV2Impl.isGroupKnownToStorageService(secretParams: secretParams, tx: tx) {
+            // To avoid redundant storage service writes, don't bother notifying the
+            // storage service about v2 groups it already knows about.
             return
         }
 
-        SSKEnvironment.shared.storageServiceManagerRef.recordPendingUpdates(groupModel: groupModel)
+        let masterKey = failIfThrows { try secretParams.getMasterKey() }
+        SSKEnvironment.shared.storageServiceManagerRef.recordPendingUpdates(updatedGroupV2MasterKeys: [masterKey])
     }
 
     // MARK: - Profiles
