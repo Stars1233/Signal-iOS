@@ -125,7 +125,7 @@ class LocalFileBackupOnboardingIntroViewController: OWSViewController {
         stack.alignment = .fill
         stack.spacing = 0
         stack.isLayoutMarginsRelativeArrangement = true
-        stack.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 20, leading: 32, bottom: 0, trailing: 32)
+        stack.directionalLayoutMargins = .init(hMargin: 32, vMargin: 20)
         stack.setCustomSpacing(16, after: logo)
         stack.setCustomSpacing(12, after: titleLabel)
         stack.setCustomSpacing(36, after: subtitleLabel)
