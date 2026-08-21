@@ -60,7 +60,7 @@ final class VoiceMessageInProgressDraft: VoiceMessageSendableDraft {
 
         var recorderSettings: [String: Any] = [
             AVFormatIDKey: kAudioFormatMPEG4AAC,
-            AVSampleRateKey: 44100,
+            AVSampleRateKey: DebugFlags.voiceMessageSampleRate.get(),
             AVNumberOfChannelsKey: 1,
             AVEncoderBitRateKey: DebugFlags.voiceMessageBitRate.get(),
         ]

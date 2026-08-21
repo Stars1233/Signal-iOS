@@ -173,6 +173,8 @@ public enum DebugFlags {
 
     public static let extraDebugLogs = build <= .internal
 
+    // MARK: - TestableFlag: Calling
+
     public static let callingSvcMaxBitrateBps = TestableFlag<Int>(
         0,
         title: LocalizationNotNeeded("SVC Maximum Bitrate (bps)"),
@@ -221,6 +223,19 @@ public enum DebugFlags {
         details: LocalizationNotNeeded("Group calls will always use SVC (overrides remote config)"),
     )
 
+    public static let callingTestableFlags: [AnyTestableFlag] = [
+        callingUseTestSFU,
+        callingStatsIntervalSecs,
+        callingNeverRelay,
+        callingOverrideCodecs,
+        callingEnableVp9Encode,
+        callingEnableVp9Decode,
+        callingEnableSvc,
+        callingSvcMaxBitrateBps,
+    ]
+
+    // MARK: - TestableFlag: Messaging
+
     public static let delayedMessageResend = TestableFlag<Bool>(
         false,
         title: LocalizationNotNeeded("Delayed message resend"),
@@ -242,10 +257,24 @@ public enum DebugFlags {
         details: LocalizationNotNeeded("All outgoing message sends will fail."),
     )
 
+    public static let messagingTestableFlags: [AnyTestableFlag] = [
+        delayedMessageResend,
+        fastPlaceholderExpiration,
+        messageSendsFail,
+    ]
+
+    // MARK: - TestableFlag: Voice Messages
+
     public static let voiceMessageBitRate = TestableFlag<Int>(
         32000,
         title: LocalizationNotNeeded("Bitrate"),
         details: LocalizationNotNeeded("The bitrate to use for new voice message recordings."),
+    )
+
+    public static let voiceMessageSampleRate = TestableFlag<Int>(
+        44100,
+        title: LocalizationNotNeeded("Sample Rate"),
+        details: LocalizationNotNeeded("The sample rate to use for new voice message recordings."),
     )
 
     public enum VoiceMessageAudioQuality: CaseIterable {
@@ -272,25 +301,9 @@ public enum DebugFlags {
         details: LocalizationNotNeeded("The encoder audio quality to use for new voice message recordings."),
     )
 
-    public static let callingTestableFlags: [AnyTestableFlag] = [
-        callingUseTestSFU,
-        callingStatsIntervalSecs,
-        callingNeverRelay,
-        callingOverrideCodecs,
-        callingEnableVp9Encode,
-        callingEnableVp9Decode,
-        callingEnableSvc,
-        callingSvcMaxBitrateBps,
-    ]
-
-    public static let messagingTestableFlags: [AnyTestableFlag] = [
-        delayedMessageResend,
-        fastPlaceholderExpiration,
-        messageSendsFail,
-    ]
-
     public static let voiceMessageTestableFlags: [AnyTestableFlag] = [
         voiceMessageBitRate,
+        voiceMessageSampleRate,
         voiceMessageAudioQuality,
     ]
 }
