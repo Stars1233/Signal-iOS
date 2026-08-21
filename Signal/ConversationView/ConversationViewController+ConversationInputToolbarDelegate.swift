@@ -59,9 +59,13 @@ extension ConversationViewController: ConversationInputToolbarDelegate {
         loadCoordinator.clearUnreadMessagesIndicator()
         inputToolbar?.quotedReplyDraft = nil
 
+        let shouldPlayMessageSentSound = DependenciesBridge.shared.db.read { tx in
+            let notificationPreferencesManager = DependenciesBridge.shared.notificationPreferencesManager
+            return notificationPreferencesManager.playSoundInForeground(tx: tx)
+                && notificationPreferencesManager.isMessageSentSoundEnabled(tx: tx)
+        }
         if
-            SSKEnvironment.shared.preferencesRef.soundInForeground,
-            SSKEnvironment.shared.preferencesRef.isMessageSentSoundEnabled,
+            shouldPlayMessageSentSound,
             let soundId = Sounds.systemSoundIDForSound(.standard(.messageSent), quiet: true)
         {
             AudioServicesPlaySystemSound(soundId)

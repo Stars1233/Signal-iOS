@@ -354,6 +354,7 @@ public class GRDBSchemaMigrator {
         case rebuildInteractionTimestampIndex
         case addGroupRefreshedAt
         case rebuildInteractionUnendedGroupCallIndex
+        case migrateNotificationPreferences
 
         // NOTE: Every time we add a migration id, consider
         // incrementing grdbSchemaVersionLatest.
@@ -480,7 +481,7 @@ public class GRDBSchemaMigrator {
     }
 
     public static let grdbSchemaVersionDefault: UInt = 0
-    public static let grdbSchemaVersionLatest: UInt = 156
+    public static let grdbSchemaVersionLatest: UInt = 157
 
     private class DatabaseMigratorWrapper {
         // Run with immediate (or disabled) foreign key checks so that pre-existing
@@ -5508,6 +5509,11 @@ public class GRDBSchemaMigrator {
             return .success(())
         }
 
+        migrator.registerMigration(.migrateNotificationPreferences) { tx in
+            try migrateNotificationPreferences(tx: tx)
+            return .success(())
+        }
+
         // MARK: - Schema Migration Insertion Point
     }
 
@@ -8423,6 +8429,37 @@ public class GRDBSchemaMigrator {
             )
         }
         try tx.database.execute(sql: "DELETE FROM keyvalue WHERE collection = ?", arguments: [collection])
+    }
+
+    static func migrateNotificationPreferences(tx: DBWriteTransaction) throws {
+        // Move preferences related to notifications to a central store in
+        // NotificationPreferencesManager using NewKeyValueStore.
+        let newCollection = "NotificationPreferences"
+
+        // Move to new collection
+        let preferencesRenamer = KeyValueStoreRenamer(oldCollection: "SignalPreferences", newCollection: newCollection)
+        try preferencesRenamer.renameKey("Notification Preview Type Key", toKey: "PreviewType", tx: tx)
+        try preferencesRenamer.renameKey("NotificationSoundInForeground", toKey: "PlaySoundInForeground", tx: tx)
+        try preferencesRenamer.renameKey("MessageSentSound", toKey: "MessageSentSound", tx: tx)
+        try preferencesRenamer.renameKey("OWSPreferencesKeyShouldNotifyOfNewAccountKey", toKey: "NotifyOfNewAccounts", tx: tx)
+
+        let sskPreferencesRenamer = KeyValueStoreRenamer(oldCollection: "SSKPreferences", newCollection: newCollection)
+        try sskPreferencesRenamer.renameKey("includeMutedThreadsInBadgeCount", toKey: "IncludeMutedThreadsInBadgeCount", tx: tx)
+
+        let soundsRenamer = KeyValueStoreRenamer(
+            oldCollection: "kOWSSoundsStorageNotificationCollection",
+            newCollection: newCollection,
+        )
+        try soundsRenamer.renameKey("kOWSSoundsStorageGlobalNotificationKey", toKey: "GlobalNotificationSound", tx: tx)
+
+        // Migrate to NewKeyValueStore
+        let migrator = KeyValueStoreMigrator(collection: newCollection)
+        try migrator.migrateUInt("PreviewType", tx: tx)
+        try migrator.migrateBool("PlaySoundInForeground", tx: tx)
+        try migrator.migrateBool("MessageSentSound", tx: tx)
+        try migrator.migrateBool("NotifyOfNewAccounts", tx: tx)
+        try migrator.migrateBool("IncludeMutedThreadsInBadgeCount", tx: tx)
+        try migrator.migrateUInt64("GlobalNotificationSound", tx: tx)
     }
 
     static func dedupeSignalRecipients(tx: DBWriteTransaction) throws {

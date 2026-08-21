@@ -1844,6 +1844,7 @@
 		B9AAC9512D5A6FA900E223C0 /* CVComponentUndownloadableAttachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9AAC9502D5A6FA900E223C0 /* CVComponentUndownloadableAttachment.swift */; };
 		B9B2AA942BC598B60060B56C /* ContactNoteSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9B2AA932BC598B60060B56C /* ContactNoteSheet.swift */; };
 		B9B432262FD37E9B0059FCB9 /* ExpiringInteraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9B432252FD37E9B0059FCB9 /* ExpiringInteraction.swift */; };
+		B9B4621D3037A35D004C358F /* NotificationPreferencesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9B4621C3037A35D004C358F /* NotificationPreferencesManager.swift */; };
 		B9B7BC652D41C61500C26E42 /* NewLinkedDeviceNotificationMegaphone.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9B7BC642D41C61500C26E42 /* NewLinkedDeviceNotificationMegaphone.swift */; };
 		B9B89EED2C064E760093A2FA /* notification_simple-01.caf in Resources */ = {isa = PBXBuildFile; fileRef = B9B89EEC2C064E700093A2FA /* notification_simple-01.caf */; };
 		B9D413742BCDDE66006D4E48 /* Tooltip.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9D413732BCDDE66006D4E48 /* Tooltip.swift */; };
@@ -6195,6 +6196,7 @@
 		B9AAC9502D5A6FA900E223C0 /* CVComponentUndownloadableAttachment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CVComponentUndownloadableAttachment.swift; sourceTree = "<group>"; };
 		B9B2AA932BC598B60060B56C /* ContactNoteSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactNoteSheet.swift; sourceTree = "<group>"; };
 		B9B432252FD37E9B0059FCB9 /* ExpiringInteraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpiringInteraction.swift; sourceTree = "<group>"; };
+		B9B4621C3037A35D004C358F /* NotificationPreferencesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPreferencesManager.swift; sourceTree = "<group>"; };
 		B9B7BC642D41C61500C26E42 /* NewLinkedDeviceNotificationMegaphone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewLinkedDeviceNotificationMegaphone.swift; sourceTree = "<group>"; };
 		B9B89EEC2C064E700093A2FA /* notification_simple-01.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "notification_simple-01.caf"; sourceTree = "<group>"; };
 		B9D413732BCDDE66006D4E48 /* Tooltip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tooltip.swift; sourceTree = "<group>"; };
@@ -11783,6 +11785,7 @@
 			children = (
 				D979DA152B8D1FDD000EEAB8 /* BadgeCountFetcher.swift */,
 				F9C5CB92289453B200548EEE /* NoopNotificationPresenterImpl.swift */,
+				B9B4621C3037A35D004C358F /* NotificationPreferencesManager.swift */,
 				664657402AC4FB720099DE1C /* NotificationPresenter.swift */,
 				88D23D0A23CEBF4400B0E74B /* NotificationPresenterImpl.swift */,
 				5063B41D2C5432A30041CA51 /* ResolvableValue.swift */,
@@ -19835,6 +19838,7 @@
 				F9C5CE58289453B400548EEE /* NoopPendingReadReceiptRecorder.swift in Sources */,
 				668A01312C2B6088007B8808 /* NotificationCenter+Promise.swift in Sources */,
 				5079F3B62DA4713C008430EC /* NotificationPrecondition.swift in Sources */,
+				B9B4621D3037A35D004C358F /* NotificationPreferencesManager.swift in Sources */,
 				664657412AC4FB720099DE1C /* NotificationPresenter.swift in Sources */,
 				725465612BA033E200EABFD2 /* NotificationPresenterImpl.swift in Sources */,
 				D9C7CECF28ECC043001E87B6 /* NSAttributedString+SSK.swift in Sources */,

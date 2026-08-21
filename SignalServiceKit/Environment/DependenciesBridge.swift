@@ -147,6 +147,7 @@ public class DependenciesBridge {
     public let messageSender: any MessageSender
     public let messageStickerManager: MessageStickerManager
     public let nicknameManager: any NicknameManager
+    public let notificationPreferencesManager: NotificationPreferencesManager
     public let orphanedAttachmentCleaner: OrphanedAttachmentCleaner
     public let archivedPaymentStore: ArchivedPaymentStore
     public let pendingIDEALDonationStore: PendingIDEALDonationStore
@@ -298,6 +299,7 @@ public class DependenciesBridge {
         messageSender: any MessageSender,
         messageStickerManager: MessageStickerManager,
         nicknameManager: any NicknameManager,
+        notificationPreferencesManager: NotificationPreferencesManager,
         orphanedAttachmentCleaner: OrphanedAttachmentCleaner,
         archivedPaymentStore: ArchivedPaymentStore,
         pendingIDEALDonationStore: PendingIDEALDonationStore,
@@ -447,6 +449,7 @@ public class DependenciesBridge {
         self.messageSender = messageSender
         self.messageStickerManager = messageStickerManager
         self.nicknameManager = nicknameManager
+        self.notificationPreferencesManager = notificationPreferencesManager
         self.orphanedAttachmentCleaner = orphanedAttachmentCleaner
         self.archivedPaymentStore = archivedPaymentStore
         self.pendingIDEALDonationStore = pendingIDEALDonationStore

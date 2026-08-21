@@ -349,9 +349,12 @@ extension AppSetup.GlobalsContinuation {
             searchableNameIndexer: searchableNameIndexer,
             storageServiceManager: storageServiceManager,
         )
+        let notificationPreferencesManager = NotificationPreferencesManager()
+
         let contactManager = testDependencies.contactManager ?? OWSContactsManager(
             appReadiness: appReadiness,
             nicknameManager: nicknameManager,
+            notificationPreferencesManager: notificationPreferencesManager,
             recipientDatabaseTable: recipientDatabaseTable,
             usernameLookupManager: usernameLookupManager,
         )
@@ -1874,6 +1877,7 @@ extension AppSetup.GlobalsContinuation {
             messageSender: messageSender,
             messageStickerManager: messageStickerManager,
             nicknameManager: nicknameManager,
+            notificationPreferencesManager: notificationPreferencesManager,
             orphanedAttachmentCleaner: orphanedAttachmentCleaner,
             archivedPaymentStore: archivedPaymentStore,
             pendingIDEALDonationStore: pendingIDEALDonationStore,

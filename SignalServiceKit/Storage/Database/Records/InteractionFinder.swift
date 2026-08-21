@@ -174,7 +174,8 @@ public class InteractionFinder: NSObject {
 
     public class func unreadCountInAllThreads(transaction: DBReadTransaction) -> UInt {
         do {
-            let includeMutedThreads = SSKPreferences.includeMutedThreadsInBadgeCount(transaction: transaction)
+            let includeMutedThreads = DependenciesBridge.shared.notificationPreferencesManager
+                .includeMutedThreadsInBadgeCount(tx: transaction)
 
             var unreadInteractionQuery = """
             SELECT COUNT(interaction.\(interactionColumn: .id))

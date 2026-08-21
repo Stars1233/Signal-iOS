@@ -277,16 +277,17 @@ let kAudioNotificationsThrottleInterval: TimeInterval = 5
 public class NotificationPresenterImpl: NotificationPresenter {
     private let presenter = UserNotificationPresenter()
 
+    private var db: any DB { DependenciesBridge.shared.db }
     private var contactManager: any ContactManager { SSKEnvironment.shared.contactManagerRef }
     private var databaseStorage: SDSDatabaseStorage { SSKEnvironment.shared.databaseStorageRef }
     private var identityManager: any OWSIdentityManager { DependenciesBridge.shared.identityManager }
-    private var preferences: Preferences { SSKEnvironment.shared.preferencesRef }
+    private var notificationPreferencesManager: NotificationPreferencesManager { DependenciesBridge.shared.notificationPreferencesManager }
     private var tsAccountManager: any TSAccountManager { DependenciesBridge.shared.tsAccountManager }
 
     public init() {}
 
     func previewType(tx: DBReadTransaction) -> NotificationType {
-        return preferences.notificationPreviewType(tx: tx)
+        return notificationPreferencesManager.previewType(tx: tx)
     }
 
     private static func shouldShowActions(for previewType: NotificationType, tx: DBReadTransaction) -> Bool {
@@ -1812,7 +1813,10 @@ public class NotificationPresenterImpl: NotificationPresenter {
     }
 
     private func requestGlobalSound(isMainAppAndActive: Bool) -> Sound? {
-        return checkIfShouldPlaySound(isMainAppAndActive: isMainAppAndActive) ? Sounds.globalNotificationSound : nil
+        guard checkIfShouldPlaySound(isMainAppAndActive: isMainAppAndActive) else { return nil }
+        return db.read { tx in
+            notificationPreferencesManager.globalNotificationSound(tx: tx)
+        }
     }
 
     private func checkIfShouldPlaySound(isMainAppAndActive: Bool) -> Bool {
@@ -1820,7 +1824,10 @@ public class NotificationPresenterImpl: NotificationPresenter {
             return true
         }
 
-        guard preferences.soundInForeground else {
+        let playSoundInForeground = db.read { tx in
+            notificationPreferencesManager.playSoundInForeground(tx: tx)
+        }
+        guard playSoundInForeground else {
             return false
         }
 

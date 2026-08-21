@@ -75,6 +75,7 @@ public class OWSContactsManager: NSObject, ContactsManagerProtocol {
     public let avatarGroupIdsToShowDownloadingSpinner = AtomicSet<Data>(lock: .init())
 
     private let nicknameManager: any NicknameManager
+    private let notificationPreferencesManager: NotificationPreferencesManager
     private let recipientDatabaseTable: RecipientDatabaseTable
     private let systemContactsFetcher: SystemContactsFetcher
     private let usernameLookupManager: UsernameLookupManager
@@ -148,10 +149,12 @@ public class OWSContactsManager: NSObject, ContactsManagerProtocol {
     public init(
         appReadiness: AppReadiness,
         nicknameManager: any NicknameManager,
+        notificationPreferencesManager: NotificationPreferencesManager,
         recipientDatabaseTable: RecipientDatabaseTable,
         usernameLookupManager: any UsernameLookupManager,
     ) {
         self.nicknameManager = nicknameManager
+        self.notificationPreferencesManager = notificationPreferencesManager
         self.recipientDatabaseTable = recipientDatabaseTable
         self.systemContactsFetcher = SystemContactsFetcher(appReadiness: appReadiness)
         self.usernameLookupManager = usernameLookupManager
@@ -1095,7 +1098,7 @@ extension OWSContactsManager: ContactManager {
             keyValueStore.setBool(true, key: Constants.didIntersectAddressBook, transaction: tx)
             return
         }
-        guard SSKEnvironment.shared.preferencesRef.shouldNotifyOfNewAccounts(transaction: tx) else {
+        guard notificationPreferencesManager.shouldNotifyOfNewAccounts(tx: tx) else {
             return
         }
         let phoneNumbers = Set(addressBookPhoneNumbers.lazy.map { $0.rawValue.stringValue })

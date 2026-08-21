@@ -2279,6 +2279,84 @@ struct GRDBSchemaMigratorTest {
     }
 
     @Test
+    func testMigrateNotificationPreferences() throws {
+        let databaseQueue = DatabaseQueue()
+        try databaseQueue.write { db in
+            // A snapshot of the key value store as it existed when this migration was
+            // added. If the key value store's schema is updated in the future, don't
+            // update this call site. It must remain as a snapshot.
+            try db.execute(
+                sql: "CREATE TABLE keyvalue (key TEXT NOT NULL, collection TEXT NOT NULL, value BLOB NOT NULL, PRIMARY KEY (key, collection))",
+            )
+            let rows: [(collection: String, key: String, value: Any)] = [
+                ("SignalPreferences", "Notification Preview Type Key", NSNumber(value: UInt(1))),
+                ("SignalPreferences", "NotificationSoundInForeground", NSNumber(value: false)),
+                ("SignalPreferences", "MessageSentSound", NSNumber(value: true)),
+                ("SignalPreferences", "OWSPreferencesKeyShouldNotifyOfNewAccountKey", NSNumber(value: true)),
+                // Not a notification preference; must be left alone.
+                ("SignalPreferences", "Screen Security Key", NSNumber(value: true)),
+                ("SSKPreferences", "includeMutedThreadsInBadgeCount", NSNumber(value: true)),
+                // Not a notification preference; must be left alone.
+                ("SSKPreferences", "areLegacyLinkPreviewsEnabled", NSNumber(value: true)),
+                ("kOWSSoundsStorageNotificationCollection", "kOWSSoundsStorageGlobalNotificationKey", NSNumber(value: UInt64(13))),
+                // A per-thread notification sound; must be left alone.
+                ("kOWSSoundsStorageNotificationCollection", "some-thread-unique-id", NSNumber(value: UInt64(9))),
+            ]
+            for row in rows {
+                try db.execute(
+                    sql: "INSERT INTO keyvalue (collection, key, value) VALUES (?, ?, ?)",
+                    arguments: [row.collection, row.key, Self.keyedArchiverData(rootObject: row.value)],
+                )
+            }
+        }
+
+        try databaseQueue.write { db in
+            let tx = DBWriteTransaction(database: db)
+            defer { tx.finalizeTransaction() }
+            try GRDBSchemaMigrator.migrateNotificationPreferences(tx: tx)
+        }
+
+        try databaseQueue.read { db in
+            func fetchInt64(_ key: String) throws -> Int64? {
+                return try Int64.fetchOne(
+                    db,
+                    sql: "SELECT value FROM keyvalue WHERE collection = 'NotificationPreferences' AND key = ?",
+                    arguments: [key],
+                )
+            }
+            func fetchBool(_ key: String) throws -> Bool? {
+                return try Bool.fetchOne(
+                    db,
+                    sql: "SELECT value FROM keyvalue WHERE collection = 'NotificationPreferences' AND key = ?",
+                    arguments: [key],
+                )
+            }
+            #expect(try fetchInt64("PreviewType") == 1)
+            #expect(try fetchBool("PlaySoundInForeground") == false)
+            #expect(try fetchBool("MessageSentSound") == true)
+            #expect(try fetchBool("NotifyOfNewAccounts") == true)
+            #expect(try fetchBool("IncludeMutedThreadsInBadgeCount") == true)
+            #expect(try fetchInt64("GlobalNotificationSound") == 13)
+
+            // Everything else must be untouched.
+            let remaining = try Row.fetchAll(
+                db,
+                sql: "SELECT collection, key FROM keyvalue WHERE collection != 'NotificationPreferences' ORDER BY collection, key",
+            ).map { ($0["collection"] as String, $0["key"] as String) }
+            #expect(remaining.map(\.0) == [
+                "SSKPreferences",
+                "SignalPreferences",
+                "kOWSSoundsStorageNotificationCollection",
+            ])
+            #expect(remaining.map(\.1) == [
+                "areLegacyLinkPreviewsEnabled",
+                "Screen Security Key",
+                "some-thread-unique-id",
+            ])
+        }
+    }
+
+    @Test
     func testMigrateGroupSendEndorsements() throws {
         let databaseQueue = DatabaseQueue()
         try databaseQueue.write { db in
