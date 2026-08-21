@@ -141,10 +141,7 @@ public class CLVReminderViews {
             return
         }
 
-        RegistrationUtils.showReregistrationUI(
-            fromViewController: chatListViewController,
-            appReadiness: chatListViewController.appReadiness,
-        )
+        RegistrationUtils.showReregistrationUI(fromViewController: chatListViewController)
     }
 
     private func didTapUsernameCorruptedReminderView() {

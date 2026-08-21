@@ -19,7 +19,6 @@ extension DonationViewsUtil {
         donationSubscriptionManager: DonationSubscriptionManager,
         idealStore: PendingIDEALDonationStore,
         profileBadgeManager: ProfileBadgeManager,
-        appReadiness: AppReadinessSetter,
     ) async throws {
         let idealStore = DependenciesBridge.shared.pendingIDEALDonationStore
         let (success, intent, localIntent) = databaseStorage.read { tx in
@@ -42,7 +41,7 @@ extension DonationViewsUtil {
         }
 
         // Build up the Donation UI
-        let appSettings = AppSettingsViewController.inModalNavigationController(appReadiness: appReadiness)
+        let appSettings = AppSettingsViewController.inModalNavigationController()
         let donationsVC = DonationSettingsViewController()
         donationsVC.showExpirationSheet = false
         appSettings.viewControllers += [donationsVC]

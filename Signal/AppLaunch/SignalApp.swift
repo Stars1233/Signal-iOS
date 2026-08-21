@@ -23,8 +23,8 @@ public class SignalApp {
         return conversationSplitViewController?.selectedThread != nil
     }
 
-    func showConversationSplitView(appReadiness: AppReadinessSetter) {
-        let splitViewController = ConversationSplitViewController(appReadiness: appReadiness)
+    func showConversationSplitView() {
+        let splitViewController = ConversationSplitViewController()
         UIApplication.shared.delegate?.window??.rootViewController = splitViewController
         self.conversationSplitViewController = splitViewController
     }
@@ -63,14 +63,13 @@ public class SignalApp {
 
         switch launchInterface {
         case .registration(let registrationLoader, let desiredMode):
-            showRegistration(loader: registrationLoader, desiredMode: desiredMode, appReadiness: appReadiness)
-            appReadiness.setUIIsReady()
+            showRegistration(loader: registrationLoader, desiredMode: desiredMode)
         case .secondaryProvisioning:
-            showSecondaryProvisioning(skipOnboarding: false, appReadiness: appReadiness)
-            appReadiness.setUIIsReady()
+            showSecondaryProvisioning(skipOnboarding: false)
         case .chatList:
-            showConversationSplitView(appReadiness: appReadiness)
+            showConversationSplitView()
         }
+        appReadiness.setUIIsReady()
 
         UIViewController.attemptRotationToDeviceOrientation()
     }
@@ -91,7 +90,6 @@ public class SignalApp {
     func showRegistration(
         loader: RegistrationCoordinatorLoader,
         desiredMode: RegistrationMode,
-        appReadiness: AppReadinessSetter,
     ) {
         let logger: PrefixedLogger
         switch desiredMode {
@@ -108,7 +106,7 @@ public class SignalApp {
         let coordinator = SSKEnvironment.shared.databaseStorageRef.write { tx in
             return loader.coordinator(forDesiredMode: desiredMode, transaction: tx, logger: logger)
         }
-        let navController = RegistrationNavigationController.withCoordinator(coordinator, appReadiness: appReadiness)
+        let navController = RegistrationNavigationController.withCoordinator(coordinator)
 
         UIApplication.shared.delegate?.window??.rootViewController = navController
 
@@ -116,11 +114,8 @@ public class SignalApp {
     }
 
     @MainActor
-    func showSecondaryProvisioning(skipOnboarding: Bool, appReadiness: AppReadinessSetter) {
-        ProvisioningController.presentProvisioningFlow(
-            skipOnboarding: skipOnboarding,
-            appReadiness: appReadiness,
-        )
+    func showSecondaryProvisioning(skipOnboarding: Bool) {
+        ProvisioningController.presentProvisioningFlow(skipOnboarding: skipOnboarding)
         conversationSplitViewController = nil
     }
 

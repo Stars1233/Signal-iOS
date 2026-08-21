@@ -1936,10 +1936,8 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         guard let parsedUrl = UrlOpener.parseUrl(url) else {
             return false
         }
-        let appReadiness: AppReadinessSetter = self.appReadiness
-        appReadiness.runNowOrWhenUIDidBecomeReadySync {
+        self.appReadiness.runNowOrWhenUIDidBecomeReadySync {
             let urlOpener = UrlOpener(
-                appReadiness: appReadiness,
                 databaseStorage: SSKEnvironment.shared.databaseStorageRef,
                 donationSubscriptionManager: DependenciesBridge.shared.donationSubscriptionManager,
                 idealStore: DependenciesBridge.shared.pendingIDEALDonationStore,

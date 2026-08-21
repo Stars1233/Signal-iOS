@@ -8,11 +8,9 @@ import SignalUI
 
 class AccountSettingsViewController: OWSTableViewController2 {
 
-    private let appReadiness: AppReadinessSetter
     private let context: ViewControllerContext
 
-    init(appReadiness: AppReadinessSetter) {
-        self.appReadiness = appReadiness
+    override init() {
         // TODO[ViewContextPiping]
         self.context = ViewControllerContext.shared
         super.init()
@@ -291,7 +289,7 @@ class AccountSettingsViewController: OWSTableViewController2 {
     // MARK: - Account
 
     private func reregisterUser() {
-        RegistrationUtils.showReregistrationUI(fromViewController: self, appReadiness: appReadiness)
+        RegistrationUtils.showReregistrationUI(fromViewController: self)
     }
 
     private func deleteLinkedData() {
@@ -321,7 +319,7 @@ class AccountSettingsViewController: OWSTableViewController2 {
     }
 
     private func unregisterUser() {
-        let vc = DeleteAccountConfirmationViewController(appReadiness: appReadiness)
+        let vc = DeleteAccountConfirmationViewController()
         presentFormSheet(OWSNavigationController(rootViewController: vc), animated: true)
     }
 
@@ -399,7 +397,7 @@ class AccountSettingsViewController: OWSTableViewController2 {
                 logger: logger,
             )
         }
-        let navController = RegistrationNavigationController.withCoordinator(coordinator, appReadiness: appReadiness)
+        let navController = RegistrationNavigationController.withCoordinator(coordinator)
         let window: UIWindow = CurrentAppContext().mainWindow!
         window.rootViewController = navController
     }

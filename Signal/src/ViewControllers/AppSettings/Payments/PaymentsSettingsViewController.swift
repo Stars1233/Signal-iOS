@@ -29,7 +29,6 @@ class PaymentsSettingsViewController: OWSTableViewController2, PaymentsHistoryDa
     PaymentsViewPassphraseDelegate, PaymentsRestoreWalletDelegate
 {
 
-    private let appReadiness: AppReadinessSetter
     private let mode: PaymentsSettingsMode
 
     private let paymentsHistoryDataSource = PaymentsHistoryDataSource()
@@ -48,12 +47,8 @@ class PaymentsSettingsViewController: OWSTableViewController2, PaymentsHistoryDa
 
     private var observations = [NotificationCenter.Observer]()
 
-    init(
-        mode: PaymentsSettingsMode,
-        appReadiness: AppReadinessSetter,
-    ) {
+    init(mode: PaymentsSettingsMode) {
         self.mode = mode
-        self.appReadiness = appReadiness
 
         super.init()
 
@@ -1341,12 +1336,12 @@ class PaymentsSettingsViewController: OWSTableViewController2, PaymentsHistoryDa
         }
         switch mode {
         case .inAppSettings:
-            navigationController.popViewController(animated: true) { [appReadiness] in
-                let accountSettingsView = AccountSettingsViewController(appReadiness: appReadiness)
+            navigationController.popViewController(animated: true) {
+                let accountSettingsView = AccountSettingsViewController()
                 navigationController.pushViewController(accountSettingsView, animated: true)
             }
         case .standalone:
-            let accountSettingsView = AccountSettingsViewController(appReadiness: appReadiness)
+            let accountSettingsView = AccountSettingsViewController()
             navigationController.pushViewController(accountSettingsView, animated: true)
         }
     }

@@ -32,13 +32,6 @@ class DeleteAccountConfirmationViewController: OWSTableViewController2 {
         set {}
     }
 
-    private let appReadiness: AppReadinessSetter
-
-    init(appReadiness: AppReadinessSetter) {
-        self.appReadiness = appReadiness
-        super.init()
-    }
-
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -260,7 +253,7 @@ class DeleteAccountConfirmationViewController: OWSTableViewController2 {
     }
 
     private func transferPaymentsButton() {
-        dismiss(animated: true) { [appReadiness] in
+        dismiss(animated: true) {
             guard let frontmostViewController = UIApplication.shared.frontmostViewController else {
                 owsFailDebug("Could not identify frontmostViewController")
                 return
@@ -271,7 +264,7 @@ class DeleteAccountConfirmationViewController: OWSTableViewController2 {
             }
             var viewControllers = navigationController.viewControllers
             _ = viewControllers.removeLast()
-            viewControllers.append(PaymentsSettingsViewController(mode: .inAppSettings, appReadiness: appReadiness))
+            viewControllers.append(PaymentsSettingsViewController(mode: .inAppSettings))
             viewControllers.append(PaymentsTransferOutViewController(transferAmount: nil))
             navigationController.setViewControllers(viewControllers, animated: true)
         }

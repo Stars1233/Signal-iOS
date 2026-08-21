@@ -523,7 +523,7 @@ extension ConversationViewController: SendPaymentViewDelegate {
     public func didSendPayment(success: Bool) {
 
         func paymentSettingsNavigationController() -> OWSNavigationController {
-            let paymentSettingsView = PaymentsSettingsViewController(mode: .standalone, appReadiness: appReadiness)
+            let paymentSettingsView = PaymentsSettingsViewController(mode: .standalone)
             return OWSNavigationController(rootViewController: paymentSettingsView)
         }
 

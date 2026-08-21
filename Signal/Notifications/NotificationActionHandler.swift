@@ -389,7 +389,7 @@ public class NotificationActionHandler {
             return
         }
         Logger.info("Reregistering from deregistered notification")
-        RegistrationUtils.reregister(fromViewController: viewController, appReadiness: appReadiness)
+        RegistrationUtils.reregister(fromViewController: viewController)
     }
 
     @MainActor

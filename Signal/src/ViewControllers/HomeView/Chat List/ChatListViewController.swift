@@ -8,13 +8,9 @@ public import SignalUI
 import StoreKit
 
 public class ChatListViewController: OWSViewController, HomeTabViewController {
-    let appReadiness: AppReadinessSetter
-
     init(
         chatListMode: ChatListMode,
-        appReadiness: AppReadinessSetter,
     ) {
-        self.appReadiness = appReadiness
         self.viewState = CLVViewState(chatListMode: chatListMode, inboxFilter: nil)
 
         super.init()
@@ -236,8 +232,6 @@ public class ChatListViewController: OWSViewController, HomeTabViewController {
         defer {
             hasEverAppeared = true
         }
-
-        appReadiness.setUIIsReady()
 
         presentGetStartedBannerIfNecessary()
         reconcileExperienceUpgrades()
@@ -1391,7 +1385,7 @@ extension ChatListViewController {
             .dismissMessageContextMenu(animated: true)
 
         let navigationController = OWSNavigationController()
-        let appSettingsViewController = AppSettingsViewController(appReadiness: appReadiness)
+        let appSettingsViewController = AppSettingsViewController()
 
         var internalCompletion: (() -> Void)?
         var viewControllers: [UIViewController] = [appSettingsViewController]
@@ -1401,16 +1395,16 @@ extension ChatListViewController {
             break
 
         case .payments:
-            let paymentsSettings = PaymentsSettingsViewController(mode: .inAppSettings, appReadiness: appReadiness)
+            let paymentsSettings = PaymentsSettingsViewController(mode: .inAppSettings)
             viewControllers += [paymentsSettings]
 
         case .payment(let paymentsHistoryItem):
-            let paymentsSettings = PaymentsSettingsViewController(mode: .inAppSettings, appReadiness: appReadiness)
+            let paymentsSettings = PaymentsSettingsViewController(mode: .inAppSettings)
             let paymentsDetail = PaymentsDetailViewController(paymentItem: paymentsHistoryItem)
             viewControllers += [paymentsSettings, paymentsDetail]
 
         case .paymentsTransferIn:
-            let paymentsSettings = PaymentsSettingsViewController(mode: .inAppSettings, appReadiness: appReadiness)
+            let paymentsSettings = PaymentsSettingsViewController(mode: .inAppSettings)
             let paymentsTransferIn = PaymentsTransferInViewController()
             viewControllers += [paymentsSettings, paymentsTransferIn]
 
@@ -1525,7 +1519,7 @@ extension ChatListViewController {
             viewControllers += [PrivacySettingsViewController(), AdvancedPrivacySettingsViewController(), ProxySettingsViewController()]
 
         case .accountSettings:
-            viewControllers += [AccountSettingsViewController(appReadiness: appReadiness)]
+            viewControllers += [AccountSettingsViewController()]
         }
 
         navigationController.setViewControllers(viewControllers, animated: false)

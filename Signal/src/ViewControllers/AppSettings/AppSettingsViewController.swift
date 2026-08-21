@@ -8,15 +8,8 @@ import SignalUI
 
 class AppSettingsViewController: OWSTableViewController2 {
 
-    private let appReadiness: AppReadinessSetter
-
-    init(appReadiness: AppReadinessSetter) {
-        self.appReadiness = appReadiness
-        super.init()
-    }
-
-    class func inModalNavigationController(appReadiness: AppReadinessSetter) -> OWSNavigationController {
-        OWSNavigationController(rootViewController: AppSettingsViewController(appReadiness: appReadiness))
+    class func inModalNavigationController() -> OWSNavigationController {
+        OWSNavigationController(rootViewController: AppSettingsViewController())
     }
 
     private var localUsernameState: Usernames.LocalUsernameState!
@@ -157,8 +150,8 @@ class AppSettingsViewController: OWSTableViewController2 {
         section1.add(.disclosureItem(
             icon: .settingsAccount,
             withText: OWSLocalizedString("SETTINGS_ACCOUNT", comment: "Title for the 'account' link in settings."),
-            actionBlock: { [weak self, appReadiness] in
-                let vc = AccountSettingsViewController(appReadiness: appReadiness)
+            actionBlock: { [weak self] in
+                let vc = AccountSettingsViewController()
                 self?.navigationController?.pushViewController(vc, animated: true)
             },
         ))
@@ -376,8 +369,8 @@ class AppSettingsViewController: OWSTableViewController2 {
 
                     return cell
                 },
-                actionBlock: { [weak self, appReadiness] in
-                    let vc = PaymentsSettingsViewController(mode: .inAppSettings, appReadiness: appReadiness)
+                actionBlock: { [weak self] in
+                    let vc = PaymentsSettingsViewController(mode: .inAppSettings)
                     self?.navigationController?.pushViewController(vc, animated: true)
                 },
             ))

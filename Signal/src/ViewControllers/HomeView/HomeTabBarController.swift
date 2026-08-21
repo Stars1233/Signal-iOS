@@ -10,10 +10,7 @@ public import UIKit
 
 class HomeTabBarController: UITabBarController {
 
-    private let appReadiness: AppReadinessSetter
-
-    init(appReadiness: AppReadinessSetter) {
-        self.appReadiness = appReadiness
+    init() {
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -89,19 +86,16 @@ class HomeTabBarController: UITabBarController {
         }
     }
 
-    lazy var chatListViewController = ChatListViewController(chatListMode: .inbox, appReadiness: appReadiness)
+    lazy var chatListViewController = ChatListViewController(chatListMode: .inbox)
     lazy var chatListNavController = OWSNavigationController(rootViewController: chatListViewController)
     lazy var chatListTabBarItem = Tabs.chatList.tabBarItem
 
     // No need to share spoiler render state across the whole app.
-    lazy var storiesViewController = StoriesViewController(
-        appReadiness: appReadiness,
-        spoilerState: SpoilerRenderState(),
-    )
+    lazy var storiesViewController = StoriesViewController(spoilerState: SpoilerRenderState())
     lazy var storiesNavController = OWSNavigationController(rootViewController: storiesViewController)
     lazy var storiesTabBarItem = Tabs.stories.tabBarItem
 
-    lazy var callsListViewController = CallsListViewController(appReadiness: appReadiness)
+    lazy var callsListViewController = CallsListViewController()
     lazy var callsListNavController = OWSNavigationController(rootViewController: callsListViewController)
     lazy var callsListTabBarItem = Tabs.calls.tabBarItem
 
