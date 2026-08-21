@@ -95,7 +95,7 @@ public class RegistrationUtils {
         let logger = PrefixedLogger(prefix: "[ReReg]")
         logger.info("Attempting to start re-registration")
         let dependencies = RegistrationCoordinatorDependencies.from(NSObject())
-        let desiredMode = RegistrationMode.reRegistering(.init(e164: e164, aci: aci))
+        let desiredMode = RegistrationMode.reRegistering(RegistrationMode.ReregistrationParams(e164: e164, aci: aci))
         let loader = RegistrationCoordinatorLoaderImpl(dependencies: dependencies)
         let coordinator = SSKEnvironment.shared.databaseStorageRef.write {
             return loader.coordinator(

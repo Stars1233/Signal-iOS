@@ -198,11 +198,14 @@ extension RegistrationMode {
     fileprivate func asInternalMode() -> RegistrationCoordinatorLoaderImpl.Mode {
         switch self {
         case .registering:
-            return .registering(.init())
+            return .registering(RegistrationCoordinatorLoaderImpl.Mode.RegisteringState())
         case .reRegistering(let params):
-            return .reRegistering(.init(e164: params.e164, aci: params.aci))
+            return .reRegistering(RegistrationCoordinatorLoaderImpl.Mode.ReRegisteringState(
+                e164: params.e164,
+                aci: params.aci,
+            ))
         case .changingNumber(let params):
-            return .changingNumber(.init(
+            return .changingNumber(RegistrationCoordinatorLoaderImpl.Mode.ChangeNumberState(
                 oldE164: params.oldE164,
                 oldAuthToken: params.oldAuthToken,
                 localAci: params.localAci,
@@ -220,9 +223,9 @@ extension RegistrationCoordinatorLoaderImpl.Mode {
         case .registering:
             return .registering
         case .reRegistering(let state):
-            return .reRegistering(.init(e164: state.e164, aci: state.aci))
+            return .reRegistering(RegistrationMode.ReregistrationParams(e164: state.e164, aci: state.aci))
         case .changingNumber(let state):
-            return .changingNumber(.init(
+            return .changingNumber(RegistrationMode.ChangeNumberParams(
                 oldE164: state.oldE164,
                 oldAuthToken: state.oldAuthToken,
                 localAci: state.localAci,

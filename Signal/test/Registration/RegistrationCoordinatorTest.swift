@@ -187,7 +187,7 @@ public class RegistrationCoordinatorTest {
 
     static let testModes: [RegistrationMode] = [
         RegistrationMode.registering,
-        RegistrationMode.reRegistering(.init(e164: Stubs.e164, aci: Stubs.aci)),
+        RegistrationMode.reRegistering(RegistrationMode.ReregistrationParams(e164: Stubs.e164, aci: Stubs.aci)),
     ]
 
     struct TestCase {
@@ -195,7 +195,9 @@ public class RegistrationCoordinatorTest {
     }
 
     static func onlyReRegisteringTestCases() -> [TestCase] {
-        return buildTestCases(for: [RegistrationMode.reRegistering(.init(e164: Stubs.e164, aci: Stubs.aci))])
+        return buildTestCases(for: [
+            RegistrationMode.reRegistering(RegistrationMode.ReregistrationParams(e164: Stubs.e164, aci: Stubs.aci)),
+        ])
     }
 
     static func testCases() -> [TestCase] {
@@ -3375,7 +3377,7 @@ public class RegistrationCoordinatorTest {
                     canExitRegistration: true,
                 )))
             case .reRegistering(let params):
-                return .registration(.reregistration(.init(
+                return .registration(.reregistration(RegistrationPhoneNumberViewState.Reregistration(
                     e164: params.e164,
                     validationError: validationError,
                     canExitRegistration: true,
