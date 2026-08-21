@@ -197,7 +197,7 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         self.lastDraftInteractionRowId = 0
         self.lastDraftUpdateTimestamp = 0
         self.lastInteractionRowId = 0
-        self.shouldNotifyForMentionsWhenMuted = true
+        self.shouldNotifyForMentionsWhenMuted = NotificationPreferencesManager.Defaults.shouldNotifyForMentionsWhenMuted
         self.messageDraft = nil
         self.mutedUntilTimestampObsolete = 0
         self.shouldThreadBeVisible = false

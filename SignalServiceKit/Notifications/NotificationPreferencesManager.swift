@@ -21,6 +21,16 @@ public enum NotificationType: UInt {
 }
 
 public struct NotificationPreferencesManager {
+    public enum Defaults {
+        public static let globalNotificationSound = Sound.standard(.note)
+        static let previewType: NotificationType = .namePreview
+        static let playSoundInForeground = true
+        static let messageSentSound = true
+        static let shouldNotifyOfNewAccounts = false
+        static let includeMutedThreadsInBadgeCount = false
+        public static let shouldNotifyForMentionsWhenMuted = true
+    }
+
     private enum Key {
         static let previewType = "PreviewType"
         static let playSoundInForeground = "PlaySoundInForeground"
@@ -38,7 +48,7 @@ public struct NotificationPreferencesManager {
 
     public func previewType(tx: DBReadTransaction) -> NotificationType {
         let rawValue = kvStore.fetchValue(UInt64.self, forKey: Key.previewType, tx: tx)
-        return rawValue.flatMap({ NotificationType(rawValue: UInt($0)) }) ?? .namePreview
+        return rawValue.flatMap({ NotificationType(rawValue: UInt($0)) }) ?? Defaults.previewType
     }
 
     public func setPreviewType(_ value: NotificationType, tx: DBWriteTransaction) {
@@ -48,7 +58,7 @@ public struct NotificationPreferencesManager {
     // MARK: - Sounds
 
     public func playSoundInForeground(tx: DBReadTransaction) -> Bool {
-        kvStore.fetchValue(Bool.self, forKey: Key.playSoundInForeground, tx: tx) ?? true
+        kvStore.fetchValue(Bool.self, forKey: Key.playSoundInForeground, tx: tx) ?? Defaults.playSoundInForeground
     }
 
     public func setPlaySoundInForeground(_ value: Bool, tx: DBWriteTransaction) {
@@ -56,7 +66,7 @@ public struct NotificationPreferencesManager {
     }
 
     public func isMessageSentSoundEnabled(tx: DBReadTransaction) -> Bool {
-        kvStore.fetchValue(Bool.self, forKey: Key.messageSentSound, tx: tx) ?? true
+        kvStore.fetchValue(Bool.self, forKey: Key.messageSentSound, tx: tx) ?? Defaults.messageSentSound
     }
 
     public func setIsMessageSentSoundEnabled(_ value: Bool, tx: DBWriteTransaction) {
@@ -66,7 +76,7 @@ public struct NotificationPreferencesManager {
     // MARK: - New accounts
 
     public func shouldNotifyOfNewAccounts(tx: DBReadTransaction) -> Bool {
-        kvStore.fetchValue(Bool.self, forKey: Key.shouldNotifyOfNewAccounts, tx: tx) ?? false
+        kvStore.fetchValue(Bool.self, forKey: Key.shouldNotifyOfNewAccounts, tx: tx) ?? Defaults.shouldNotifyOfNewAccounts
     }
 
     public func setShouldNotifyOfNewAccounts(_ value: Bool, tx: DBWriteTransaction) {
@@ -76,7 +86,7 @@ public struct NotificationPreferencesManager {
     // MARK: - Badge count
 
     public func includeMutedThreadsInBadgeCount(tx: DBReadTransaction) -> Bool {
-        return kvStore.fetchValue(Bool.self, forKey: Key.includeMutedThreadsInBadgeCount, tx: tx) ?? false
+        return kvStore.fetchValue(Bool.self, forKey: Key.includeMutedThreadsInBadgeCount, tx: tx) ?? Defaults.includeMutedThreadsInBadgeCount
     }
 
     public func setIncludeMutedThreadsInBadgeCount(_ value: Bool, tx: DBWriteTransaction) {
@@ -87,7 +97,7 @@ public struct NotificationPreferencesManager {
 
     public func globalNotificationSound(tx: DBReadTransaction) -> Sound {
         let soundId = kvStore.fetchValue(UInt64.self, forKey: Key.globalNotificationSound, tx: tx)
-        guard let soundId else { return Sounds.defaultNotificationSound }
+        guard let soundId else { return Defaults.globalNotificationSound }
         return Sounds.soundForId(soundId)
     }
 
@@ -99,5 +109,33 @@ public struct NotificationPreferencesManager {
         }
 
         kvStore.writeValue(sound.id, forKey: Key.globalNotificationSound, tx: tx)
+    }
+
+    // MARK: - Reset
+
+    public func resetAll(tx: DBWriteTransaction) {
+        kvStore.removeAll(tx: tx)
+        Sounds.resetThreadNotificationSounds(tx: tx)
+        setGlobalNotificationSound(Defaults.globalNotificationSound, tx: tx)
+        resetPerChatMentionPreferences(tx: tx)
+    }
+
+    private func resetPerChatMentionPreferences(tx: DBWriteTransaction) {
+        // Save threads to avoid mutation with cursor open
+        var threads: [TSThread] = []
+        ThreadFinder().enumerateNonStoryThreads(tx: tx) { thread in
+            if thread.shouldNotifyForMentionsWhenMuted != Defaults.shouldNotifyForMentionsWhenMuted {
+                threads.append(thread)
+            }
+            return true
+        }
+
+        for thread in threads {
+            thread.updateWithShouldNotifyForMentionsWhenMuted(
+                Defaults.shouldNotifyForMentionsWhenMuted,
+                wasLocallyInitiated: true,
+                transaction: tx,
+            )
+        }
     }
 }

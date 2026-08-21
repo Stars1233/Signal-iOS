@@ -29,6 +29,7 @@ class NotificationSettingsViewController: OWSTableViewController2 {
         contents.add(buildContactJoinedSignalSection())
         contents.add(buildAppBadgeSection())
         contents.add(buildReregisterPushSection())
+        contents.add(buildResetSection())
 
         self.contents = contents
     }
@@ -168,6 +169,64 @@ class NotificationSettingsViewController: OWSTableViewController2 {
             },
         ))
         return reregisterPushSection
+    }
+
+    private func buildResetSection() -> OWSTableSection {
+        let resetSection = OWSTableSection()
+        resetSection.footerTitle = OWSLocalizedString(
+            "SETTINGS_NOTIFICATIONS_RESET_FOOTER",
+            comment: "Explanation for the button that resets all notification settings.",
+        )
+        resetSection.add(.item(
+            name: OWSLocalizedString(
+                "SETTINGS_NOTIFICATIONS_RESET",
+                comment: "Label for a button that resets all notification settings to their defaults.",
+            ),
+            textColor: UIColor.Signal.red,
+            actionBlock: { [weak self] in
+                self?.didTapResetNotificationSettings()
+            },
+        ))
+        return resetSection
+    }
+
+    private func didTapResetNotificationSettings() {
+        let actionSheet = ActionSheetController(message: OWSLocalizedString(
+            "SETTINGS_NOTIFICATIONS_RESET_CONFIRMATION_MESSAGE",
+            comment: "Question confirming that notification settings should be reset.",
+        ))
+        actionSheet.addAction(ActionSheetAction(
+            title: OWSLocalizedString(
+                "SETTINGS_NOTIFICATIONS_RESET_CONFIRMATION_ACTION",
+                comment: "Label for the button that confirms notification settings should be reset.",
+            ),
+            style: .destructive,
+            handler: { [weak self] _ in
+                guard let self else { return }
+                ModalActivityIndicatorViewController.present(
+                    fromViewController: self,
+                    canCancel: false,
+                    asyncBlock: { [weak self] modal in
+                        await self?.resetNotificationSettings()
+                        modal.dismiss()
+                    },
+                )
+            },
+        ))
+        actionSheet.addAction(OWSActionSheets.cancelAction)
+        presentActionSheet(actionSheet)
+    }
+
+    @MainActor
+    private func resetNotificationSettings() async {
+        let notificationPreferencesManager = DependenciesBridge.shared.notificationPreferencesManager
+        await DependenciesBridge.shared.db.awaitableWrite { tx in
+            notificationPreferencesManager.resetAll(tx: tx)
+        }
+        AppEnvironment.shared.badgeManager.invalidateBadgeValue()
+        // The notification preview preference affects how calls are presented
+        AppEnvironment.shared.callService.rebuildCallUIAdapter()
+        updateTableContents()
     }
 
     private func didToggleSoundNotifications(_ sender: UISwitch) {

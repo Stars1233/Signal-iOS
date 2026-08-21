@@ -9007,6 +9007,18 @@
 /* Explanation for the switch controlling whether a notification is shown when a phone contact joins Signal. */
 "SETTINGS_NOTIFICATIONS_CONTACT_JOINED_SIGNAL_FOOTER" = "Show a notification when a phone contact joins Signal.";
 
+/* Label for a button that resets all notification settings to their defaults. */
+"SETTINGS_NOTIFICATIONS_RESET" = "Reset Notification Settings";
+
+/* Label for the button that confirms notification settings should be reset. */
+"SETTINGS_NOTIFICATIONS_RESET_CONFIRMATION_ACTION" = "Reset";
+
+/* Question confirming that notification settings should be reset. */
+"SETTINGS_NOTIFICATIONS_RESET_CONFIRMATION_MESSAGE" = "Reset all notification settings to default for all chats?";
+
+/* Explanation for the button that resets all notification settings. */
+"SETTINGS_NOTIFICATIONS_RESET_FOOTER" = "Reset notification settings to default, including custom settings for your chats.";
+
 /* Label for the 'agree to payments terms' button in the 'activate payments confirmation' UI in the payment settings. */
 "SETTINGS_PAYMENTS_ACTIVATE_PAYMENTS_CONFIRM_AGREE" = "Activate";
 

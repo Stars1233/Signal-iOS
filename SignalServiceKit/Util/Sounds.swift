@@ -372,7 +372,7 @@ public class Sounds {
 
     // MARK: - Notifications
 
-    static var defaultNotificationSound: Sound { .standard(.note) }
+    static var defaultNotificationSound: Sound { NotificationPreferencesManager.Defaults.globalNotificationSound }
 
     static func soundForId(_ soundId: UInt64) -> Sound {
         if
@@ -439,6 +439,10 @@ public class Sounds {
         SSKEnvironment.shared.databaseStorageRef.write { transaction in
             keyValueStore.setUInt64(sound.id, key: thread.uniqueId, transaction: transaction)
         }
+    }
+
+    static func resetThreadNotificationSounds(tx: DBWriteTransaction) {
+        keyValueStore.removeAll(transaction: tx)
     }
 
     // MARK: - Util

@@ -1631,7 +1631,7 @@ public class NotificationPresenterImpl: NotificationPresenter {
                 userInfo: userInfo,
                 // Use a default sound so we don't read from
                 // the db (which doesn't work until we relaunch)
-                soundQuery: .constant(.standard(.note)),
+                soundQuery: .constant(NotificationPreferencesManager.Defaults.globalNotificationSound),
                 forceBeforeRegistered: true,
             )
             completion()
