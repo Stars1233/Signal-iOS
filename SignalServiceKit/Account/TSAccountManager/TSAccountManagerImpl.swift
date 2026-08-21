@@ -242,21 +242,42 @@ extension TSAccountManagerImpl: LocalIdentifiersSetter {
     public func resetForReregistration(
         localNumber: E164,
         localAci: Aci,
-        discoverability: PhoneNumberDiscoverability?,
         wasPrimaryDevice: Bool,
         tx: DBWriteTransaction,
     ) {
         mutateWithLock(tx: tx) {
             Self.regStateLogger.info("Resetting for reregistration, was primary? \(wasPrimaryDevice)")
-            kvStore.removeAll(tx: tx)
 
             kvStore.writeValue(localNumber.stringValue, forKey: Keys.reregistrationPhoneNumber, tx: tx)
             kvStore.writeValue(localAci.serviceIdUppercaseString, forKey: Keys.reregistrationAci, tx: tx)
             kvStore.writeValue(wasPrimaryDevice, forKey: Keys.reregistrationWasPrimaryDevice, tx: tx)
-        }
 
-        if let discoverability {
-            setPhoneNumberDiscoverability(discoverability, tx: tx)
+            let keysToKeep: Set<String> = [
+                Keys.isDiscoverableByPhoneNumber,
+                Keys.lastSetIsDiscoverableByPhoneNumber,
+                Keys.reregistrationAci,
+                Keys.reregistrationPhoneNumber,
+                Keys.reregistrationWasPrimaryDevice,
+            ]
+            let keysToRemove: Set<String> = [
+                Keys.deviceId,
+                Keys.isDeregisteredOrDelinked,
+                Keys.isManualMessageFetchEnabled,
+                Keys.isTransferInProgress,
+                Keys.localAci,
+                Keys.localPhoneNumber,
+                Keys.localPni,
+                Keys.registrationDate,
+                Keys.serverAuthToken,
+                Keys.wasTransferred,
+            ]
+            for key in kvStore.fetchKeys(tx: tx) {
+                if keysToKeep.contains(key) {
+                    continue
+                }
+                owsAssertDebug(keysToRemove.contains(key), "unknown key should be added to a set")
+                kvStore.removeValue(forKey: key, tx: tx)
+            }
         }
     }
 

@@ -4376,11 +4376,9 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
             if !persistedState.hasResetForReRegistration {
                 db.write { tx in
                     let isPrimaryDevice = deps.tsAccountManager.registrationState(tx: tx).isPrimaryDevice ?? true
-                    let discoverability = deps.phoneNumberDiscoverabilityManager.phoneNumberDiscoverability(tx: tx)
                     deps.registrationStateChangeManager.resetForReregistration(
                         localPhoneNumber: state.e164,
                         localAci: state.aci,
-                        discoverability: discoverability,
                         wasPrimaryDevice: isPrimaryDevice,
                         tx: tx,
                     )

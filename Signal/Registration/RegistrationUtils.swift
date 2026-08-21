@@ -74,7 +74,6 @@ enum RegistrationUtils {
             DependenciesBridge.shared.registrationStateChangeManager.resetForReregistration(
                 localPhoneNumber: localE164,
                 localAci: localIdentifiers.aci,
-                discoverability: DependenciesBridge.shared.phoneNumberDiscoverabilityManager.phoneNumberDiscoverability(tx: tx),
                 wasPrimaryDevice: DependenciesBridge.shared.tsAccountManager.registrationState(tx: tx).isPrimaryDevice ?? false,
                 tx: tx,
             )
