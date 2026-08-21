@@ -1456,7 +1456,9 @@ class StorageServiceAccountRecordUpdater: StorageServiceRecordUpdater {
 
         if let releaseNotesThread = threadStore.fetchThread(uniqueId: TSReleaseNotesThread.releaseNotesUniqueId, tx: transaction) {
             let threadAssociatedData = ThreadAssociatedData.fetchOrDefault(for: releaseNotesThread, transaction: transaction)
-            builder.setReleaseNotesChatBlocked(blockingManager.isReleaseNotesThreadBlocked(tx: transaction))
+            let isBlocked = blockingManager.isReleaseNotesThreadBlocked(tx: transaction)
+            Logger.info("[ReleaseNotes] uploading to storage service: blocked=\(isBlocked), archived=\(threadAssociatedData.isArchived), mutedUntilTimestamp=\(threadAssociatedData.mutedUntilTimestamp)")
+            builder.setReleaseNotesChatBlocked(isBlocked)
             builder.setReleaseNotesChatArchived(threadAssociatedData.isArchived)
             builder.setReleaseNotesChatMarkedUnread(threadAssociatedData.isMarkedUnread)
             builder.setReleaseNotesChatMutedUntilTimestamp(threadAssociatedData.mutedUntilTimestamp)
@@ -1824,6 +1826,7 @@ class StorageServiceAccountRecordUpdater: StorageServiceRecordUpdater {
             let newReleaseNotesBlocked = record.releaseNotesChatBlocked,
             localReleaseNotesBlocked != newReleaseNotesBlocked
         {
+            Logger.info("[ReleaseNotes] blocked changing: \(localReleaseNotesBlocked) -> \(newReleaseNotesBlocked)")
             if newReleaseNotesBlocked {
                 blockingManager.addBlockedReleaseNotesThread(thread: releaseNotesThread, blockMode: .remote, transaction: transaction)
             } else {
@@ -1839,6 +1842,7 @@ class StorageServiceAccountRecordUpdater: StorageServiceRecordUpdater {
             let recordMutedUntilTimestamp = record.releaseNotesChatMutedUntilTimestamp,
             recordMutedUntilTimestamp != threadAssociatedData.mutedUntilTimestamp
         {
+            Logger.info("[ReleaseNotes] mutedUntilTimestamp changing: \(threadAssociatedData.mutedUntilTimestamp) -> \(recordMutedUntilTimestamp)")
             updatedMutedTimestampValue = recordMutedUntilTimestamp
         }
 
@@ -1846,6 +1850,7 @@ class StorageServiceAccountRecordUpdater: StorageServiceRecordUpdater {
             let recordArchived = record.releaseNotesChatArchived,
             recordArchived != threadAssociatedData.isArchived
         {
+            Logger.info("[ReleaseNotes] archived changing: \(threadAssociatedData.isArchived) -> \(recordArchived)")
             updatedArchivedValue = recordArchived
         }
 
