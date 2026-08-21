@@ -9007,6 +9007,12 @@
 /* Explanation for the switch controlling whether a notification is shown when a phone contact joins Signal. */
 "SETTINGS_NOTIFICATIONS_CONTACT_JOINED_SIGNAL_FOOTER" = "Show a notification when a phone contact joins Signal.";
 
+/* Label for a switch controlling whether reactions to your messages generate notifications. */
+"SETTINGS_NOTIFICATIONS_REACTIONS" = "Reaction Notifications";
+
+/* Explanation for the switch controlling whether reactions to your messages generate notifications. */
+"SETTINGS_NOTIFICATIONS_REACTIONS_FOOTER" = "Show notifications for reactions to messages you send.";
+
 /* Label for a button that resets all notification settings to their defaults. */
 "SETTINGS_NOTIFICATIONS_RESET" = "Reset Notification Settings";
 

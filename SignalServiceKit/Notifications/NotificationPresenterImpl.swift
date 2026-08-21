@@ -1039,6 +1039,8 @@ public class NotificationPresenterImpl: NotificationPresenter {
         thread: TSThread,
         transaction: DBWriteTransaction,
     ) {
+        guard notificationPreferencesManager.areReactionNotificationsEnabled(tx: transaction) else { return }
+
         guard let notifiableThread = NotifiableThread(thread) else {
             owsFailDebug("Can't notify for \(type(of: thread))")
             return

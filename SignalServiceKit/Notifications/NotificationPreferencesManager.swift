@@ -29,6 +29,7 @@ public struct NotificationPreferencesManager {
         static let shouldNotifyOfNewAccounts = false
         static let includeMutedThreadsInBadgeCount = false
         public static let shouldNotifyForMentionsWhenMuted = true
+        static let areReactionNotificationsEnabled = true
     }
 
     private enum Key {
@@ -38,6 +39,7 @@ public struct NotificationPreferencesManager {
         static let shouldNotifyOfNewAccounts = "NotifyOfNewAccounts"
         static let includeMutedThreadsInBadgeCount = "IncludeMutedThreadsInBadgeCount"
         static let globalNotificationSound = "GlobalNotificationSound"
+        static let areReactionNotificationsEnabled = "ReactionNotificationsEnabled"
     }
 
     private let kvStore = NewKeyValueStore(collection: "NotificationPreferences")
@@ -71,6 +73,16 @@ public struct NotificationPreferencesManager {
 
     public func setIsMessageSentSoundEnabled(_ value: Bool, tx: DBWriteTransaction) {
         kvStore.writeValue(value, forKey: Key.messageSentSound, tx: tx)
+    }
+
+    // MARK: - Reactions
+
+    public func areReactionNotificationsEnabled(tx: DBReadTransaction) -> Bool {
+        kvStore.fetchValue(Bool.self, forKey: Key.areReactionNotificationsEnabled, tx: tx) ?? Defaults.areReactionNotificationsEnabled
+    }
+
+    public func setAreReactionNotificationsEnabled(_ value: Bool, tx: DBWriteTransaction) {
+        kvStore.writeValue(value, forKey: Key.areReactionNotificationsEnabled, tx: tx)
     }
 
     // MARK: - New accounts

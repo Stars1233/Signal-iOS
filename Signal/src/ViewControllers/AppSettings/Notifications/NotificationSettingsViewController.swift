@@ -26,6 +26,9 @@ class NotificationSettingsViewController: OWSTableViewController2 {
 
         contents.add(buildSoundsSection())
         contents.add(buildNotificationsSection())
+        if BuildFlags.improvedNotifications {
+            contents.add(buildReactionsSection())
+        }
         contents.add(buildContactJoinedSignalSection())
         contents.add(buildAppBadgeSection())
         contents.add(buildReregisterPushSection())
@@ -112,6 +115,33 @@ class NotificationSettingsViewController: OWSTableViewController2 {
             },
         ))
         return notificationsSection
+    }
+
+    private func buildReactionsSection() -> OWSTableSection {
+        let db = DependenciesBridge.shared.db
+        let notificationPreferencesManager = DependenciesBridge.shared.notificationPreferencesManager
+        let reactionsSection = OWSTableSection()
+        reactionsSection.footerTitle = OWSLocalizedString(
+            "SETTINGS_NOTIFICATIONS_REACTIONS_FOOTER",
+            comment: "Explanation for the switch controlling whether reactions to your messages generate notifications.",
+        )
+        reactionsSection.add(.switch(
+            withText: OWSLocalizedString(
+                "SETTINGS_NOTIFICATIONS_REACTIONS",
+                comment: "Label for a switch controlling whether reactions to your messages generate notifications.",
+            ),
+            isOn: {
+                db.read { tx in
+                    notificationPreferencesManager.areReactionNotificationsEnabled(tx: tx)
+                }
+            },
+            actionBlock: { uiSwitch in
+                db.write { tx in
+                    notificationPreferencesManager.setAreReactionNotificationsEnabled(uiSwitch.isOn, tx: tx)
+                }
+            },
+        ))
+        return reactionsSection
     }
 
     private func buildAppBadgeSection() -> OWSTableSection {

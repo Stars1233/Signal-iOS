@@ -104,6 +104,9 @@ public enum BuildFlags {
     }
 
     static let hardDeleteGroupThreads = true
+
+    /// New notification settings. Don't enable until Storage Service is integrated
+    public static let improvedNotifications = build <= .dev
 }
 
 // MARK: -
