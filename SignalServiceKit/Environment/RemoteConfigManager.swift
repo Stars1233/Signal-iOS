@@ -374,6 +374,20 @@ public class RemoteConfig {
         return isEnabled(.disappearingCalls, defaultValue: false) || BuildFlags.isPrerelease
     }
 
+    // MARK: -
+
+    /// The maximum number of options in a poll we create.
+    public var maxPollOptionSendCount: Int {
+        let value = getUInt32Value(forFlag: .maxPollOptionSendCount, defaultValue: 10)
+        return Int(value)
+    }
+
+    /// The maximum number of options we accept in an incoming poll.
+    public var maxPollOptionReceiveCount: Int {
+        let value = getUInt32Value(forFlag: .maxPollOptionReceiveCount, defaultValue: 10)
+        return Int(value)
+    }
+
     // MARK: - RingRTC
 
     public var ringrtcNwPathMonitorTrial: Bool {
@@ -721,6 +735,8 @@ private enum ValueFlag: String, FlagType {
     case maxGroupSizeHardLimit = "global.groupsv2.groupSizeHardLimit"
     case maxGroupSizeRecommended = "global.groupsv2.maxGroupSize"
     case maxNicknameLength = "global.nicknames.max"
+    case maxPollOptionReceiveCount = "ios.polls.maxReceiveOptionCount"
+    case maxPollOptionSendCount = "ios.polls.maxSendOptionCount"
     case maxSenderKeyAge = "ios.maxSenderKeyAge"
     case maxThumbnailFileSizeBytes = "global.backups.maxThumbnailFileSizeBytes"
     case mediaTierFallbackCdnNumber = "global.backups.mediaTierFallbackCdnNumber"
@@ -770,6 +786,8 @@ private enum ValueFlag: String, FlagType {
         case .maxGroupSizeHardLimit: true
         case .maxGroupSizeRecommended: true
         case .maxNicknameLength: false
+        case .maxPollOptionReceiveCount: true
+        case .maxPollOptionSendCount: true
         case .maxSenderKeyAge: true
         case .maxThumbnailFileSizeBytes: true
         case .mediaTierFallbackCdnNumber: true

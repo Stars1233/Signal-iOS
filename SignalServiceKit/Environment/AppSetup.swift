@@ -1361,6 +1361,7 @@ extension AppSetup.GlobalsContinuation {
         let pollMessageManager = PollMessageManager(
             pollStore: PollStore(),
             recipientDatabaseTable: recipientDatabaseTable,
+            remoteConfigProvider: remoteConfigManager,
             interactionStore: interactionStore,
             accountManager: tsAccountManager,
             messageSenderJobQueue: messageSenderJobQueue,

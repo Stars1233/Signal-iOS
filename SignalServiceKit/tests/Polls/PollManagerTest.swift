@@ -23,6 +23,7 @@ struct PollManagerTest {
         pollMessageManager = PollMessageManager(
             pollStore: pollStore,
             recipientDatabaseTable: RecipientDatabaseTable(),
+            remoteConfigProvider: MockRemoteConfigProvider(),
             interactionStore: InteractionStoreImpl(),
             accountManager: mockTSAccountManager,
             messageSenderJobQueue: MessageSenderJobQueue(appReadiness: AppReadinessMock()),

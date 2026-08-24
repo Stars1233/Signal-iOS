@@ -39,6 +39,8 @@ class NewPollViewController2: OWSViewController, UITableViewDelegate, OWSNavigat
         case sendable
     }
 
+    private let maxOptionCount: Int
+
     private let questionItemID = UUID()
     private let multipleVotesItemID = UUID()
     private var questionText = ""
@@ -47,6 +49,12 @@ class NewPollViewController2: OWSViewController, UITableViewDelegate, OWSNavigat
     private var sendabilityState: SendabilityState = .missingQuestionAndOptions
 
     weak var sendDelegate: PollSendDelegate?
+
+    init(maxOptionCount: Int) {
+        self.maxOptionCount = maxOptionCount
+
+        super.init()
+    }
 
     // MARK: - OWSNavigationChildController
 
@@ -333,7 +341,7 @@ class NewPollViewController2: OWSViewController, UITableViewDelegate, OWSNavigat
         if let lastOptionRow = optionRows.last, lastOptionRow.isBlank {
             // Preserve the trailing blank row if it exists.
             newOptionRows.append(lastOptionRow)
-        } else if newOptionRows.count < 10 {
+        } else if newOptionRows.count < maxOptionCount {
             // If not, and we have room, add a new blank row.
             newOptionRows.append(.makeBlank())
         }
@@ -359,7 +367,7 @@ class NewPollViewController2: OWSViewController, UITableViewDelegate, OWSNavigat
             return
         }
 
-        if optionRows.count >= 10 {
+        if optionRows.count >= maxOptionCount {
             applyOptionRowsToSnapshot(optionRowIDsToReconfigure: [optionRowID])
             return
         }
@@ -743,7 +751,7 @@ private class PreviewPollViewController: UINavigationController, PollSendDelegat
     }
 
     init() {
-        let pollViewController = NewPollViewController2()
+        let pollViewController = NewPollViewController2(maxOptionCount: 10)
         super.init(rootViewController: pollViewController)
         pollViewController.sendDelegate = self
     }

@@ -550,7 +550,9 @@ extension ConversationViewController: ConversationInputToolbarDelegate {
 
         dismissKeyBoard()
 
-        let newPollViewController = NewPollViewController2()
+        let newPollViewController = NewPollViewController2(
+            maxOptionCount: RemoteConfig.current.maxPollOptionSendCount,
+        )
         newPollViewController.sendDelegate = self
         present(OWSNavigationController(rootViewController: newPollViewController), animated: true)
     }
