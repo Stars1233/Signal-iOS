@@ -2563,4 +2563,127 @@ struct GRDBSchemaMigratorTest {
             #expect(groupRecords.isEmpty)
         }
     }
+
+    @Test
+    func testAddGroupsPendingRestore() throws {
+        let secretParams1 = try GroupSecretParams.generate()
+        let masterKey1 = try secretParams1.getMasterKey()
+        let groupId1 = try secretParams1.getPublicParams().getGroupIdentifier()
+
+        let secretParams2 = try GroupSecretParams.generate()
+        let masterKey2 = try secretParams2.getMasterKey()
+        let groupId2 = try secretParams2.getPublicParams().getGroupIdentifier()
+
+        let secretParams3 = try GroupSecretParams.generate()
+        let masterKey3 = try secretParams3.getMasterKey()
+        let groupId3 = try secretParams3.getPublicParams().getGroupIdentifier()
+
+        let databaseQueue = DatabaseQueue()
+        try databaseQueue.write { db in
+            try db.execute(sql: """
+            CREATE TABLE "keyvalue" (
+                "collection" TEXT NOT NULL,
+                "key" TEXT NOT NULL,
+                "value" BLOB NOT NULL,
+                PRIMARY KEY ("collection", "key")
+            );
+
+            CREATE TABLE "GroupRecord" (
+                "rowId" INTEGER PRIMARY KEY,
+                "groupId" BLOB NOT NULL UNIQUE,
+                "masterKey" BLOB
+            );
+            """)
+
+            try db.execute(
+                sql: """
+                INSERT INTO "GroupRecord" ("groupId", "masterKey") VALUES (?, ?)
+                """,
+                arguments: [groupId1.serialize(), masterKey1.serialize()],
+            )
+
+            try db.execute(
+                sql: """
+                INSERT INTO "keyvalue" ("collection", "key", "value") VALUES (?, ?, ?)
+                """,
+                arguments: [
+                    "GroupsV2Impl.groupsFromStorageService_EnqueuedRecordForRestore",
+                    masterKey1.serialize().hexadecimalString,
+                    Data(),
+                ],
+            )
+
+            try db.execute(
+                sql: """
+                INSERT INTO "keyvalue" ("collection", "key", "value") VALUES (?, ?, ?)
+                """,
+                arguments: [
+                    "GroupsV2Impl.groupsFromStorageService_EnqueuedRecordForRestore",
+                    masterKey2.serialize().hexadecimalString,
+                    Data(),
+                ],
+            )
+
+            try db.execute(
+                sql: """
+                INSERT INTO "keyvalue" ("collection", "key", "value") VALUES (?, ?, ?)
+                """,
+                arguments: [
+                    "GroupsV2Impl.groupsFromStorageService_EnqueuedForRestore",
+                    masterKey3.serialize().hexadecimalString,
+                    Data(),
+                ],
+            )
+
+            try db.execute(
+                sql: """
+                INSERT INTO "keyvalue" ("collection", "key", "value") VALUES (?, ?, ?)
+                """,
+                arguments: [
+                    "GroupsV2Impl.groupsFromStorageService_EnqueuedRecordForRestore",
+                    "Not Hexadecimal",
+                    Data(),
+                ],
+            )
+
+            try db.execute(
+                sql: """
+                INSERT INTO "keyvalue" ("collection", "key", "value") VALUES (?, ?, ?)
+                """,
+                arguments: [
+                    "GroupsV2Impl.groupsFromStorageService_EnqueuedRecordForRestore",
+                    "abcd1234",
+                    Data(),
+                ],
+            )
+
+            do {
+                let tx = DBWriteTransaction(database: db)
+                defer { tx.finalizeTransaction() }
+                try GRDBSchemaMigrator.addGroupsPendingRestore(tx: tx)
+            }
+
+            var groupRecords = try Row.fetchAll(db, sql: "SELECT * FROM GroupRecord ORDER BY rowId")[...]
+
+            do {
+                let groupRecord = groupRecords.removeFirst()
+                #expect(groupRecord["rowId"] as Int64 == 1)
+                #expect(groupRecord["groupId"] as Data? == groupId1.serialize())
+                #expect(groupRecord["masterKey"] as Data? == masterKey1.serialize())
+            }
+            do {
+                let groupRecord = groupRecords.removeFirst()
+                #expect(groupRecord["rowId"] as Int64 == 2)
+                #expect(groupRecord["groupId"] as Data? == groupId2.serialize())
+                #expect(groupRecord["masterKey"] as Data? == masterKey2.serialize())
+            }
+            do {
+                let groupRecord = groupRecords.removeFirst()
+                #expect(groupRecord["rowId"] as Int64 == 3)
+                #expect(groupRecord["groupId"] as Data? == groupId3.serialize())
+                #expect(groupRecord["masterKey"] as Data? == masterKey3.serialize())
+            }
+            #expect(groupRecords.isEmpty)
+        }
+    }
 }

@@ -355,6 +355,7 @@ public class GRDBSchemaMigrator {
         case addGroupRefreshedAt
         case rebuildInteractionUnendedGroupCallIndex
         case migrateNotificationPreferences
+        case addGroupsPendingRestore
 
         // NOTE: Every time we add a migration id, consider
         // incrementing grdbSchemaVersionLatest.
@@ -5514,6 +5515,11 @@ public class GRDBSchemaMigrator {
             return .success(())
         }
 
+        migrator.registerMigration(.addGroupsPendingRestore) { tx in
+            try addGroupsPendingRestore(tx: tx)
+            return .success(())
+        }
+
         // MARK: - Schema Migration Insertion Point
     }
 
@@ -8460,6 +8466,35 @@ public class GRDBSchemaMigrator {
         try migrator.migrateBool("NotifyOfNewAccounts", tx: tx)
         try migrator.migrateBool("IncludeMutedThreadsInBadgeCount", tx: tx)
         try migrator.migrateUInt64("GlobalNotificationSound", tx: tx)
+    }
+
+    static func addGroupsPendingRestore(tx: DBWriteTransaction) throws {
+        let collections = [
+            "GroupsV2Impl.groupsFromStorageService_EnqueuedRecordForRestore",
+            "GroupsV2Impl.groupsFromStorageService_EnqueuedForRestore",
+        ]
+        let masterKeys = try collections.flatMap {
+            return try Data?.fetchAll(
+                tx.database,
+                sql: "SELECT unhex(key) FROM keyvalue WHERE collection = ?",
+                arguments: [$0],
+            )
+        }
+        for masterKeyData in masterKeys {
+            let masterKey: GroupMasterKey
+            do {
+                masterKey = try GroupMasterKey(contents: masterKeyData ?? Data())
+            } catch {
+                Logger.warn("ignoring group pending restore: \(error)")
+                continue
+            }
+            let secretParams = try GroupSecretParams.deriveFromMasterKey(groupMasterKey: masterKey)
+            let groupId = try secretParams.getPublicParams().getGroupIdentifier()
+            try tx.database.execute(
+                sql: "INSERT OR IGNORE INTO GroupRecord (groupId, masterKey) VALUES (?, ?)",
+                arguments: [groupId.serialize(), masterKey.serialize()],
+            )
+        }
     }
 
     static func dedupeSignalRecipients(tx: DBWriteTransaction) throws {
