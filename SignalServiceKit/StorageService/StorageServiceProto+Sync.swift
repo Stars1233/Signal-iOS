@@ -968,15 +968,25 @@ class StorageServiceGroupV2RecordUpdater: StorageServiceRecordUpdater {
         unknownFields: UnknownStorage?,
         transaction: DBReadTransaction,
     ) -> StorageServiceProtoGroupV2Record? {
-        let groupContextInfo: GroupV2ContextInfo
+        let masterKey: GroupMasterKey
         do {
-            groupContextInfo = try GroupV2ContextInfo.deriveFrom(masterKeyData: masterKeyData)
+            masterKey = try GroupMasterKey(contents: masterKeyData)
         } catch {
-            owsFailDebug("Invalid master key \(error).")
+            owsFailDebug("can't build record for malformed master key: \(error)")
             return nil
         }
 
-        let groupId = groupContextInfo.groupId
+        let secretParams = failIfThrows {
+            return try GroupSecretParams.deriveFromMasterKey(groupMasterKey: masterKey)
+        }
+        let groupId = failIfThrows {
+            return try secretParams.getPublicParams().getGroupIdentifier()
+        }
+
+        // If we've deleted the GroupRecord, delete the group from Storage Service.
+        guard let groupRecord = GroupStore().fetchGroup(forGroupId: groupId, tx: transaction) else {
+            return nil
+        }
 
         var builder = StorageServiceProtoGroupV2Record.builder(masterKey: masterKeyData)
 
@@ -987,8 +997,11 @@ class StorageServiceGroupV2RecordUpdater: StorageServiceRecordUpdater {
             builder.setHideStory(storyContextAssociatedData.isHidden)
         }
 
-        let groupThread = TSGroupThread.fetchThread(forGroupId: groupId, tx: transaction)
-        if let groupThread {
+        if
+            let threadId = groupRecord.threadId,
+            let threadUniqueId = TSGroupThread.threadUniqueId(forThreadId: threadId, tx: transaction),
+            let groupThread = TSGroupThread.fetchViaCache(uniqueId: threadUniqueId, transaction: transaction)
+        {
             let threadAssociatedData = ThreadAssociatedData.fetchOrDefault(
                 for: groupThread.uniqueId,
                 ignoreMissing: true,
