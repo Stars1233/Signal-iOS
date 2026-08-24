@@ -104,6 +104,11 @@ class DeviceTransferStatusViewController: HostingController<TransferStatusView> 
 }
 
 struct TransferStatusView: View {
+    struct PeerDevice: Identifiable {
+        let id: UInt64
+        let name: String
+    }
+
     @ObservedObject var viewModel: TransferStatusViewModel
     var isNewDevice: Bool
 

@@ -1865,6 +1865,8 @@
 		B9FF37362B9286C6005ADDB8 /* UsernameLinkScanQRCodeSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FF37352B9286C6005ADDB8 /* UsernameLinkScanQRCodeSheet.swift */; };
 		C100E6822C33087C000C83B8 /* PaymentsFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = C100E6812C33087C000C83B8 /* PaymentsFormat.swift */; };
 		C109A8442FDB62800065225E /* ThroughputMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C109A8432FDB62790065225E /* ThroughputMonitor.swift */; };
+		C109A87A2FDC90630065225E /* WiFiAware.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C109A8792FDC90630065225E /* WiFiAware.framework */; };
+		C109A87C2FDC906F0065225E /* DeviceDiscoveryUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C109A87B2FDC906F0065225E /* DeviceDiscoveryUI.framework */; };
 		C10E9FAF2BB778E100A609B9 /* BackupArchiveManagerMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10E9FAE2BB778E100A609B9 /* BackupArchiveManagerMock.swift */; };
 		C113994B2CA1B32C00D4D90C /* BackupStickerPackDownloadStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C113994A2CA1B32400D4D90C /* BackupStickerPackDownloadStore.swift */; };
 		C113994D2CA1B3E200D4D90C /* QueuedBackupStickerPackDownload.swift in Sources */ = {isa = PBXBuildFile; fileRef = C113994C2CA1B3DA00D4D90C /* QueuedBackupStickerPackDownload.swift */; };
@@ -1949,6 +1951,12 @@
 		C1C7E4FB2BE0419300F196EE /* UploadMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C7E4FA2BE0419300F196EE /* UploadMetadata.swift */; };
 		C1CA5F8E2BE2F21C00D733CA /* BackupArchiveDistributionListRecipientArchiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CA5F8D2BE2F21C00D733CA /* BackupArchiveDistributionListRecipientArchiver.swift */; };
 		C1CD0E402A6B37BF00307F1A /* PreKeyStoreImplTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CD0E3F2A6B37BF00307F1A /* PreKeyStoreImplTest.swift */; };
+		C1CDD4942F604DEB00F5C3D5 /* WADeviceTransferIncomingConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CDD4932F604DE000F5C3D5 /* WADeviceTransferIncomingConnection.swift */; };
+		C1CDD4962F604DFB00F5C3D5 /* WADeviceTransferOutgoingConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CDD4952F604DF200F5C3D5 /* WADeviceTransferOutgoingConnection.swift */; };
+		C1CDD4982F604E0D00F5C3D5 /* WADeviceTransferSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CDD4972F604E0700F5C3D5 /* WADeviceTransferSession.swift */; };
+		C1CDD49A2F604E1C00F5C3D5 /* WADeviceTransferPeerId.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CDD4992F604E1200F5C3D5 /* WADeviceTransferPeerId.swift */; };
+		C1CDD49C2F604E2A00F5C3D5 /* WADeviceTransferConnectionFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CDD49B2F604E2300F5C3D5 /* WADeviceTransferConnectionFactory.swift */; };
+		C1CDD49E2F604F4200F5C3D5 /* WiFiAware+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CDD49D2F604F3700F5C3D5 /* WiFiAware+Extensions.swift */; };
 		C1CF83D02B96C85E00CDC9C4 /* ChunkedOutputStreamTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CF83CF2B96C85E00CDC9C4 /* ChunkedOutputStreamTransform.swift */; };
 		C1CF83D22B9A1FCB00CDC9C4 /* GzipStreamTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CF83D12B9A1FCB00CDC9C4 /* GzipStreamTransform.swift */; };
 		C1CF83D42B9A207800CDC9C4 /* TransformingOutputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CF83D32B9A207800CDC9C4 /* TransformingOutputStream.swift */; };
@@ -6219,6 +6227,9 @@
 		BAD74FE6EBEB10FF3426D809 /* Pods-SignalTests.testable release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SignalTests.testable release.xcconfig"; path = "Target Support Files/Pods-SignalTests/Pods-SignalTests.testable release.xcconfig"; sourceTree = "<group>"; };
 		C100E6812C33087C000C83B8 /* PaymentsFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentsFormat.swift; sourceTree = "<group>"; };
 		C109A8432FDB62790065225E /* ThroughputMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThroughputMonitor.swift; sourceTree = "<group>"; };
+		C109A8792FDC90630065225E /* WiFiAware.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WiFiAware.framework; path = System/Library/Frameworks/WiFiAware.framework; sourceTree = SDKROOT; };
+		C109A87B2FDC906F0065225E /* DeviceDiscoveryUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DeviceDiscoveryUI.framework; path = System/Library/Frameworks/DeviceDiscoveryUI.framework; sourceTree = SDKROOT; };
+		C109A87D2FDC90780065225E /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = System/Library/Frameworks/Network.framework; sourceTree = SDKROOT; };
 		C10E9FAE2BB778E100A609B9 /* BackupArchiveManagerMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupArchiveManagerMock.swift; sourceTree = "<group>"; };
 		C113994A2CA1B32400D4D90C /* BackupStickerPackDownloadStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupStickerPackDownloadStore.swift; sourceTree = "<group>"; };
 		C113994C2CA1B3DA00D4D90C /* QueuedBackupStickerPackDownload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueuedBackupStickerPackDownload.swift; sourceTree = "<group>"; };
@@ -6302,6 +6313,12 @@
 		C1C7E4FA2BE0419300F196EE /* UploadMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadMetadata.swift; sourceTree = "<group>"; };
 		C1CA5F8D2BE2F21C00D733CA /* BackupArchiveDistributionListRecipientArchiver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupArchiveDistributionListRecipientArchiver.swift; sourceTree = "<group>"; };
 		C1CD0E3F2A6B37BF00307F1A /* PreKeyStoreImplTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreKeyStoreImplTest.swift; sourceTree = "<group>"; };
+		C1CDD4932F604DE000F5C3D5 /* WADeviceTransferIncomingConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WADeviceTransferIncomingConnection.swift; sourceTree = "<group>"; };
+		C1CDD4952F604DF200F5C3D5 /* WADeviceTransferOutgoingConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WADeviceTransferOutgoingConnection.swift; sourceTree = "<group>"; };
+		C1CDD4972F604E0700F5C3D5 /* WADeviceTransferSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WADeviceTransferSession.swift; sourceTree = "<group>"; };
+		C1CDD4992F604E1200F5C3D5 /* WADeviceTransferPeerId.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WADeviceTransferPeerId.swift; sourceTree = "<group>"; };
+		C1CDD49B2F604E2300F5C3D5 /* WADeviceTransferConnectionFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WADeviceTransferConnectionFactory.swift; sourceTree = "<group>"; };
+		C1CDD49D2F604F3700F5C3D5 /* WiFiAware+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WiFiAware+Extensions.swift"; sourceTree = "<group>"; };
 		C1CF83CF2B96C85E00CDC9C4 /* ChunkedOutputStreamTransform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChunkedOutputStreamTransform.swift; sourceTree = "<group>"; };
 		C1CF83D12B9A1FCB00CDC9C4 /* GzipStreamTransform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GzipStreamTransform.swift; sourceTree = "<group>"; };
 		C1CF83D32B9A207800CDC9C4 /* TransformingOutputStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformingOutputStream.swift; sourceTree = "<group>"; };
@@ -8550,6 +8567,7 @@
 				FCB11D8C1A129A76002F93FB /* CoreMedia.framework in Frameworks */,
 				760D93AB27A0E28600F351AC /* CoreServices.framework in Frameworks */,
 				D2179CFC16BB0B3A0006F3AB /* CoreTelephony.framework in Frameworks */,
+				C109A87C2FDC906F0065225E /* DeviceDiscoveryUI.framework in Frameworks */,
 				D221A090169C9E5E00537ABF /* Foundation.framework in Frameworks */,
 				45847E871E4283C30080EAB3 /* Intents.framework in Frameworks */,
 				76C87F19181EFCE600C4ACAB /* MediaPlayer.framework in Frameworks */,
@@ -8566,6 +8584,7 @@
 				4CC1ECF9211A47CE00CC13BE /* StoreKit.framework in Frameworks */,
 				D2179CFE16BB0B480006F3AB /* SystemConfiguration.framework in Frameworks */,
 				D221A08E169C9E5E00537ABF /* UIKit.framework in Frameworks */,
+				C109A87A2FDC90630065225E /* WiFiAware.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -11767,6 +11786,7 @@
 			isa = PBXGroup;
 			children = (
 				C14FB7DA2EF3381900850EC5 /* MultiPeerConnectivity */,
+				C1CDD4922F604DD200F5C3D5 /* WiFiAware */,
 				C14FB7D52EF21DDE00850EC5 /* DeviceTransfer.swift */,
 				C12DB5E62DD39051005039FE /* DeviceTransferCoordinator.swift */,
 				887CD47E247307D900FDD265 /* DeviceTransferRestore.swift */,
@@ -12070,6 +12090,19 @@
 			path = StreamTransform;
 			sourceTree = "<group>";
 		};
+		C1CDD4922F604DD200F5C3D5 /* WiFiAware */ = {
+			isa = PBXGroup;
+			children = (
+				C1CDD49B2F604E2300F5C3D5 /* WADeviceTransferConnectionFactory.swift */,
+				C1CDD4932F604DE000F5C3D5 /* WADeviceTransferIncomingConnection.swift */,
+				C1CDD4952F604DF200F5C3D5 /* WADeviceTransferOutgoingConnection.swift */,
+				C1CDD4992F604E1200F5C3D5 /* WADeviceTransferPeerId.swift */,
+				C1CDD4972F604E0700F5C3D5 /* WADeviceTransferSession.swift */,
+				C1CDD49D2F604F3700F5C3D5 /* WiFiAware+Extensions.swift */,
+			);
+			path = WiFiAware;
+			sourceTree = "<group>";
+		};
 		C1DB22C129C9F93600757380 /* Edit */ = {
 			isa = PBXGroup;
 			children = (
@@ -12201,6 +12234,7 @@
 				FCB11D8B1A129A76002F93FB /* CoreMedia.framework */,
 				760D93AA27A0E28600F351AC /* CoreServices.framework */,
 				D2179CFB16BB0B3A0006F3AB /* CoreTelephony.framework */,
+				C109A87B2FDC906F0065225E /* DeviceDiscoveryUI.framework */,
 				D221A08F169C9E5E00537ABF /* Foundation.framework */,
 				45847E861E4283C30080EAB3 /* Intents.framework */,
 				768A1A2A17FC9CD300E00ED8 /* libz.dylib */,
@@ -12209,6 +12243,7 @@
 				455A16DB1F1FEA0000F86704 /* Metal.framework */,
 				455A16DC1F1FEA0000F86704 /* MetalKit.framework */,
 				70377AAA1918450100CAF501 /* MobileCoreServices.framework */,
+				C109A87D2FDC90780065225E /* Network.framework */,
 				4520D8D41D417D8E00123472 /* Photos.framework */,
 				7FF88FB580BC19B240EEB86A /* Pods_Signal.framework */,
 				7F965533D71CA51BE6704CC4 /* Pods_SignalNSE.framework */,
@@ -12225,6 +12260,7 @@
 				4CC1ECF8211A47CD00CC13BE /* StoreKit.framework */,
 				D2179CFD16BB0B480006F3AB /* SystemConfiguration.framework */,
 				D221A08D169C9E5E00537ABF /* UIKit.framework */,
+				C109A8792FDC90630065225E /* WiFiAware.framework */,
 				B69CD25019773E79005CE69A /* XCTest.framework */,
 			);
 			name = Frameworks;
@@ -19131,9 +19167,15 @@
 				503AECC829B2AEFA00642F66 /* VoiceMessageSendableDraft.swift in Sources */,
 				88928A7526418904009C9B30 /* VoiceMessageTooltip.swift in Sources */,
 				8811CF842295D8DA00FF6549 /* VolumeButtons.swift in Sources */,
+				C1CDD49C2F604E2A00F5C3D5 /* WADeviceTransferConnectionFactory.swift in Sources */,
+				C1CDD4942F604DEB00F5C3D5 /* WADeviceTransferIncomingConnection.swift in Sources */,
+				C1CDD4962F604DFB00F5C3D5 /* WADeviceTransferOutgoingConnection.swift in Sources */,
+				C1CDD49A2F604E1C00F5C3D5 /* WADeviceTransferPeerId.swift in Sources */,
+				C1CDD4982F604E0D00F5C3D5 /* WADeviceTransferSession.swift in Sources */,
 				D9E43C2E2CC194140001536E /* WebRTCCallMessageHandler.swift in Sources */,
 				45069FC629D3A7C800D0DD14 /* WideMediaTileViewLayout.swift in Sources */,
 				45906C6B29D238560025906D /* WidePhotoCell.swift in Sources */,
+				C1CDD49E2F604F4200F5C3D5 /* WiFiAware+Extensions.swift in Sources */,
 				76616C9D2A266A05005F7001 /* WindowManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
