@@ -35,10 +35,6 @@ public enum BuildFlags {
     public static let shouldUseTestIntervals = build <= .beta
 
     public enum Backups {
-        /// This is also controlled via remote-config.
-        /// - SeeAlso ``RemoteConfig/backupsMegaphone``.
-        public static let showMegaphones = build <= .beta
-
         public static let showOptimizeMedia = build <= .dev
 
         public static let restoreFailOnAnyError = build <= .beta
@@ -81,11 +77,6 @@ public enum BuildFlags {
     public static let pollOneOnOneSend = true
 
     public enum AdminDelete {
-        public static let receive = true
-        public static let send = true
-    }
-
-    public enum GroupTerminate {
         public static let receive = true
         public static let send = true
     }

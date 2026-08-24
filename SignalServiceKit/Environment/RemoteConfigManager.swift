@@ -79,6 +79,8 @@ public class RemoteConfig {
         }
     }
 
+    // MARK: -
+
     public func netConfig() -> [String: String] {
         return Dictionary(
             uniqueKeysWithValues: self.valueFlags
@@ -97,6 +99,8 @@ public class RemoteConfig {
         )
     }
 
+    // MARK: -
+
     public var maxGroupSizeRecommended: UInt {
         getUIntValue(forFlag: .maxGroupSizeRecommended, defaultValue: 151)
     }
@@ -109,9 +113,17 @@ public class RemoteConfig {
         maxGroupSizeHardLimit
     }
 
+    public var maxGroupCallRingSize: UInt {
+        getUIntValue(forFlag: .maxGroupCallRingSize, defaultValue: 16)
+    }
+
+    // MARK: -
+
     public var cdsSyncInterval: TimeInterval {
         interval(.cdsSyncInterval, defaultInterval: .day * 2)
     }
+
+    // MARK: -
 
     public var automaticSessionResetKillSwitch: Bool {
         return isEnabled(.automaticSessionResetKillSwitch)
@@ -125,9 +137,13 @@ public class RemoteConfig {
         interval(.reactiveProfileKeyAttemptInterval, defaultInterval: .hour)
     }
 
+    // MARK: -
+
     public var paymentsResetKillSwitch: Bool {
         isEnabled(.paymentsResetKillSwitch)
     }
+
+    // MARK: -
 
     public var canDonateOneTimeWithApplePay: Bool {
         !isEnabled(.applePayOneTimeDonationKillSwitch)
@@ -165,6 +181,8 @@ public class RemoteConfig {
         !isEnabled(.paypalMonthlyDonationKillSwitch)
     }
 
+    // MARK: -
+
     public func standardMediaQualityLevel(callingCode: Int?) -> ImageQualityLevel? {
         guard
             let csvString = self.value(.standardMediaQualityLevel),
@@ -177,13 +195,7 @@ public class RemoteConfig {
         return defaultMediaQuality
     }
 
-    fileprivate static func parsePhoneNumberRegions(
-        valueFlags: [String: String],
-        flag: ValueFlag,
-    ) -> PhoneNumberRegions {
-        guard let valueList = valueFlags[flag.rawValue] else { return [] }
-        return PhoneNumberRegions(fromRemoteConfig: valueList)
-    }
+    // MARK: -
 
     public var messageResendKillSwitch: Bool {
         isEnabled(.messageResendKillSwitch)
@@ -197,17 +209,19 @@ public class RemoteConfig {
         interval(.messageSendLogEntryLifetime, defaultInterval: 2 * .week)
     }
 
+    // MARK: -
+
     public var maxSenderKeyAge: TimeInterval {
         return Double(getStringConvertibleValue(forFlag: .maxSenderKeyAge, defaultValue: 2 * UInt64.weekInMs)) / 1000
     }
 
-    public var maxGroupCallRingSize: UInt {
-        getUIntValue(forFlag: .maxGroupCallRingSize, defaultValue: 16)
-    }
+    // MARK: -
 
     public var enableAutoAPNSRotation: Bool {
         return isEnabled(.enableAutoAPNSRotation, defaultValue: false)
     }
+
+    // MARK: -
 
     /// The minimum length for a valid nickname, in Unicode codepoints.
     public var minNicknameLength: UInt32 {
@@ -218,6 +232,8 @@ public class RemoteConfig {
     public var maxNicknameLength: UInt32 {
         getUInt32Value(forFlag: .maxNicknameLength, defaultValue: 32)
     }
+
+    // MARK: -
 
     /// Most of our code uses UInt32; add a large bound smaller than that.
     private static let attachmentHardLimit: UInt64 = 1_610_612_736
@@ -258,6 +274,8 @@ public class RemoteConfig {
         )
     }
 
+    // MARK: -
+
     public var backupListMediaDefaultRefreshInterval: TimeInterval {
         let defaultValue: UInt64
         if BuildFlags.Backups.useLowerDefaultListMediaRefreshInterval {
@@ -274,6 +292,98 @@ public class RemoteConfig {
         let intervalMs = getUInt64Value(forFlag: .backupListMediaOutOfQuotaRefreshIntervalMs, defaultValue: .dayInMs)
         return TimeInterval(intervalMs) / 1000
     }
+
+    public var mediaTierFallbackCdnNumber: UInt32 {
+        getUInt32Value(forFlag: .mediaTierFallbackCdnNumber, defaultValue: 3)
+    }
+
+    // MARK: -
+
+    public var enableGifSearch: Bool {
+        return isEnabled(.enableGifSearch, defaultValue: true)
+    }
+
+    // MARK: -
+
+    public var shouldCheckForServiceExtensionFailures: Bool {
+        return !isEnabled(.serviceExtensionFailureKillSwitch)
+    }
+
+    // MARK: -
+
+    public var backgroundRefreshInterval: TimeInterval {
+        return TimeInterval(getUIntValue(
+            forFlag: .backgroundRefreshInterval,
+            defaultValue: UInt(TimeInterval.day),
+        ))
+    }
+
+    // MARK: -
+
+    public var messageQueueTime: TimeInterval {
+        return interval(.messageQueueTimeInSeconds, defaultInterval: 45 * .day)
+    }
+
+    public var messageQueueTimeMs: UInt64 {
+        return UInt64(messageQueueTime * Double(MSEC_PER_SEC))
+    }
+
+    // MARK: -
+
+    public var pinnedThreadLimit: UInt {
+        return getUIntValue(
+            forFlag: .pinnedThreadLimit,
+            defaultValue: 4,
+        )
+    }
+
+    public var pinnedMessageLimit: UInt {
+        return getUIntValue(
+            forFlag: .pinnedMessageLimit,
+            defaultValue: UInt(3),
+        )
+    }
+
+    // MARK: -
+
+    public var normalDeleteMaxAgeInSeconds: TimeInterval {
+        return TimeInterval(getUInt64Value(
+            forFlag: .normalDeleteMaxAgeInSeconds,
+            defaultValue: UInt64.dayInMs / UInt64(MSEC_PER_SEC),
+        ))
+    }
+
+    public var adminDeleteMaxAgeInSeconds: TimeInterval {
+        return TimeInterval(getUInt64Value(
+            forFlag: .adminDeleteMaxAgeInSeconds,
+            defaultValue: UInt64.dayInMs / UInt64(MSEC_PER_SEC),
+        ))
+    }
+
+    // MARK: -
+
+    public var postRegistrationChangeNumberWaitingPeriodInSeconds: TimeInterval {
+        return TimeInterval(getUInt64Value(
+            forFlag: .postRegistrationWaitingPeriodSeconds,
+            defaultValue: UInt64.hourInMs / UInt64(MSEC_PER_SEC),
+        ))
+    }
+
+    // MARK: -
+
+    /// The maximum number of options in a poll we create.
+    public var maxPollOptionSendCount: Int {
+        let value = getUInt32Value(forFlag: .maxPollOptionSendCount, defaultValue: 10)
+        return Int(value)
+    }
+
+    /// The maximum number of options we accept in an incoming poll.
+    public var maxPollOptionReceiveCount: Int {
+        let value = getUInt32Value(forFlag: .maxPollOptionReceiveCount, defaultValue: 10)
+        return Int(value)
+    }
+
+    // MARK: - RingRTC
 
     /// How many successful calls per million should show a call quality survey for the user's region
     public func callQualitySurveyPPM(localIdentifiers: LocalIdentifiers) -> UInt64 {
@@ -292,103 +402,6 @@ public class RemoteConfig {
     public var ringrtcDredDuration: UInt8 {
         getUInt8Value(forFlag: .ringrtcDredDuration, defaultValue: 0)
     }
-
-    public var mediaTierFallbackCdnNumber: UInt32 {
-        getUInt32Value(forFlag: .mediaTierFallbackCdnNumber, defaultValue: 3)
-    }
-
-    public var enableGifSearch: Bool {
-        return isEnabled(.enableGifSearch, defaultValue: true)
-    }
-
-    public var shouldCheckForServiceExtensionFailures: Bool {
-        return !isEnabled(.serviceExtensionFailureKillSwitch)
-    }
-
-    public var groupTerminateReceiveEnabled: Bool {
-        guard BuildFlags.GroupTerminate.receive else {
-            return false
-        }
-        return !isEnabled(.groupTerminateReceiveKillSwitch, defaultValue: false)
-    }
-
-    public var backgroundRefreshInterval: TimeInterval {
-        return TimeInterval(getUIntValue(
-            forFlag: .backgroundRefreshInterval,
-            defaultValue: UInt(TimeInterval.day),
-        ))
-    }
-
-    public var messageQueueTime: TimeInterval {
-        return interval(.messageQueueTimeInSeconds, defaultInterval: 45 * .day)
-    }
-
-    public var messageQueueTimeMs: UInt64 {
-        return UInt64(messageQueueTime * Double(MSEC_PER_SEC))
-    }
-
-    public var backupsMegaphone: Bool {
-        if BuildFlags.Backups.showMegaphones, !CurrentAppContext().isRunningTests {
-            return true
-        }
-
-        return isEnabled(.backupsMegaphone)
-    }
-
-    public var pinnedThreadLimit: UInt {
-        return getUIntValue(
-            forFlag: .pinnedThreadLimit,
-            defaultValue: 4,
-        )
-    }
-
-    public var pinnedMessageLimit: UInt {
-        return getUIntValue(
-            forFlag: .pinnedMessageLimit,
-            defaultValue: UInt(3),
-        )
-    }
-
-    public var normalDeleteMaxAgeInSeconds: TimeInterval {
-        return TimeInterval(getUInt64Value(
-            forFlag: .normalDeleteMaxAgeInSeconds,
-            defaultValue: UInt64.dayInMs / UInt64(MSEC_PER_SEC),
-        ))
-    }
-
-    public var adminDeleteMaxAgeInSeconds: TimeInterval {
-        return TimeInterval(getUInt64Value(
-            forFlag: .adminDeleteMaxAgeInSeconds,
-            defaultValue: UInt64.dayInMs / UInt64(MSEC_PER_SEC),
-        ))
-    }
-
-    public var postRegistrationChangeNumberWaitingPeriodInSeconds: TimeInterval {
-        return TimeInterval(getUInt64Value(
-            forFlag: .postRegistrationWaitingPeriodSeconds,
-            defaultValue: UInt64.hourInMs / UInt64(MSEC_PER_SEC),
-        ))
-    }
-
-    public var disappearingCalls: Bool {
-        return isEnabled(.disappearingCalls, defaultValue: false) || BuildFlags.isPrerelease
-    }
-
-    // MARK: -
-
-    /// The maximum number of options in a poll we create.
-    public var maxPollOptionSendCount: Int {
-        let value = getUInt32Value(forFlag: .maxPollOptionSendCount, defaultValue: 10)
-        return Int(value)
-    }
-
-    /// The maximum number of options we accept in an incoming poll.
-    public var maxPollOptionReceiveCount: Int {
-        let value = getUInt32Value(forFlag: .maxPollOptionReceiveCount, defaultValue: 10)
-        return Int(value)
-    }
-
-    // MARK: - RingRTC
 
     public var ringrtcNwPathMonitorTrial: Bool {
         return !isEnabled(.ringrtcNwPathMonitorTrialKillSwitch, defaultValue: false)
@@ -468,7 +481,7 @@ public class RemoteConfig {
     }
 #endif
 
-    // MARK: UInt values
+    // MARK: - UInt values
 
     private func getUIntValue(
         forFlag flag: ValueFlag,
@@ -539,6 +552,14 @@ public class RemoteConfig {
     }
 
     // MARK: - Country code buckets
+
+    fileprivate static func parsePhoneNumberRegions(
+        valueFlags: [String: String],
+        flag: ValueFlag,
+    ) -> PhoneNumberRegions {
+        guard let valueList = valueFlags[flag.rawValue] else { return [] }
+        return PhoneNumberRegions(fromRemoteConfig: valueList)
+    }
 
     private static func countryCodeBucketValue(csvString: String, localIdentifiers: LocalIdentifiers) -> String? {
         let phoneNumberUtil = SSKEnvironment.shared.phoneNumberUtilRef
@@ -644,6 +665,8 @@ public class RemoteConfig {
         return valueFlags[flag.rawValue]
     }
 
+    // MARK: -
+
     public func debugDescriptions() -> [String: String] {
         return self.valueFlags
     }
@@ -662,14 +685,11 @@ private enum IsEnabledFlag: String, FlagType {
     case applePayMonthlyDonationKillSwitch = "ios.applePayMonthlyDonationKillSwitch"
     case applePayOneTimeDonationKillSwitch = "ios.applePayOneTimeDonationKillSwitch"
     case automaticSessionResetKillSwitch = "ios.automaticSessionResetKillSwitch"
-    case backupsMegaphone = "ios.backupsMegaphone2"
     case cardGiftDonationKillSwitch = "ios.cardGiftDonationKillSwitch"
     case cardMonthlyDonationKillSwitch = "ios.cardMonthlyDonationKillSwitch"
     case cardOneTimeDonationKillSwitch = "ios.cardOneTimeDonationKillSwitch"
-    case disappearingCalls = "ios.disappearingCalls"
     case enableAutoAPNSRotation = "ios.enableAutoAPNSRotation"
     case enableGifSearch = "global.gifSearch"
-    case groupTerminateReceiveKillSwitch = "ios.groupTerminateReceiveKillSwitch"
     case messageResendKillSwitch = "ios.messageResendKillSwitch"
     case paymentsResetKillSwitch = "ios.paymentsResetKillSwitch"
     case paypalGiftDonationKillSwitch = "ios.paypalGiftDonationKillSwitch"
@@ -691,14 +711,11 @@ private enum IsEnabledFlag: String, FlagType {
         case .applePayMonthlyDonationKillSwitch: false
         case .applePayOneTimeDonationKillSwitch: false
         case .automaticSessionResetKillSwitch: false
-        case .backupsMegaphone: true
         case .cardGiftDonationKillSwitch: false
         case .cardMonthlyDonationKillSwitch: false
         case .cardOneTimeDonationKillSwitch: false
-        case .disappearingCalls: true
         case .enableAutoAPNSRotation: false
         case .enableGifSearch: false
-        case .groupTerminateReceiveKillSwitch: true
         case .messageResendKillSwitch: false
         case .paymentsResetKillSwitch: false
         case .paypalGiftDonationKillSwitch: false

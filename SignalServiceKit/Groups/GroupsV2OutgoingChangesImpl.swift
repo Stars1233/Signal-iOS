@@ -762,11 +762,9 @@ public class GroupsV2OutgoingChanges {
             didChange = true
         }
 
-        if BuildFlags.GroupTerminate.send {
-            if shouldTerminateGroup {
-                actionsBuilder.setTerminateGroup(GroupsProtoGroupChangeActionsTerminateGroupAction.builder().buildInfallibly())
-                didChange = true
-            }
+        if shouldTerminateGroup {
+            actionsBuilder.setTerminateGroup(GroupsProtoGroupChangeActionsTerminateGroupAction.builder().buildInfallibly())
+            didChange = true
         }
 
         // MARK: - Change action insertion point

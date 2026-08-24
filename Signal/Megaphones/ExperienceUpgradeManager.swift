@@ -570,7 +570,6 @@ class ExperienceUpgradeManager {
         tx: DBReadTransaction,
     ) -> BackupsUpsellResult? {
         guard
-            remoteConfigManager.currentConfig().backupsMegaphone,
             tsAccountManager.registrationState(tx: tx).isRegisteredPrimaryDevice
         else {
             return nil

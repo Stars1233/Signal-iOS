@@ -412,10 +412,7 @@ public class BackupArchiveGroupRecipientArchiver: BackupArchiveProtoStreamWriter
             groupModelBuilder.groupAccess = GroupAccess(backupProtoAccessControl: groupSnapshot.accessControl)
             groupModelBuilder.inviteLinkPassword = groupSnapshot.inviteLinkPassword.nilIfEmpty
             groupModelBuilder.isAnnouncementsOnly = groupSnapshot.announcementsOnly
-
-            if RemoteConfig.current.groupTerminateReceiveEnabled {
-                groupModelBuilder.isTerminated = groupSnapshot.terminated
-            }
+            groupModelBuilder.isTerminated = groupSnapshot.terminated
 
             guard let groupModel: TSGroupModelV2 = try? groupModelBuilder.buildAsV2() else {
                 return restoreFrameError(.invalidProtoData(.failedToBuildGV2GroupModel))

@@ -87,7 +87,6 @@ extension ConversationSettingsViewController {
         }
 
         if
-            BuildFlags.GroupTerminate.send,
             let groupModelV2 = currentGroupModel as? TSGroupModelV2,
             groupModelV2.groupMembership.isLocalUserFullMemberAndAdministrator,
             !groupModelV2.isTerminated
