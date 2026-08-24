@@ -67,21 +67,14 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
         case .localBackup, .remoteBackup, .decline:
             break
         case .deviceTransfer(let transferUrl):
-            let supportsWifiAware = if
-                let urlComponents = URLComponents(url: transferUrl, resolvingAgainstBaseURL: false),
-                let queryItems = urlComponents.queryItems
-            {
-                queryItems.contains { $0.name == "wifiAware" }
-            } else {
-                false
-            }
-            transferStatusViewModel.supportsWifiAware = supportsWifiAware
-
             let factory: DeviceTransfer.ConnectionFactory
             if
                 #available(iOS 26.0, *),
-                transferStatusViewModel.supportsWifiAware
+                provisioningURL.capabilities.contains(.wifiaware),
+                DebugFlags.enableWifiAwareDeviceTransfer.get(),
+                DeviceTransfer.platformSupportsWifiAware()
             {
+                transferStatusViewModel.supportsWifiAware = true
                 factory = WADeviceTransferConnectionFactory()
             } else {
                 factory = MPCDeviceTransferConnectionFactory()

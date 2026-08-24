@@ -20,7 +20,6 @@ class WADeviceTransferIncomingConnection: DeviceTransfer.IncomingConnection {
         let queryItems = [
             DeviceTransfer.UrlConstants.versionKey: String(DeviceTransfer.UrlConstants.currentTransferVersion),
             DeviceTransfer.UrlConstants.transferModeKey: mode.rawValue,
-            DeviceTransfer.UrlConstants.supportsWifiAware: "1",
         ]
         components.queryItems = queryItems.map { URLQueryItem(name: $0.key, value: $0.value) }
         return components.url!

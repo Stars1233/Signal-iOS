@@ -222,6 +222,12 @@ class ProvisioningSocketManager: ProvisioningConnectionListener {
         if shouldLinkAndSync {
             capabilities.append(DeviceProvisioningURL.Capability.linknsync)
         }
+        if
+            #available(iOS 26.0, *),
+            DeviceTransfer.platformSupportsWifiAware()
+        {
+            capabilities.append(DeviceProvisioningURL.Capability.wifiaware)
+        }
 
         return try DeviceProvisioningURL(
             type: type,
