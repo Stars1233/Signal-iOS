@@ -383,6 +383,12 @@ public class RemoteConfig {
         return Int(value)
     }
 
+    // MARK: -
+
+    public var wifiAwareDeviceTransferEnabled: Bool {
+        return !isEnabled(.wifiAwareDeviceTransferKillSwitch, defaultValue: false) && BuildFlags.wifiAwareDeviceTransfer
+    }
+
     // MARK: - RingRTC
 
     /// How many successful calls per million should show a call quality survey for the user's region
@@ -699,6 +705,7 @@ private enum IsEnabledFlag: String, FlagType {
     case ringrtcSvcEnabled = "ios.ringrtcSvcEnabled"
     case ringrtcVp9Enabled = "ios.ringrtcVp9Enabled.2"
     case serviceExtensionFailureKillSwitch = "ios.serviceExtensionFailureKillSwitch"
+    case wifiAwareDeviceTransferKillSwitch = "ios.wifiAwareDeviceTransferKillSwitch"
 
 #if TESTABLE_BUILD
     case hotSwappable = "test.hotSwappable.enabled"
@@ -725,6 +732,7 @@ private enum IsEnabledFlag: String, FlagType {
         case .ringrtcSvcEnabled: false
         case .ringrtcVp9Enabled: true
         case .serviceExtensionFailureKillSwitch: true
+        case .wifiAwareDeviceTransferKillSwitch: true
 #if TESTABLE_BUILD
         case .hotSwappable: true
         case .nonSwappable: false

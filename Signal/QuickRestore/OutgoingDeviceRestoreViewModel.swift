@@ -72,7 +72,8 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
                 #available(iOS 26.0, *),
                 provisioningURL.capabilities.contains(.wifiaware),
                 DebugFlags.enableWifiAwareDeviceTransfer.get(),
-                DeviceTransfer.platformSupportsWifiAware()
+                DeviceTransfer.platformSupportsWifiAware(),
+                RemoteConfig.current.wifiAwareDeviceTransferEnabled
             {
                 transferStatusViewModel.supportsWifiAware = true
                 factory = WADeviceTransferConnectionFactory()

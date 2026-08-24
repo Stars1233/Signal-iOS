@@ -136,7 +136,8 @@ public class QuickRestoreManager {
         if
             deviceProvisioningUrl.capabilities.contains(.wifiaware),
             DebugFlags.enableWifiAwareDeviceTransfer.get(),
-            DeviceTransfer.platformSupportsWifiAware()
+            DeviceTransfer.platformSupportsWifiAware(),
+            RemoteConfig.current.wifiAwareDeviceTransferEnabled
         {
             capabilities = [RegistrationProvisioningMessage.Capability.wifiaware]
         } else {

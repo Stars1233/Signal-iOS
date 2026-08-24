@@ -83,6 +83,8 @@ public enum BuildFlags {
 
     public static let collapsingChatEvents = true
 
+    public static let wifiAwareDeviceTransfer = build <= .internal
+
     public enum ReleaseNotesChannel {
         public static let announcementFetch = true
         public static let ignoreFetchDelay = build <= .internal
