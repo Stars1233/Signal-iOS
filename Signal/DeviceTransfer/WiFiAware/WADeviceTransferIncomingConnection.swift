@@ -14,7 +14,16 @@ class WADeviceTransferIncomingConnection: DeviceTransfer.IncomingConnection {
     private var connectionTask: Task<Void, Error>?
 
     func start(mode: DeviceTransfer.Mode) throws -> URL {
-        return URL(string: "PeerID")!
+        var components = URLComponents()
+        components.scheme = UrlOpener.Constants.sgnlPrefix
+        components.host = DeviceTransfer.UrlConstants.transferHost
+        let queryItems = [
+            DeviceTransfer.UrlConstants.versionKey: String(DeviceTransfer.UrlConstants.currentTransferVersion),
+            DeviceTransfer.UrlConstants.transferModeKey: mode.rawValue,
+            DeviceTransfer.UrlConstants.supportsWifiAware: "1",
+        ]
+        components.queryItems = queryItems.map { URLQueryItem(name: $0.key, value: $0.value) }
+        return components.url!
     }
 
     func waitForConnection() async throws -> any DeviceTransfer.Session {

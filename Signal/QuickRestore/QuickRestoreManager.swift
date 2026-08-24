@@ -132,6 +132,16 @@ public class QuickRestoreManager {
 
         let restoreMethodToken = UUID().uuidString
 
+        let capabilities: [RegistrationProvisioningMessage.Capability]
+        if
+            DebugFlags.enableWifiAwareDeviceTransfer.get(),
+            DeviceTransfer.platformSupportsWifiAware()
+        {
+            capabilities = [RegistrationProvisioningMessage.Capability.wifiaware]
+        } else {
+            capabilities = []
+        }
+
         let registrationMessage = RegistrationProvisioningMessage(
             accountEntropyPool: accountEntropyPool,
             aci: myAci,
@@ -146,6 +156,7 @@ public class QuickRestoreManager {
             restoreMethodToken: restoreMethodToken,
             lastBackupForwardSecrecyToken: lastBackupForwardSecrecyToken,
             nextBackupSecretData: nextBackupSecretData,
+            capabilites: capabilities,
         )
 
         let theirPublicKey = deviceProvisioningUrl.publicKey

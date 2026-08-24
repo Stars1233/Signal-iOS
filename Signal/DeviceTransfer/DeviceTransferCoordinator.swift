@@ -16,6 +16,7 @@ public class DeviceTransferCoordinator: Equatable {
     private let quickRestoreManager: QuickRestoreManager
     private let restoreMethodToken: String
     private let restoreMode: DeviceTransfer.Mode
+    public let supportsWifiAware: Bool
 
     public var confirmCancellation: () async -> Bool {
         get { transferStatusViewModel.confirmCancellation }
@@ -80,16 +81,29 @@ public class DeviceTransferCoordinator: Equatable {
         restoreMethodToken: String,
         restoreMode: DeviceTransfer.Mode,
         tsAccountManager: TSAccountManager,
+        supportsWifiAware: Bool,
     ) {
         self.quickRestoreManager = quickRestoreManager
         self.restoreMethodToken = restoreMethodToken
         self.restoreMode = restoreMode
 
+        self.supportsWifiAware = supportsWifiAware
+        self.transferStatusViewModel.supportsWifiAware = supportsWifiAware
+        let factory: DeviceTransfer.ConnectionFactory
+        if
+            #available(iOS 26.0, *),
+            supportsWifiAware
+        {
+            factory = WADeviceTransferConnectionFactory()
+        } else {
+            factory = MPCDeviceTransferConnectionFactory()
+        }
+
         self.incomingDeviceTransferTask = IncomingDeviceTransferTask(
             db: db,
             deviceSleepManager: deviceSleepManager,
             deviceTransferRestore: deviceTransferRestore,
-            deviceTransferConnectionFactory: DeviceTransfer.defaultFactory,
+            deviceTransferConnectionFactory: factory,
             registrationStateChangeManager: registrationStateChangeManager,
             tsAccountManager: tsAccountManager,
         )

@@ -62,6 +62,15 @@ class TestingViewController: OWSTableViewController2 {
         }
         contents.add(voiceMessageSection)
 
+        let deviceTransferSection = OWSTableSection(title: "Device Transfer")
+        for deviceTransferFlag in DebugFlags.deviceTransferTestableFlags {
+            addTestableFlag(
+                deviceTransferFlag,
+                toSection: deviceTransferSection,
+            )
+        }
+        contents.add(deviceTransferSection)
+
         self.contents = contents
     }
 

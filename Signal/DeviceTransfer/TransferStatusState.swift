@@ -106,6 +106,8 @@ class TransferStatusViewModel: ObservableObject {
         }
     }
 
+    @Published var supportsWifiAware: Bool = false
+
     var confirmCancellation: (() async -> Bool) = { return true }
     var cancelTransferBlock: (() -> Void) = {}
     var onSuccess: (@MainActor () -> Void) = {}

@@ -257,6 +257,16 @@ class ProvisioningController: NSObject {
                 throw OWSAssertionError("Missing restore token")
             }
 
+            let useWifiAware = {
+                if
+                    DeviceTransfer.platformSupportsWifiAware(),
+                    Set(message.capabilites).contains(.wifiaware)
+                {
+                    return true
+                }
+                return false
+            }()
+
             let transferState = DeviceTransferCoordinator(
                 db: DependenciesBridge.shared.db,
                 deviceSleepManager: DependenciesBridge.shared.deviceSleepManager,
@@ -266,6 +276,7 @@ class ProvisioningController: NSObject {
                 restoreMethodToken: restoreToken,
                 restoreMode: .linked,
                 tsAccountManager: DependenciesBridge.shared.tsAccountManager,
+                supportsWifiAware: useWifiAware,
             )
 
             transferState.cancelTransferBlock = { [weak self] in

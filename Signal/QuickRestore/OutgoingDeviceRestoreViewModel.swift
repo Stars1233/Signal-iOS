@@ -13,9 +13,14 @@ enum DeviceRestoreError: Error {
 class OutgoingDeviceRestoreViewModel: ObservableObject {
 
     private(set) var transferStatusViewModel = TransferStatusViewModel()
-    private let quickRestoreManager: QuickRestoreManager
+    private var outgoingDeviceTransferTask: OutgoingDeviceTransferTask?
+
+    private let db: DB
     private let provisioningURL: DeviceProvisioningURL
-    private let outgoingDeviceTransferTask: OutgoingDeviceTransferTask
+    private let deviceSleepManager: DeviceSleepManager?
+    private let quickRestoreManager: QuickRestoreManager
+    private let registrationStateChangeManager: RegistrationStateChangeManager
+    private let tsAccountManager: TSAccountManager
 
     @MainActor
     init(
@@ -26,15 +31,12 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
         registrationStateChangeManager: RegistrationStateChangeManager,
         tsAccountManager: TSAccountManager,
     ) {
-        self.quickRestoreManager = quickRestoreManager
+        self.db = db
         self.provisioningURL = deviceProvisioningURL
-        self.outgoingDeviceTransferTask = OutgoingDeviceTransferTask(
-            db: db,
-            deviceSleepManager: deviceSleepManager,
-            deviceTransferConnectionFactory: DeviceTransfer.defaultFactory,
-            registrationStateChangeManager: registrationStateChangeManager,
-            tsAccountManager: tsAccountManager,
-        )
+        self.deviceSleepManager = deviceSleepManager
+        self.quickRestoreManager = quickRestoreManager
+        self.registrationStateChangeManager = registrationStateChangeManager
+        self.tsAccountManager = tsAccountManager
 
         transferStatusViewModel.cancelTransferBlock = { [weak self] in
             self?.cancelTransfer()
@@ -64,6 +66,7 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
 
     /// Take the `PeerConnectionData` returned by `waitForConnectionData` and
     /// begin listening for the connection described in `PeerConnectionData`.
+    @MainActor
     func waitForDeviceConnection(transferUrl: URL) async throws {
         // If in any state but .idle, return
         guard case .idle = transferStatusViewModel.state else {
@@ -71,6 +74,39 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
         }
 
         transferStatusViewModel.state = .starting
+
+        let supportsWifiAware: Bool
+        if
+            let urlComponents = URLComponents(url: transferUrl, resolvingAgainstBaseURL: false),
+            let queryItems = urlComponents.queryItems,
+            queryItems.contains(where: { $0.name == "wifiAware" })
+        {
+            supportsWifiAware = true
+        } else {
+            supportsWifiAware = false
+        }
+        transferStatusViewModel.supportsWifiAware = supportsWifiAware
+
+        // Check the URL to see if it supports the WiFiAware capability
+        let factory: DeviceTransfer.ConnectionFactory
+        if
+            #available(iOS 26.0, *),
+            supportsWifiAware
+        {
+            factory = WADeviceTransferConnectionFactory()
+        } else {
+            factory = MPCDeviceTransferConnectionFactory()
+        }
+
+        let outgoingDeviceTransferTask = OutgoingDeviceTransferTask(
+            db: db,
+            deviceSleepManager: deviceSleepManager,
+            deviceTransferConnectionFactory: factory,
+            registrationStateChangeManager: registrationStateChangeManager,
+            tsAccountManager: tsAccountManager,
+        )
+        self.outgoingDeviceTransferTask = outgoingDeviceTransferTask
+
         try await outgoingDeviceTransferTask.connectToNewDevice(deviceTransferUrl: transferUrl)
     }
 
@@ -78,6 +114,9 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
     /// begin a device transfer.
     @MainActor
     func startTransfer() async throws {
+        guard let outgoingDeviceTransferTask else {
+            throw OWSAssertionError("Transfer started before negotiating connection")
+        }
         defer {
             stopListeningForTransfer(error: nil)
         }
@@ -104,7 +143,7 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
 
     @MainActor
     private func stopListeningForTransfer(error: Error?) {
-        outgoingDeviceTransferTask.stop(error: error)
+        outgoingDeviceTransferTask?.stop(error: error)
     }
 
     private var progressObserver: NSKeyValueObservation?

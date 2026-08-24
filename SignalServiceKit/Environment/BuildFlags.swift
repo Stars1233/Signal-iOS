@@ -309,6 +309,16 @@ public enum DebugFlags {
         voiceMessageSampleRate,
         voiceMessageAudioQuality,
     ]
+
+    public static let enableWifiAwareDeviceTransfer = TestableFlag(
+        false,
+        title: LocalizationNotNeeded("Device Transfer: Use WifiAware"),
+        details: LocalizationNotNeeded("Attempt to use WifiAware for device transfer connection"),
+    )
+
+    public static let deviceTransferTestableFlags: [AnyTestableFlag] = [
+        enableWifiAwareDeviceTransfer,
+    ]
 }
 
 // MARK: -

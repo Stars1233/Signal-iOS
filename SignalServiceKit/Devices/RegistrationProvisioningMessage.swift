@@ -20,6 +20,10 @@ public struct RegistrationProvisioningEnvelope {
 
 public struct RegistrationProvisioningMessage {
 
+    public enum Capability: String {
+        case wifiaware = "wifiaware"
+    }
+
     public enum Platform {
         case ios
         case android
@@ -44,6 +48,7 @@ public struct RegistrationProvisioningMessage {
     public let restoreMethodToken: String?
     public let lastBackupForwardSecrecyToken: LibSignalClient.BackupForwardSecrecyToken?
     public let nextBackupSecretData: BackupNonce.NextSecretMetadata?
+    public let capabilites: [Capability]
 
     public init(
         accountEntropyPool: AccountEntropyPool,
@@ -59,6 +64,7 @@ public struct RegistrationProvisioningMessage {
         restoreMethodToken: String?,
         lastBackupForwardSecrecyToken: LibSignalClient.BackupForwardSecrecyToken?,
         nextBackupSecretData: BackupNonce.NextSecretMetadata?,
+        capabilites: [Capability],
     ) {
         self.platform = .ios
         self.accountEntropyPool = accountEntropyPool
@@ -74,6 +80,7 @@ public struct RegistrationProvisioningMessage {
         self.restoreMethodToken = restoreMethodToken
         self.lastBackupForwardSecrecyToken = lastBackupForwardSecrecyToken
         self.nextBackupSecretData = nextBackupSecretData
+        self.capabilites = capabilites
     }
 
     public init(plaintext: Data) throws {
@@ -114,6 +121,8 @@ public struct RegistrationProvisioningMessage {
         self.backupSizeBytes = proto.backupSizeBytes
 
         self.restoreMethodToken = proto.restoreMethodToken
+
+        self.capabilites = proto.capabilities.compactMap { Capability(rawValue: $0) }
 
         if let data = proto.lastBackupForwardSecrecyToken.nilIfEmpty {
             self.lastBackupForwardSecrecyToken = try LibSignalClient.BackupForwardSecrecyToken(contents: data)
@@ -177,6 +186,8 @@ public struct RegistrationProvisioningMessage {
         if let nextBackupSecretData {
             messageBuilder.nextBackupSecretData = nextBackupSecretData.data
         }
+
+        messageBuilder.capabilities = capabilites.map { $0.rawValue }
 
         let plainTextMessage = try messageBuilder.serializedData()
 

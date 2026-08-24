@@ -1906,6 +1906,8 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         case .android: .android
         }
 
+        let useWifiAware = DeviceTransfer.platformSupportsWifiAware() && registrationMessage.capabilites.contains(.wifiaware)
+
         switch persistedState.restoreMethod {
         case .deviceTransfer:
             if let restoreToken = registrationMessage.restoreMethodToken {
@@ -1918,6 +1920,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
                     restoreMethodToken: restoreToken,
                     restoreMode: .primary,
                     tsAccountManager: deps.tsAccountManager,
+                    supportsWifiAware: useWifiAware,
                 )
                 return .deviceTransfer(deviceTransferCoordinator)
             } else {

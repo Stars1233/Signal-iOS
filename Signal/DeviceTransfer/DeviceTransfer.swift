@@ -6,6 +6,7 @@
 import CryptoKit
 import Foundation
 import SignalServiceKit
+import WiFiAware
 
 ///
 /// The following service is used to facilitate users in transferring their account from
@@ -58,6 +59,13 @@ import SignalServiceKit
 ///          v. Hot-swap the new database into place and present the conversation list
 enum DeviceTransfer {
 
+    static func platformSupportsWifiAware() -> Bool {
+        if #available(iOS 26.0, *) {
+            return WACapabilities.supportedFeatures.contains(.wifiAware)
+        }
+        return false
+    }
+
     enum Error: Swift.Error {
         case assertion
         case backgroundedDevice
@@ -108,6 +116,7 @@ enum DeviceTransfer {
         static let peerIdKey = "peerId"
         static let certificateHashKey = "certificateHash"
         static let transferModeKey = "transferMode"
+        static let supportsWifiAware = "wifiAware"
 
         static let transferHost = "transfer"
     }
@@ -175,6 +184,4 @@ enum DeviceTransfer {
         func waitForConnection() async throws -> Session
         func stop(error: Swift.Error?)
     }
-
-    static let defaultFactory: DeviceTransfer.ConnectionFactory = MPCDeviceTransferConnectionFactory()
 }
