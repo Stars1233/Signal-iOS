@@ -212,7 +212,9 @@ public class RegistrationStateChangeManagerImpl: RegistrationStateChangeManager 
                 break
             }
         }
-        postRegistrationStateDidChangeNotification()
+        tx.addSyncCompletion {
+            self.postRegistrationStateDidChangeNotification()
+        }
     }
 
     public func resetForReregistration(
