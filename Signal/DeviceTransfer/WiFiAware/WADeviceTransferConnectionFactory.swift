@@ -8,7 +8,7 @@ import SignalServiceKit
 
 @available(iOS 26.0, *)
 struct WADeviceTransferConnectionFactory: DeviceTransfer.ConnectionFactory {
-    func buildOutgoingConnection(tsAccountManager: TSAccountManager) -> any DeviceTransfer.OutgoingConnection {
+    func buildOutgoingConnection(tsAccountManager: TSAccountManager, deviceTransferURL: URL) -> any DeviceTransfer.OutgoingConnection {
         return WADeviceTransferOutgoingConnection()
     }
 

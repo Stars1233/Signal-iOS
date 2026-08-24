@@ -10,15 +10,22 @@ import WiFiAware
 
 @available(iOS 26.0, *)
 class WADeviceTransferOutgoingConnection: DeviceTransfer.OutgoingConnection {
-    func connect(deviceTransferUrl: URL) async throws -> any DeviceTransfer.Session {
+    let selectedPeer: (any DeviceTransfer.PeerID)? = nil
+
+    func connect(peer: any DeviceTransfer.PeerID) async throws -> any DeviceTransfer.Session {
+        guard let peer = peer as? WADeviceTransferPeerId else {
+            throw OWSAssertionError("Incompatible peer type encountered")
+        }
         let browser = NetworkBrowser(
             for: .wifiAware(.connecting(to: .allPairedDevices, from: .deviceTransferService)),
         )
 
-        // Connect to the first discovered endpoint.
         let endpoint = try await browser.run { waEndpoints in
             for endpoint in waEndpoints {
-                return .finish(endpoint)
+                let discoveredPeer = WADeviceTransferPeerId(pairedDevice: endpoint.device)
+                if discoveredPeer.peerID == peer.peerID {
+                    return .finish(endpoint)
+                }
             }
             return .continue
         }

@@ -12,6 +12,10 @@ class MPCDeviceTransferBrowser:
     DeviceTransfer.OutgoingConnection,
     MCNearbyServiceBrowserDelegate
 {
+    var selectedPeer: (any DeviceTransfer.PeerID)? {
+        expectedConnectionData.peerId
+    }
+
     private struct ConnectionData {
         let peerId: MPCDeviceTransferPeerId
         let certificateHash: Data
@@ -26,12 +30,20 @@ class MPCDeviceTransferBrowser:
     private var inviteContinuation: CheckedContinuation<DeviceTransfer.Session, Error>?
     private var browseTask: Task<DeviceTransfer.Session, Error>?
 
-    private var expectedConnectionData: ConnectionData?
-    let tsAccountManager: TSAccountManager
+    private let tsAccountManager: TSAccountManager
+    private let expectedConnectionData: ConnectionData
 
     @MainActor
-    init(tsAccountManager: TSAccountManager) {
+    init(
+        tsAccountManager: TSAccountManager,
+        deviceTransferURL: URL,
+    ) throws {
         self.tsAccountManager = tsAccountManager
+        self.expectedConnectionData = try Self.parseTransferURL(
+            deviceTransferURL,
+            tsAccountManager: tsAccountManager,
+        )
+
         self.peerId = MPCDeviceTransferPeerId(displayName: UUID().uuidString)
         self.identity = try? SelfSignedIdentity.create(name: "OutgoingDeviceTransfer", validForDays: 1)
         browser = MCNearbyServiceBrowser(
@@ -44,16 +56,19 @@ class MPCDeviceTransferBrowser:
 
     @MainActor
     func connect(
-        deviceTransferUrl: URL,
+        peer: any DeviceTransfer.PeerID,
     ) async throws -> DeviceTransfer.Session {
+        guard
+            let targetPeer = peer as? MPCDeviceTransferPeerId,
+            targetPeer == expectedConnectionData.peerId
+        else {
+            throw OWSAssertionError("Misconfigured")
+        }
+
         if let session {
             return session
         }
-        self.expectedConnectionData = try parseTransferURL(
-            deviceTransferUrl,
-            tsAccountManager: tsAccountManager,
-        )
-        browser.startBrowsingForPeers()
+
         let task = lock.withLock {
             if let browseTask {
                 return browseTask
@@ -84,7 +99,7 @@ class MPCDeviceTransferBrowser:
     }
 
     @MainActor
-    private func parseTransferURL(
+    private static func parseTransferURL(
         _ url: URL,
         tsAccountManager: TSAccountManager,
     ) throws -> ConnectionData {
@@ -145,11 +160,6 @@ class MPCDeviceTransferBrowser:
             return
         }
 
-        guard let expectedConnectionData else {
-            inviteContinuation.take()?.resume(throwing: OWSAssertionError("Missing connection data"))
-            return
-        }
-
         let session = MPCDeviceTransferSession(
             identity: identity,
             peerID: peerId.mcPeerID,
@@ -188,6 +198,10 @@ class MPCDeviceTransferBrowser:
         foundPeer newDevicePeerID: MCPeerID,
         withDiscoveryInfo info: [String: String]?,
     ) {
+        guard newDevicePeerID == expectedConnectionData.peerId.mcPeerID else {
+            return
+        }
+
         Task { @MainActor in
             self.invitePeer(peerID: newDevicePeerID)
         }

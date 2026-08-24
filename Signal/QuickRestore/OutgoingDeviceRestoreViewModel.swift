@@ -52,7 +52,8 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
     /// 2. Outgoing device will wait for the restore method choice from the other device.
     /// 3. Confirm the returned choice is 'device transfer' or fail.
     /// 4. Parse out the MPC connection information returned in the restore method choice, and return this connection data
-    func waitForRestoreMethodResponse() async throws(DeviceRestoreError) -> QuickRestoreManager.RestoreMethodType {
+    @MainActor
+    func waitForRestoreMethodResponse() async throws -> QuickRestoreManager.RestoreMethodType {
         let restoreMethod: QuickRestoreManager.RestoreMethodType
         do {
             let token = try await quickRestoreManager.register(deviceProvisioningUrl: provisioningURL)
@@ -61,53 +62,62 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
             Logger.error("Failed to wait for restore method choice: \(error)")
             throw DeviceRestoreError.invalidRestoreData
         }
+
+        switch restoreMethod {
+        case .localBackup, .remoteBackup, .decline:
+            break
+        case .deviceTransfer(let transferUrl):
+            let supportsWifiAware = if
+                let urlComponents = URLComponents(url: transferUrl, resolvingAgainstBaseURL: false),
+                let queryItems = urlComponents.queryItems
+            {
+                queryItems.contains { $0.name == "wifiAware" }
+            } else {
+                false
+            }
+            transferStatusViewModel.supportsWifiAware = supportsWifiAware
+
+            let factory: DeviceTransfer.ConnectionFactory
+            if
+                #available(iOS 26.0, *),
+                transferStatusViewModel.supportsWifiAware
+            {
+                factory = WADeviceTransferConnectionFactory()
+            } else {
+                factory = MPCDeviceTransferConnectionFactory()
+            }
+
+            let outgoingDeviceTransferTask = try OutgoingDeviceTransferTask(
+                deviceTransferURL: transferUrl,
+                db: db,
+                deviceSleepManager: deviceSleepManager,
+                deviceTransferConnectionFactory: factory,
+                registrationStateChangeManager: registrationStateChangeManager,
+                tsAccountManager: tsAccountManager,
+            )
+            if let peer = outgoingDeviceTransferTask.selectedPeer {
+                transferStatusViewModel.selectedPeer = .init(wrappedPeer: peer)
+            }
+            self.outgoingDeviceTransferTask = outgoingDeviceTransferTask
+        }
+
         return restoreMethod
     }
 
     /// Take the `PeerConnectionData` returned by `waitForConnectionData` and
     /// begin listening for the connection described in `PeerConnectionData`.
     @MainActor
-    func waitForDeviceConnection(transferUrl: URL) async throws {
+    func waitForDeviceConnection(peer: any DeviceTransfer.PeerID) async throws {
+        guard let outgoingDeviceTransferTask else {
+            throw OWSAssertionError("Transfer started before negotiating connection")
+        }
         // If in any state but .idle, return
         guard case .idle = transferStatusViewModel.state else {
             return
         }
 
         transferStatusViewModel.state = .starting
-
-        let supportsWifiAware: Bool
-        if
-            let urlComponents = URLComponents(url: transferUrl, resolvingAgainstBaseURL: false),
-            let queryItems = urlComponents.queryItems,
-            queryItems.contains(where: { $0.name == "wifiAware" })
-        {
-            supportsWifiAware = true
-        } else {
-            supportsWifiAware = false
-        }
-        transferStatusViewModel.supportsWifiAware = supportsWifiAware
-
-        // Check the URL to see if it supports the WiFiAware capability
-        let factory: DeviceTransfer.ConnectionFactory
-        if
-            #available(iOS 26.0, *),
-            supportsWifiAware
-        {
-            factory = WADeviceTransferConnectionFactory()
-        } else {
-            factory = MPCDeviceTransferConnectionFactory()
-        }
-
-        let outgoingDeviceTransferTask = OutgoingDeviceTransferTask(
-            db: db,
-            deviceSleepManager: deviceSleepManager,
-            deviceTransferConnectionFactory: factory,
-            registrationStateChangeManager: registrationStateChangeManager,
-            tsAccountManager: tsAccountManager,
-        )
-        self.outgoingDeviceTransferTask = outgoingDeviceTransferTask
-
-        try await outgoingDeviceTransferTask.connectToNewDevice(deviceTransferUrl: transferUrl)
+        try await outgoingDeviceTransferTask.connectToNewDevice(peer: peer)
     }
 
     /// Once connected to the device described in `PeerConnectionData`

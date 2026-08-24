@@ -4,7 +4,14 @@
 //
 
 import Foundation
+import WiFiAware
 
+@available(iOS 26.0, *)
 struct WADeviceTransferPeerId: DeviceTransfer.PeerID {
-    let peerID: String
+    var peerID: String { pairedDevice.displayName }
+    private let pairedDevice: WAPairedDevice
+
+    init(pairedDevice: WAPairedDevice) {
+        self.pairedDevice = pairedDevice
+    }
 }

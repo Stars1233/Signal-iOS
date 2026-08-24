@@ -152,7 +152,9 @@ enum DeviceTransfer {
         case finishResource(String, URL)
     }
 
-    protocol PeerID: Equatable { }
+    protocol PeerID {
+        var peerID: String { get }
+    }
 
     @MainActor
     protocol Session {
@@ -167,14 +169,15 @@ enum DeviceTransfer {
 
     protocol ConnectionFactory {
         @MainActor
-        func buildOutgoingConnection(tsAccountManager: TSAccountManager) -> OutgoingConnection
+        func buildOutgoingConnection(tsAccountManager: TSAccountManager, deviceTransferURL: URL) throws -> OutgoingConnection
         @MainActor
         func buildIncomingConnection(tsAccountManager: TSAccountManager) -> IncomingConnection
     }
 
     @MainActor
     protocol OutgoingConnection {
-        func connect(deviceTransferUrl: URL) async throws -> Session
+        var selectedPeer: (any PeerID)? { get }
+        func connect(peer: any PeerID) async throws -> Session
         func stop(error: Swift.Error?)
     }
 

@@ -30,22 +30,28 @@ class OutgoingDeviceTransferTask {
     private let waitTask = AtomicValue<Task<Void, Error>?>(nil, lock: .init())
     private let sendTask = AtomicValue<Task<Void, Error>?>(nil, lock: .init())
 
+    var selectedPeer: (any DeviceTransfer.PeerID)? {
+        newDeviceServiceBrowser.selectedPeer
+    }
+
     init(
+        deviceTransferURL: URL,
         db: DB,
         deviceSleepManager: DeviceSleepManager?,
         deviceTransferConnectionFactory: DeviceTransfer.ConnectionFactory,
         registrationStateChangeManager: RegistrationStateChangeManager,
         tsAccountManager: TSAccountManager,
-    ) {
+    ) throws {
         self.db = db
         self.registrationStateChangeManager = registrationStateChangeManager
         self.deviceSleepManager = deviceSleepManager
-        self.newDeviceServiceBrowser = deviceTransferConnectionFactory.buildOutgoingConnection(
+        self.newDeviceServiceBrowser = try deviceTransferConnectionFactory.buildOutgoingConnection(
             tsAccountManager: tsAccountManager,
+            deviceTransferURL: deviceTransferURL,
         )
     }
 
-    func connectToNewDevice(deviceTransferUrl: URL) async throws {
+    func connectToNewDevice(peer: any DeviceTransfer.PeerID) async throws {
         stop(error: nil)
         deviceSleepManager?.addBlock(blockObject: sleepBlockObject)
         if let task = waitTask.get() {
@@ -53,7 +59,7 @@ class OutgoingDeviceTransferTask {
         } else {
             let task = waitTask.update {
                 let task = Task {
-                    self.session = try await newDeviceServiceBrowser.connect(deviceTransferUrl: deviceTransferUrl)
+                    self.session = try await newDeviceServiceBrowser.connect(peer: peer)
                 }
                 $0 = task
                 return task
