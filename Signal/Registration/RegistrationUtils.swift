@@ -9,36 +9,9 @@ import SignalUI
 
 enum RegistrationUtils {
 
-    static func reregister(fromViewController: UIViewController) {
-        AssertIsOnMainThread()
-
-        // If this is not the primary device, jump directly to the re-linking flow.
-        guard DependenciesBridge.shared.tsAccountManager.registrationStateWithMaybeSneakyTransaction.isPrimaryDevice == true else {
-            showRelinkingUI()
-            return
-        }
-
-        guard
-            let localIdentifiers = DependenciesBridge.shared.tsAccountManager.localIdentifiersWithMaybeSneakyTransaction,
-            let e164 = E164(localIdentifiers.phoneNumber)
-        else {
-            owsFailDebug("could not get local address for re-registration.")
-            return
-        }
-
-        Logger.info("phoneNumber: \(e164)")
-
-        SSKEnvironment.shared.preferencesRef.unsetRecordedAPNSTokens()
-
-        showReRegistration(e164: e164, aci: localIdentifiers.aci)
-    }
-
-    static func showReregistrationUI(fromViewController viewController: UIViewController) {
-        // If this is not the primary device, jump directly to the re-linking flow.
-        guard DependenciesBridge.shared.tsAccountManager.registrationStateWithMaybeSneakyTransaction.isPrimaryDevice == true else {
-            showRelinkingUI()
-            return
-        }
+    static func showReRegistrationPrompt(fromViewController viewController: UIViewController) {
+        let tsAccountManager = DependenciesBridge.shared.tsAccountManager
+        owsPrecondition(tsAccountManager.registrationStateWithMaybeSneakyTransaction.isPrimaryDevice == true)
 
         let actionSheet = ActionSheetController(
             title: NSLocalizedString(
@@ -53,54 +26,79 @@ enum RegistrationUtils {
             ),
             style: .default,
             handler: { _ in
-                Logger.info("Reregistering from banner")
-                RegistrationUtils.reregister(fromViewController: viewController)
+                showReRegistration()
             },
         ))
         actionSheet.addAction(OWSActionSheets.cancelAction)
         viewController.presentActionSheet(actionSheet)
     }
 
-    private static func showRelinkingUI() {
-        Logger.info("showRelinkingUI")
-
-        let success = DependenciesBridge.shared.db.write { tx -> Bool in
-            guard
-                let localIdentifiers = DependenciesBridge.shared.tsAccountManager.localIdentifiers(tx: tx),
-                let localE164 = E164(localIdentifiers.phoneNumber)
-            else {
-                return false
-            }
-            DependenciesBridge.shared.registrationStateChangeManager.resetForReregistration(
-                localPhoneNumber: localE164,
-                localAci: localIdentifiers.aci,
-                wasPrimaryDevice: DependenciesBridge.shared.tsAccountManager.registrationState(tx: tx).isPrimaryDevice ?? false,
-                tx: tx,
-            )
-            return true
+    private static func fetchIdentifiers() -> (Aci, E164)? {
+        let tsAccountManager = DependenciesBridge.shared.tsAccountManager
+        guard
+            let localIdentifiers = tsAccountManager.localIdentifiersWithMaybeSneakyTransaction,
+            let phoneNumber = E164(localIdentifiers.phoneNumber)
+        else {
+            return nil
         }
-        guard success else {
-            owsFailDebug("could not reset for re-registration.")
+        return (localIdentifiers.aci, phoneNumber)
+    }
+
+    static func showReLinking() {
+        Logger.info("showReLinking")
+
+        let databaseStorage = SSKEnvironment.shared.databaseStorageRef
+        let preferences = SSKEnvironment.shared.preferencesRef
+        let registrationStateChangeManager = DependenciesBridge.shared.registrationStateChangeManager
+        let tsAccountManager = DependenciesBridge.shared.tsAccountManager
+
+        owsPrecondition(tsAccountManager.registrationStateWithMaybeSneakyTransaction.isPrimaryDevice == false)
+
+        guard let (localAci, localPhoneNumber) = fetchIdentifiers() else {
+            owsFailDebug("couldn't fetch identifiers for re-linking")
             return
         }
 
-        SSKEnvironment.shared.preferencesRef.unsetRecordedAPNSTokens()
+        databaseStorage.write { tx in
+            registrationStateChangeManager.resetForReregistration(
+                localPhoneNumber: localPhoneNumber,
+                localAci: localAci,
+                wasPrimaryDevice: false,
+                tx: tx,
+            )
+        }
+        preferences.unsetRecordedAPNSTokens()
         ProvisioningController.presentRelinkingFlow()
     }
 
-    private static func showReRegistration(e164: E164, aci: Aci) {
+    static func showReRegistration() {
         let logger = PrefixedLogger(prefix: "[ReReg]")
-        logger.info("Attempting to start re-registration")
+        logger.info("showReRegistration")
+
+        let databaseStorage = SSKEnvironment.shared.databaseStorageRef
+        let preferences = SSKEnvironment.shared.preferencesRef
+        let tsAccountManager = DependenciesBridge.shared.tsAccountManager
+
+        owsPrecondition(tsAccountManager.registrationStateWithMaybeSneakyTransaction.isPrimaryDevice == true)
+
+        guard let (localAci, localPhoneNumber) = fetchIdentifiers() else {
+            owsFailDebug("couldn't fetch identifiers for re-registration")
+            return
+        }
         let dependencies = RegistrationCoordinatorDependencies.from(NSObject())
-        let desiredMode = RegistrationMode.reRegistering(RegistrationMode.ReregistrationParams(e164: e164, aci: aci))
+        let desiredMode = RegistrationMode.reRegistering(RegistrationMode.ReregistrationParams(
+            e164: localPhoneNumber,
+            aci: localAci,
+        ))
         let loader = RegistrationCoordinatorLoaderImpl(dependencies: dependencies)
-        let coordinator = SSKEnvironment.shared.databaseStorageRef.write {
+        let coordinator = databaseStorage.write {
             return loader.coordinator(
                 forDesiredMode: desiredMode,
                 transaction: $0,
                 logger: logger,
             )
         }
+        preferences.unsetRecordedAPNSTokens()
         let navController = RegistrationNavigationController.withCoordinator(coordinator)
         let window: UIWindow = CurrentAppContext().mainWindow!
         window.rootViewController = navController

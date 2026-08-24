@@ -38,6 +38,7 @@ public class CLVReminderViews {
 
         let deregisteredText: String
         let deregisteredActionTitle: String
+        let deregisteredState: DeregistrationState
         if DependenciesBridge.shared.tsAccountManager.registrationStateWithMaybeSneakyTransaction.isPrimaryDevice ?? true {
             deregisteredText = OWSLocalizedString(
                 "DEREGISTRATION_WARNING",
@@ -47,6 +48,7 @@ public class CLVReminderViews {
                 "DEREGISTRATION_WARNING_ACTION_TITLE",
                 comment: "If the user has been deregistered, they'll see a warning. This is This is the call to action on that warning.",
             )
+            deregisteredState = .deregistered
         } else {
             deregisteredText = OWSLocalizedString(
                 "UNLINKED_WARNING",
@@ -56,12 +58,21 @@ public class CLVReminderViews {
                 "UNLINKED_WARNING_ACTION_TITLE",
                 comment: "If this device has become unlinked from their primary device, they'll see a warning. This is the call to action on that warning.",
             )
+            deregisteredState = .delinked
         }
         deregisteredView = ReminderView(
             style: .warning,
             text: deregisteredText,
             actionTitle: deregisteredActionTitle,
-            tapAction: { [weak self] in self?.didTapDeregisteredView() },
+            tapAction: { [weak chatListViewController] in
+                switch deregisteredState {
+                case .deregistered:
+                    guard let chatListViewController else { return }
+                    RegistrationUtils.showReRegistrationPrompt(fromViewController: chatListViewController)
+                case .delinked:
+                    RegistrationUtils.showReLinking()
+                }
+            },
         )
         reminderStackView.addArrangedSubview(deregisteredView)
         deregisteredView.accessibilityIdentifier = "deregisteredView"
@@ -132,16 +143,6 @@ public class CLVReminderViews {
             usernameCorruptedReminderView,
             usernameLinkCorruptedReminderView,
         ])
-    }
-
-    private func didTapDeregisteredView() {
-        AssertIsOnMainThread()
-
-        guard let chatListViewController else {
-            return
-        }
-
-        RegistrationUtils.showReregistrationUI(fromViewController: chatListViewController)
     }
 
     private func didTapUsernameCorruptedReminderView() {

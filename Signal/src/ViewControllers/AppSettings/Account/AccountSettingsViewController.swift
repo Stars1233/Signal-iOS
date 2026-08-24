@@ -126,16 +126,26 @@ class AccountSettingsViewController: OWSTableViewController2 {
 
         let tsRegistrationState = DependenciesBridge.shared.tsAccountManager.registrationStateWithMaybeSneakyTransaction
 
-        if tsRegistrationState.isDeregistered {
+        if let deregistrationState = tsRegistrationState.deregistrationState {
             let accountSection = OWSTableSection()
             accountSection.headerTitle = accountSettingsTitle
             accountSection.add(.actionItem(
-                withText: tsRegistrationState.isPrimaryDevice ?? true
-                    ? OWSLocalizedString("SETTINGS_REREGISTER_BUTTON", comment: "Label for re-registration button.")
-                    : OWSLocalizedString("SETTINGS_RELINK_BUTTON", comment: "Label for re-link button."),
+                withText: { () -> String in
+                    switch deregistrationState {
+                    case .deregistered:
+                        return OWSLocalizedString("SETTINGS_REREGISTER_BUTTON", comment: "Label for re-registration button.")
+                    case .delinked:
+                        return OWSLocalizedString("SETTINGS_RELINK_BUTTON", comment: "Label for re-link button.")
+                    }
+                }(),
                 textColor: .ows_accentBlue,
-                actionBlock: { [weak self] in
-                    self?.reregisterUser()
+                actionBlock: { [unowned self] in
+                    switch deregistrationState {
+                    case .deregistered:
+                        RegistrationUtils.showReRegistrationPrompt(fromViewController: self)
+                    case .delinked:
+                        RegistrationUtils.showReLinking()
+                    }
                 },
             ))
             accountSection.add(.actionItem(
@@ -287,10 +297,6 @@ class AccountSettingsViewController: OWSTableViewController2 {
     }
 
     // MARK: - Account
-
-    private func reregisterUser() {
-        RegistrationUtils.showReregistrationUI(fromViewController: self)
-    }
 
     private func deleteLinkedData() {
         OWSActionSheets.showConfirmationAlert(

@@ -196,7 +196,7 @@ public extension ConversationViewController {
             let notRegisteredView = BlockingErrorBottomPanelView(
                 text: notRegisteredErrorText(),
                 onTap: { [unowned self] in
-                    RegistrationUtils.showReregistrationUI(fromViewController: self)
+                    RegistrationUtils.showReRegistrationPrompt(fromViewController: self)
                 },
             )
             requestView = notRegisteredView
@@ -204,8 +204,8 @@ public extension ConversationViewController {
         case .notLinked:
             let notRegisteredView = BlockingErrorBottomPanelView(
                 text: notLinkedErrorText(),
-                onTap: { [unowned self] in
-                    RegistrationUtils.showReregistrationUI(fromViewController: self)
+                onTap: {
+                    RegistrationUtils.showReLinking()
                 },
             )
             requestView = notRegisteredView
