@@ -256,6 +256,17 @@ class OutgoingDeviceRestorePresenter: OutgoingDeviceRestoreInitialPresenter {
                 let selectedPeer = viewModel.transferStatusViewModel.selectedPeer
                 if selectedPeer == nil {
                     viewModel.transferStatusViewModel.onPeerSelected = { peer in
+                        // onPeerSelected happens when the DeviceDiscoveryUI returns a selected peer
+                        // However, DeviceDiscoveryUI has unfortunate behavior that dismisses _all_
+                        // presented UI, and results in dismissing the progress VC along with it's
+                        // own UI. To remedy this, preemptively dismiss and re-present the transfer progress UI.
+                        presentingViewController.dismiss(animated: true)
+                        Task {
+                            await self.pushProgressViewController(
+                                viewModel: viewModel,
+                                presentingViewController: presentingViewController,
+                            )
+                        }
                         continuation.take()?.resume(returning: peer)
                     }
                 }

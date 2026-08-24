@@ -23,7 +23,7 @@ class TransferStatusViewModel: ObservableObject {
             case connecting
             case cancelling
 
-            func title(isNewDevice: Bool) -> String {
+            func title(isNewDevice: Bool, supportsWifiAware: Bool) -> String {
                 switch self {
                 case .starting:
                     if isNewDevice {
@@ -32,10 +32,17 @@ class TransferStatusViewModel: ObservableObject {
                             comment: "Status message on new device when transfer is starting.",
                         )
                     } else {
-                        OWSLocalizedString(
-                            "DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING",
-                            comment: "Status message on old device when transfer is starting.",
-                        )
+                        if supportsWifiAware {
+                            OWSLocalizedString(
+                                "DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING_WIFI_AWARE",
+                                comment: "Status message on old device when WiFiAware transfer is starting.",
+                            )
+                        } else {
+                            OWSLocalizedString(
+                                "DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING",
+                                comment: "Status message on old device when transfer is starting.",
+                            )
+                        }
                     }
                 case .connecting:
                     if isNewDevice {
@@ -64,17 +71,39 @@ class TransferStatusViewModel: ObservableObject {
                 }
             }
 
-            func message(isNewDevice: Bool) -> String {
+            func message(isNewDevice: Bool, supportsWifiAware: Bool) -> String {
                 if isNewDevice {
-                    OWSLocalizedString(
-                        "DEVICE_TRANSFER_STATUS_NEW_DEVICE_CONNECTING_MESSAGE",
-                        comment: "Description message on new device displayed during device transfer.",
-                    )
+                    if supportsWifiAware {
+                        OWSLocalizedString(
+                            "DEVICE_TRANSFER_STATUS_NEW_DEVICE_CONNECTING_WIFI_AWARE_MESSAGE",
+                            comment: "Description message on new device displayed during device transfer when using WiFiAware.",
+                        )
+                    } else {
+                        OWSLocalizedString(
+                            "DEVICE_TRANSFER_STATUS_NEW_DEVICE_CONNECTING_MESSAGE",
+                            comment: "Description message on new device displayed during device transfer.",
+                        )
+                    }
                 } else {
-                    OWSLocalizedString(
-                        "DEVICE_TRANSFER_STATUS_OLD_DEVICE_CONNECTING_MESSAGE",
-                        comment: "Description message on old device displayed during device transfer.",
-                    )
+                    if supportsWifiAware {
+                        switch self {
+                        case .starting:
+                            OWSLocalizedString(
+                                "DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING_WIFI_AWARE_MESSAGE",
+                                comment: "Description message on old device displayed during device discovery when using WiFiAware.",
+                            )
+                        case .connecting, .cancelling:
+                            OWSLocalizedString(
+                                "DEVICE_TRANSFER_STATUS_OLD_DEVICE_CONNECTING_WIFI_AWARE_MESSAGE",
+                                comment: "Description message on old device displayed during device connection when using WiFiAware.",
+                            )
+                        }
+                    } else {
+                        OWSLocalizedString(
+                            "DEVICE_TRANSFER_STATUS_OLD_DEVICE_CONNECTING_MESSAGE",
+                            comment: "Description message on old device displayed during device transfer.",
+                        )
+                    }
                 }
             }
         }

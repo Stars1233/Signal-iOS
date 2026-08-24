@@ -3,10 +3,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
+import DeviceDiscoveryUI
 import Lottie
 import SignalServiceKit
 import SignalUI
 import SwiftUI
+import WiFiAware
 
 // MARK: - DeviceTransferStatusViewController
 
@@ -18,7 +20,11 @@ class DeviceTransferStatusViewController: HostingController<TransferStatusView> 
     init(coordinator: DeviceTransferCoordinator) {
         self.coordinator = coordinator
 
-        super.init(wrappedView: TransferStatusView(viewModel: coordinator.transferStatusViewModel, isNewDevice: true))
+        let transferStatusView = TransferStatusView(
+            viewModel: coordinator.transferStatusViewModel,
+            isNewDevice: true,
+        )
+        super.init(wrappedView: transferStatusView)
 
         coordinator.confirmCancellation = { [weak self] in
             guard let self else { return true }
@@ -104,11 +110,6 @@ class DeviceTransferStatusViewController: HostingController<TransferStatusView> 
 }
 
 struct TransferStatusView: View {
-    struct PeerDevice: Identifiable {
-        let id: UInt64
-        let name: String
-    }
-
     @ObservedObject var viewModel: TransferStatusViewModel
     var isNewDevice: Bool
 
@@ -123,12 +124,89 @@ struct TransferStatusView: View {
                 LottieView(animation: .named("circular_indeterminate"))
                     .playing(loopMode: .loop)
                     .padding(.bottom, 14)
-                Text(indefinite.title(isNewDevice: isNewDevice))
+
+                let useWiFiAware = if #available(iOS 26.0, *), viewModel.supportsWifiAware {
+                    true
+                } else {
+                    false
+                }
+                Text(indefinite.title(isNewDevice: isNewDevice, supportsWifiAware: useWiFiAware))
                     .font(.body.bold())
                     .foregroundStyle(Color.Signal.label)
-                Text(indefinite.message(isNewDevice: isNewDevice))
+                Text(indefinite.message(isNewDevice: isNewDevice, supportsWifiAware: useWiFiAware))
                     .font(.body)
                     .foregroundStyle(Color.Signal.secondaryLabel)
+
+                if
+                    #available(iOS 26.0, *),
+                    viewModel.supportsWifiAware,
+                    case .starting = indefinite,
+                    viewModel.selectedPeer == nil
+                {
+                    if !isNewDevice {
+                        LazyVStack(spacing: 8) {
+                            ForEach(viewModel.discoveredPeers) { device in
+                                Button(action: {
+                                    // Start the outgoing transfer
+                                    viewModel.selectedPeer = device
+                                    viewModel.onPeerSelected(device)
+                                }) { Text(device.displayName) }
+                                    .buttonStyle(Registration.UI.MediumSecondaryButtonStyle())
+                            }
+                        }
+                        .padding(.top, 24)
+                        .task {
+                            do {
+                                for try await updatedDeviceList in WAPairedDevice.allDevices {
+                                    viewModel.discoveredPeers = updatedDeviceList.values.map {
+                                        TransferStatusViewModel.PeerIDWrapper(wrappedPeer: WADeviceTransferPeerId(pairedDevice: $0))
+                                    }
+                                }
+                            } catch {
+                                Logger.info("Error listing endpoints: \(error)")
+                            }
+                        }
+                    }
+
+                    Text(OWSLocalizedString(
+                        "DEVICE_TRANSFER_STATUS_NEW_DEVICE_PAIR_DEVICE",
+                        comment: "Title for paring an old device to transfer to.",
+                    ))
+                    .font(.body)
+                    .foregroundStyle(Color.Signal.secondaryLabel)
+                    .padding(.top, 24)
+
+                    if !isNewDevice {
+                        DevicePicker(
+                            .wifiAware(
+                                .connecting(
+                                    to: .userSpecifiedDevices,
+                                    from: .deviceTransferService,
+                                ),
+                            ),
+                        ) { endpoint in
+                            let wrappedEndpoint = TransferStatusViewModel.PeerIDWrapper(wrappedPeer: WADeviceTransferPeerId(pairedDevice: endpoint.device))
+                            viewModel.onPeerSelected(wrappedEndpoint)
+                        } label: {
+                            AddDeviceButton()
+                        } fallback: {
+                            AddDeviceButton(fallback: true)
+                        }
+                    } else {
+                        DevicePairingView(
+                            .wifiAware(
+                                .connecting(
+                                    to: .deviceTransferService,
+                                    from: .allPairedDevices,
+                                ),
+                            ),
+                        ) {
+                            AddDeviceButton()
+                        } fallback: {
+                            AddDeviceButton(fallback: true)
+                        }
+                    }
+                }
                 Spacer()
                 Button(CommonStrings.cancelButton) {
                     Task {
@@ -223,3 +301,22 @@ struct TransferStatusView: View {
         }
 }
 #endif
+
+struct AddDeviceButton: View {
+    let fallback: Bool
+
+    init(fallback: Bool = false) {
+        self.fallback = fallback
+    }
+
+    var body: some View {
+        HStack {
+            if fallback {
+                Image(systemName: "xmark.circle")
+                Text("Unavailable")
+            } else {
+                Image(systemName: "plus.circle")
+            }
+        }
+    }
+}

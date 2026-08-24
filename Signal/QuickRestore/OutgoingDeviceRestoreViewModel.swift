@@ -109,7 +109,7 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
             return
         }
 
-        transferStatusViewModel.state = .starting
+        transferStatusViewModel.state = .connecting
         try await outgoingDeviceTransferTask.connectToNewDevice(peer: peer)
     }
 
