@@ -67,7 +67,7 @@ public class ShareViewController: OWSNavigationController, ShareViewDelegate {
 
     private func setUp(initialLoadViewController: SAELoadViewController) async throws {
         // If we're low on storage space, don't try and do anything; abort.
-        guard LowDiskSpaceManager.hasEnoughDiskSpaceToLaunch() else {
+        guard LowDiskSpaceManager.additionalBytesRequiredToLaunch() == nil else {
             Logger.warn("Not enough disk space to share; showing error and skipping.")
             self.showLowDiskSpaceView()
             return

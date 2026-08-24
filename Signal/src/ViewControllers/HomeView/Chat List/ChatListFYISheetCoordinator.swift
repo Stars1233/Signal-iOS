@@ -51,6 +51,7 @@ class ChatListFYISheetCoordinator {
         struct BackupArchiveError {}
 
         struct LowDiskSpaceWarning {
+            let bytesRequiredToAvoidWarning: UInt64
             let now: Date
         }
 
@@ -179,8 +180,11 @@ class ChatListFYISheetCoordinator {
             return .keyTransparencySelfCheckFailed(FYISheet.KeyTransparencySelfCheckFailed())
         } else if backupArchiveErrorStore.hasError(tx: tx) {
             return .backupArchiveError(FYISheet.BackupArchiveError())
-        } else if lowDiskSpaceManager.getNeedsWarning(now: now, tx: tx) {
-            return .lowDiskSpaceWarning(FYISheet.LowDiskSpaceWarning(now: now))
+        } else if let bytesRequiredToAvoidWarning = lowDiskSpaceManager.getNeedsWarning(now: now, tx: tx) {
+            return .lowDiskSpaceWarning(FYISheet.LowDiskSpaceWarning(
+                bytesRequiredToAvoidWarning: bytesRequiredToAvoidWarning,
+                now: now,
+            ))
         } else if localFileBackupManager.shouldPromptUserToEnableLocalBackups(tx: tx) {
             return .enableLocalBackups(FYISheet.EnableLocalBackups())
         } else if localFileBackupManager.shouldPromptUserToChooseNewLocalBackupLocation(tx: tx) {
@@ -612,7 +616,12 @@ class ChatListFYISheetCoordinator {
         let logger = PrefixedLogger(prefix: "[DiskSpace]")
         logger.warn("Showing LowDiskSpaceWarning FYI sheet.")
 
-        let warningSheet = LowDiskSpaceWarningHeroSheet()
+        let warningSheet = LowDiskSpaceWarningHeroSheet(
+            localizedDeviceModel: UIDevice.current.localizedModel,
+            localizedRequiredBytes: OWSByteCountFormatStyle(zeroPadFractionDigits: false).format(
+                lowDiskSpaceWarning.bytesRequiredToAvoidWarning,
+            ),
+        )
 
         chatListViewController.present(warningSheet, animated: true) { [self] in
             db.write { tx in
@@ -892,7 +901,10 @@ private final class BackupArchiveErrorHeroSheet: HeroSheetViewController {
 // MARK: -
 
 private final class LowDiskSpaceWarningHeroSheet: HeroSheetViewController {
-    init() {
+    init(
+        localizedDeviceModel: String,
+        localizedRequiredBytes: String,
+    ) {
         super.init(
             hero: .circleIcon(
                 icon: .errorTriangle,
@@ -904,11 +916,43 @@ private final class LowDiskSpaceWarningHeroSheet: HeroSheetViewController {
                 "LOW_DISK_SPACE_WARNING_SHEET_TITLE",
                 comment: "Title for a sheet warning the user that their device is low on storage space.",
             ),
-            body: OWSLocalizedString(
-                "LOW_DISK_SPACE_WARNING_SHEET_MESSAGE",
-                comment: "Message for a sheet warning the user that their device is low on storage space.",
-            ),
-            primaryButton: .dismissing(title: CommonStrings.acknowledgeButton),
+            body: Body([
+                .text(.plain(String(
+                    format: OWSLocalizedString(
+                        "LOW_DISK_SPACE_WARNING_SHEET_MESSAGE_FORMAT",
+                        comment: "Message for a sheet warning the user that their device is low on storage space. Embeds 1:{{ the localized name of the user's device model, e.g. iPhone }}; 2:{{ an amount of storage space as a file size, e.g. 1 GB }}.",
+                    ),
+                    localizedDeviceModel,
+                    localizedRequiredBytes,
+                ))),
+                .customSpacing(20),
+                .bullets([
+                    Body.BulletPoint(
+                        style: .numberedCircle(1),
+                        text: OWSLocalizedString(
+                            "LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_REMOVE_APPS",
+                            comment: "A suggestion for freeing up storage space, on a sheet warning the user that their device is low on storage space.",
+                        ),
+                    ),
+                    Body.BulletPoint(
+                        style: .numberedCircle(2),
+                        text: OWSLocalizedString(
+                            "LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_DELETE_CAMERA_ROLL_MEDIA",
+                            comment: "A suggestion for freeing up storage space, on a sheet warning the user that their device is low on storage space.",
+                        ),
+                    ),
+                    Body.BulletPoint(
+                        style: .numberedCircle(3),
+                        text: OWSLocalizedString(
+                            "LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_DELETE_DOWNLOADED_MEDIA",
+                            comment: "A suggestion for freeing up storage space, on a sheet warning the user that their device is low on storage space.",
+                        ),
+                    ),
+                ]),
+                .customSpacing(20),
+            ]),
+            primary: .button(.dismissing(title: CommonStrings.acknowledgeButton)),
+            secondary: nil,
         )
     }
 }

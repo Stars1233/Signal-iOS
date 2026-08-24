@@ -33,6 +33,7 @@ open class HeroSheetViewController: StackSheetViewController {
         public struct BulletPoint {
             public enum Style {
                 case image(UIImage)
+                case numberedCircle(Int)
                 case dot
                 case dash
             }
@@ -400,6 +401,19 @@ open class HeroSheetViewController: StackSheetViewController {
             iconImageView.autoVCenterInSuperview()
             iconImageView.autoPinEdge(.trailing, to: .leading, of: bulletLabel, withOffset: -12)
 
+        case .numberedCircle(let index):
+            let numberedCircleImage = UIImage(
+                systemName: "\(index).circle.fill",
+                withConfiguration: UIImage.SymbolConfiguration(hierarchicalColor: .Signal.label),
+            )
+            let imageView = UIImageView(image: numberedCircleImage)
+            bulletContainer.addSubview(imageView)
+
+            imageView.autoSetDimensions(to: .square(24))
+            imageView.autoPinEdge(toSuperviewMargin: .leading)
+            imageView.autoVCenterInSuperview()
+            imageView.autoPinEdge(.trailing, to: .leading, of: bulletLabel, withOffset: -12)
+
         case .dot:
             let dotLabel = UILabel()
             dotLabel.text = "•"
@@ -684,6 +698,35 @@ open class HeroSheetViewController: StackSheetViewController {
             ]),
             .customSpacing(20),
             .text(.plain("Donate today to support Signal."), alignment: .left, color: .Signal.label),
+        ]),
+        primary: nil,
+        secondary: nil,
+    ))
+}
+
+@available(iOS 17, *)
+#Preview("Body w/ numbered-circle bullets") {
+    SheetPreviewViewController(sheet: HeroSheetViewController(
+        hero: .image(UIImage(named: "sustainer-heart")!),
+        title: "Catsitting Instructions",
+        body: HeroSheetViewController.Body([
+            .text(
+                .plain("Instructions for watching Boots and Juno."),
+            ),
+            .bullets(spacing: 32, [
+                HeroSheetViewController.Body.BulletPoint(
+                    style: .numberedCircle(1),
+                    text: "Give as many chicken treats as they can stomach.",
+                ),
+                HeroSheetViewController.Body.BulletPoint(
+                    style: .numberedCircle(2),
+                    text: "Let Boots sit on your lap.",
+                ),
+                HeroSheetViewController.Body.BulletPoint(
+                    style: .numberedCircle(3),
+                    text: "Exercise Juno with the laser pointer.",
+                ),
+            ]),
         ]),
         primary: nil,
         secondary: nil,

@@ -103,8 +103,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         Logger.info("")
 
         if shouldKillAppWhenBackgrounded {
-            Logger.flush()
-            exit(0)
+            owsFail("")
         }
     }
 
@@ -984,7 +983,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         case couldNotRestoreTransferredData
         case databaseCorrupted
         case lastAppLaunchCrashed
-        case lowStorageSpaceAvailable
+        case lowStorageSpaceAvailable(bytesRequired: UInt64)
 
         var supportTag: String {
             switch self {
@@ -1007,8 +1006,8 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         appVersion: AppVersion,
         didDeviceTransferRestoreSucceed: Bool,
     ) -> LaunchPreflightError? {
-        guard LowDiskSpaceManager.hasEnoughDiskSpaceToLaunch() else {
-            return .lowStorageSpaceAvailable
+        if let additionalBytesRequiredToLaunch = LowDiskSpaceManager.additionalBytesRequiredToLaunch() {
+            return .lowStorageSpaceAvailable(bytesRequired: additionalBytesRequiredToLaunch)
         }
 
         guard didDeviceTransferRestoreSucceed else {
@@ -1109,19 +1108,26 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                 .launchApp(window: window, launchContext: launchContext),
             ]
 
-        case .lowStorageSpaceAvailable:
+        case .lowStorageSpaceAvailable(let bytesRequired):
             shouldKillAppWhenBackgrounded = true
+
+            let localizedDeviceModel = UIDevice.current.localizedModel
+            let formattedBytesRequired = OWSByteCountFormatStyle(zeroPadFractionDigits: false)
+                .format(bytesRequired)
+
             title = OWSLocalizedString(
-                "APP_LAUNCH_FAILURE_LOW_STORAGE_SPACE_AVAILABLE_TITLE",
-                comment: "Error title indicating that the app crashed because there was low storage space available on the device.",
+                "APP_LAUNCH_FAILURE_NOT_ENOUGH_STORAGE_SPACE_TITLE",
+                comment: "Title for an error sheet shown when the app cannot launch because the device is out of storage space.",
             )
-            message = OWSLocalizedString(
-                "APP_LAUNCH_FAILURE_LOW_STORAGE_SPACE_AVAILABLE_MESSAGE",
-                comment: "Error description indicating that the app crashed because there was low storage space available on the device.",
+            message = String(
+                format: OWSLocalizedString(
+                    "APP_LAUNCH_FAILURE_NOT_ENOUGH_STORAGE_SPACE_MESSAGE_FORMAT",
+                    comment: "Message for an error sheet shown when the app cannot launch because the device is out of storage space. Embeds 1:{{ the localized name of the user's device model, e.g. iPhone }}; 2:{{ an amount of storage space as a file size, e.g. 1 GB }}.",
+                ),
+                localizedDeviceModel,
+                formattedBytesRequired,
             )
-            actions = [
-                .submitDebugLogsAndCrash,
-            ]
+            actions = [.exitApp]
         }
 
         presentLaunchFailureActionSheet(
@@ -1177,6 +1183,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     private enum LaunchFailureActionSheetAction {
+        case exitApp
         case submitDebugLogsAndCrash
         case submitDebugLogsAndLaunchApp(window: UIWindow, launchContext: LaunchContext)
         case presentDatabaseRecovery(window: UIWindow, launchContext: LaunchContext)
@@ -1237,6 +1244,17 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 
         for action in actions {
             switch action {
+            case .exitApp:
+                actionSheet.addAction(ActionSheetAction(
+                    title: OWSLocalizedString(
+                        "APP_LAUNCH_FAILURE_EXIT_APP_ACTION_TITLE",
+                        comment: "Action in an action sheet offering to exit the app.",
+                    ),
+                    handler: { _ in
+                        owsFail("Exiting.")
+                    },
+                ))
+
             case .submitDebugLogsAndCrash:
                 addSubmitDebugLogsAction {
                     DebugLogs(dumper: logDumper).promptToSubmitLogs(
