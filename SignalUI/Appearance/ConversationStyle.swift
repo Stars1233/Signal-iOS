@@ -389,7 +389,8 @@ public struct ConversationStyle {
     /// The purpose of this method is to provide stroke configuration to be used with non-message bubbles (eg date headers).
     public static func bubbleStroke(isDarkThemeEnabled: Bool) -> BubbleConfiguration.Stroke {
         let strokeColor = isDarkThemeEnabled ? UIColor(white: 1, alpha: 0.25) : UIColor(white: 0, alpha: 0.35)
-        return BubbleConfiguration.Stroke(color: strokeColor, width: 2 * CGFloat.hairlineWidth)
+        let strokeWidth = UITraitCollection.current.hairlineWidthFraction(2)
+        return BubbleConfiguration.Stroke(color: strokeColor, width: strokeWidth)
     }
 
     /// - Returns: Stroke configuration to use for incoming or outgoing message bubbles in chat.

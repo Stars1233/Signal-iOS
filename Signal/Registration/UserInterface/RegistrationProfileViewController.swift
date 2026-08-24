@@ -218,7 +218,7 @@ class RegistrationProfileViewController: OWSViewController {
             stackView.addSubview(strokeView)
             strokeView.translatesAutoresizingMaskIntoConstraints = false
             NSLayoutConstraint.activate([
-                strokeView.heightAnchor.constraint(equalToConstant: .hairlineWidth),
+                strokeView.heightAnchor.constraint(equalToConstant: hairlineWidth),
                 strokeView.bottomAnchor.constraint(equalTo: textField.bottomAnchor),
                 strokeView.leadingAnchor.constraint(equalTo: textField.leadingAnchor),
                 strokeView.trailingAnchor.constraint(equalTo: stackView.trailingAnchor),
@@ -230,8 +230,8 @@ class RegistrationProfileViewController: OWSViewController {
             stackView.isLayoutMarginsRelativeArrangement = true
             stackView.cornerConfiguration = .uniformCorners(radius: 26)
         } else {
-            firstTextField.addBottomStroke(color: .Signal.opaqueSeparator, strokeWidth: .hairlineWidth)
-            secondTextField.addBottomStroke(color: .Signal.opaqueSeparator, strokeWidth: .hairlineWidth)
+            firstTextField.addBottomStroke(color: .Signal.opaqueSeparator, strokeWidth: hairlineWidth)
+            secondTextField.addBottomStroke(color: .Signal.opaqueSeparator, strokeWidth: hairlineWidth)
         }
         return stackView
     }()

@@ -34,10 +34,10 @@ extension AttachmentThumbnailQuality: CustomStringConvertible {
 extension AttachmentThumbnailQuality {
 
     public static func pointSize(pixelSize: CGSize) -> CGSize {
-        let factor = 1 / UIScreen.main.scale
+        let displayScale = UITraitCollection.current.displayScale
         return CGSize(
-            width: pixelSize.width * factor,
-            height: pixelSize.height * factor,
+            width: pixelSize.width / displayScale,
+            height: pixelSize.height / displayScale,
         )
     }
 
@@ -60,8 +60,8 @@ extension AttachmentThumbnailQuality {
     public static let backupThumbnailMinSizeBytes: UInt32 = 2048
 
     private static func thumbnailDimensionPointsBackupThumbnail() -> CGFloat {
-        let screenScale = UIScreen.main.scale
-        return Self.backupThumbnailDimensionPixels / screenScale
+        let displayScale = UITraitCollection.current.displayScale
+        return Self.backupThumbnailDimensionPixels / displayScale
     }
 
     public func thumbnailDimensionPoints() -> CGFloat {

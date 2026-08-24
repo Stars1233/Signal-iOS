@@ -11,13 +11,6 @@ class AvatarViewController: OWSViewController, InteractivelyDismissableViewContr
     private lazy var interactiveDismissal = MediaInteractiveDismiss(targetViewController: self)
     let avatarImage: UIImage
 
-    var maxAvatarPointSize: CGSize {
-        let currentScale = avatarImage.scale
-        let desiredScale = UIScreen.main.scale
-        let factor = currentScale / desiredScale
-        return CGSize.scale(avatarImage.size, factor: factor)
-    }
-
     private let imageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFit
@@ -151,9 +144,9 @@ class AvatarViewController: OWSViewController, InteractivelyDismissableViewContr
             {
                 topInset = statusBarHeight
                 if #available(iOS 18, *) {
-                    topInset += (2 + .hairlineWidth)
+                    topInset += (2 + hairlineWidth)
                 } else if #available(iOS 16, *) {
-                    topInset -= .hairlineWidth
+                    topInset -= hairlineWidth
                 }
             }
             // On iOS 26 in landscape the navigation bar is offset 24 dp from the screen top edge.

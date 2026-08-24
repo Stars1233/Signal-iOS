@@ -511,7 +511,7 @@ open class OWSTableViewController2: OWSViewController, OWSNavigationChildControl
         separatorLayer.fillColor = separatorColor.cgColor
 
         var separatorFrame = view.bounds
-        let separatorThickness: CGFloat = .hairlineWidth
+        let separatorThickness = hairlineWidth
 
         separatorFrame.y = separatorFrame.height - separatorThickness
         separatorFrame.size.height = separatorThickness

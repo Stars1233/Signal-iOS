@@ -156,3 +156,11 @@ public extension UIViewController {
         }
     }
 }
+
+// MARK: -
+
+public extension UIViewController {
+    var hairlineWidth: CGFloat {
+        traitCollection.hairlineWidth
+    }
+}

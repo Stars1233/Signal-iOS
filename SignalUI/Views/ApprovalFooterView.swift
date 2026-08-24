@@ -107,7 +107,7 @@ public class ApprovalFooterView: UIView, UITextFieldDelegate {
                 topStrokeView.topAnchor.constraint(equalTo: topAnchor),
                 topStrokeView.leadingAnchor.constraint(equalTo: leadingAnchor),
                 topStrokeView.trailingAnchor.constraint(equalTo: trailingAnchor),
-                topStrokeView.heightAnchor.constraint(equalToConstant: .hairlineWidth),
+                topStrokeView.heightAnchor.constraint(equalToConstant: hairlineWidth),
             ])
         }
 

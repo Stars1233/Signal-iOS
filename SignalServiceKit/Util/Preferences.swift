@@ -36,7 +36,10 @@ public class Preferences {
 
     public init() {
         if CurrentAppContext().hasUI {
-            CurrentAppContext().appUserDefaults().set(UIScreen.main.scale, forKey: UserDefaultsKeys.deviceScale)
+            CurrentAppContext().appUserDefaults().set(
+                UITraitCollection.current.displayScale,
+                forKey: UserDefaultsKeys.deviceScale,
+            )
         }
     }
 
@@ -163,10 +166,10 @@ public class Preferences {
     }
 
     public var cachedDeviceScale: CGFloat {
-        guard !CurrentAppContext().hasUI else { return UIScreen.main.scale }
+        guard !CurrentAppContext().hasUI else { return UITraitCollection.current.displayScale }
 
         guard let cachedValue = CurrentAppContext().appUserDefaults().object(forKey: UserDefaultsKeys.deviceScale) as? CGFloat else {
-            return UIScreen.main.scale
+            return UITraitCollection.current.displayScale
         }
 
         return cachedValue

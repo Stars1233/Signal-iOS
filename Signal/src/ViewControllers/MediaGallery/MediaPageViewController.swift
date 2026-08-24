@@ -237,9 +237,9 @@ class MediaPageViewController: UIPageViewController {
             {
                 topInset = statusBarHeight
                 if #available(iOS 18, *) {
-                    topInset += (2 + .hairlineWidth)
+                    topInset += (2 + hairlineWidth)
                 } else if #available(iOS 16, *) {
-                    topInset -= .hairlineWidth
+                    topInset -= hairlineWidth
                 }
             }
             // On iOS 26 in landscape the navigation bar is offset 24 dp from the screen top edge.

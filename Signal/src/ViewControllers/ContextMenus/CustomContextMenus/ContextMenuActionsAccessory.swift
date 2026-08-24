@@ -318,7 +318,7 @@ private class ContextMenuActionsView: UIView, UIGestureRecognizerDelegate, UIScr
 
             if let separatorView {
                 var separatorFrame = bounds
-                separatorFrame.height = 1.0 / UIScreen.main.scale
+                separatorFrame.height = hairlineWidth
                 separatorFrame.y = bounds.maxY - separatorFrame.height
                 separatorView.frame = separatorFrame
             }

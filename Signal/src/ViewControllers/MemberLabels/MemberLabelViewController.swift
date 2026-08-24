@@ -526,7 +526,7 @@ class MemberLabelViewController: OWSViewController, UITextFieldDelegate {
                     separator.backgroundColor = UIColor.Signal.tertiaryLabel
                     contactListStackView.addArrangedSubview(separator)
                     NSLayoutConstraint.activate([
-                        separator.heightAnchor.constraint(equalToConstant: .hairlineWidth),
+                        separator.heightAnchor.constraint(equalToConstant: hairlineWidth),
                     ])
                     contactListStackView.setCustomSpacing(6, after: separator)
                 }

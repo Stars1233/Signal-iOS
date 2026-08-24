@@ -309,15 +309,16 @@ public extension UIView {
     }
 }
 
-// MARK: - Bottom Stroke
+// MARK: -
 
 public extension UIView {
-    func addBottomStroke() -> UIView {
-        return addBottomStroke(color: .ows_middleGray, strokeWidth: .hairlineWidth)
+    var hairlineWidth: CGFloat {
+        traitCollection.hairlineWidth
     }
 
     @discardableResult
-    func addBottomStroke(color: UIColor, strokeWidth: CGFloat) -> UIView {
+    func addBottomStroke(color: UIColor, strokeWidth: CGFloat? = nil) -> UIView {
+        let strokeWidth = strokeWidth ?? hairlineWidth
         let strokeView = UIView()
         strokeView.backgroundColor = color
         addSubview(strokeView)
@@ -333,5 +334,17 @@ public extension UIView {
 public extension UIApplication {
     func hideKeyboard() {
         sendAction(#selector(UIView.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+}
+
+// MARK: -
+
+public extension UITraitCollection {
+    var hairlineWidth: CGFloat {
+        1 / displayScale
+    }
+
+    func hairlineWidthFraction(_ fraction: CGFloat) -> CGFloat {
+        fraction * hairlineWidth
     }
 }

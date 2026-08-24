@@ -383,7 +383,8 @@ public class ColorPickerBar: UIControl {
         gradientLayer.colors = ColorPickerBarColor.gradientCGColors
         gradientLayer.startPoint = CGPoint.zero
         gradientLayer.endPoint = CGPoint(x: 1, y: 0)
-        return gradientView.renderAsImage(opaque: true, scale: UIScreen.main.scale)
+        let displayScale = UITraitCollection.current.displayScale
+        return gradientView.renderAsImage(opaque: true, scale: displayScale)
     }
 
     private class ThumbView: UIView {

@@ -628,7 +628,7 @@ private class SpectrumSlider: ManualLayoutView {
     }
 
     private func ensureSpectrumImage() {
-        let scale = UIScreen.main.scale
+        let scale = traitCollection.displayScale
         let spectrumImageSizePoints = spectrumImageView.bounds.size
         let spectrumImageSizePixels = spectrumImageSizePoints * scale
         guard spectrumImageSizePixels.isNonEmpty else {

@@ -240,7 +240,7 @@ private extension RegistrationPhoneNumberDiscoverabilityViewController {
                 heightAnchor.constraint(greaterThanOrEqualToConstant: 48),
             ])
 
-            addBottomStroke(color: .Signal.opaqueSeparator, strokeWidth: .hairlineWidth)
+            addBottomStroke(color: .Signal.opaqueSeparator)
 
             apply(configuration)
         }
