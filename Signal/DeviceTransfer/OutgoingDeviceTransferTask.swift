@@ -315,6 +315,7 @@ class OutgoingDeviceTransferTask {
     }
 
     private func stopTransfer(error: Error? = nil, notifyRegState: Bool = true) {
+        session.take()?.disconnect(error: error)
         waitTask.swap(nil)?.cancel()
         sendTask.swap(nil)?.cancel()
         newDeviceServiceBrowser.stop(error: error)

@@ -118,6 +118,11 @@ class IncomingDeviceTransferTask {
         throughputMonitor?.stop()
         deviceSleepManager?.removeBlock(blockObject: sleepBlockObject)
         messagesReceiverTask.take()?.cancel()
+        if let error {
+            transferFinishedContinuation.take()?.resume(throwing: error)
+        } else {
+            transferFinishedContinuation.take()?.resume()
+        }
 
         // It is possible that we get here because the app was backgrounded
         // after a failed launch. In that case, `tsAccountManager` will not be
@@ -133,6 +138,7 @@ class IncomingDeviceTransferTask {
             }
             transferInProgress = false
         }
+        session = nil
     }
 
     private func failTransfer(_ error: DeviceTransfer.Error, _ reason: String) {
