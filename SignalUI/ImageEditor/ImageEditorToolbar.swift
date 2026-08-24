@@ -185,17 +185,22 @@ class ImageEditorToolbar: UIView {
         }
         stackView.distribution = .equalSpacing
         stackView.translatesAutoresizingMaskIntoConstraints = false
+
+        // Height of the stack view doesn't change. Calculate it now and use it to define
+        // height of the ImageEditorToolbar via it's `layoutMarginsGuide`.
+        let stackViewHeight = stackView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height
+
         addSubview(stackView)
         NSLayoutConstraint.activate([
             stackView.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor),
             stackView.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor),
-            stackView.heightAnchor.constraint(equalTo: layoutMarginsGuide.heightAnchor),
+            stackView.heightAnchor.constraint(equalToConstant: stackViewHeight),
+            layoutMarginsGuide.heightAnchor.constraint(equalToConstant: stackViewHeight),
         ])
 
         setControlsHidden(false)
     }
 
-    @available(*, unavailable, message: "Use init(buttonProvider:)")
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
