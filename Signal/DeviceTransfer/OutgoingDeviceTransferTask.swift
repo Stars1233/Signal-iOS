@@ -310,7 +310,6 @@ class OutgoingDeviceTransferTask {
         } catch {
             throw OWSGenericError("Transferring file \(file.identifier) failed \(error)")
         }
-        Logger.info("Transferring file \(file.identifier) complete")
         transferredFileIds.update { $0.append(file.identifier) }
     }
 

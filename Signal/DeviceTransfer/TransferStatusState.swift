@@ -188,12 +188,14 @@ class TransferStatusViewModel: ObservableObject {
                 let newAverageThroughput = 0.2 * progressOverLastSecond + 0.8 * throughput
                 self.throughput = newAverageThroughput
                 estimatedTimeRemaining = remainingPortion / newAverageThroughput
-            } else {
+            } else if progressOverLastSecond > 0 {
                 self.throughput = progressOverLastSecond
                 estimatedTimeRemaining = remainingPortion / progressOverLastSecond
+            } else {
+                return
             }
 
-            self.progressEstimateLabel = timeEstimateFormatter.string(from: estimatedTimeRemaining) ?? " "
+            self.progressEstimateLabel = timeEstimateFormatter.string(from: max(estimatedTimeRemaining, 0)) ?? " "
         }
     }
 

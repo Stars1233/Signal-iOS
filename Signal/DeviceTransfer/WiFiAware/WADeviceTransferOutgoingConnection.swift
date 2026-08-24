@@ -17,7 +17,7 @@ class WADeviceTransferOutgoingConnection: DeviceTransfer.OutgoingConnection {
             throw OWSAssertionError("Incompatible peer type encountered")
         }
         let browser = NetworkBrowser(
-            for: .wifiAware(.connecting(to: .allPairedDevices, from: .deviceTransferService)),
+            for: .wifiAware(.connecting(to: .selected([peer.pairedDevice]), from: .deviceTransferService)),
         )
 
         let endpoint = try await browser.run { waEndpoints in
