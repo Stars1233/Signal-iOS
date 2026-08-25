@@ -272,7 +272,7 @@ class AudioCell: MediaTileListModeCell {
             let cvAudioPlayer = AppEnvironment.shared.cvAudioPlayerRef
             cvAudioPlayer.setPlaybackProgress(
                 progress: scrubbedTime,
-                forAttachment: audioItem.referencedAttachment.attachment,
+                forAttachmentID: audioItem.referencedAttachment.attachment.id,
             )
         case .possible, .failed, .cancelled:
             audioMessageView.clearOverrideProgress(animated: false)

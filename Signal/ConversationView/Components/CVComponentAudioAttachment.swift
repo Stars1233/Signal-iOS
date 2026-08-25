@@ -189,7 +189,7 @@ public class CVComponentAudioAttachment: CVComponentBase, CVComponent {
             return true
         }
 
-        if audioAttachment.isDownloaded {
+        if audioAttachment.attachmentStream != nil {
             AppEnvironment.shared.cvAudioPlayerRef.setPlaybackRate(
                 renderItem.itemViewState.audioPlaybackRate,
                 forThreadUniqueId: renderItem.itemModel.thread.uniqueId,
@@ -211,11 +211,10 @@ public class CVComponentAudioAttachment: CVComponentBase, CVComponent {
 
             return true
 
-        } else if audioAttachment.isDownloading, let pointerId = audioAttachment.attachmentPointer?.attachment.id {
-            Logger.debug("Cancelling in-progress download because of user action: \(interaction.uniqueId):\(pointerId)")
+        } else if audioAttachment.isDownloading {
             SSKEnvironment.shared.databaseStorageRef.write { tx in
                 DependenciesBridge.shared.attachmentDownloadManager.cancelDownload(
-                    for: pointerId,
+                    for: audioAttachment.attachment.id,
                     tx: tx,
                 )
             }
@@ -311,7 +310,7 @@ public class CVComponentAudioAttachment: CVComponentBase, CVComponent {
             let scrubbedTime = audioMessageView.scrubToLocation(location)
             AppEnvironment.shared.cvAudioPlayerRef.setPlaybackProgress(
                 progress: scrubbedTime,
-                forAttachment: attachment,
+                forAttachmentID: attachment.id,
             )
         case .possible, .began, .failed, .cancelled:
             audioMessageView.clearOverrideProgress(animated: false)

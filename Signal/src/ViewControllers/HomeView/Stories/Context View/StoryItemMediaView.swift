@@ -1045,7 +1045,7 @@ class StoryItemMediaView: UIView, VideoPlayerDelegate {
     ) -> UIView {
         let progressView = CVAttachmentProgressView(
             direction: .download(
-                attachmentPointer: pointer,
+                attachmentID: pointer.id,
                 downloadState: downloadState,
             ),
             configuration: .forMediaOverlay(),

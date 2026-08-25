@@ -20,6 +20,10 @@ public enum CVAttachment: Equatable {
         return attachment.attachment.contentType
     }
 
+    public var attachmentID: Attachment.IDType {
+        return attachment.attachment.id
+    }
+
     public var attachment: ReferencedAttachment {
         switch self {
         case .stream(let stream, _, _):

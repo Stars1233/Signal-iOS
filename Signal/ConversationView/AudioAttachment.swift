@@ -8,7 +8,7 @@ import Foundation
 public import SignalServiceKit
 
 // Represents a _playable_ audio attachment.
-public class AudioAttachment {
+public class AudioAttachment: Equatable {
     public enum State: Equatable {
         case attachmentStream(
             attachmentStream: ReferencedAttachmentStream,
@@ -109,10 +109,6 @@ public class AudioAttachment {
         self.receivedAtDate = receivedAtDate
         self.owningMessage = owningMessage
     }
-}
-
-extension AudioAttachment {
-    var isDownloaded: Bool { attachmentStream != nil }
 
     public var attachment: Attachment {
         switch state {
@@ -186,9 +182,9 @@ extension AudioAttachment {
         }
         return true
     }
-}
 
-extension AudioAttachment: Equatable {
+    // MARK: - Equatable
+
     public static func ==(lhs: AudioAttachment, rhs: AudioAttachment) -> Bool {
         lhs.state == rhs.state &&
             lhs.owningMessage == rhs.owningMessage &&
