@@ -1135,7 +1135,10 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                 localizedDeviceModel,
                 formattedBytesRequired,
             )
-            actions = [.exitApp]
+            actions = [
+                .submitDebugLogsAndCrash,
+                .exitApp,
+            ]
         }
 
         presentLaunchFailureActionSheet(
