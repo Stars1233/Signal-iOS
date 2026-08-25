@@ -28,8 +28,6 @@ public enum BuildFlags {
 
     public static let failDebug = build <= .internal
 
-    public static let linkedPhones = true
-
     public static let isPrerelease = build <= .beta
 
     public static let shouldUseTestIntervals = build <= .beta
@@ -70,23 +68,12 @@ public enum BuildFlags {
     public static let migrateGroupRefreshedAt = true
 
     public enum KeyTransparency {
-        public static let enabled = true
         public static let conservativeSelfCheck = build <= .internal
     }
-
-    public static let pollOneOnOneSend = true
-
-    public enum AdminDelete {
-        public static let receive = true
-        public static let send = true
-    }
-
-    public static let collapsingChatEvents = true
 
     public static let wifiAwareDeviceTransfer = build <= .internal
 
     public enum ReleaseNotesChannel {
-        public static let announcementFetch = true
         public static let ignoreFetchDelay = build <= .internal
     }
 

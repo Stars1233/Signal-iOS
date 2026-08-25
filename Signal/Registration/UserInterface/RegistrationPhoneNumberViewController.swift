@@ -245,10 +245,7 @@ class RegistrationPhoneNumberViewController: OWSViewController {
             Logger.debug("reregistration")
         }
 
-        if
-            canSwitchToLinking,
-            UIDevice.current.isIPad || BuildFlags.linkedPhones
-        {
+        if canSwitchToLinking {
             actions.insert(UIAction(
                 title: OWSLocalizedString(
                     "LINK_DEVICE_MENU_ACTION",

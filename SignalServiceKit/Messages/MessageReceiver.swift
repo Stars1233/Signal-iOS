@@ -490,11 +490,6 @@ public final class MessageReceiver {
                         }
                     }
                 } else if let adminDelete = dataMessage.adminDelete {
-                    guard BuildFlags.AdminDelete.receive else {
-                        Logger.warn("Dropping admin delete message because build flag is not enabled")
-                        return
-                    }
-
                     let adminDeleteManager = DependenciesBridge.shared.adminDeleteManager
                     let earlyMessageManager = SSKEnvironment.shared.earlyMessageManagerRef
                     guard let groupThread = transcript.threadForDataMessage as? TSGroupThread else {
@@ -1191,11 +1186,6 @@ public final class MessageReceiver {
         }
 
         if let adminDelete = dataMessage.adminDelete {
-            guard BuildFlags.AdminDelete.receive else {
-                Logger.warn("Dropping admin delete message because build flag is not enabled")
-                return nil
-            }
-
             let adminDeleteManager = DependenciesBridge.shared.adminDeleteManager
             guard let groupThread = (thread as? TSGroupThread) else {
                 Logger.error("Couldn't process admin delete for non-group thread")
