@@ -1345,13 +1345,21 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
 
             tx.addSyncCompletion { [self] in
                 Task {
-                    // Kick off avatar fetches enqueued during restore.
-                    try await avatarFetcher.runIfNeeded()
+                    do {
+                        // Kick off avatar fetches enqueued during restore.
+                        try await avatarFetcher.runIfNeeded()
+                    } catch {
+                        logger.error("Failed to fetch avatars: \(error)")
+                    }
                 }
 
                 Task {
-                    // Kick off attachment downloads enqueued during restore.
-                    try await backupAttachmentCoordinator.restoreAttachmentsIfNeeded()
+                    do {
+                        // Kick off attachment downloads enqueued during restore.
+                        try await backupAttachmentCoordinator.restoreAttachmentsIfNeeded()
+                    } catch {
+                        logger.error("Unable to restore remote backup attachments: \(error)")
+                    }
 
                     if BuildFlags.LocalFileBackups.restore {
                         do {

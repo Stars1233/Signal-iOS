@@ -76,7 +76,7 @@ public class AccountAttributesUpdaterImpl: AccountAttributesUpdater {
     private let updateQueue = ConcurrentTaskQueue(concurrentLimit: 1)
 
     private func updateAccountAttributesIfNeeded(authedAccount: AuthedAccount) async throws -> Bool {
-        return try await updateQueue.run {
+        return try await updateQueue.runWithThrowingTask {
             return try await _updateAccountAttributesIfNeeded(authedAccount: authedAccount)
         }
     }

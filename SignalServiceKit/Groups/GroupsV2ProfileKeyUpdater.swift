@@ -176,7 +176,7 @@ class GroupsV2ProfileKeyUpdater {
                 try await withThrowingTaskGroup(of: Void.self) { taskGroup in
                     for groupIdKey in groupIdKeys {
                         _ = taskGroup.addTaskUnlessCancelled {
-                            try await taskQueue.run {
+                            try await taskQueue.runWithThrowingTask {
                                 try Task.checkCancellation()
                                 try await self._tryToUpdateNext(groupIdKey: groupIdKey)
                             }

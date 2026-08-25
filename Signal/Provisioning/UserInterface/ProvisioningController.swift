@@ -481,6 +481,8 @@ class ProvisioningController: NSObject {
                                     return
                                 } catch let innerError as CompleteProvisioningError {
                                     error = innerError
+                                } catch {
+                                    Logger.error("Encountered unexpected error: \(error)")
                                 }
                             } else {
                                 // Crash if this fails; things have gone horribly wrong.
@@ -499,6 +501,8 @@ class ProvisioningController: NSObject {
                                 return
                             } catch let innerError as CompleteProvisioningError {
                                 error = innerError
+                            } catch {
+                                Logger.error("Encountered unexpected error: \(error)")
                             }
                         default:
                             break
@@ -513,6 +517,8 @@ class ProvisioningController: NSObject {
                     if progressViewController.presentedViewController == nil {
                         progressViewController.presentActionSheet(errorActionSheet)
                     }
+                } catch {
+                    Logger.error("Encountered unexpected error: \(error)")
                 }
             }
         } else {

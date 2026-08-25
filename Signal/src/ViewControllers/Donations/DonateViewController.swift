@@ -650,7 +650,7 @@ class DonateViewController: OWSViewController, OWSNavigationChildController {
             fromViewController: self,
             title: CommonStrings.updatingModal,
             canCancel: false,
-            asyncBlock: { modal in
+            asyncBlock: { [self] modal in
                 do {
                     try await DependenciesBridge.shared.donationSubscriptionManager.cancelSubscription(for: subscriberID)
                     modal.dismiss { [weak self] in
@@ -718,7 +718,7 @@ class DonateViewController: OWSViewController, OWSNavigationChildController {
             //
             // Then, we'll show the error.
 
-            navigationController?.popToViewController(self, animated: true) {
+            navigationController?.popToViewController(self, animated: true) { [self] in
                 Task { [weak self] in
                     await self?.loadAndUpdateState()
                     guard let self else { return }

@@ -541,7 +541,7 @@ class BackupSettingsViewController:
         case .free, .paid, .paidExpiringSoon, .paidAsTester: false
         }
 
-        Task {
+        Task { [self] in
             if areBackupsDisabled {
                 guard
                     let aep = db.read(block: { accountKeyStore.getAccountEntropyPool(tx: $0) }),
@@ -1044,6 +1044,8 @@ class BackupSettingsViewController:
                 )
                 actionSheet.addAction(.ok)
                 self?.presentActionSheet(actionSheet)
+            } catch {
+                Logger.error("Unexpected error encountered: \(error)")
             }
         }
     }
@@ -1475,7 +1477,7 @@ class BackupSettingsViewController:
                         )
                     }
                 }),
-                .showCreateNewKey(onPressed: { saveKeyViewController in
+                .showCreateNewKey(onPressed: { [self] saveKeyViewController in
                     Task { [weak self] in
                         guard let self else { return }
 
@@ -1611,7 +1613,7 @@ class BackupSettingsViewController:
             ),
             primaryButton: HeroSheetViewController.Button(
                 title: primaryButtonTitle,
-                action: { sheet in
+                action: { [self] sheet in
                     sheet.dismiss(animated: true) { [weak self] in
                         guard let self else { return }
                         showSaveNewRecoveryKey()

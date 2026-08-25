@@ -223,7 +223,7 @@ class OutgoingDeviceRestorePresenter: OutgoingDeviceRestoreInitialPresenter {
 
             if await pushBackupPropmtViewController(presentingViewController: presentingViewController) {
                 internalNavigationController.dismiss(animated: true)
-                Task { @MainActor in
+                Task { @MainActor [self] in
                     SignalApp.shared.showAppSettings(
                         mode: .backups(
                             page: .remote(

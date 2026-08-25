@@ -277,7 +277,7 @@ public class OWSUDManagerImpl: OWSUDManager {
     }
 
     private func fetchSenderCertificates(forceRefresh: Bool) async throws -> SenderCertificates {
-        return try await fetchQueue.run {
+        return try await fetchQueue.runWithThrowingTask {
             return try await _fetchSenderCertificates(forceRefresh: forceRefresh)
         }
     }

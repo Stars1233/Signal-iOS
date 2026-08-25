@@ -221,7 +221,11 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         if let remoteNotification = launchOptions?[.remoteNotification] as? [AnyHashable: Any] {
             Logger.info("launched in response to an APNs push")
             Task {
-                try await processRemoteNotification(remoteNotification)
+                do {
+                    try await processRemoteNotification(remoteNotification)
+                } catch {
+                    Logger.error("Failed to process remote notification: \(error)")
+                }
             }
         }
 
@@ -327,7 +331,11 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                 // them immediately and never again, so running them redundantly will help
                 // provide coverage for otherwise dead code.
                 if databaseMigratorRunner.startCondition() != .never || databaseMigratorRunner.simulatePriorCancellation() {
-                    try await databaseMigratorRunner.run()
+                    do {
+                        try await databaseMigratorRunner.run()
+                    } catch {
+                        Logger.error("Encountered error during db migration: \(error)")
+                    }
                 }
 #endif
             }
@@ -1630,16 +1638,20 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                 // TODO: Report the actual outcome.
                 completionHandler(.newData)
             }
-            try await withCooperativeTimeout(seconds: 27) {
-                try await self.appReadiness.waitForAppReady()
+            do {
+                try await withCooperativeTimeout(seconds: 27) {
+                    try await self.appReadiness.waitForAppReady()
 
-                // Mark down that the APNS token is working because we got a push.
-                let databaseStorage = SSKEnvironment.shared.databaseStorageRef
-                async let _ = databaseStorage.awaitableWrite { tx in
-                    APNSRotationStore.didReceiveAPNSPush(transaction: tx)
+                    // Mark down that the APNS token is working because we got a push.
+                    let databaseStorage = SSKEnvironment.shared.databaseStorageRef
+                    async let _ = databaseStorage.awaitableWrite { tx in
+                        APNSRotationStore.didReceiveAPNSPush(transaction: tx)
+                    }
+
+                    try await self.processRemoteNotification(userInfo)
                 }
-
-                try await self.processRemoteNotification(userInfo)
+            } catch {
+                Logger.error("Failed to process remote notification: \(error)")
             }
         }
     }

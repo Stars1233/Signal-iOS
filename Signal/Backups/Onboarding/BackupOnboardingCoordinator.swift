@@ -116,7 +116,7 @@ class BackupOnboardingCoordinator {
                 )
             case .local:
                 let optimizeStorageEnabled = isOptimizeLocalStorageEnabled()
-                introViewController = LocalFileBackupOnboardingIntroViewController(onContinue: { fromViewController in
+                introViewController = LocalFileBackupOnboardingIntroViewController(onContinue: { [self] fromViewController in
                     let presentChooseFile: () -> Void = { [self] in
                         fromViewController.present(
                             LocalFileBackupSelectFolderHeroSheetViewController(

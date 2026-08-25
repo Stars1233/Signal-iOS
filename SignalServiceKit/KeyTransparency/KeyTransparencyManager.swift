@@ -163,7 +163,7 @@ public final class KeyTransparencyManager {
     /// Errors are retried internally. Throwing indicates a non-transient
     /// failure.
     public func performCheck(params: CheckParams) async throws {
-        try await taskQueue.run(forKey: params.aciInfo.aci) {
+        try await taskQueue.runWithThrowingTask(forKey: params.aciInfo.aci) {
             let logger = logger.suffixed(with: "[\(params.aciInfo.aci)]")
 
             do {

@@ -271,7 +271,7 @@ public class AttachmentUploadManagerImpl: AttachmentUploadManager {
     public func uploadTransitTierAttachment(attachmentId: Attachment.IDType) async throws {
         let type = UploadType.transitTier
         let uploadId = UploadId(attachmentId: attachmentId, uploadType: type)
-        return try await uploadQueue.run(forKey: uploadId) {
+        return try await uploadQueue.runWithThrowingTask(forKey: uploadId) {
             let result = await Result(catching: {
                 return try await _uploadTransitTierAttachment(attachmentId: attachmentId, type: type)
             })
@@ -329,7 +329,7 @@ public class AttachmentUploadManagerImpl: AttachmentUploadManager {
     ) async throws {
         let type = UploadType.mediaTier(auth: auth, isThumbnail: false)
         let uploadId = UploadId(attachmentId: attachmentId, uploadType: type)
-        return try await uploadQueue.run(forKey: uploadId) {
+        return try await uploadQueue.runWithThrowingTask(forKey: uploadId) {
             return try await _uploadMediaTierAttachment(
                 attachmentId: attachmentId,
                 type: type,
@@ -505,7 +505,7 @@ public class AttachmentUploadManagerImpl: AttachmentUploadManager {
     ) async throws {
         let type = UploadType.mediaTier(auth: auth, isThumbnail: true)
         let uploadId = UploadId(attachmentId: attachmentId, uploadType: type)
-        return try await uploadQueue.run(forKey: uploadId) {
+        return try await uploadQueue.runWithThrowingTask(forKey: uploadId) {
             return try await _uploadMediaTierThumbnailAttachment(
                 attachmentId: attachmentId,
                 type: type,

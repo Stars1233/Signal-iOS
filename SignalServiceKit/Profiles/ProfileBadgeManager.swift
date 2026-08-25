@@ -229,7 +229,7 @@ public class ProfileBadgeManager {
     // MARK: -
 
     public func fetchAssetsIfNecessary(forBadge badge: ProfileBadge) async throws {
-        try await taskQueue.run(forKey: badge.resourcePath) {
+        try await taskQueue.runWithThrowingTask(forKey: badge.resourcePath) {
             try await BadgeAssetsFetcher(badgeAssets: badge.assets)
                 .fetchAssetsIfNecessary()
         }

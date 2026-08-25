@@ -1303,7 +1303,7 @@ public class GroupManager: NSObject {
     /// our profile key credential from the service until we've uploaded a profile
     /// key commitment to the service.
     public static func ensureLocalProfileHasCommitmentIfNecessary() async throws {
-        try await localProfileCommitmentQueue.run {
+        try await localProfileCommitmentQueue.runWithThrowingTask {
             try await _ensureLocalProfileHasCommitmentIfNecessary()
         }
     }

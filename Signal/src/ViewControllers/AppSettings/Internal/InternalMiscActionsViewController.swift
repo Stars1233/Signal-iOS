@@ -59,7 +59,11 @@ class InternalMiscActionsViewController: OWSTableViewController2 {
                         releaseNoteStore: ReleaseNoteStore(),
                     )
                     Task {
-                        try await remoteReleaseNotesFetchingManager.syncRemoteReleaseNotes()
+                        do {
+                            try await remoteReleaseNotesFetchingManager.syncRemoteReleaseNotes()
+                        } catch {
+                            Logger.error("Unable to fetch remote release notes: \(error)")
+                        }
                     }
                 },
             ),

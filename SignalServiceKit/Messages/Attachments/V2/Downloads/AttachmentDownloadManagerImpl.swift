@@ -520,7 +520,11 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
         }
 
         Task { [weak self] in
-            try await self?.queueLoader.loadAndRunTasks()
+            do {
+                try await self?.queueLoader.loadAndRunTasks()
+            } catch {
+                Logger.error("Unable to begin downloading attachments: \(error)")
+            }
         }
     }
 
@@ -1815,7 +1819,7 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
             maxDownloadSizeBytes: UInt64,
             progressBlock: OWSURLSession.ProgressBlock,
         ) async throws -> URL {
-            return try await queue.run {
+            return try await queue.runWithThrowingTask {
                 return try await performDownload(
                     downloadState: downloadState,
                     maxDownloadSizeBytes: maxDownloadSizeBytes,
@@ -1917,7 +1921,7 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
             encryptedFileUrl: URL,
             metadata: DecryptionMetadata,
         ) async throws -> URL {
-            return try await decryptionQueue.run {
+            return try await decryptionQueue.runWithThrowingTask {
                 do {
                     // Transient attachments decrypt to a tmp file.
                     let outputUrl = OWSFileSystem.temporaryFileUrl(
@@ -1944,7 +1948,7 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
         ) async throws -> PendingAttachment {
             let attachmentValidator = self.attachmentValidator
             let stickerManager = self.stickerManager
-            return try await decryptionQueue.run {
+            return try await decryptionQueue.runWithThrowingTask {
                 guard
                     let stickerDataUrl = stickerManager.stickerDataUrl(
                         forInstalledSticker: sticker,
@@ -1999,7 +2003,7 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
             validationMetadata: ValidationMetadata,
         ) async throws -> PendingAttachment {
             let attachmentValidator = self.attachmentValidator
-            return try await decryptionQueue.run {
+            return try await decryptionQueue.runWithThrowingTask {
                 switch validationMetadata {
                 case .transitTier(let mimeType, let attachmentKey, let plaintextLength, let integrityCheck):
                     return try await attachmentValidator.validateDownloadedContents(
@@ -2027,7 +2031,7 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
 
         func prepareQuotedReplyThumbnail(originalAttachmentStream: AttachmentStream) async throws -> PendingAttachment {
             let attachmentValidator = self.attachmentValidator
-            return try await decryptionQueue.run {
+            return try await decryptionQueue.runWithThrowingTask {
                 return try await attachmentValidator.prepareQuotedReplyThumbnail(
                     fromOriginalAttachmentStream: originalAttachmentStream,
                 )

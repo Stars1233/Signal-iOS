@@ -394,7 +394,7 @@ extension ConversationViewController {
                 guard let self else { return }
                 TSInteraction.showDeleteForEveryoneConfirmationIfNecessary(
                     deleteType: deleteType,
-                    completion: {
+                    completion: { [self] in
                         ModalActivityIndicatorViewController.present(
                             fromViewController: self,
                             title: CommonStrings.deletingModal,
@@ -630,7 +630,7 @@ extension ConversationViewController {
                         tx: tx,
                     )
                 }
-                DispatchQueue.main.async {
+                DispatchQueue.main.async { [self] in
                     modal.dismiss { [weak self] in
                         guard let self else { return }
                         self.uiMode = .normal

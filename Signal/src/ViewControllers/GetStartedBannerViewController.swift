@@ -452,7 +452,7 @@ class GetStartedBannerViewController: OWSViewController {
         let cellRegistration = UICollectionView.CellRegistration<UICollectionViewCell, GetStartedCard> { cell, indexPath, card in
             cell.contentConfiguration = GetStartedCardCellContentConfiguration(card: card)
         }
-        dataSource = UICollectionViewDiffableDataSource<Section, GetStartedCard>(collectionView: collectionView) { collectionView, indexPath, card in
+        dataSource = UICollectionViewDiffableDataSource<Section, GetStartedCard>(collectionView: collectionView) { [self] collectionView, indexPath, card in
             let cell = collectionView.dequeueConfiguredReusableCell(
                 using: cellRegistration,
                 for: indexPath,

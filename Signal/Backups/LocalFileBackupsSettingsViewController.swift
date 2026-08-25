@@ -321,6 +321,8 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
                         )
                         actionSheet.addAction(.ok)
                         self?.presentActionSheet(actionSheet)
+                    } catch {
+                        Logger.error("Unexpected error encountered: \(error)")
                     }
                 }
             },

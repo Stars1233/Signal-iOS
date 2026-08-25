@@ -30,9 +30,7 @@ public class OWSSyncManager {
                 if TSAccountManagerObjcBridge.isPrimaryDeviceWithMaybeTransaction {
                     // syncAllContactsIfNecessary will skip if nothing has changed,
                     // so this won't yield redundant traffic.
-                    Task {
-                        try await self.syncAllContactsIfNecessary()
-                    }
+                    self.syncAllContactsIfNecessaryTask(fullSyncRequested: false)
                 } else {
                     self.sendAllSyncRequestMessagesIfNecessary().catch { (_ error: Error) in
                         Logger.error("Error: \(error).")
@@ -48,30 +46,35 @@ public class OWSSyncManager {
         NotificationCenter.default.addObserver(self, selector: #selector(willEnterForeground(_:)), name: .OWSApplicationWillEnterForeground, object: nil)
     }
 
+    private func syncAllContactsIfNecessaryTask(fullSyncRequested: Bool) {
+        Task { @MainActor in
+            do {
+                if fullSyncRequested {
+                    try await self.syncAllContactsIfFullSyncRequested()
+                } else {
+                    try await self.syncAllContactsIfNecessary()
+                }
+            } catch {
+                Logger.debug("Failed to sync contacts: \(error)")
+            }
+        }
+    }
+
     // MARK: - Notifications
 
     @objc
     private func signalAccountsDidChange(_ notification: AnyObject) {
-        AssertIsOnMainThread()
-        Task {
-            try await self.syncAllContactsIfNecessary()
-        }
+        syncAllContactsIfNecessaryTask(fullSyncRequested: false)
     }
 
     @objc
     private func registrationStateDidChange(_ notification: AnyObject) {
-        AssertIsOnMainThread()
-        Task {
-            try await self.syncAllContactsIfNecessary()
-        }
+        syncAllContactsIfNecessaryTask(fullSyncRequested: false)
     }
 
     @objc
     private func willEnterForeground(_ notification: AnyObject) {
-        AssertIsOnMainThread()
-        Task {
-            try await self.syncAllContactsIfFullSyncRequested()
-        }
+        syncAllContactsIfNecessaryTask(fullSyncRequested: true)
     }
 }
 
@@ -267,7 +270,11 @@ extension OWSSyncManager: SyncManagerProtocol, SyncManagerProtocolSwift {
             let pendingTask = MessageReceiver.buildPendingTask()
             Task {
                 defer { pendingTask.complete() }
-                _ = try await SSKEnvironment.shared.profileManagerRef.fetchLocalUsersProfile(authedAccount: .implicit())
+                do {
+                    _ = try await SSKEnvironment.shared.profileManagerRef.fetchLocalUsersProfile(authedAccount: .implicit())
+                } catch {
+                    Logger.error("Failed to fetch local user profile: \(error)")
+                }
             }
         case .storageManifest:
             SSKEnvironment.shared.storageServiceManagerRef.restoreOrCreateManifestIfNecessary(
@@ -434,7 +441,7 @@ extension OWSSyncManager: SyncManagerProtocol, SyncManagerProtocolSwift {
             throw OWSGenericError("Not ready to sync contacts.")
         }
 
-        try await contactSyncQueue.run {
+        try await contactSyncQueue.runWithThrowingTask {
             try await self._syncContacts(mode: mode)
         }
     }

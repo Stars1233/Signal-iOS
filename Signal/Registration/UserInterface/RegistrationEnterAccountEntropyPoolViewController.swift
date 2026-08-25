@@ -99,7 +99,7 @@ class RegistrationEnterAccountEntropyPoolViewController: EnterAccountEntropyPool
             primaryButton: .init(title: OWSLocalizedString(
                 "REGISTRATION_NO_BACKUP_KEY_SKIP_RESTORE_BUTTON_TITLE",
                 comment: "Title for button on sheet for when you don't have a recovery key",
-            )) { [weak self] _ in
+            )) { [weak self, presenter] _ in
                 self?.dismiss(animated: true) { [weak presenter] in
                     presenter?.forgotKeyAction()
                 }

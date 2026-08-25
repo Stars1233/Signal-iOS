@@ -1080,7 +1080,7 @@ public class RemoteConfigManagerImpl: RemoteConfigManager {
     }
 
     public func forceRefresh() async throws {
-        try await refreshTaskQueue.run {
+        try await refreshTaskQueue.runWithThrowingTask {
             do {
                 try await self._refresh()
             } catch {
@@ -1091,7 +1091,7 @@ public class RemoteConfigManagerImpl: RemoteConfigManager {
     }
 
     public func refreshIfNeeded() async throws {
-        try await refreshTaskQueue.run {
+        try await refreshTaskQueue.runWithThrowingTask {
             let nextFetchDate = self.fetchNextFetchDate()
             guard self.dateProvider() > nextFetchDate else {
                 return

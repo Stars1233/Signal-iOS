@@ -1048,7 +1048,7 @@ public class GroupsV2Impl: GroupsV2 {
         avatarUrlPath: String,
         groupV2Params: GroupV2Params,
     ) async throws -> Data {
-        return try await avatarDownloadQueue.run {
+        return try await avatarDownloadQueue.runWithThrowingTask {
             // We throw away decrypted avatars larger than `kMaxEncryptedAvatarSize`.
             return try await GroupsV2AvatarDownloadOperation.run(
                 urlPath: avatarUrlPath,

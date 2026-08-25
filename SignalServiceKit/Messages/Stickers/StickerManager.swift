@@ -287,7 +287,7 @@ public class StickerManager: NSObject {
 
     private func tryToDownloadStickerPack(stickerPackInfo: StickerPackInfo) -> Promise<StickerPackRecord> {
         return Promise.wrapAsync { [packOperationQueue] in
-            return try await packOperationQueue.run {
+            return try await packOperationQueue.runWithThrowingTask {
                 return try await DownloadStickerPackOperation.run(stickerPackInfo: stickerPackInfo)
             }
         }

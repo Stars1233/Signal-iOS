@@ -698,7 +698,7 @@ class ProfileSettingsViewController: OWSTableViewController2 {
             fromViewController: self,
             title: CommonStrings.updatingModal,
             canCancel: false,
-            asyncBlock: { modal in
+            asyncBlock: { [self] modal in
                 let databaseStorage = SSKEnvironment.shared.databaseStorageRef
                 do {
                     let updatePromise = await databaseStorage.awaitableWrite { tx in

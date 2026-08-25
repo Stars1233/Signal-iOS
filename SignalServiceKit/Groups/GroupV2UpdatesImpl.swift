@@ -262,7 +262,7 @@ public class GroupV2UpdatesImpl: GroupV2Updates {
             taskQueue = self.operationQueue
         }
 
-        try await taskQueue.run {
+        try await taskQueue.runWithThrowingTask {
             let isThrottled = { () -> Bool in
                 guard options.contains(.throttle) else {
                     return false

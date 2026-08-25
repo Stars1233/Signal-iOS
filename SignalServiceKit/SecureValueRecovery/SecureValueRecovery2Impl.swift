@@ -73,7 +73,7 @@ public class SecureValueRecovery2Impl: SecureValueRecovery {
 
     public func backUpMasterKey(pin: String, masterKey: MasterKey, authMethod: SVR.AuthMethod) async throws {
         Logger.info("")
-        try await backupQueue.run {
+        try await backupQueue.runWithThrowingTask {
             try await doBackupAndExpose(pin: pin, masterKey: masterKey, authMethod: authMethod)
         }
     }
@@ -585,7 +585,7 @@ public class SecureValueRecovery2Impl: SecureValueRecovery {
     // MARK: - Migrations
 
     public func refreshBackupIfNecessary() async throws {
-        try await backupQueue.run {
+        try await backupQueue.runWithThrowingTask {
             let pin = db.read(block: twoFAManager.pinCode(transaction:))
 
             if let pin {
@@ -647,7 +647,7 @@ public class SecureValueRecovery2Impl: SecureValueRecovery {
             }
         }
 
-        return try await connectionQueue.run {
+        return try await connectionQueue.runWithThrowingTask {
             while true {
                 Logger.info("Opening new connection")
                 do {

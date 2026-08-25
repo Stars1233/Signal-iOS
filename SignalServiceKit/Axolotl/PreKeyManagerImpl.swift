@@ -154,7 +154,7 @@ public class PreKeyManagerImpl: PreKeyManager {
             targets.insert(target: .oneTimePreKey)
             targets.insert(target: .oneTimePqPreKey)
         }
-        try await taskQueue.run {
+        try await taskQueue.runWithThrowingTask {
             try await chatConnectionManager.waitForIdentifiedConnectionToOpen()
             try Task.checkCancellation()
             try await taskManager.refresh(identity: .aci, targets: targets, auth: .implicit())
@@ -199,7 +199,7 @@ public class PreKeyManagerImpl: PreKeyManager {
     public func rotateOneTimePreKeysForRegistration(auth: ChatServiceAuth) async throws {
         logger.info("Rotate one-time prekeys for registration")
 
-        return try await taskQueue.run {
+        return try await taskQueue.runWithThrowingTask {
             try Task.checkCancellation()
             try await taskManager.createOneTimePreKeys(identity: .aci, auth: auth)
             try Task.checkCancellation()
@@ -231,7 +231,7 @@ public class PreKeyManagerImpl: PreKeyManager {
         }
         try await waitUntilNotChangingNumberIfNeeded(targets: targets)
 
-        try await taskQueue.run {
+        try await taskQueue.runWithThrowingTask {
             try Task.checkCancellation()
             try await taskManager.refresh(
                 identity: identity,

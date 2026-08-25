@@ -231,7 +231,7 @@ public class ManageStickersViewController: OWSTableViewController2 {
         }
         contents.add(installedSection)
 
-        let itemForAvailablePack = { (dataSource: StickerPackDataSource) -> OWSTableItem in
+        let itemForAvailablePack = { [self] (dataSource: StickerPackDataSource) -> OWSTableItem in
             OWSTableItem(
                 customCellBlock: { [weak self] in
                     guard let self else {

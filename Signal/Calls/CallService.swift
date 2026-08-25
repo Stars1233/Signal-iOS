@@ -171,7 +171,7 @@ final class CallService: CallServiceStateObserver, CallServiceStateDelegate {
             })
         }
 
-        appReadiness.runNowOrWhenAppWillBecomeReady {
+        appReadiness.runNowOrWhenAppWillBecomeReady { [self] in
             if let localAci = DependenciesBridge.shared.tsAccountManager.localIdentifiersWithMaybeSneakyTransaction?.aci {
                 self.callManager.setSelfUuid(localAci.rawUUID)
             }

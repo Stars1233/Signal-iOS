@@ -90,7 +90,7 @@ class IdentityKeyMismatchManagerImpl: IdentityKeyMismatchManager {
     private let taskQueue = ConcurrentTaskQueue(concurrentLimit: 1)
 
     func validateLocalPniIdentityKeyIfNecessary() async throws {
-        try await taskQueue.run {
+        try await taskQueue.runWithThrowingTask {
             try await _validateLocalPniIdentityKeyIfNecessary()
         }
     }
