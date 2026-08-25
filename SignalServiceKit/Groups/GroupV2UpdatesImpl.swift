@@ -69,6 +69,11 @@ public class GroupV2UpdatesImpl: GroupV2Updates {
                 return TSGroupThread.fetchViaCache(uniqueId: $0, transaction: tx)
             }
 
+            // If there's a group that can be deleted, delete it.
+            if deleteGroupIfNecessary(groupRecord: groupRecord, localIdentifiers: localIdentifiers, tx: tx) {
+                return .skip(reason: "the group is obsolete")
+            }
+
             guard let secretParams = groupRecord.deriveSecretParams() else {
                 markAsRefreshed(groupRecord: &groupRecord, tx: tx)
                 return .skip(reason: "the group has no secret params")
@@ -113,6 +118,50 @@ public class GroupV2UpdatesImpl: GroupV2Updates {
             }
             markAsRefreshed(groupRecord: &groupToReschedule, tx: tx)
         }
+    }
+
+    private func deleteGroupIfNecessary(
+        groupRecord: GroupRecord,
+        localIdentifiers: LocalIdentifiers,
+        tx: DBWriteTransaction,
+    ) -> Bool {
+        let blockingManager = SSKEnvironment.shared.blockingManagerRef
+        let recipientStore = DependenciesBridge.shared.recipientDatabaseTable
+        let storageServiceManager = SSKEnvironment.shared.storageServiceManagerRef
+
+        // Keep the record...
+
+        // if we have a thread
+        if groupRecord.threadId != nil {
+            return false
+        }
+        // if the group is blocked
+        if blockingManager.isGroupIdBlocked_deprecated(groupRecord.groupId, tx: tx) {
+            return false
+        }
+        // if we have any linked devices
+        let localRecipient = recipientStore.fetchRecipient(serviceId: localIdentifiers.aci, transaction: tx)
+        let localDeviceIds = localRecipient?.deviceIds ?? []
+        if localDeviceIds.contains(where: { $0 != .primary }) {
+            return false
+        }
+        // if the group is being restored
+        if
+            let masterKey = groupRecord.masterKey,
+            GroupsV2Impl.isGroupEnqueuedForRestore(masterKey: masterKey, tx: tx)
+        {
+            return false
+        }
+
+        // Delete the record
+        failIfThrows {
+            try groupRecord.delete(tx.database)
+        }
+        // and queue up a deletion in storage service as well
+        if let masterKey = groupRecord.masterKey {
+            storageServiceManager.recordPendingUpdates(updatedGroupV2MasterKeys: [masterKey])
+        }
+        return true
     }
 
     private func markAsRefreshed(groupRecord: inout GroupRecord, tx: DBWriteTransaction) {

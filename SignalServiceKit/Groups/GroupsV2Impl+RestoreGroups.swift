@@ -21,6 +21,14 @@ public extension GroupsV2Impl {
     // Values are irrelevant (bools).
     private static let failedStorageServiceGroupMasterKeys = NewKeyValueStore(collection: "GroupsV2Impl.groupsFromStorageService_Failed")
 
+    internal static func isGroupEnqueuedForRestore(masterKey: GroupMasterKey, tx: DBReadTransaction) -> Bool {
+        let key = restoreGroupKey(forMasterKeyData: masterKey.serialize())
+        if storageServiceGroupsToRestore.fetchValue(Data.self, forKey: key, tx: tx) != nil {
+            return true
+        }
+        return legacyStorageServiceGroupsToRestore.fetchValue(Data.self, forKey: key, tx: tx) != nil
+    }
+
     static func enqueuedGroupRecordForRestore(
         masterKeyData: Data,
         transaction: DBReadTransaction,
