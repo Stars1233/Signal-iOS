@@ -48,6 +48,7 @@ public class AppEnvironment: NSObject {
     private(set) var provisioningManager: ProvisioningManager!
     private(set) var quickRestoreManager: QuickRestoreManager!
     private var registrationIdMismatchManager: RegistrationIdMismatchManager!
+    private(set) var senderKeyExpirationJob: SenderKeyExpirationJob!
 
     init(appReadiness: AppReadiness, deviceTransferRestore: DeviceTransferRestore) {
         self.cvAudioPlayerRef = CVAudioPlayer()
@@ -214,6 +215,14 @@ public class AppEnvironment: NSObject {
             db: DependenciesBridge.shared.db,
             tsAccountManager: DependenciesBridge.shared.tsAccountManager,
             udManager: SSKEnvironment.shared.udManagerRef,
+        )
+
+        self.senderKeyExpirationJob = SenderKeyExpirationJob(
+            dateProvider: Date.provider,
+            db: DependenciesBridge.shared.db,
+            deletionType: .thisDevice,
+            remoteConfigProvider: SSKEnvironment.shared.remoteConfigManagerRef,
+            senderKeyStore: DependenciesBridge.shared.senderKeyStore,
         )
 
         // MARK: Set up Cron jobs

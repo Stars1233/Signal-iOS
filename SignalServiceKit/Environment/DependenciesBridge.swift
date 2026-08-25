@@ -179,6 +179,7 @@ public class DependenciesBridge {
     public let signalProtocolStoreManager: SignalProtocolStoreManager
     public let svr: SecureValueRecovery
     public let svrAuthCredentialManager: SVRAuthCredentialManager
+    public let senderKeyStore: SenderKeyStore
     public let storageServiceRecordIkmMigrator: StorageServiceRecordIkmMigrator
     public let storyMessageExpirationJob: StoryMessageExpirationJob
     public let storyRecipientManager: StoryRecipientManager
@@ -326,6 +327,7 @@ public class DependenciesBridge {
         remoteReleaseNotesService: any RemoteReleaseNotesServiceProtocol,
         searchableNameIndexer: SearchableNameIndexer,
         senderKeySendingManager: SenderKeySendingManager,
+        senderKeyStore: SenderKeyStore,
         sentMessageTranscriptReceiver: SentMessageTranscriptReceiver,
         signalProtocolStoreManager: SignalProtocolStoreManager,
         storageServiceRecordIkmMigrator: StorageServiceRecordIkmMigrator,
@@ -477,6 +479,7 @@ public class DependenciesBridge {
         self.remoteReleaseNotesService = remoteReleaseNotesService
         self.searchableNameIndexer = searchableNameIndexer
         self.senderKeySendingManager = senderKeySendingManager
+        self.senderKeyStore = senderKeyStore
         self.sentMessageTranscriptReceiver = sentMessageTranscriptReceiver
         self.signalProtocolStoreManager = signalProtocolStoreManager
         self.storageServiceRecordIkmMigrator = storageServiceRecordIkmMigrator

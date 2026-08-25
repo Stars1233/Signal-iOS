@@ -1059,11 +1059,12 @@ extension AppSetup.GlobalsContinuation {
 
         let keyTransparencyStore = KeyTransparencyStore()
 
+        let senderKeyStore = SenderKeyStore()
         let senderKeyManager = SenderKeyManager(
             oldSenderKeyStore: OldSenderKeyStore(),
             recipientFetcher: recipientFetcher,
             recipientStore: recipientDatabaseTable,
-            senderKeyStore: SenderKeyStore(),
+            senderKeyStore: senderKeyStore,
             sessionStore: sessionStore,
         )
         let senderKeySendingManager = SenderKeySendingManager(
@@ -1905,6 +1906,7 @@ extension AppSetup.GlobalsContinuation {
             remoteReleaseNotesService: remoteReleaseNotesService,
             searchableNameIndexer: searchableNameIndexer,
             senderKeySendingManager: senderKeySendingManager,
+            senderKeyStore: senderKeyStore,
             sentMessageTranscriptReceiver: sentMessageTranscriptReceiver,
             signalProtocolStoreManager: signalProtocolStoreManager,
             storageServiceRecordIkmMigrator: storageServiceRecordIkmMigrator,
