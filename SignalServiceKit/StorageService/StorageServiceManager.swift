@@ -31,6 +31,9 @@ public protocol StorageServiceManager {
     func recordPendingUpdates(callLinkRootKeys: [CallLinkRootKey])
     func recordPendingLocalAccountUpdates()
 
+    /// Marks `groupMasterKeys` as needing an update if they don't yet exist.
+    func recordPendingInsertions(forGroupMasterKeys groupMasterKeys: [GroupMasterKey])
+
     func backupPendingChanges(authedDevice: AuthedDevice)
 
     @discardableResult
@@ -536,6 +539,10 @@ public class StorageServiceManagerImpl: NSObject, StorageServiceManager {
         updatePendingMutations { $0.updatedGroupV2MasterKeys.formUnion(updatedGroupV2MasterKeys.map { $0.serialize() }) }
     }
 
+    public func recordPendingInsertions(forGroupMasterKeys groupMasterKeys: [GroupMasterKey]) {
+        updatePendingMutations { $0.insertedGroupMasterKeys.formUnion(groupMasterKeys.map { $0.serialize() }) }
+    }
+
     @objc
     public func recordPendingUpdates(updatedStoryDistributionListIds: [Data]) {
         updatePendingMutations { $0.updatedStoryDistributionListIds.formUnion(updatedStoryDistributionListIds) }
@@ -705,6 +712,7 @@ private struct PendingMutations {
     var updatedRecipientUniqueIds = Set<RecipientUniqueId>()
     var updatedServiceIds = Set<ServiceId>()
     var updatedGroupV2MasterKeys = Set<Data>()
+    var insertedGroupMasterKeys = Set<Data>()
     var updatedStoryDistributionListIds = Set<Data>()
     var updatedCallLinkRootKeys = Set<Data>()
     var updatedLocalAccount = false
@@ -715,6 +723,7 @@ private struct PendingMutations {
                 || !updatedRecipientUniqueIds.isEmpty
                 || !updatedServiceIds.isEmpty
                 || !updatedGroupV2MasterKeys.isEmpty
+                || !insertedGroupMasterKeys.isEmpty
                 || !updatedStoryDistributionListIds.isEmpty
                 || !updatedCallLinkRootKeys.isEmpty
 
@@ -906,7 +915,7 @@ class StorageServiceOperation {
             Recording pending mutations (\
             Account: \(pendingMutations.updatedLocalAccount); \
             Contacts: \(allRecipientUniqueIds.count); \
-            GV2: \(pendingMutations.updatedGroupV2MasterKeys.count); \
+            GV2: \(pendingMutations.updatedGroupV2MasterKeys.count) + \(pendingMutations.insertedGroupMasterKeys.count); \
             DLists: \(pendingMutations.updatedStoryDistributionListIds.count); \
             CLinks: \(pendingMutations.updatedCallLinkRootKeys.count))
             """,
@@ -918,6 +927,13 @@ class StorageServiceOperation {
 
         allRecipientUniqueIds.forEach {
             state.accountIdChangeMap[$0] = .updated
+        }
+
+        pendingMutations.insertedGroupMasterKeys.forEach {
+            if state.groupV2MasterKeyToIdentifierMap[$0] != nil {
+                return
+            }
+            state.groupV2ChangeMap[$0] = .updated
         }
 
         pendingMutations.updatedGroupV2MasterKeys.forEach {

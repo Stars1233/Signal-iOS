@@ -17,6 +17,7 @@ private class MockStorageServiceManager: StorageServiceManager {
     func recordPendingUpdates(updatedRecipientUniqueIds: [RecipientUniqueId]) {}
     func recordPendingUpdates(updatedAddresses: [SignalServiceAddress]) {}
     func recordPendingUpdates(updatedGroupV2MasterKeys: [GroupMasterKey]) {}
+    func recordPendingInsertions(forGroupMasterKeys groupMasterKeys: [GroupMasterKey]) {}
     func recordPendingUpdates(updatedStoryDistributionListIds: [Data]) {}
     func recordPendingUpdates(callLinkRootKeys: [CallLinkRootKey]) {}
     func recordPendingLocalAccountUpdates() {}

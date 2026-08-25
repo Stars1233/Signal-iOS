@@ -1189,14 +1189,8 @@ public class GroupManager: NSObject {
     // MARK: - Storage Service
 
     private static func notifyStorageServiceOfInsertedGroup(secretParams: GroupSecretParams, tx: DBReadTransaction) {
-        if GroupsV2Impl.isGroupKnownToStorageService(secretParams: secretParams, tx: tx) {
-            // To avoid redundant storage service writes, don't bother notifying the
-            // storage service about v2 groups it already knows about.
-            return
-        }
-
         let masterKey = failIfThrows { try secretParams.getMasterKey() }
-        SSKEnvironment.shared.storageServiceManagerRef.recordPendingUpdates(updatedGroupV2MasterKeys: [masterKey])
+        SSKEnvironment.shared.storageServiceManagerRef.recordPendingInsertions(forGroupMasterKeys: [masterKey])
     }
 
     // MARK: - Profiles

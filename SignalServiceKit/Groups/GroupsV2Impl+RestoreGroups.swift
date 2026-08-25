@@ -10,11 +10,6 @@ public extension GroupsV2Impl {
 
     // MARK: - Restore Groups
 
-    // A list of all groups we've learned of from the storage service.
-    //
-    // Values are irrelevant (bools).
-    private static let allStorageServiceGroupMasterKeys = NewKeyValueStore(collection: "GroupsV2Impl.groupsFromStorageService_All")
-
     // A list of the groups we need to try to restore. Values are serialized GroupV2Records.
     private static let storageServiceGroupsToRestore = NewKeyValueStore(collection: "GroupsV2Impl.groupsFromStorageService_EnqueuedRecordForRestore")
 
@@ -25,12 +20,6 @@ public extension GroupsV2Impl {
     //
     // Values are irrelevant (bools).
     private static let failedStorageServiceGroupMasterKeys = NewKeyValueStore(collection: "GroupsV2Impl.groupsFromStorageService_Failed")
-
-    internal static func isGroupKnownToStorageService(secretParams: GroupSecretParams, tx: DBReadTransaction) -> Bool {
-        let masterKey = failIfThrows { try secretParams.getMasterKey() }
-        let key = restoreGroupKey(forMasterKeyData: masterKey.serialize())
-        return allStorageServiceGroupMasterKeys.fetchValue(Bool.self, forKey: key, tx: tx) != nil
-    }
 
     static func enqueuedGroupRecordForRestore(
         masterKeyData: Data,
@@ -53,10 +42,6 @@ public extension GroupsV2Impl {
         }
 
         let key = restoreGroupKey(forMasterKeyData: groupRecord.masterKey)
-
-        if allStorageServiceGroupMasterKeys.fetchValue(Bool.self, forKey: key, tx: transaction) == nil {
-            allStorageServiceGroupMasterKeys.writeValue(true, forKey: key, tx: transaction)
-        }
 
         guard failedStorageServiceGroupMasterKeys.fetchValue(Bool.self, forKey: key, tx: transaction) == nil else {
             // Past restore attempts failed in an unrecoverable way.
