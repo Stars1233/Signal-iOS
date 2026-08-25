@@ -26,21 +26,6 @@ class WADeviceTransferIncomingConnection: DeviceTransfer.IncomingConnection {
     }
 
     func waitForConnection() async throws -> any DeviceTransfer.Session {
-        let listener = try NetworkListener(
-            for: .wifiAware(.connecting(to: .deviceTransferService, from: .allPairedDevices)),
-            using: .parameters {
-                Coder(
-                    receiving: WiFiAware.NetworkEvent.self,
-                    sending: WiFiAware.NetworkEvent.self,
-                    using: NetworkJSONCoder(),
-                ) {
-                    TCP().keepalive(idleTimeInSeconds: 10, count: 30, intervalInSeconds: 5)
-                }
-            }
-            .wifiAware { $0.performanceMode = WiFiAware.Constants.appPerformanceMode }
-            .serviceClass(WiFiAware.Constants.appServiceClass),
-        )
-
         return try await withCheckedThrowingContinuation { continuation in
             self.connectionContinuation = continuation
             connectionTask = Task {
@@ -48,7 +33,20 @@ class WADeviceTransferIncomingConnection: DeviceTransfer.IncomingConnection {
                     while true {
                         try Task.checkCancellation()
                         do {
-                            try await listener.run { connection in
+                            try await NetworkListener(
+                                for: .wifiAware(.connecting(to: .deviceTransferService, from: .allPairedDevices)),
+                                using: .parameters {
+                                    Coder(
+                                        receiving: WiFiAware.NetworkEvent.self,
+                                        sending: WiFiAware.NetworkEvent.self,
+                                        using: NetworkJSONCoder(),
+                                    ) {
+                                        TCP().keepalive(idleTimeInSeconds: 10, count: 30, intervalInSeconds: 5)
+                                    }
+                                }
+                                .wifiAware { $0.performanceMode = WiFiAware.Constants.appPerformanceMode }
+                                .serviceClass(WiFiAware.Constants.appServiceClass),
+                            ).run { connection in
                                 self.connectionContinuation.take()?.resume(
                                     returning: try WADeviceTransferSession(connection: connection),
                                 )
