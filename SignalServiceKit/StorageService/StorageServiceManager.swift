@@ -1514,14 +1514,20 @@ class StorageServiceOperation {
         // is happening (potentially a bug on the service or a race with another
         // app). Give up and wait until the next backup runs.
         guard state.consecutiveConflicts <= StorageServiceOperation.maxConsecutiveConflicts else {
-            owsFailDebug("unexpectedly have had numerous repeated conflicts")
-
             // Clear out the consecutive conflicts count so we can try again later.
             await SSKEnvironment.shared.databaseStorageRef.awaitableWrite { transaction in
                 state.save(clearConsecutiveConflicts: true, transaction: transaction)
             }
 
-            throw OWSAssertionError("exceeded max consecutive conflicts, creating a new manifest")
+            throw OWSAssertionError("Exceeded max consecutive conflicts; giving up until next operation.")
+        }
+
+        // Guard against "rolling back" to an earlier manifest version by merging
+        // a version lower than what we're already aware of. This should never
+        // happen: we always increment the manifest version, even if we're
+        // recovering from a decryption error.
+        guard manifest.version >= state.manifestVersion else {
+            throw OWSAssertionError("Refusing to merge storage manifest version \(manifest.version) lower than local version \(state.manifestVersion).")
         }
 
         let allManifestItems: Set<StorageService.StorageIdentifier> = Set(manifest.keys.lazy.map {
