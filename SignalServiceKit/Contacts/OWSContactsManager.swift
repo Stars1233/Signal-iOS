@@ -273,18 +273,18 @@ extension OWSContactsManager: ContactManager {
             owsFailDebug("Missing localAddress.")
             return false
         }
-        let otherGroupThreadIds = TSGroupThread.groupThreadIds(with: otherAddress, transaction: tx)
-        guard !otherGroupThreadIds.isEmpty else {
+        let otherGroupThreadUniqueIds = TSGroupThread.groupThreadUniqueIds(withFullMember: otherAddress, tx: tx)
+        guard !otherGroupThreadUniqueIds.isEmpty else {
             return false
         }
-        let localGroupThreadIds = TSGroupThread.groupThreadIds(with: localAddress, transaction: tx)
-        let groupThreadIds = Set(otherGroupThreadIds).intersection(localGroupThreadIds)
+        let localGroupThreadUniqueIds = TSGroupThread.groupThreadUniqueIds(withFullMember: localAddress, tx: tx)
+        let groupThreadUniqueIds = Set(otherGroupThreadUniqueIds).intersection(localGroupThreadUniqueIds)
 
         var isInOneWhitelistedGroup = false
         let onlyNeedToCheckForOneMutualGroup = !requireMultipleMutualGroups
 
-        for groupThreadId in groupThreadIds {
-            guard let groupThread = TSGroupThread.fetchGroupThreadViaCache(uniqueId: groupThreadId, transaction: tx) else {
+        for groupThreadUniqueId in groupThreadUniqueIds {
+            guard let groupThread = TSGroupThread.fetchGroupThreadViaCache(uniqueId: groupThreadUniqueId, transaction: tx) else {
                 owsFailDebug("Missing group thread")
                 continue
             }

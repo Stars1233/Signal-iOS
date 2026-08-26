@@ -99,7 +99,7 @@ class GroupMemberUpdaterImpl: GroupMemberUpdater {
                 // It needs to be updated, so copy fields from the removed group member.
                 groupMembersToInsert.append(TSGroupMember(
                     address: newAddress,
-                    groupThreadId: groupThreadId,
+                    threadUniqueId: groupThreadId,
                     lastInteractionTimestamp: groupMember.lastInteractionTimestamp,
                 ))
             }
@@ -119,7 +119,7 @@ class GroupMemberUpdaterImpl: GroupMemberUpdater {
             )
             groupMembersToInsert.append(TSGroupMember(
                 address: newAddress,
-                groupThreadId: groupThreadId,
+                threadUniqueId: groupThreadId,
                 lastInteractionTimestamp: latestInteractionTimestamp ?? 0,
             ))
         }

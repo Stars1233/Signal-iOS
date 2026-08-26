@@ -42,7 +42,7 @@ public extension TSInfoMessage {
             saveProfileUpdateMessage(thread: contactThread)
         }
 
-        for groupThread in TSGroupThread.groupThreads(with: address, transaction: transaction) {
+        for groupThread in TSGroupThread.groupThreads(withFullMember: address, tx: transaction) {
             guard
                 groupThread.groupModel.groupMembership.isLocalUserFullMember,
                 groupThread.shouldThreadBeVisible,

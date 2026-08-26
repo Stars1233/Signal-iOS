@@ -94,7 +94,7 @@ public final class BackupArchiveThreadStore {
         for aci in acis {
             let groupMember = TSGroupMember(
                 address: NormalizedDatabaseRecordAddress(aci: aci),
-                groupThreadId: groupThread.uniqueId,
+                threadUniqueId: groupThread.uniqueId,
                 // This gets updated in post frame restore actions.
                 lastInteractionTimestamp: 0,
             )

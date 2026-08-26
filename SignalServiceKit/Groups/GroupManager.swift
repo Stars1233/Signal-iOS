@@ -1145,11 +1145,9 @@ public class GroupManager: NSObject {
         localAci: Aci,
         tx: DBReadTransaction,
     ) -> [TSGroupThread] {
-        return DependenciesBridge.shared.groupMemberStore
-            .groupThreadIds(
-                withFullMember: member,
-                tx: tx,
-            )
+        let groupMemberStore = DependenciesBridge.shared.groupMemberStore
+        return groupMemberStore
+            .groupThreadUniqueIds(withFullMember: member, tx: tx)
             .lazy
             .compactMap { groupThreadId in
                 return TSGroupThread.fetchGroupThreadViaCache(uniqueId: groupThreadId, transaction: tx)

@@ -5646,7 +5646,7 @@ public class GRDBSchemaMigrator {
                     )
                     let memberRecord = TSGroupMember(
                         address: newAddress,
-                        groupThreadId: groupThread.uniqueId,
+                        threadUniqueId: groupThread.uniqueId,
                         lastInteractionTimestamp: latestInteraction?.timestamp ?? 0,
                     )
                     memberRecord.anyInsert(transaction: transaction)

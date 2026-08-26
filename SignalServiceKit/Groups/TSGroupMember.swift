@@ -34,7 +34,7 @@ public final class TSGroupMember: NSObject, SDSCodableModel, Decodable {
         case id
         case recordType
         case uniqueId
-        case groupThreadId
+        case threadUniqueId = "groupThreadId"
         case phoneNumber
         case serviceId = "uuidString"
         case lastInteractionTimestamp
@@ -44,18 +44,18 @@ public final class TSGroupMember: NSObject, SDSCodableModel, Decodable {
     public let uniqueId: String
     public let serviceId: ServiceId?
     public let phoneNumber: String?
-    public let groupThreadId: String
+    public let threadUniqueId: String
     public private(set) var lastInteractionTimestamp: UInt64
 
     public init(
         address: NormalizedDatabaseRecordAddress,
-        groupThreadId: String,
+        threadUniqueId: String,
         lastInteractionTimestamp: UInt64,
     ) {
         self.uniqueId = UUID().uuidString
         self.serviceId = address.serviceId
         self.phoneNumber = address.phoneNumber
-        self.groupThreadId = groupThreadId
+        self.threadUniqueId = threadUniqueId
         self.lastInteractionTimestamp = lastInteractionTimestamp
     }
 
@@ -65,7 +65,7 @@ public final class TSGroupMember: NSObject, SDSCodableModel, Decodable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decodeIfPresent(RowId.self, forKey: .id)
         uniqueId = try container.decode(String.self, forKey: .uniqueId)
-        groupThreadId = try container.decode(String.self, forKey: .groupThreadId)
+        threadUniqueId = try container.decode(String.self, forKey: .threadUniqueId)
         serviceId = try container.decodeIfPresent(String.self, forKey: .serviceId)
             .flatMap { try? ServiceId.parseFrom(serviceIdString: $0) }
         phoneNumber = try container.decodeIfPresent(String.self, forKey: .phoneNumber)
@@ -77,7 +77,7 @@ public final class TSGroupMember: NSObject, SDSCodableModel, Decodable {
         try container.encodeIfPresent(id, forKey: .id)
         try container.encode(0, forKey: .recordType)
         try container.encode(uniqueId, forKey: .uniqueId)
-        try container.encode(groupThreadId, forKey: .groupThreadId)
+        try container.encode(threadUniqueId, forKey: .threadUniqueId)
         try container.encodeIfPresent(serviceId?.serviceIdUppercaseString, forKey: .serviceId)
         try container.encodeIfPresent(phoneNumber, forKey: .phoneNumber)
         try container.encode(lastInteractionTimestamp, forKey: .lastInteractionTimestamp)
@@ -112,7 +112,7 @@ public final class TSGroupMember: NSObject, SDSCodableModel, Decodable {
             WHERE (\(columnName(.serviceId)) = ? OR \(columnName(.serviceId)) IS NULL)
             AND (\(columnName(.phoneNumber)) = ? OR \(columnName(.phoneNumber)) IS NULL)
             AND NOT (\(columnName(.serviceId)) IS NULL AND \(columnName(.phoneNumber)) IS NULL)
-            AND \(columnName(.groupThreadId)) = ?
+            AND \(columnName(.threadUniqueId)) = ?
             LIMIT 1
         """
 
@@ -132,7 +132,7 @@ public final class TSGroupMember: NSObject, SDSCodableModel, Decodable {
     ) throws -> TSGroupMember? {
         return try TSGroupMember
             .filter(Column(CodingKeys.serviceId) == aci.serviceIdUppercaseString)
-            .filter(Column(CodingKeys.groupThreadId) == groupThread.uniqueId)
+            .filter(Column(CodingKeys.threadUniqueId) == groupThread.uniqueId)
             .fetchOne(tx.database)
     }
 }
@@ -140,12 +140,9 @@ public final class TSGroupMember: NSObject, SDSCodableModel, Decodable {
 // MARK: -
 
 public extension TSGroupThread {
-    class func groupThreads(
-        with address: SignalServiceAddress,
-        transaction: DBReadTransaction,
-    ) -> [TSGroupThread] {
+    class func groupThreads(withFullMember address: SignalServiceAddress, tx: DBReadTransaction) -> [TSGroupThread] {
         let sql = """
-            SELECT \(TSGroupMember.columnName(.groupThreadId)) FROM \(TSGroupMember.databaseTableName)
+            SELECT \(TSGroupMember.columnName(.threadUniqueId)) FROM \(TSGroupMember.databaseTableName)
             WHERE (\(TSGroupMember.columnName(.serviceId)) = ? OR \(TSGroupMember.columnName(.serviceId)) IS NULL)
             AND (\(TSGroupMember.columnName(.phoneNumber)) = ? OR \(TSGroupMember.columnName(.phoneNumber)) IS NULL)
             AND NOT (\(TSGroupMember.columnName(.serviceId)) IS NULL AND \(TSGroupMember.columnName(.phoneNumber)) IS NULL)
@@ -156,7 +153,7 @@ public extension TSGroupThread {
             var groupThreads = [TSGroupThread]()
 
             let cursor = try String.fetchCursor(
-                transaction.database,
+                tx.database,
                 sql: sql,
                 arguments: [address.serviceIdUppercaseString, address.phoneNumber],
             )
@@ -165,7 +162,7 @@ public extension TSGroupThread {
                 guard
                     let groupThread = TSGroupThread.fetchGroupThreadViaCache(
                         uniqueId: groupThreadId,
-                        transaction: transaction,
+                        transaction: tx,
                     )
                 else {
                     owsFailDebug("Missing group thread")
@@ -179,12 +176,9 @@ public extension TSGroupThread {
         }
     }
 
-    class func groupThreadIds(
-        with address: SignalServiceAddress,
-        transaction tx: DBReadTransaction,
-    ) -> [String] {
+    class func groupThreadUniqueIds(withFullMember address: SignalServiceAddress, tx: DBReadTransaction) -> [String] {
         let sql = """
-            SELECT \(TSGroupMember.columnName(.groupThreadId))
+            SELECT \(TSGroupMember.columnName(.threadUniqueId))
             FROM \(TSGroupMember.databaseTableName)
             WHERE (\(TSGroupMember.columnName(.serviceId)) = ? OR \(TSGroupMember.columnName(.serviceId)) IS NULL)
             AND (\(TSGroupMember.columnName(.phoneNumber)) = ? OR \(TSGroupMember.columnName(.phoneNumber)) IS NULL)

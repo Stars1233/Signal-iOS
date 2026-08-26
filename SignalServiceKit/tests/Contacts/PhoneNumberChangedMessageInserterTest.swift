@@ -51,7 +51,7 @@ class PhoneNumberChangedMessageInserterTest: XCTestCase {
                     groupMemberStore.insert(
                         fullGroupMember: TSGroupMember(
                             address: NormalizedDatabaseRecordAddress(address: fullMemberAddress)!,
-                            groupThreadId: thread.uniqueId,
+                            threadUniqueId: thread.uniqueId,
                             lastInteractionTimestamp: 0,
                         ),
                         tx: tx,

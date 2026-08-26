@@ -127,8 +127,8 @@ class CallLinkApprovalRequestDetailsSheet: OWSTableSheetViewController {
             ) != nil
 
             let mutualThreads = TSGroupThread.groupThreads(
-                with: self.approvalRequest.address,
-                transaction: tx,
+                withFullMember: self.approvalRequest.address,
+                tx: tx,
             )
             .filter(\.groupModel.groupMembership.isLocalUserFullMember)
             .filter(\.shouldThreadBeVisible)

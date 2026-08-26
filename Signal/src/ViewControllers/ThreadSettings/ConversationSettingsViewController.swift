@@ -970,8 +970,8 @@ class ConversationSettingsViewController: OWSTableViewController2, BadgeCollecti
         guard let contactThread = thread as? TSContactThread else { return }
         self.hasGroupThreads = ThreadFinder().existsGroupThread(transaction: tx)
         self.mutualGroupThreads = TSGroupThread.groupThreads(
-            with: contactThread.contactAddress,
-            transaction: tx,
+            withFullMember: contactThread.contactAddress,
+            tx: tx,
         ).filter { $0.groupModel.groupMembership.isLocalUserFullMember && $0.shouldThreadBeVisible && !$0.isTerminatedGroup }
     }
 

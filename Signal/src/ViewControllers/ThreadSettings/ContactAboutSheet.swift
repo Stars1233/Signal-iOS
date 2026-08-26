@@ -383,8 +383,8 @@ class ContactAboutSheet: StackSheetViewController {
         }
 
         mutualGroupThreads = TSGroupThread.groupThreads(
-            with: self.thread.contactAddress,
-            transaction: tx,
+            withFullMember: self.thread.contactAddress,
+            tx: tx,
         )
         .filter(\.groupModel.groupMembership.isLocalUserFullMember)
         .filter(\.shouldThreadBeVisible)
