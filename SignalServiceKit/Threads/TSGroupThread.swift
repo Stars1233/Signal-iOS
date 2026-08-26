@@ -142,6 +142,19 @@ open class TSGroupThread: TSThread {
         return OWSLocalizedString("NEW_GROUP_DEFAULT_TITLE", comment: "")
     }
 
+    func canBeDeleted(localIdentifiers: LocalIdentifiers) -> Bool {
+        if self.isGroupV2Thread, !self.isTerminatedGroup {
+            let groupMembership = self.groupModel.groupMembership
+            if groupMembership.isMemberOfAnyKind(localIdentifiers.aci) {
+                return false
+            }
+            if let pni = localIdentifiers.pni, groupMembership.isMemberOfAnyKind(pni) {
+                return false
+            }
+        }
+        return BuildFlags.hardDeleteGroupThreads
+    }
+
     override open func anyWillInsert(transaction: DBWriteTransaction) {
         super.anyWillInsert(transaction: transaction)
         updateGroupMemberRecords(transaction: transaction)

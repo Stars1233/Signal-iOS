@@ -119,6 +119,10 @@ public struct GroupRecord: Codable, FetchableRecord, PersistableRecord {
         failIfThrows { try self.update(tx.database) }
     }
 
+    mutating func clearThreadId() {
+        self.threadId = nil
+    }
+
     mutating func setRefreshedAt(_ refreshedAt: Date, tx: DBWriteTransaction) {
         self.refreshedAt = Int64(refreshedAt.timeIntervalSince1970)
         failIfThrows { try self.update(tx.database) }

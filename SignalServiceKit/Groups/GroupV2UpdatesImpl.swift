@@ -61,12 +61,19 @@ public class GroupV2UpdatesImpl: GroupV2Updates {
                 return .skip(reason: "the group has disappeared")
             }
 
-            let groupThread = groupRecord.threadId.map {
+            var groupThread = groupRecord.threadId.map {
                 // If we have a FOREIGN KEY to a TSThread, that thread must exist.
                 return TSGroupThread.threadUniqueId(forThreadId: $0, tx: tx).owsFailUnwrap("must exist")
             }.flatMap {
                 // However, that thread might not be a TSGroupThread, so this may fail.
                 return TSGroupThread.fetchViaCache(uniqueId: $0, transaction: tx)
+            }
+
+            // If there's a thread that can be deleted, delete it.
+            if deleteThreadIfNecessary(groupThread: groupThread, localIdentifiers: localIdentifiers, tx: tx) {
+                groupThread = nil
+                groupRecord.clearThreadId()
+                Logger.info("deleted thread for group \(groupIdData.hexadecimalString)")
             }
 
             // If there's a group that can be deleted, delete it.
@@ -118,6 +125,38 @@ public class GroupV2UpdatesImpl: GroupV2Updates {
             }
             markAsRefreshed(groupRecord: &groupToReschedule, tx: tx)
         }
+    }
+
+    private func deleteThreadIfNecessary(
+        groupThread: TSGroupThread?,
+        localIdentifiers: LocalIdentifiers,
+        tx: DBWriteTransaction,
+    ) -> Bool {
+        let threadDeletionManager = DependenciesBridge.shared.threadDeletionManager
+
+        guard let groupThread else {
+            return false
+        }
+        if groupThread.shouldThreadBeVisible {
+            // Groups that are visible should keep their thread.
+            return false
+        }
+        if !groupThread.canBeDeleted(localIdentifiers: localIdentifiers) {
+            // Groups that can't be deleted should keep their thread.
+            return false
+        }
+        guard BuildFlags.hardDeleteGroupThreadsDuringRefresh else {
+            Logger.warn("group thread \(groupThread.logString) would be deleted")
+            return false
+        }
+        threadDeletionManager.deleteThreads(
+            [groupThread],
+            sendDeleteForMeSyncMessage: false,
+            updateStorageService: true,
+            localIdentifiers: localIdentifiers,
+            tx: tx,
+        )
+        return true
     }
 
     private func deleteGroupIfNecessary(
