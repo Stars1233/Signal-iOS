@@ -155,7 +155,7 @@ class BackupSettingsViewController:
                     backupSettingsStore: backupSettingsStore,
                     tx: tx,
                 ),
-                hasBackupFailed: backupFailureStateManager.hasFailedBackup(tx: tx),
+                hasBackupFailed: backupFailureStateManager.hasFailedRemoteBackup(tx: tx),
                 isBackgroundAppRefreshDisabled: Self.isBackgroundAppRefreshDisabled(),
             )
 
@@ -267,7 +267,7 @@ class BackupSettingsViewController:
                         }
 
                         db.read { tx in
-                            self.viewModel.hasBackupFailed = self.backupFailureStateManager.hasFailedBackup(tx: tx)
+                            self.viewModel.hasBackupFailed = self.backupFailureStateManager.hasFailedRemoteBackup(tx: tx)
                         }
                     }
 

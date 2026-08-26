@@ -102,26 +102,27 @@ class LocalFileBackupExportJob {
             return (localIdentifiers, backupKey)
         }
 
-        let localFileBackupAttachmentCollector = LocalFileBackupAttachmentCollector()
-
-        logger.info("Starting. Resumption point: \(resumptionPoint as Optional)")
-
-        guard let resolvedURL = try await localFileBackupManager.getSavedSecurityScopedBookmark(type: .archive) else {
-            throw OWSAssertionError("No local file backup location bookmark data stored")
-        }
-
-        let hasAccess = securityScopedBookmarkAccess.startAccessToSecurityScopedBookmark(url: resolvedURL)
-        guard hasAccess else {
-            throw LocalFileBackupError.unableToAccessLocalFile(.noAccess)
-        }
-
-        defer {
-            securityScopedBookmarkAccess.stopAccessToSecurityScopedBookmark(url: resolvedURL)
-        }
-
-        let backupsRootDirectory = LocalFileBackupManager.FileStructure.rootDirectoryInFileLocation(resolvedURL)
-        let currentDirectoryName: String
         do {
+            let localFileBackupAttachmentCollector = LocalFileBackupAttachmentCollector()
+
+            logger.info("Starting. Resumption point: \(resumptionPoint as Optional)")
+
+            guard let resolvedURL = try await localFileBackupManager.getSavedSecurityScopedBookmark(type: .archive) else {
+                throw OWSAssertionError("No local file backup location bookmark data stored")
+            }
+
+            let hasAccess = securityScopedBookmarkAccess.startAccessToSecurityScopedBookmark(url: resolvedURL)
+            guard hasAccess else {
+                throw LocalFileBackupError.unableToAccessLocalFile(.noAccess)
+            }
+
+            defer {
+                securityScopedBookmarkAccess.stopAccessToSecurityScopedBookmark(url: resolvedURL)
+            }
+
+            let backupsRootDirectory = LocalFileBackupManager.FileStructure.rootDirectoryInFileLocation(resolvedURL)
+            let currentDirectoryName: String
+
             switch resumptionPoint {
             case nil:
                 logger.info("Ensuring attachment metadata exists...")
@@ -186,9 +187,35 @@ class LocalFileBackupExportJob {
             }
             logger.warn("Cancelled!")
             throw error
+        } catch LocalFileBackupError.unableToAccessLocalFile(let reason) {
+            await db.awaitableWrite { tx in
+                localFileBackupExportJobStore.setReachedResumptionPoint(nil, tx: tx)
+                switch mode {
+                case .bgProcessingTask:
+                    self.localFileBackupStore.incrementBackgroundLocalFileBackupErrorCount(tx: tx)
+                case .manual:
+                    self.localFileBackupStore.incrementInteractiveLocalFileBackupErrorCount(tx: tx)
+                }
+
+                switch reason {
+                case .stale, .missing:
+                    logger.error("Unable to export local file backup (\(reason))")
+                    // Prompt the user to pick a new backup location on next load of the chat list.
+                    localFileBackupManager.setChooseNewLocalBackupLocation(tx: tx)
+                case .noAccess:
+                    logger.error("Unable to export local file backup (no access)")
+                }
+            }
+            throw LocalFileBackupError.unableToAccessLocalFile(reason)
         } catch let error {
             await db.awaitableWrite { tx in
                 localFileBackupExportJobStore.setReachedResumptionPoint(nil, tx: tx)
+                switch mode {
+                case .bgProcessingTask:
+                    self.localFileBackupStore.incrementBackgroundLocalFileBackupErrorCount(tx: tx)
+                case .manual:
+                    self.localFileBackupStore.incrementInteractiveLocalFileBackupErrorCount(tx: tx)
+                }
             }
             logger.warn("Failed! \(error)")
             throw error

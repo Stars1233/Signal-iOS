@@ -250,7 +250,7 @@ extension ChatListViewController {
         let failureStateManager = DependenciesBridge.shared.backupFailureStateManager
 
         viewState.backupFailureAlerts = db.read { tx -> Set<BackupFailureAlertType> in
-            guard failureStateManager.hasFailedBackup(tx: tx) else {
+            guard failureStateManager.hasFailedAnyBackup(tx: tx) else {
                 return []
             }
 

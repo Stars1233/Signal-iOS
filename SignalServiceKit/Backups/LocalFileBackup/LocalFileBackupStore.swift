@@ -22,12 +22,18 @@ public struct LocalFileBackupStore {
         static let shouldOverrideShowBackupsOnboarding = "shouldOverrideShowBackupsOnboardingKey"
         static let lastBackupDate = "lastBackupDateKey"
         static let lastBackupSizeBytes = "lastBackupSizeBytesKey"
+        static let lastLocalFileBackupEnabledDate = "lastBackupEnabledDate"
+
+        static let backgroundLocalFileBackupErrorCount = "backgroundLocalFileBackupErrorCount"
+        static let interactiveLocalFileBackupErrorCount = "interactiveLocalFileBackupErrorCount"
     }
 
     private let kvStore: NewKeyValueStore
+    private let errorStateStore: NewKeyValueStore
 
     public init() {
         self.kvStore = NewKeyValueStore(collection: "LocalFileBackups")
+        self.errorStateStore = NewKeyValueStore(collection: "LocalFileBackupsErrors")
     }
 
     func importRecords(batchSize: Int, tx: DBReadTransaction) -> [BackupLocalFileAttachmentImportRecord] {
@@ -210,6 +216,7 @@ public struct LocalFileBackupStore {
         kvStore.writeValue(value, forKey: StoreKeys.isEnabled, tx: tx)
         if value {
             kvStore.writeValue(true, forKey: StoreKeys.haveEverBeenEnabled, tx: tx)
+            kvStore.writeValue(Date(), forKey: StoreKeys.lastLocalFileBackupEnabledDate, tx: tx)
         }
     }
 
@@ -272,6 +279,9 @@ public struct LocalFileBackupStore {
         tx.addSyncCompletion {
             NotificationCenter.default.postOnMainThread(name: .lastLocalBackupDetailsDidChange, object: nil)
         }
+
+        // We did a backup, so clear all error state.
+        clearErrorStateStore(tx: tx)
     }
 
     public func clearLastBackupDetails(
@@ -279,5 +289,41 @@ public struct LocalFileBackupStore {
     ) {
         kvStore.removeValue(forKey: StoreKeys.lastBackupDate, tx: tx)
         kvStore.removeValue(forKey: StoreKeys.lastBackupSizeBytes, tx: tx)
+    }
+
+    // MARK: - LastBackupEnabledTime
+
+    public func lastLocalFileBackupEnabledDate(
+        tx: DBReadTransaction,
+    ) -> Date? {
+        kvStore.fetchValue(Date.self, forKey: StoreKeys.lastLocalFileBackupEnabledDate, tx: tx)
+    }
+
+    public func clearLastBackupEnabledDetails(tx: DBWriteTransaction) {
+        kvStore.removeValue(forKey: StoreKeys.lastLocalFileBackupEnabledDate, tx: tx)
+    }
+
+    // MARK: - Local File Backup Errors
+
+    public func getInteractiveLocalFileBackupErrorCount(tx: DBReadTransaction) -> UInt64 {
+        errorStateStore.fetchValue(UInt64.self, forKey: StoreKeys.interactiveLocalFileBackupErrorCount, tx: tx) ?? 0
+    }
+
+    public func incrementInteractiveLocalFileBackupErrorCount(tx: DBWriteTransaction) {
+        let nextCount = getInteractiveLocalFileBackupErrorCount(tx: tx) + 1
+        errorStateStore.writeValue(nextCount, forKey: StoreKeys.interactiveLocalFileBackupErrorCount, tx: tx)
+    }
+
+    public func getBackgroundLocalFileBackupErrorCount(tx: DBReadTransaction) -> UInt64 {
+        errorStateStore.fetchValue(UInt64.self, forKey: StoreKeys.backgroundLocalFileBackupErrorCount, tx: tx) ?? 0
+    }
+
+    public func incrementBackgroundLocalFileBackupErrorCount(tx: DBWriteTransaction) {
+        let nextCount = getBackgroundLocalFileBackupErrorCount(tx: tx) + 1
+        errorStateStore.writeValue(nextCount, forKey: StoreKeys.backgroundLocalFileBackupErrorCount, tx: tx)
+    }
+
+    public func clearErrorStateStore(tx: DBWriteTransaction) {
+        errorStateStore.removeAll(tx: tx)
     }
 }

@@ -15,6 +15,7 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
     private let accountKeyStore: AccountKeyStore
     private let localFileBackupManager: LocalFileBackupManager
     private let localFileBackupExportJobStore: LocalFileBackupExportJobStore
+    private let backupFailureStateManager: BackupFailureStateManager
 
     private var latestProgressUpdate: OWSSequentialProgress<LocalFileBackupExportJobStage>?
     private var progressUpdatesTask: Task<Void, Never>?
@@ -28,6 +29,7 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
         accountKeyStore: AccountKeyStore,
         localFileBackupManager: LocalFileBackupManager,
         localFileBackupExportJobStore: LocalFileBackupExportJobStore,
+        backupFailureStateManager: BackupFailureStateManager,
     ) {
         self.localFileBackupExportJobRunner = localFileBackupExportJobRunner
         self.localFileBackupStore = localFileBackupStore
@@ -35,6 +37,7 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
         self.accountKeyStore = accountKeyStore
         self.localFileBackupManager = localFileBackupManager
         self.localFileBackupExportJobStore = localFileBackupExportJobStore
+        self.backupFailureStateManager = backupFailureStateManager
     }
 
     deinit {
@@ -78,7 +81,15 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
                 switch update {
                 case .progress(let progress):
                     self.latestProgressUpdate = progress
-                case .completion, nil:
+                case .completion(let result):
+                    self.latestProgressUpdate = nil
+                    switch result {
+                    case .success:
+                        break
+                    case .failure(let error):
+                        showSheetForLocalFileBackupExportJobError(error)
+                    }
+                case nil:
                     self.latestProgressUpdate = nil
                 }
 
@@ -270,10 +281,61 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
         }
     }
 
+    private class YellowBadgeView: UIImageView {
+        init() {
+            super.init(image: UIImage(systemName: "circle.fill"))
+            tintColor = UIColor.Signal.yellow
+            preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 10)
+            translatesAutoresizingMaskIntoConstraints = false
+        }
+
+        @available(*, unavailable)
+        required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    }
+
     // MARK: - Sections
 
     private func makeBackUpNowSection() -> OWSTableSection {
         let section = OWSTableSection()
+        let hasFailedLocalBackup = db.read { tx in
+            backupFailureStateManager.hasFailedLocalBackup(tx: tx)
+        }
+
+        if hasFailedLocalBackup {
+            section.add(OWSTableItem(
+                customCellBlock: {
+                    let cell = OWSTableItem.newCell()
+                    cell.preservesSuperviewLayoutMargins = true
+                    cell.contentView.preservesSuperviewLayoutMargins = true
+
+                    let iconView = YellowBadgeView()
+                    iconView.setContentHuggingHorizontalHigh()
+                    iconView.setCompressionResistanceHorizontalHigh()
+
+                    let label = UILabel()
+                    label.text = OWSLocalizedString(
+                        "BACKUP_SETTINGS_BACKUP_FAILED_MESSAGE",
+                        comment: "Message describing to the user that the last backup failed.",
+                    )
+                    label.font = .dynamicTypeSubheadlineClamped
+                    label.textColor = Theme.primaryTextColor
+                    label.adjustsFontForContentSizeCategory = true
+                    label.numberOfLines = 0
+                    label.textAlignment = .natural
+
+                    let stack = UIStackView(arrangedSubviews: [iconView, label])
+                    stack.axis = .horizontal
+                    stack.alignment = .firstBaseline
+                    stack.spacing = 12
+
+                    cell.contentView.addSubview(stack)
+                    stack.autoPinEdgesToSuperviewMargins()
+
+                    return cell
+                },
+            ))
+        }
+
         section.add(OWSTableItem(
             customCellBlock: {
                 let cell = OWSTableItem.newCell()
@@ -494,6 +556,8 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
                                 localFileBackupStore.clearShouldPromptUserToEnableLocalBackups(tx: tx)
                                 localFileBackupStore.clearArchiveBookmarkData(tx: tx)
                                 localFileBackupStore.clearLastEnumeratedAttachmentRowId(tx: tx)
+                                localFileBackupStore.clearLastBackupEnabledDetails(tx: tx)
+                                localFileBackupStore.clearErrorStateStore(tx: tx)
                                 localFileBackupExportJobStore.wipe(tx: tx)
                             }
                         }
@@ -567,4 +631,67 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
 
         return section
     }
+
+    // MARK: -
+
+    private func showSheetForLocalFileBackupExportJobError(_ error: Error) {
+        let actionSheet: ActionSheetController
+        switch error {
+        case is CancellationError:
+            return
+        case is NotRegisteredError:
+            actionSheet = ActionSheetController(
+                message: OWSLocalizedString(
+                    "BACKUP_SETTINGS_BACKUP_EXPORT_ERROR_SHEET_NOT_REGISTERED",
+                    comment: "Message for an action sheet explaining that you must be registered to make a Backup.",
+                ),
+            )
+            actionSheet.addAction(.okay)
+        case LocalFileBackupError.unableToAccessLocalFile:
+            actionSheet = ActionSheetController(
+                message: OWSLocalizedString(
+                    "LOCAL_FILE_BACKUP_CHOOSE_NEW_FOLDER_SHEET_MESSAGE",
+                    comment: "Message for a sheet asking the user to choose a new local file backup folder.",
+                ),
+            )
+            actionSheet.addAction(ActionSheetAction(
+                title: OWSLocalizedString(
+                    "LOCAL_FILE_BACKUP_CHOOSE_NEW_FOLDER_SHEET_BUTTON",
+                    comment: "Button for a sheet asking the user to choose a new local file backup folder",
+                ),
+                handler: { _ in
+                    LocalFileBackupArchiveFolderPicker.present(
+                        fromViewController: self,
+                        manager: self.localFileBackupManager,
+                        onSuccess: { [weak self] in
+                            self?.presentToast(
+                                text: OWSLocalizedString(
+                                    "SETTINGS_LOCAL_FILE_BACKUP_FOLDER_UPDATED",
+                                    comment: "Text for a toast confirming the user changed their local file backup location.",
+                                ),
+                                image: .checkCircle,
+                            )
+                            self?.lastLocalBackupDetailsDidChange()
+                        },
+                    )
+                },
+            ))
+            actionSheet.addAction(.cancel)
+        default:
+            actionSheet = ActionSheetController(
+                message: OWSLocalizedString(
+                    "BACKUP_SETTINGS_BACKUP_EXPORT_ERROR_SHEET_GENERIC_ERROR",
+                    comment: "Message for an action sheet explaining that performing a backup failed with a generic error.",
+                ),
+            )
+            actionSheet.addAction(.contactSupport(
+                emailFilter: .backupExportFailed,
+                fromViewController: self,
+            ))
+            actionSheet.addAction(.okay)
+        }
+
+        presentActionSheet(actionSheet)
+    }
+
 }

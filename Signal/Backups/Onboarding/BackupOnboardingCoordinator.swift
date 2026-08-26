@@ -21,6 +21,8 @@ class BackupOnboardingCoordinator {
     private let localFileBackupManager: LocalFileBackupManager
     private let db: DB
     private let backupType: BackupType
+    private let localFileBackupExportJobStore: LocalFileBackupExportJobStore
+    private let backupFailureStateManager: BackupFailureStateManager
 
     private weak var onboardingNavController: UINavigationController?
 
@@ -34,6 +36,8 @@ class BackupOnboardingCoordinator {
             db: DependenciesBridge.shared.db,
             tsAccountManager: DependenciesBridge.shared.tsAccountManager,
             backupType: backupType,
+            localFileBackupExportJobStore: LocalFileBackupExportJobStore(),
+            backupFailureStateManager: DependenciesBridge.shared.backupFailureStateManager,
         )
     }
 
@@ -46,6 +50,8 @@ class BackupOnboardingCoordinator {
         db: DB,
         tsAccountManager: TSAccountManager,
         backupType: BackupType,
+        localFileBackupExportJobStore: LocalFileBackupExportJobStore,
+        backupFailureStateManager: BackupFailureStateManager,
     ) {
         owsPrecondition(
             db.read { tsAccountManager.registrationState(tx: $0).isPrimaryDevice == true },
@@ -59,6 +65,8 @@ class BackupOnboardingCoordinator {
         self.localFileBackupManager = localFileBackupManager
         self.db = db
         self.backupType = backupType
+        self.localFileBackupExportJobStore = localFileBackupExportJobStore
+        self.backupFailureStateManager = backupFailureStateManager
     }
 
     deinit {
@@ -83,7 +91,8 @@ class BackupOnboardingCoordinator {
                     db: db,
                     accountKeyStore: accountKeyStore,
                     localFileBackupManager: localFileBackupManager,
-                    localFileBackupExportJobStore: LocalFileBackupExportJobStore(),
+                    localFileBackupExportJobStore: localFileBackupExportJobStore,
+                    backupFailureStateManager: backupFailureStateManager,
                 )
             }
         } else {
@@ -255,6 +264,7 @@ class BackupOnboardingCoordinator {
                                     accountKeyStore: accountKeyStore,
                                     localFileBackupManager: localFileBackupManager,
                                     localFileBackupExportJobStore: LocalFileBackupExportJobStore(),
+                                    backupFailureStateManager: DependenciesBridge.shared.backupFailureStateManager,
                                 ),
                             ],
                             animated: true,

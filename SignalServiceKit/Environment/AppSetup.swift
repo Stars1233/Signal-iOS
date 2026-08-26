@@ -1758,6 +1758,7 @@ extension AppSetup.GlobalsContinuation {
             backupSettingsStore: backupSettingsStore,
             dateProvider: dateProvider,
             tsAccountManager: tsAccountManager,
+            localFileBackupStore: localFileBackupStore,
         )
 
         let remoteReleaseNotesService = RemoteReleaseNotesService(signalService: signalService)
