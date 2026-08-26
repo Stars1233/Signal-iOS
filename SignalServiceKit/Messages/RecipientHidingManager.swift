@@ -354,8 +354,8 @@ private extension RecipientHidingManagerImpl {
             tsAccountManager.registrationState(tx: tx).isRegisteredPrimaryDevice,
             let recipientServiceId = recipient.address.serviceId,
             let localAci = self.tsAccountManager.localIdentifiers(tx: tx)?.aci,
-            !GroupManager.hasMutualGroupThread(
-                with: recipientServiceId,
+            !GroupManager.hasGroupThreadWithProfileKey(
+                otherMember: recipientServiceId,
                 localAci: localAci,
                 tx: tx,
             )

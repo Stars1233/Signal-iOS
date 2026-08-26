@@ -264,38 +264,15 @@ private class SystemContactsCache {
 // MARK: -
 
 extension OWSContactsManager: ContactManager {
-    private func isInWhitelistedGroupsWithLocalUser(
+    private func isInWhitelistedGroupWithLocalUser(
         otherAddress: SignalServiceAddress,
-        requireMultipleMutualGroups: Bool,
         tx: DBReadTransaction,
     ) -> Bool {
-        guard let localAddress = DependenciesBridge.shared.tsAccountManager.localIdentifiers(tx: tx)?.aciAddress else {
-            owsFailDebug("Missing localAddress.")
-            return false
-        }
-        let otherGroupThreadUniqueIds = TSGroupThread.groupThreadUniqueIds(withFullMember: otherAddress, tx: tx)
-        guard !otherGroupThreadUniqueIds.isEmpty else {
-            return false
-        }
-        let localGroupThreadUniqueIds = TSGroupThread.groupThreadUniqueIds(withFullMember: localAddress, tx: tx)
-        let groupThreadUniqueIds = Set(otherGroupThreadUniqueIds).intersection(localGroupThreadUniqueIds)
-
-        var isInOneWhitelistedGroup = false
-        let onlyNeedToCheckForOneMutualGroup = !requireMultipleMutualGroups
-
-        for groupThreadUniqueId in groupThreadUniqueIds {
-            guard let groupThread = TSGroupThread.fetchGroupThreadViaCache(uniqueId: groupThreadUniqueId, transaction: tx) else {
-                owsFailDebug("Missing group thread")
-                continue
-            }
-            if SSKEnvironment.shared.profileManagerRef.isGroupId(inProfileWhitelist: groupThread.groupId, transaction: tx) {
-                if isInOneWhitelistedGroup || onlyNeedToCheckForOneMutualGroup {
-                    return true
-                }
-                isInOneWhitelistedGroup = true
-            }
-        }
-        return false
+        let profileManager = SSKEnvironment.shared.profileManagerRef
+        return TSGroupThread.mutualGroupThreads(withFullMember: otherAddress, tx: tx)
+            .lazy
+            .filter { profileManager.isGroupId(inProfileWhitelist: $0.groupId, transaction: tx) }
+            .first != nil
     }
 
     // MARK: - Avatar Blurring
@@ -460,13 +437,7 @@ extension OWSContactsManager: ContactManager {
             return false
         }
 
-        if
-            isInWhitelistedGroupsWithLocalUser(
-                otherAddress: address,
-                requireMultipleMutualGroups: false,
-                tx: tx,
-            )
-        {
+        if isInWhitelistedGroupWithLocalUser(otherAddress: address, tx: tx) {
             addressesAllowingAvatarDownloadCache.insert(address)
             return false
         }

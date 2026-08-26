@@ -1103,8 +1103,9 @@ extension CVComponentThreadDetails {
             )
         }
 
-        let groupThreads = TSGroupThread.groupThreads(withFullMember: contactThread.contactAddress, tx: tx)
-        let mutualGroupNames = groupThreads.filter { $0.groupModel.groupMembership.isLocalUserFullMember && $0.shouldThreadBeVisible && !$0.isTerminatedGroup }.map { $0.groupNameOrDefault }
+        let mutualGroupNames = TSGroupThread
+            .mutualVisibleGroupThreads(withFullMember: contactThread.contactAddress, tx: tx)
+            .map { $0.groupNameOrDefault }
 
         let isMessageRequest = contactThread.hasPendingMessageRequest(transaction: tx)
 

@@ -1048,23 +1048,21 @@ public class GroupManager: NSObject {
                         ,
                         newGroupModel.membership.canViewProfileKeys(serviceId: member)
                     {
-                        // Make a best-effort attempt to find other groups with
-                        // this blocked user in which our profile key is
-                        // exposed.
+                        // Make a best-effort attempt to find other groups with this blocked user
+                        // in which our profile key is exposed.
                         //
-                        // We can only efficiently query for groups in which
-                        // they are a full member, although that may not be all
-                        // the groups in which they can see your profile key.
-                        // Best effort.
-                        let mutualGroupThreads = Self.mutualGroupThreads(
-                            with: member,
+                        // We can only efficiently query for groups in which they are a full
+                        // member, although that may not be all the groups in which they can see
+                        // your profile key. Best effort.
+                        let groupThreads = Self.groupThreadsWithProfileKey(
+                            otherMember: member,
                             localAci: localIdentifiers.aci,
                             tx: transaction,
                         )
 
-                        // If there is exactly one group, it's the one we are leaving!
-                        // We should rotate, as it's the last group we have in common.
-                        if mutualGroupThreads.count == 1 {
+                        // If there is exactly one group, it's the one we are leaving! We should
+                        // rotate, as it's the last group we have in common.
+                        if groupThreads.count == 1 {
                             shouldRotateProfileKey = true
                             break
                         }
@@ -1140,30 +1138,25 @@ public class GroupManager: NSObject {
         }
     }
 
-    private static func mutualGroupThreads(
-        with member: ServiceId,
+    private static func groupThreadsWithProfileKey(
+        otherMember: ServiceId,
         localAci: Aci,
         tx: DBReadTransaction,
-    ) -> [TSGroupThread] {
+    ) -> some Collection<TSGroupThread> {
         let groupMemberStore = DependenciesBridge.shared.groupMemberStore
-        return groupMemberStore
-            .groupThreadUniqueIds(withFullMember: member, tx: tx)
+        let uniqueIds = groupMemberStore.groupThreadUniqueIds(withFullMember: otherMember, tx: tx)
+        return TSGroupThread.activeGroupThreads(uniqueIds: uniqueIds, tx: tx)
             .lazy
-            .compactMap { groupThreadId in
-                return TSGroupThread.fetchGroupThreadViaCache(uniqueId: groupThreadId, transaction: tx)
-            }
-            .filter { groupThread in
-                return groupThread.groupMembership.hasProfileKeyInGroup(serviceId: localAci)
-            }
+            .filter { $0.groupMembership.hasProfileKeyInGroup(serviceId: localAci) }
     }
 
-    public static func hasMutualGroupThread(
-        with member: ServiceId,
+    public static func hasGroupThreadWithProfileKey(
+        otherMember: ServiceId,
         localAci: Aci,
         tx: DBReadTransaction,
     ) -> Bool {
-        let mutualGroupThreads = Self.mutualGroupThreads(
-            with: member,
+        let mutualGroupThreads = Self.groupThreadsWithProfileKey(
+            otherMember: otherMember,
             localAci: localAci,
             tx: tx,
         )

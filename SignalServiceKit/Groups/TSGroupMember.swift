@@ -139,44 +139,40 @@ public final class TSGroupMember: NSObject, SDSCodableModel, Decodable {
 
 // MARK: -
 
-public extension TSGroupThread {
-    class func groupThreads(withFullMember address: SignalServiceAddress, tx: DBReadTransaction) -> [TSGroupThread] {
-        let sql = """
-            SELECT \(TSGroupMember.columnName(.threadUniqueId)) FROM \(TSGroupMember.databaseTableName)
-            WHERE (\(TSGroupMember.columnName(.serviceId)) = ? OR \(TSGroupMember.columnName(.serviceId)) IS NULL)
-            AND (\(TSGroupMember.columnName(.phoneNumber)) = ? OR \(TSGroupMember.columnName(.phoneNumber)) IS NULL)
-            AND NOT (\(TSGroupMember.columnName(.serviceId)) IS NULL AND \(TSGroupMember.columnName(.phoneNumber)) IS NULL)
-            ORDER BY \(TSGroupMember.columnName(.lastInteractionTimestamp)) DESC
-        """
-
-        return failIfThrows {
-            var groupThreads = [TSGroupThread]()
-
-            let cursor = try String.fetchCursor(
-                tx.database,
-                sql: sql,
-                arguments: [address.serviceIdUppercaseString, address.phoneNumber],
-            )
-
-            while let groupThreadId = try cursor.next() {
-                guard
-                    let groupThread = TSGroupThread.fetchGroupThreadViaCache(
-                        uniqueId: groupThreadId,
-                        transaction: tx,
-                    )
-                else {
-                    owsFailDebug("Missing group thread")
-                    continue
-                }
-
-                groupThreads.append(groupThread)
-            }
-
-            return groupThreads
-        }
+extension TSGroupThread {
+    public static func groupThreads(
+        withFullMember address: SignalServiceAddress,
+        tx: DBReadTransaction,
+    ) -> [TSGroupThread] {
+        let uniqueIds = groupThreadUniqueIds(withFullMember: address, tx: tx)
+        return groupThreads(forUniqueIds: uniqueIds, tx: tx)
     }
 
-    class func groupThreadUniqueIds(withFullMember address: SignalServiceAddress, tx: DBReadTransaction) -> [String] {
+    public static func activeGroupThreads(
+        withFullMember address: SignalServiceAddress,
+        tx: DBReadTransaction,
+    ) -> [TSGroupThread] {
+        let uniqueIds = groupThreadUniqueIds(withFullMember: address, tx: tx)
+        return activeGroupThreads(uniqueIds: uniqueIds, tx: tx)
+    }
+
+    public static func mutualGroupThreads(
+        withFullMember address: SignalServiceAddress,
+        tx: DBReadTransaction,
+    ) -> [TSGroupThread] {
+        let uniqueIds = groupThreadUniqueIds(withFullMember: address, tx: tx)
+        return mutualGroupThreads(uniqueIds: uniqueIds, tx: tx)
+    }
+
+    public static func mutualVisibleGroupThreads(
+        withFullMember address: SignalServiceAddress,
+        tx: DBReadTransaction,
+    ) -> [TSGroupThread] {
+        let uniqueIds = groupThreadUniqueIds(withFullMember: address, tx: tx)
+        return mutualVisibleGroupThreads(uniqueIds: uniqueIds, tx: tx)
+    }
+
+    public static func groupThreadUniqueIds(withFullMember address: SignalServiceAddress, tx: DBReadTransaction) -> [String] {
         let sql = """
             SELECT \(TSGroupMember.columnName(.threadUniqueId))
             FROM \(TSGroupMember.databaseTableName)
@@ -191,6 +187,34 @@ public extension TSGroupThread {
                 sql: sql,
                 arguments: [address.serviceIdUppercaseString, address.phoneNumber],
             )
+        }
+    }
+
+    public static func groupThreads(forUniqueIds uniqueIds: [String], tx: DBReadTransaction) -> [TSGroupThread] {
+        return uniqueIds.compactMap {
+            guard let groupThread = TSGroupThread.fetchViaCache(uniqueId: $0, transaction: tx) else {
+                owsFailDebug("couldn't fetch group thread")
+                return nil
+            }
+            return groupThread
+        }
+    }
+
+    public static func activeGroupThreads(uniqueIds: [String], tx: DBReadTransaction) -> [TSGroupThread] {
+        return groupThreads(forUniqueIds: uniqueIds, tx: tx).filter {
+            return !$0.isTerminatedGroup
+        }
+    }
+
+    public static func mutualGroupThreads(uniqueIds: [String], tx: DBReadTransaction) -> [TSGroupThread] {
+        return activeGroupThreads(uniqueIds: uniqueIds, tx: tx).filter {
+            return $0.groupModel.groupMembership.isLocalUserFullMember
+        }
+    }
+
+    public static func mutualVisibleGroupThreads(uniqueIds: [String], tx: DBReadTransaction) -> [TSGroupThread] {
+        return mutualGroupThreads(uniqueIds: uniqueIds, tx: tx).filter {
+            return $0.shouldThreadBeVisible
         }
     }
 }

@@ -969,10 +969,10 @@ class ConversationSettingsViewController: OWSTableViewController2, BadgeCollecti
     func updateMutualGroupThreads(tx: DBReadTransaction) {
         guard let contactThread = thread as? TSContactThread else { return }
         self.hasGroupThreads = ThreadFinder().existsGroupThread(transaction: tx)
-        self.mutualGroupThreads = TSGroupThread.groupThreads(
+        self.mutualGroupThreads = TSGroupThread.mutualVisibleGroupThreads(
             withFullMember: contactThread.contactAddress,
             tx: tx,
-        ).filter { $0.groupModel.groupMembership.isLocalUserFullMember && $0.shouldThreadBeVisible && !$0.isTerminatedGroup }
+        )
     }
 
     func tappedConversationSearch() {
