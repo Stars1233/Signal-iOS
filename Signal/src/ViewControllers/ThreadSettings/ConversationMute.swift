@@ -11,11 +11,19 @@ struct ConversationMuteManager {
     private let db: DB = DependenciesBridge.shared.db
 
     func mute(_ threadViewModel: ThreadViewModel, choice: ConversationMuteChoice) {
-        setMutedUntilTimestamp(endTimestamp(for: choice), for: threadViewModel)
+        mute([threadViewModel], choice: choice)
+    }
+
+    func mute(_ threadViewModels: [ThreadViewModel], choice: ConversationMuteChoice) {
+        setMutedUntilTimestamp(endTimestamp(for: choice), for: threadViewModels)
     }
 
     func unmute(_ threadViewModel: ThreadViewModel) {
-        setMutedUntilTimestamp(0, for: threadViewModel)
+        unmute([threadViewModel])
+    }
+
+    func unmute(_ threadViewModels: [ThreadViewModel]) {
+        setMutedUntilTimestamp(0, for: threadViewModels)
     }
 
     private func endTimestamp(for choice: ConversationMuteChoice) -> UInt64 {
@@ -31,14 +39,16 @@ struct ConversationMuteManager {
 
     private func setMutedUntilTimestamp(
         _ timestamp: UInt64,
-        for threadViewModel: ThreadViewModel,
+        for threadViewModels: [ThreadViewModel],
     ) {
         db.write { transaction in
-            threadViewModel.associatedData.updateWith(
-                mutedUntilTimestamp: timestamp,
-                updateStorageService: true,
-                transaction: transaction,
-            )
+            for threadViewModel in threadViewModels {
+                threadViewModel.associatedData.updateWith(
+                    mutedUntilTimestamp: timestamp,
+                    updateStorageService: true,
+                    transaction: transaction,
+                )
+            }
         }
     }
 }
