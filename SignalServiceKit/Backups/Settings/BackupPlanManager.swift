@@ -160,7 +160,7 @@ class BackupPlanManagerImpl: BackupPlanManager {
                     // completes.  This allows the download progress observer to recalculate
                     // the new state of pending downloads and allow progress to be displayed,
                     // even if the queue may not be started yet.
-                    try? await self.backupAttachmentDownloadProgress.beginObserving()
+                    await self.backupAttachmentDownloadProgress.beginObserving()
                 }
             }
         }

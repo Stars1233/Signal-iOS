@@ -9,25 +9,16 @@ public class BackupAttachmentUploadProgressObserver {
     fileprivate let queueSnapshot: BackupAttachmentUploadProgressImpl.UploadQueueSnapshot
     fileprivate let sink: OWSProgressSink
     fileprivate let source: OWSProgressSource
-    private weak var progress: BackupAttachmentUploadProgress?
     fileprivate let id: UUID = UUID()
 
     fileprivate init(
         queueSnapshot: BackupAttachmentUploadProgressImpl.UploadQueueSnapshot,
         sink: OWSProgressSink,
         source: OWSProgressSource,
-        progress: BackupAttachmentUploadProgress?,
     ) {
         self.queueSnapshot = queueSnapshot
         self.sink = sink
         self.source = source
-        self.progress = progress
-    }
-
-    deinit {
-        Task { [weak progress, id] in
-            await progress?.removeObserver(id)
-        }
     }
 }
 
@@ -95,7 +86,6 @@ public actor BackupAttachmentUploadProgressImpl: BackupAttachmentUploadProgress 
             queueSnapshot: queueSnapshot,
             sink: sink,
             source: source,
-            progress: self,
         )
         observers.append(observer)
         return observer
@@ -108,9 +98,6 @@ public actor BackupAttachmentUploadProgressImpl: BackupAttachmentUploadProgress 
     // MARK: - BackupAttachmentUploadManager API
 
     public func didEmptyFullsizeUploadQueue() async {
-        activeUploadCompletedByteCounts.keys.forEach {
-            recentlyCompletedUploads.set(key: $0, value: ())
-        }
         activeUploadCompletedByteCounts = [:]
         activeUploadTotalByteCounts = [:]
         observers.cullExpired()
@@ -179,13 +166,6 @@ public actor BackupAttachmentUploadProgressImpl: BackupAttachmentUploadProgress 
     /// Currently active uploads for which we update progress byte-by-byte.
     private var activeUploadCompletedByteCounts = [PerObserverUploadId: UInt64]()
     private var activeUploadTotalByteCounts = [PerObserverUploadId: UInt64]()
-    /// There is a race between receiving the final OWSProgress update for a given attachment
-    /// and being told the attachment finished uploading by BackupAttachmentUploadManager.
-    /// To resolve this race, track recently completed uploads so we know not to double count.
-    /// There could be tens of thousands of attachments, so to minimize memory usage only keep
-    /// an LRUCache. In practice that will catch all races. Even if it doesn't, the downside
-    /// is we misreport progress until we hit 100%, big whoop.
-    private var recentlyCompletedUploads = LRUCache<PerObserverUploadId, Void>(maxSize: 100)
 
     public func didUpdateProgressForFullsizeAttachment(
         uploadRecord: QueuedBackupAttachmentUpload,
@@ -218,7 +198,6 @@ public actor BackupAttachmentUploadProgressImpl: BackupAttachmentUploadProgress 
                 if prevCompletedByteCount < totalByteCount {
                     source.incrementCompletedUnitCount(by: totalByteCount - prevCompletedByteCount)
                     activeUploadCompletedByteCounts[uploadId] = totalByteCount
-                    recentlyCompletedUploads.set(key: uploadId, value: ())
                 }
             } else if completedByteCount > prevCompletedByteCount {
                 source.incrementCompletedUnitCount(by: completedByteCount - prevCompletedByteCount)
@@ -362,7 +341,6 @@ open class BackupAttachmentUploadProgressMock: BackupAttachmentUploadProgress {
             ),
             sink: sink,
             source: source,
-            progress: nil,
         )
     }
 

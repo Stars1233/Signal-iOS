@@ -165,11 +165,7 @@ class BackupAttachmentDownloadQueueRunnerImpl: BackupAttachmentDownloadQueueRunn
             return
         }
 
-        do {
-            try await progress.beginObserving()
-        } catch {
-            owsFailDebug("Unable to observe \(logString) download progres \(error.grdbErrorForLogging)")
-        }
+        await progress.beginObserving()
 
         let backgroundTask = OWSBackgroundTask(
             label: #function + logString,

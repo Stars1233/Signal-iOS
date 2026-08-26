@@ -6,19 +6,11 @@
 public import GRDB
 
 public class BackupAttachmentDownloadProgressObserver {
-    private weak var progress: BackupAttachmentDownloadProgress?
     fileprivate let id: UUID = UUID()
     fileprivate let block: (OWSProgress) -> Void
 
-    fileprivate init(progress: BackupAttachmentDownloadProgress? = nil, block: @escaping (OWSProgress) -> Void) {
-        self.progress = progress
+    fileprivate init(block: @escaping (OWSProgress) -> Void) {
         self.block = block
-    }
-
-    deinit {
-        Task { [weak progress, id] in
-            await progress?.removeObserver(id)
-        }
     }
 }
 
@@ -43,7 +35,7 @@ public protocol BackupAttachmentDownloadProgress: AnyObject {
     func removeObserver(_ id: UUID) async
 
     /// Compute total pending bytes to download, and set up observation for attachments to be downloaded.
-    func beginObserving() async throws
+    func beginObserving() async
 
     /// Create an OWSProgressSink for a single attachment to be downloaded.
     /// Should be called prior to downloading any backup attachment.
@@ -88,7 +80,7 @@ public actor BackupAttachmentDownloadProgressImpl: BackupAttachmentDownloadProgr
 
     // MARK: - BackupAttachmentDownloadManager API
 
-    public func beginObserving() async throws {
+    public func beginObserving() async {
         await initializeProgress()
 
         let pendingByteCount: UInt64
@@ -112,8 +104,6 @@ public actor BackupAttachmentDownloadProgressImpl: BackupAttachmentDownloadProgr
         if totalByteCount == 0 {
             return
         }
-
-        didEmptyFullsizeQueue = false
 
         let sink = OWSProgress.createSink({ [weak self] progress in
             await self?.updateObservers(progress)
@@ -155,8 +145,6 @@ public actor BackupAttachmentDownloadProgressImpl: BackupAttachmentDownloadProgr
     }
 
     public func didEmptyFullsizeDownloadQueue() async {
-        didEmptyFullsizeQueue = true
-
         activeDownloadByteCounts = [:]
         if let source {
             if source.totalUnitCount > 0, source.totalUnitCount > source.completedUnitCount {
@@ -173,7 +161,6 @@ public actor BackupAttachmentDownloadProgressImpl: BackupAttachmentDownloadProgr
     private nonisolated let dateProvider: DateProvider
     private nonisolated let db: DB
     private nonisolated let remoteConfigProvider: RemoteConfigProvider
-    private var didEmptyFullsizeQueue: Bool = false
 
     init(
         appContext: AppContext,
@@ -260,7 +247,6 @@ public actor BackupAttachmentDownloadProgressImpl: BackupAttachmentDownloadProgr
         let prevByteCount = activeDownloadByteCounts[id] ?? 0
         if let source {
             let diff = min(max(completedByteCount, prevByteCount) - prevByteCount, source.totalUnitCount - source.completedUnitCount)
-            owsAssertDebug(self.source != nil, "Updating progress before setting up observation!")
             if diff > 0 {
                 self.source?.incrementCompletedUnitCount(by: diff)
             }
@@ -295,8 +281,8 @@ open class BackupAttachmentDownloadProgressMock: BackupAttachmentDownloadProgres
 
     open func addObserver(
         _ block: @escaping (OWSProgress) -> Void,
-    ) async -> BackupAttachmentDownloadProgressObserver {
-        return BackupAttachmentDownloadProgressObserver(block: block)
+    ) async -> Observer {
+        return Observer(block: block)
     }
 
     open func removeObserver(_ observer: Observer) async {
@@ -307,7 +293,7 @@ open class BackupAttachmentDownloadProgressMock: BackupAttachmentDownloadProgres
         // Do nothing
     }
 
-    open func beginObserving() async throws {
+    open func beginObserving() async {
         // Do nothing
     }
 
