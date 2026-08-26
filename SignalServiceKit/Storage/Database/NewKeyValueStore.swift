@@ -345,3 +345,86 @@ struct KeyValueStoreMigrator {
         return try migrateKey(key, withValueOfType: NSNumber.self, toNewValue: \.doubleValue, tx: tx)
     }
 }
+
+// MARK: -
+
+public struct KeyValueStoreDeleter {
+    private let db: any DB
+
+    public init(db: any DB) {
+        self.db = db
+    }
+
+    private static let deprecatedCollections: [String] = [
+        "AvatarDefaultColorStorageServiceMigrator",
+        "BackupArchiveErrorPresenterImpl",
+        "ChangePhoneNumber",
+        "ContactsManagerCache.allContacts",
+        "ContactsManagerCache.phoneNumberStore",
+        "ContactsManagerCache.uniqueIdStore",
+        "DeleteForMeInfoSheetCoordinator",
+        "DeleteForMeSyncMessageSettingsStoreImpl",
+        "EditManager",
+        "Emoji+availableStore",
+        "Emoji+metadataStore",
+        "ForwardMessageViewController",
+        "GroupManager.announcementOnlyGroupsCapability",
+        "GroupManager.groupsV2Capability",
+        "GroupManager.groupsV2MigrationCapability",
+        "GroupManager.senderKeyCapability",
+        "GroupsV2Impl.groupsFromStorageService_All",
+        "IncrementalMessageTSAttachmentMigrator",
+        "KeyTransparencyManager",
+        "LearnMyOwnPniManagerImpl",
+        "MasterKeyOneTimeSyncManager",
+        "MessageBackupErrorPresenterImpl",
+        "MultiFingerprintVC",
+        "OWSChatConnectionWithLibSignalShadowing",
+        "OWSOrphanDataCleaner_Collection",
+        "OrchestratingSVRImpl",
+        "PinnedConversationManager",
+        "PniHelloWorldManagerImpl",
+        "RemoteMegaphoneFetcher",
+        "SSKKyberPreKeyStoreACIKeyStore",
+        "SSKKyberPreKeyStorePNIKeyStore",
+        "SSRecIkmCapStore",
+        "SVR🐝AuthCredential",
+        "SecureValueRecovery2Impl",
+        "StorageServiceUnknownFieldMigrator",
+        "TSInteraction_TSAttachmentMigration",
+        "TSStorageManagerAppUpgradeNagCollection",
+        "TSStorageManagerPNIPreKeyStoreCollection",
+        "TSStorageManagerPNISessionStoreCollection",
+        "TSStorageManagerPNISignedPreKeyStoreCollection",
+        "TSStorageManagerPreKeyStoreCollection",
+        "TSStorageManagerSessionStoreCollection",
+        "TSStorageManagerSignedPreKeyStoreCollection",
+        "UsernameValidation",
+        "arePaymentsEnabledForUserStore",
+        "groupRefreshStore",
+        "kOWS2FAManager_Collection",
+        "kOWSKeyBackupService_Keys",
+        "kOWSKeyBackupService_Token",
+        "kOWSProfileManager_UserUUIDWhitelistCollection",
+        "kOWSProfileManager_UserWhitelistCollection",
+        "viewOnceMessages",
+    ]
+
+    public func cleanUpDeprecatedCollections() async {
+        let collections = db.read { tx in
+            return failIfThrows {
+                return try String.fetchAll(
+                    tx.database,
+                    sql: "SELECT DISTINCT \(NewKeyValueStore.collectionColumnName) FROM \(NewKeyValueStore.TableMetadata.tableName)",
+                )
+            }
+        }
+        let obsoleteCollections = Set(collections).intersection(Self.deprecatedCollections)
+        for obsoleteCollection in obsoleteCollections {
+            Logger.info("deleting obsolete key value collection: \(obsoleteCollection)")
+            await db.awaitableWrite { tx in
+                NewKeyValueStore(collection: obsoleteCollection).removeAll(tx: tx)
+            }
+        }
+    }
+}

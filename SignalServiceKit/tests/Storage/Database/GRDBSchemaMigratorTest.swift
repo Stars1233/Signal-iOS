@@ -1193,7 +1193,6 @@ struct GRDBSchemaMigratorTest {
                 defer { tx.finalizeTransaction() }
                 try GRDBSchemaMigrator.createSession(tx: tx)
                 try GRDBSchemaMigrator.migrateSessions(tx: tx)
-                try GRDBSchemaMigrator.dropOldSessions(tx: tx)
             }
 
             let sessions = try Row.fetchAll(db, sql: "SELECT * FROM Session ORDER BY recipientId, localIdentity, deviceId")
@@ -1569,11 +1568,6 @@ struct GRDBSchemaMigratorTest {
             return try String.fetchAll(db, sql: "SELECT key FROM keyvalue WHERE collection = ?", arguments: ["SVR.Potential"])
         }
         #expect(Set(potentialEnclaves) == testCase.finalEnclaves)
-
-        let nonEmptyCollections = try databaseQueue.read { db in
-            return try String.fetchAll(db, sql: "SELECT DISTINCT collection FROM keyvalue")
-        }
-        #expect(Set(nonEmptyCollections) == ["SVR.Potential"])
     }
 
     @Test
@@ -2024,7 +2018,6 @@ struct GRDBSchemaMigratorTest {
                 defer { tx.finalizeTransaction() }
                 try GRDBSchemaMigrator.addPinnedThread(tx: tx)
                 try GRDBSchemaMigrator.migratePinnedThreads(tx: tx)
-                try GRDBSchemaMigrator.removeOldPinnedThreads(tx: tx)
             }
 
             let recipients = try Row.fetchAll(db, sql: "SELECT * FROM model_SignalRecipient")

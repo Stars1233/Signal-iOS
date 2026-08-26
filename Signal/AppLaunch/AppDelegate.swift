@@ -533,7 +533,19 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 
         let appContext = launchContext.appContext
         let dependenciesBridge = DependenciesBridge.shared
+        let db = DependenciesBridge.shared.db
         let cron = dependenciesBridge.cron
+
+        // Choose a long interval so that app updates are the "only" trigger.
+        cron.schedulePeriodically(
+            uniqueKey: .cleanUpObsoleteKeyValueStores,
+            approximateInterval: .year,
+            mustBeRegistered: false,
+            mustBeConnected: false,
+            operation: {
+                await KeyValueStoreDeleter(db: db).cleanUpDeprecatedCollections()
+            },
+        )
 
         let messageSendLog = SSKEnvironment.shared.messageSendLogRef
         cron.schedulePeriodically(
@@ -582,7 +594,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
             Task.detached(priority: .low) {
                 await FullTextSearchOptimizer(
                     appContext: appContext,
-                    db: DependenciesBridge.shared.db,
+                    db: db,
                 ).run()
             }
         }
@@ -592,7 +604,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                 await AuthorMergeHelperBuilder(
                     appContext: appContext,
                     authorMergeHelper: DependenciesBridge.shared.authorMergeHelper,
-                    db: DependenciesBridge.shared.db,
+                    db: db,
                     modelReadCaches: AuthorMergeHelperBuilder.Wrappers.ModelReadCaches(SSKEnvironment.shared.modelReadCachesRef),
                     recipientDatabaseTable: DependenciesBridge.shared.recipientDatabaseTable,
                 ).buildTableIfNeeded()
@@ -607,7 +619,6 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         // and simply treat the default as "nobody". The migration exists to ensure
         // old linked devices respect the setting before they upgrade.
         appReadiness.runNowOrWhenAppDidBecomeReadyAsync {
-            let db = DependenciesBridge.shared.db
             guard db.read(block: SSKEnvironment.shared.udManagerRef.phoneNumberSharingMode(tx:)) == nil else {
                 return
             }
@@ -630,7 +641,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
             mustBeConnected: true,
             operation: {
                 try await StaleProfileFetcher(
-                    db: DependenciesBridge.shared.db,
+                    db: db,
                     profileFetcher: SSKEnvironment.shared.profileFetcherRef,
                     tsAccountManager: DependenciesBridge.shared.tsAccountManager,
                 ).fetchSomeStaleProfiles()
@@ -654,7 +665,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         }
 
         let remoteReleaseNotesFetchingManager = RemoteReleaseNotesFetchingManager(
-            db: DependenciesBridge.shared.db,
+            db: db,
             attachmentContentValidator: DependenciesBridge.shared.attachmentContentValidator,
             attachmentManager: DependenciesBridge.shared.attachmentManager,
             blockingManager: SSKEnvironment.shared.blockingManagerRef,
@@ -687,7 +698,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
             let fetchJobRunner = CallLinkFetchJobRunner(
                 callLinkStore: DependenciesBridge.shared.callLinkStore,
                 callLinkStateUpdater: AppEnvironment.shared.callService.callLinkStateUpdater,
-                db: DependenciesBridge.shared.db,
+                db: db,
             )
             fetchJobRunner.observeDatabase(DependenciesBridge.shared.databaseChangeObserver)
             fetchJobRunner.setMightHavePendingFetchAndFetch()
@@ -708,7 +719,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
             accountKeyStore: DependenciesBridge.shared.accountKeyStore,
             backupRequestManager: DependenciesBridge.shared.backupRequestManager,
             backupSettingsStore: BackupSettingsStore(),
-            db: DependenciesBridge.shared.db,
+            db: db,
             networkManager: SSKEnvironment.shared.networkManagerRef,
         )
         cron.schedulePeriodically(
