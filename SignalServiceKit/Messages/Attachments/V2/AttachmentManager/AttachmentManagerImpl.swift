@@ -359,6 +359,7 @@ public class AttachmentManagerImpl: AttachmentManager {
                 if plaintextHash.isEmpty {
                     fallthrough
                 }
+                let hasLocalKey = proto.locatorInfo.hasLocalKey
                 let mediaTierCdnNumber = proto.locatorInfo.hasMediaTierCdnNumber ? proto.locatorInfo.mediaTierCdnNumber : nil
                 attachmentRecord = .forInsertingFromBackup(
                     blurHash: proto.blurHash.nilIfEmpty,
@@ -367,7 +368,7 @@ public class AttachmentManagerImpl: AttachmentManager {
                     encryptionKey: encryptionKey,
                     latestTransitTierInfo: transitTierInfo,
                     plaintextHash: plaintextHash,
-                    mediaTierInfo: .init(
+                    mediaTierInfo: hasLocalKey ? nil : .init(
                         cdnNumber: mediaTierCdnNumber,
                         unencryptedByteCount: proto.locatorInfo.size,
                         plaintextHash: plaintextHash,
@@ -375,7 +376,7 @@ public class AttachmentManagerImpl: AttachmentManager {
                         uploadEra: uploadEra,
                         lastDownloadAttemptTimestamp: nil,
                     ),
-                    thumbnailMediaTierInfo: .init(
+                    thumbnailMediaTierInfo: hasLocalKey ? nil : .init(
                         // Assume the thumbnail uses the same cdn as fullsize;
                         // this _can_ go wrong if the server changes cdns between
                         // the two uploads but worst case we lose the thumbnail.

@@ -115,6 +115,14 @@ public struct LocalFileBackupStore {
         }
     }
 
+    func hasPendingImportRecord(attachmentId: Attachment.IDType, tx: DBReadTransaction) -> Bool {
+        failIfThrows {
+            try BackupLocalFileAttachmentImportRecord
+                .filter(key: attachmentId)
+                .fetchOne(tx.database) != nil
+        }
+    }
+
     // MARK: - KVStore
 
     func fetchLastEnumeratedAttachmentRowId(tx: DBReadTransaction) -> Int64? {

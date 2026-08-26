@@ -64,6 +64,7 @@ public class BackupListMediaManagerTests {
         orphanedBackupAttachmentStore: orphanedBackupAttachmentStore,
         remoteConfigManager: remoteConfigManager,
         tsAccountManager: tsAccountManager,
+        localFileBackupStore: LocalFileBackupStore(),
     )
 
     @Test

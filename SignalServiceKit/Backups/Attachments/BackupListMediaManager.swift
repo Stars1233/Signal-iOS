@@ -111,6 +111,7 @@ class BackupListMediaManagerImpl: BackupListMediaManager {
     private let remoteConfigManager: RemoteConfigManager
     private let serialTaskQueue: SerialTaskQueue
     private let tsAccountManager: TSAccountManager
+    private let localFileBackupStore: LocalFileBackupStore
 
     init(
         accountKeyStore: AccountKeyStore,
@@ -132,6 +133,7 @@ class BackupListMediaManagerImpl: BackupListMediaManager {
         orphanedBackupAttachmentStore: OrphanedBackupAttachmentStore,
         remoteConfigManager: RemoteConfigManager,
         tsAccountManager: TSAccountManager,
+        localFileBackupStore: LocalFileBackupStore,
     ) {
         self.accountKeyStore = accountKeyStore
         self.attachmentStore = attachmentStore
@@ -155,6 +157,7 @@ class BackupListMediaManagerImpl: BackupListMediaManager {
         self.remoteConfigManager = remoteConfigManager
         self.serialTaskQueue = SerialTaskQueue()
         self.tsAccountManager = tsAccountManager
+        self.localFileBackupStore = localFileBackupStore
 
         NotificationCenter.default.addObserver(
             self,
@@ -1033,8 +1036,22 @@ class BackupListMediaManagerImpl: BackupListMediaManager {
         // We might have this either from a local stream (if we matched against
         // the media name/id we generated locally) or from a restored backup (if
         // we matched against the media name/id we pulled off the backup proto).
-        let fullsizeUnencryptedByteCount = attachment.mediaTierInfo?.unencryptedByteCount
+        var fullsizeUnencryptedByteCount = attachment.mediaTierInfo?.unencryptedByteCount
             ?? attachment.streamInfo?.unencryptedByteCount
+
+        // We also may have unencryptedByteCount from a local file backup metadata
+        // record if this attachment was restored from a local file backup.
+        if
+            fullsizeUnencryptedByteCount == nil,
+            let record = localFileBackupStore.metadataRecord(
+                attachmentId: attachment.id,
+                failIfNotExists: false,
+                tx: tx,
+            )
+        {
+            fullsizeUnencryptedByteCount = record.unencryptedByteCount
+        }
+
         let fullsizePlaintextHash = attachment.mediaTierInfo?.plaintextHash
             ?? attachment.streamInfo?.plaintextHash
             ?? attachment.plaintextHash
@@ -1083,6 +1100,12 @@ class BackupListMediaManagerImpl: BackupListMediaManager {
                 tx: tx,
             )
         else {
+            return
+        }
+
+        // If this attachment has a pending local file backup import, its file
+        // will be restored from the local backup — don't enqueue a download.
+        if localFileBackupStore.hasPendingImportRecord(attachmentId: attachment.id, tx: tx) {
             return
         }
 

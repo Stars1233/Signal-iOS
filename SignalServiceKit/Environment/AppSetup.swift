@@ -629,6 +629,8 @@ extension AppSetup.GlobalsContinuation {
             tsAccountManager: tsAccountManager,
         )
 
+        let localFileBackupStore = LocalFileBackupStore()
+
         let backupListMediaStore = BackupListMediaStore()
         let backupListMediaManager = BackupListMediaManagerImpl(
             accountKeyStore: accountKeyStore,
@@ -650,6 +652,7 @@ extension AppSetup.GlobalsContinuation {
             orphanedBackupAttachmentStore: orphanedBackupAttachmentStore,
             remoteConfigManager: remoteConfigManager,
             tsAccountManager: tsAccountManager,
+            localFileBackupStore: localFileBackupStore,
         )
 
         let attachmentDownloadManager = AttachmentDownloadManagerImpl(
@@ -682,8 +685,6 @@ extension AppSetup.GlobalsContinuation {
         let backupAttachmentDownloadScheduler = BackupAttachmentDownloadSchedulerImpl(
             backupAttachmentDownloadStore: backupAttachmentDownloadStore,
         )
-
-        let localFileBackupStore = LocalFileBackupStore()
 
         let attachmentManager = AttachmentManagerImpl(
             attachmentDownloadManager: attachmentDownloadManager,
