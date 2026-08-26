@@ -154,12 +154,6 @@ public extension UIColor {
         return UIColor(rgbHex: 0x4CAF50)
     }
 
-    /// Ending calls, error states
-    @objc(ows_accentRedColor)
-    class var ows_accentRed: UIColor {
-        return UIColor(rgbHex: 0xF44336)
-    }
-
     // MARK: - GreyScale
 
     @objc(ows_whiteColor)

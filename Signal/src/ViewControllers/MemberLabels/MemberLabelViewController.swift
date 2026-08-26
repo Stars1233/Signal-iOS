@@ -416,7 +416,7 @@ class MemberLabelViewController: OWSViewController, UITextFieldDelegate {
         let charsRemaining = Self.maxCharCount - count
         characterCountLabel.text = String(charsRemaining)
         characterCountLabel.isHidden = charsRemaining > Self.showCharacterCountMax
-        characterCountLabel.textColor = charsRemaining > 5 ? UIColor.Signal.tertiaryLabel.withAlphaComponent(0.3) : UIColor.Signal.red
+        characterCountLabel.textColor = charsRemaining > 5 ? .Signal.tertiaryLabel.withAlphaComponent(0.3) : .Signal.red
 
         if updatedMemberLabel == nil, updatedEmoji == nil {
             clearButton.isHidden = true

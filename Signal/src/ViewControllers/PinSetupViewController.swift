@@ -116,7 +116,7 @@ public class PinSetupViewController: OWSViewController, OWSNavigationChildContro
 
     private let validationWarningLabel: UILabel = {
         let validationWarningLabel = UILabel()
-        validationWarningLabel.textColor = .ows_accentRed
+        validationWarningLabel.textColor = .Signal.red
         validationWarningLabel.textAlignment = .center
         validationWarningLabel.font = .dynamicTypeFootnoteClamped
         validationWarningLabel.numberOfLines = 0

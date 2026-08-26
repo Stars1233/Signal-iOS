@@ -16,7 +16,7 @@ class IncomingCallControls: UIView {
         return createButton(
             iconName: "phone-down-fill-28",
             label: OWSLocalizedString("CALL_CONTROLS_INCOMING_DECLINE", comment: "label for button shown when an incoming call rings"),
-            unselectedBackgroundColor: .ows_accentRed,
+            unselectedBackgroundColor: .Signal.red,
             accessibilityLabel: accessibilityLabel,
             action: self.didDeclineCall,
         )

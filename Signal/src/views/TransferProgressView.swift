@@ -85,9 +85,9 @@ class TransferProgressView: UIStackView {
     func renderError(text: String) {
         stopUpdatingProgress()
 
-        progressBar.progressTintColor = .ows_accentRed
+        progressBar.progressTintColor = .Signal.red
 
-        topLabel.textColor = .ows_accentRed
+        topLabel.textColor = .Signal.red
         topLabel.text = text
         bottomLabel.text = nil
     }

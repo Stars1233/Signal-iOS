@@ -221,7 +221,7 @@ private class ContextMenuActionsView: UIView, UIGestureRecognizerDelegate, UIScr
             /// If we want the colors to take effect, however, we make it a subview of the root view.
             let makeLabelSubviewOfVisualEffectsView: Bool
             if attributes.contains(.destructive) {
-                titleLabel.textColor = UIColor.Signal.red
+                titleLabel.textColor = .Signal.red
                 makeLabelSubviewOfVisualEffectsView = false
             } else if attributes.contains(.disabled) {
                 titleLabel.textColor = .Signal.secondaryLabel

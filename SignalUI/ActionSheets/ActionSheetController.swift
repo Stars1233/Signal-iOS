@@ -419,9 +419,9 @@ public class ActionSheetAction: NSObject {
         fileprivate var textColor: UIColor {
             switch self {
             case .default, .cancel:
-                UIColor.Signal.label
+                .Signal.label
             case .destructive:
-                UIColor.Signal.red
+                .Signal.red
             }
         }
     }

@@ -124,7 +124,7 @@ class EnterAccountEntropyPoolViewController: OWSViewController {
     private lazy var aepIssueLabel: UILabel = {
         let label = UILabel()
         label.text = "This is never visible!" // Set in `onTextViewUpdated()`
-        label.textColor = .ows_accentRed
+        label.textColor = .Signal.red
         label.textAlignment = .center
         label.font = .dynamicTypeBody
         label.numberOfLines = 0

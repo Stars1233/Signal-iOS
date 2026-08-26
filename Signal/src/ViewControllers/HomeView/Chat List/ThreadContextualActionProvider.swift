@@ -205,7 +205,7 @@ extension ThreadContextualActionProvider where Self: UIViewController {
     private func deleteContextualAction(threadViewModel: ThreadViewModel) -> ThreadContextualAction {
         return ThreadContextualAction(
             style: .destructive,
-            color: UIColor.Signal.red,
+            color: .Signal.red,
             imageFilled: .trashFill,
             imageStroked: .trash,
             title: CommonStrings.deleteButton,

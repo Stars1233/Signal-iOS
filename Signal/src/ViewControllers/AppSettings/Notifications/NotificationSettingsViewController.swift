@@ -212,7 +212,7 @@ class NotificationSettingsViewController: OWSTableViewController2 {
                 "SETTINGS_NOTIFICATIONS_RESET",
                 comment: "Label for a button that resets all notification settings to their defaults.",
             ),
-            textColor: UIColor.Signal.red,
+            textColor: .Signal.red,
             actionBlock: { [weak self] in
                 self?.didTapResetNotificationSettings()
             },

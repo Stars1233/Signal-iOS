@@ -458,7 +458,7 @@ class ProfileSettingsViewController: OWSTableViewController2 {
     private func buildUsernameErrorIconView() -> UIView {
         let imageView = UIImageView.withTemplateImageName(
             "error-circle",
-            tintColor: .ows_accentRed,
+            tintColor: .Signal.red,
         )
 
         imageView.autoPinToSquareAspectRatio()

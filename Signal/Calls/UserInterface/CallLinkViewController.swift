@@ -198,12 +198,12 @@ final class CallLinkViewController: OWSTableViewController2, DatabaseChangeDeleg
             let rootKey = self.callLink.rootKey
             let deleteItem: OWSTableItem = .item(
                 icon: .buttonDelete,
-                tintColor: .ows_accentRed,
+                tintColor: .Signal.red,
                 name: OWSLocalizedString(
                     "CALL_LINK_DELETE_ACTION",
                     comment: "A button to delete a call link that's shown after tapping the (i) info button on an item in the calls tab.",
                 ),
-                textColor: .ows_accentRed,
+                textColor: .Signal.red,
                 actionBlock: { [unowned self] in
                     CallLinkDeleter.promptToDelete(fromViewController: self) { [weak self] in
                         do {

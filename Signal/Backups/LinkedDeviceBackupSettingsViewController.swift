@@ -219,7 +219,7 @@ final class LinkedDeviceBackupSettingsViewController: OWSTableViewController2 {
                 let canceledLabel = UILabel()
                 canceledLabel.numberOfLines = 0
                 canceledLabel.font = .dynamicTypeHeadlineClamped.semibold()
-                canceledLabel.textColor = UIColor.Signal.red
+                canceledLabel.textColor = .Signal.red
                 canceledLabel.text = BackupSettingsView.Strings.paidPlanCanceledText
                 stackView.addArrangedSubview(canceledLabel)
                 stackView.setCustomSpacing(0, after: canceledLabel)

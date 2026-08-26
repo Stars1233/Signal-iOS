@@ -650,7 +650,7 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
                 "SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF",
                 comment: "Label for the button that turns off on-device backups.",
             ),
-            textColor: UIColor.Signal.red,
+            textColor: .Signal.red,
             actionBlock: { [weak self] in
                 guard let self else { return }
                 ModalActivityIndicatorViewController.present(

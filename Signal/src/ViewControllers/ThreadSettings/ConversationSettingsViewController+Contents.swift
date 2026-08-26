@@ -756,7 +756,7 @@ extension ConversationSettingsViewController {
                             "LEAVE_GROUP_ACTION",
                             comment: "table cell label in conversation settings",
                         ),
-                        customColor: UIColor.ows_accentRed,
+                        customColor: .Signal.red,
                         accessibilityIdentifier: UIView.accessibilityIdentifier(in: self, name: "leave_group"),
                     )
                 },
@@ -808,7 +808,7 @@ extension ConversationSettingsViewController {
                                 comment: "Label for 'block user' action in conversation settings view.",
                             )
                         }
-                        customColor = UIColor.ows_accentRed
+                        customColor = .Signal.red
                     }
                     let cell = OWSTableItem.buildCell(
                         icon: .chatSettingsBlock,
@@ -845,7 +845,7 @@ extension ConversationSettingsViewController {
                             "CONVERSATION_SETTINGS_REPORT_SPAM",
                             comment: "Label for 'report spam' action in conversation settings view.",
                         ),
-                        customColor: UIColor.ows_accentRed,
+                        customColor: .Signal.red,
                         accessibilityIdentifier: UIView.accessibilityIdentifier(in: self, name: "report_spam"),
                     )
                 },
@@ -874,7 +874,7 @@ extension ConversationSettingsViewController {
                         "END_GROUP_LABEL",
                         comment: "Label in conversation settings to end a group",
                     ),
-                    customColor: UIColor.ows_accentRed,
+                    customColor: .Signal.red,
                     accessibilityIdentifier: UIView.accessibilityIdentifier(in: self, name: "end_group"),
                 )
             },
@@ -1393,7 +1393,7 @@ extension ConversationSettingsViewController {
                         "CONVERSATION_SETTINGS_DELETE_CHAT",
                         comment: "Label for 'delete chat' action in conversation settings view.",
                     ),
-                    customColor: UIColor.ows_accentRed,
+                    customColor: .Signal.red,
                 )
             },
             actionBlock: { [weak self] in

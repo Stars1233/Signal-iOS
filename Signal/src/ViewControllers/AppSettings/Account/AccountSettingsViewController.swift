@@ -153,7 +153,7 @@ class AccountSettingsViewController: OWSTableViewController2 {
                     "SETTINGS_DELETE_DATA_BUTTON",
                     comment: "Label for 'delete data' button.",
                 ),
-                textColor: .ows_accentRed,
+                textColor: .Signal.red,
                 actionBlock: { [weak self] in
                     self?.deleteUnregisteredUserData()
                 },
@@ -199,7 +199,7 @@ class AccountSettingsViewController: OWSTableViewController2 {
             ))
             accountSection.add(.item(
                 name: OWSLocalizedString("SETTINGS_DELETE_ACCOUNT_BUTTON", comment: ""),
-                textColor: .ows_accentRed,
+                textColor: .Signal.red,
                 accessibilityIdentifier: UIView.accessibilityIdentifier(in: self, name: "delete_account"),
                 actionBlock: { [weak self] in
                     self?.unregisterUser()

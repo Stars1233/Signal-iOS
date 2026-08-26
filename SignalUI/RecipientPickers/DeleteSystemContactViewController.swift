@@ -213,7 +213,7 @@ class DeleteSystemContactViewController: OWSTableViewController2 {
                             "DELETE_CONTACT_BUTTON",
                             comment: "Title of button for deleting system contact.",
                         ),
-                        textColor: .ows_accentRed,
+                        textColor: .Signal.red,
                         accessoryType: .none,
                     )
                 },

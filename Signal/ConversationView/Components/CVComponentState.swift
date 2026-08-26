@@ -1306,7 +1306,7 @@ private extension CVComponentState.Builder {
 
             switch messageStatus {
             case .failed:
-                sendFailureBadge = SendFailureBadge(color: .ows_accentRed)
+                sendFailureBadge = SendFailureBadge(color: .Signal.red)
             case .pending:
                 sendFailureBadge = SendFailureBadge(color: .ows_gray60)
             default:

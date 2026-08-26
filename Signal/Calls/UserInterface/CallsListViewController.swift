@@ -1856,7 +1856,7 @@ extension CallsListViewController: UITableViewDelegate {
 
         let deleteAction = ContextualActionBuilder.makeContextualAction(
             style: .destructive,
-            color: .ows_accentRed,
+            color: .Signal.red,
             image: .trashFill,
             title: CommonStrings.deleteButton,
         ) { [weak self] completion in

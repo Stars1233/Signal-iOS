@@ -487,7 +487,7 @@ class RegistrationPinViewController: OWSViewController {
             )
             newViewsAtTheBottom.append(pinValidationLabel)
         }
-        pinValidationLabel.textColor = .ows_accentRed
+        pinValidationLabel.textColor = .Signal.red
 
         switch pinCharacterSet {
         case .digitsOnly:

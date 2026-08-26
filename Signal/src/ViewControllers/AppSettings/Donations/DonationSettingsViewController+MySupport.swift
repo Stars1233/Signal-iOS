@@ -593,7 +593,7 @@ extension DonationSettingsViewController {
     private func mySupportErrorIconView() -> UIView {
         let imageView = UIImageView.withTemplateImageName(
             "error-circle",
-            tintColor: .ows_accentRed,
+            tintColor: .Signal.red,
         )
         imageView.autoPinToSquareAspectRatio()
 
