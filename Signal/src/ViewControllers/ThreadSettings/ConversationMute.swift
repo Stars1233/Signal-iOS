@@ -1,0 +1,116 @@
+//
+// Copyright 2026 Signal Messenger, LLC
+// SPDX-License-Identifier: AGPL-3.0-only
+//
+
+import SignalServiceKit
+import SignalUI
+
+struct ConversationMuteManager {
+    private let dateProvider: DateProvider = Date.provider
+    private let db: DB = DependenciesBridge.shared.db
+
+    func mute(_ threadViewModel: ThreadViewModel, choice: ConversationMuteChoice) {
+        setMutedUntilTimestamp(endTimestamp(for: choice), for: threadViewModel)
+    }
+
+    func unmute(_ threadViewModel: ThreadViewModel) {
+        setMutedUntilTimestamp(0, for: threadViewModel)
+    }
+
+    private func endTimestamp(for choice: ConversationMuteChoice) -> UInt64 {
+        switch choice {
+        case .preset(let preset):
+            dateProvider().addingTimeInterval(preset.duration).ows_millisecondsSince1970
+        case .custom(let endDate):
+            endDate.ows_millisecondsSince1970
+        case .forever:
+            ThreadAssociatedData.alwaysMutedTimestamp
+        }
+    }
+
+    private func setMutedUntilTimestamp(
+        _ timestamp: UInt64,
+        for threadViewModel: ThreadViewModel,
+    ) {
+        db.write { transaction in
+            threadViewModel.associatedData.updateWith(
+                mutedUntilTimestamp: timestamp,
+                updateStorageService: true,
+                transaction: transaction,
+            )
+        }
+    }
+}
+
+enum ConversationMuteChoice {
+    case preset(Preset)
+    case custom(endDate: Date)
+    case forever
+
+    enum Preset: CaseIterable {
+        case oneHour
+        case eightHours
+        case oneDay
+        case oneWeek
+
+        var duration: TimeInterval {
+            switch self {
+            case .oneHour: .hour
+            case .eightHours: 8 * .hour
+            case .oneDay: .day
+            case .oneWeek: .week
+            }
+        }
+
+        var localizedTitle: String {
+            switch self {
+            case .oneHour:
+                OWSLocalizedString(
+                    "CONVERSATION_SETTINGS_MUTE_ONE_HOUR_ACTION",
+                    comment: "Label for button to mute a thread for an hour.",
+                )
+            case .eightHours:
+                OWSLocalizedString(
+                    "CONVERSATION_SETTINGS_MUTE_EIGHT_HOUR_ACTION",
+                    comment: "Label for button to mute a thread for eight hours.",
+                )
+            case .oneDay:
+                OWSLocalizedString(
+                    "CONVERSATION_SETTINGS_MUTE_ONE_DAY_ACTION",
+                    comment: "Label for button to mute a thread for a day.",
+                )
+            case .oneWeek:
+                OWSLocalizedString(
+                    "CONVERSATION_SETTINGS_MUTE_ONE_WEEK_ACTION",
+                    comment: "Label for button to mute a thread for a week.",
+                )
+            }
+        }
+    }
+
+    enum Option {
+        case preset(Preset)
+        case forever
+        case custom
+
+        static var all: [Option] {
+            // TODO: Add .custom when implemented
+            Preset.allCases.map { .preset($0) } + [.forever]
+        }
+
+        var title: String {
+            switch self {
+            case .preset(let preset):
+                preset.localizedTitle
+            case .forever:
+                OWSLocalizedString(
+                    "CONVERSATION_SETTINGS_MUTE_ALWAYS_ACTION",
+                    comment: "Label for button to mute a thread forever.",
+                )
+            case .custom:
+                owsFail("Not implemented")
+            }
+        }
+    }
+}

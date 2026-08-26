@@ -754,7 +754,10 @@ class ConversationSettingsViewController: OWSTableViewController2, BadgeCollecti
         navigationController?.pushViewController(view, animated: true)
     }
 
-    class func muteUnmuteMenu(for threadViewModel: ThreadViewModel, actionExecuted: @escaping () -> Void) -> UIMenu {
+    class func muteUnmuteMenu(
+        for threadViewModel: ThreadViewModel,
+        actionExecuted: @escaping () -> Void,
+    ) -> UIMenu {
         let menuTitle = muteUnmuteMenuTitle(for: threadViewModel)
         let actions = muteUnmuteActions(for: threadViewModel, actionExecuted: actionExecuted)
         return UIMenu(title: menuTitle ?? "", children: actions)
@@ -808,90 +811,32 @@ class ConversationSettingsViewController: OWSTableViewController2, BadgeCollecti
         for threadViewModel: ThreadViewModel,
         actionExecuted: @escaping () -> Void,
     ) -> [UIAction] {
+        let muteManager = ConversationMuteManager()
 
         guard !threadViewModel.isMuted else {
             return [UIAction(title: OWSLocalizedString(
                 "CONVERSATION_SETTINGS_UNMUTE_ACTION",
                 comment: "Label for button to unmute a thread.",
             )) { _ in
-                setThreadMutedUntilTimestamp(0, threadViewModel: threadViewModel)
+                muteManager.unmute(threadViewModel)
                 actionExecuted()
             }]
         }
 
-        var actions = [UIAction]()
-        actions.append(UIAction(title: OWSLocalizedString(
-            "CONVERSATION_SETTINGS_MUTE_ONE_HOUR_ACTION",
-            comment: "Label for button to mute a thread for a hour.",
-        )) { _ in
-            setThreadMuted(threadViewModel: threadViewModel) {
-                var dateComponents = DateComponents()
-                dateComponents.hour = 1
-                return dateComponents
+        return ConversationMuteChoice.Option.all.map { option in
+            UIAction(title: option.title) { _ in
+                switch option {
+                case .preset(let preset):
+                    muteManager.mute(threadViewModel, choice: .preset(preset))
+                    actionExecuted()
+                case .forever:
+                    muteManager.mute(threadViewModel, choice: .forever)
+                    actionExecuted()
+                case .custom:
+                    // TODO: Present the custom mute date picker.
+                    owsFailDebug("Not implemented")
+                }
             }
-            actionExecuted()
-        })
-        actions.append(UIAction(title: OWSLocalizedString(
-            "CONVERSATION_SETTINGS_MUTE_EIGHT_HOUR_ACTION",
-            comment: "Label for button to mute a thread for eight hours.",
-        )) { _ in
-            setThreadMuted(threadViewModel: threadViewModel) {
-                var dateComponents = DateComponents()
-                dateComponents.hour = 8
-                return dateComponents
-            }
-            actionExecuted()
-        })
-        actions.append(UIAction(title: OWSLocalizedString(
-            "CONVERSATION_SETTINGS_MUTE_ONE_DAY_ACTION",
-            comment: "Label for button to mute a thread for a day.",
-        )) { _ in
-            setThreadMuted(threadViewModel: threadViewModel) {
-                var dateComponents = DateComponents()
-                dateComponents.day = 1
-                return dateComponents
-            }
-            actionExecuted()
-        })
-        actions.append(UIAction(title: OWSLocalizedString(
-            "CONVERSATION_SETTINGS_MUTE_ONE_WEEK_ACTION",
-            comment: "Label for button to mute a thread for a week.",
-        )) { _ in
-            setThreadMuted(threadViewModel: threadViewModel) {
-                var dateComponents = DateComponents()
-                dateComponents.day = 7
-                return dateComponents
-            }
-            actionExecuted()
-        })
-        actions.append(UIAction(title: OWSLocalizedString(
-            "CONVERSATION_SETTINGS_MUTE_ALWAYS_ACTION",
-            comment: "Label for button to mute a thread forever.",
-        )) { _ in
-            setThreadMutedUntilTimestamp(ThreadAssociatedData.alwaysMutedTimestamp, threadViewModel: threadViewModel)
-            actionExecuted()
-        })
-        return actions
-    }
-
-    private class func setThreadMuted(threadViewModel: ThreadViewModel, dateBlock: () -> DateComponents) {
-        guard let timeZone = TimeZone(identifier: "UTC") else {
-            owsFailDebug("Invalid timezone.")
-            return
-        }
-        var calendar = Calendar.current
-        calendar.timeZone = timeZone
-        let dateComponents = dateBlock()
-        guard let mutedUntilDate = calendar.date(byAdding: dateComponents, to: Date()) else {
-            owsFailDebug("Couldn't modify date.")
-            return
-        }
-        self.setThreadMutedUntilTimestamp(mutedUntilDate.ows_millisecondsSince1970, threadViewModel: threadViewModel)
-    }
-
-    private class func setThreadMutedUntilTimestamp(_ value: UInt64, threadViewModel: ThreadViewModel) {
-        SSKEnvironment.shared.databaseStorageRef.write { transaction in
-            threadViewModel.associatedData.updateWith(mutedUntilTimestamp: value, updateStorageService: true, transaction: transaction)
         }
     }
 

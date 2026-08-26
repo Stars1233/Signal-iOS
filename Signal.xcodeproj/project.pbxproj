@@ -1796,6 +1796,7 @@
 		B91751D92EC5548500FF7A9C /* AppIcon-yellow.icon in Resources */ = {isa = PBXBuildFile; fileRef = B91751D82EC5548500FF7A9C /* AppIcon-yellow.icon */; };
 		B91751DB2EC5556B00FF7A9C /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = B91751DA2EC5556B00FF7A9C /* AppIcon.icon */; };
 		B91ACD9E2A797698000CFBC7 /* StickerPickerKeyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91ACD9D2A797698000CFBC7 /* StickerPickerKeyboard.swift */; };
+		B92477A8303513780045DEC9 /* ConversationMute.swift in Sources */ = {isa = PBXBuildFile; fileRef = B92477A7303513780045DEC9 /* ConversationMute.swift */; };
 		B924DFA62EE7C42B00B88147 /* CallQualitySurveyNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = B924DFA52EE7C42B00B88147 /* CallQualitySurveyNavigation.swift */; };
 		B924DFA82EE7C63400B88147 /* CallQualitySurveyRatingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B924DFA72EE7C63400B88147 /* CallQualitySurveyRatingViewController.swift */; };
 		B924DFAA2EE7C6F900B88147 /* CallQualitySurveyIssuesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B924DFA92EE7C6F900B88147 /* CallQualitySurveyIssuesViewController.swift */; };
@@ -6156,6 +6157,7 @@
 		B91751D82EC5548500FF7A9C /* AppIcon-yellow.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "AppIcon-yellow.icon"; sourceTree = "<group>"; };
 		B91751DA2EC5556B00FF7A9C /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		B91ACD9D2A797698000CFBC7 /* StickerPickerKeyboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StickerPickerKeyboard.swift; sourceTree = "<group>"; };
+		B92477A7303513780045DEC9 /* ConversationMute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationMute.swift; sourceTree = "<group>"; };
 		B924DFA52EE7C42B00B88147 /* CallQualitySurveyNavigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallQualitySurveyNavigation.swift; sourceTree = "<group>"; };
 		B924DFA72EE7C63400B88147 /* CallQualitySurveyRatingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallQualitySurveyRatingViewController.swift; sourceTree = "<group>"; };
 		B924DFA92EE7C6F900B88147 /* CallQualitySurveyIssuesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallQualitySurveyIssuesViewController.swift; sourceTree = "<group>"; };
@@ -8910,6 +8912,7 @@
 				B9B2AA932BC598B60060B56C /* ContactNoteSheet.swift */,
 				34E20D4B24256563002C011E /* ConversationHeaderBuilder.swift */,
 				34EB0DF42628D3B200B62DC3 /* ConversationInternalViewController.swift */,
+				B92477A7303513780045DEC9 /* ConversationMute.swift */,
 				34E20D4D2425672A002C011E /* ConversationSettingsViewController+Contents.swift */,
 				34A17D80253F7236009F8C02 /* ConversationSettingsViewController+LegacyGroups.swift */,
 				34235F3724213550008C74CB /* ConversationSettingsViewController.swift */,
@@ -18592,6 +18595,7 @@
 				76A066EA2EA99D1F009B3ED5 /* ConversationInputToolbar+VoiceMemo.swift in Sources */,
 				76725D2D29143CEC000E8AE1 /* ConversationInputToolbar.swift in Sources */,
 				34EB0DF52628D3B300B62DC3 /* ConversationInternalViewController.swift in Sources */,
+				B92477A8303513780045DEC9 /* ConversationMute.swift in Sources */,
 				76ECBA922915B5BB00676507 /* ConversationScrollButton.swift in Sources */,
 				342FFE6A271EF502000AC89F /* ConversationSearch.swift in Sources */,
 				4C20B2B920CA10DE001BAC90 /* ConversationSearchViewController.swift in Sources */,

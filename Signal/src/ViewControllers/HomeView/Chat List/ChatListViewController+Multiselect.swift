@@ -191,14 +191,12 @@ extension ChatListViewController {
         }
         deleteBtn.isEnabled = hasSelectedEntries
 
-        var entries: [UIBarButtonItem] = []
-        for button in [archiveBtn, readButton, deleteBtn] {
-            if !entries.isEmpty {
-                entries.append(.flexibleSpace())
-            }
-            entries.append(button)
-        }
-        return entries
+        return [
+            archiveBtn,
+            deleteBtn,
+            .flexibleSpace(),
+            readButton,
+        ]
     }
 
     private func hideToolbar() {
