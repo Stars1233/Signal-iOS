@@ -238,6 +238,9 @@
 /* Action in an action sheet offering to attempt recovery of a corrupted database. */
 "APP_LAUNCH_FAILURE_DATABASE_RECOVERY_ACTION_TITLE" = "Onar";
 
+/* Action in an action sheet offering to exit the app. */
+"APP_LAUNCH_FAILURE_EXIT_APP_ACTION_TITLE" = "Exit Signal";
+
 /* Error indicating that the app could not launch without reverting unknown database migrations. */
 "APP_LAUNCH_FAILURE_INVALID_DATABASE_VERSION_MESSAGE" = "Lütfen Signal'in son sürümüne yükseltin.";
 
@@ -250,11 +253,11 @@
 /* Error indicating that the app crashed during the previous launch. */
 "APP_LAUNCH_FAILURE_LAST_LAUNCH_CRASHED_TITLE" = "Signal Açılamadı";
 
-/* Error description indicating that the app crashed because there was low storage space available on the device. */
-"APP_LAUNCH_FAILURE_LOW_STORAGE_SPACE_AVAILABLE_MESSAGE" = "Cihazında depolama alanı düşük olduğundan Signal açılamadı. Signal'ı kullanmak için Ayarlar'da depolama alanını yönet ve yer aç.\n ";
+/* Message for an error sheet shown when the app cannot launch because the device is out of storage space. Embeds 1:{{ the localized name of the user's device model, e.g. iPhone }}; 2:{{ an amount of storage space as a file size, e.g. 1 GB }}. */
+"APP_LAUNCH_FAILURE_NOT_ENOUGH_STORAGE_SPACE_MESSAGE_FORMAT" = "Signal can’t open because your %1$@ is out of storage space. Free up at least %2$@, then reopen Signal.\n\nGo to iOS Settings > General > Storage and remove apps you don't use, delete large videos from your Photos app or other apps, and delete downloaded music and media.";
 
-/* Error title indicating that the app crashed because there was low storage space available on the device. */
-"APP_LAUNCH_FAILURE_LOW_STORAGE_SPACE_AVAILABLE_TITLE" = "Depolama Alanı Düşük";
+/* Title for an error sheet shown when the app cannot launch because the device is out of storage space. */
+"APP_LAUNCH_FAILURE_NOT_ENOUGH_STORAGE_SPACE_TITLE" = "Not Enough Storage Space";
 
 /* Error indicating that the app could not restore transferred data. */
 "APP_LAUNCH_FAILURE_RESTORE_FAILED_MESSAGE" = "Eski cihazından aktarılan veri geri yüklenemiyor. Lütfen bu sorunu çözmemiz için support@signal.org adresine hata günlüğünü gönder. Eğer Signal'ı geri yüklersen, ileti geçmişin kaybolabilir.";
@@ -2122,6 +2125,15 @@
 /* Button at top of chat list indicating the active filter is 'Filtered by Unread' and tapping will clear the filter */
 "CHAT_LIST_FILTERED_BY_UNREAD_CLEAR_BUTTON" = "Okunmamış olarak filtrelendi";
 
+/* Title shown on chat list banner for restoring media from a backup is finished */
+"CHAT_LIST_LOCAL_FILE_BACKUP_RESTORE_FINISHED_TITLE" = "Attachment Restore Complete";
+
+/* Progress label showing bytes restored from an on-device backup. Embeds {{ %1$@ formatted bytes restored, %2$@ formatted total bytes to restore }}. */
+"CHAT_LIST_LOCAL_FILE_BACKUP_RESTORE_PROGRESS_VIEW_PROGRESS_FORMAT" = "%1$@ of %2$@";
+
+/* Title shown on the chat list banner while restoring attachments from an on-device backup. */
+"CHAT_LIST_LOCAL_FILE_BACKUP_RESTORE_PROGRESS_VIEW_TITLE" = "Restoring Attachments";
+
 /* Message shown in the chat list when the chat list is empty. */
 "CHAT_LIST_NO_CHATS_SUBTITLE" = "Son sohbetler burada görünecektir.";
 
@@ -2204,13 +2216,13 @@
 "CHOOSE_BACKUP_PLAN_TITLE" = "Yedekleme Planı Seç";
 
 /* Text on a screen shown when the app can't be used until the user corrects their device's date and time. Embeds {{ the device's current date and time, in UTC }}. */
-"CLOCK_SKEW_APP_BLOCKING_DEVICE_TIME_FORMAT" = "Your device’s time is %1$@ UTC.";
+"CLOCK_SKEW_APP_BLOCKING_DEVICE_TIME_FORMAT" = "Cihaz saatin %1$@ UTC.";
 
 /* Subtitle for a screen shown when the app can't be used until the user corrects their device's date and time. */
-"CLOCK_SKEW_APP_BLOCKING_SUBTITLE" = "Signal can’t be used while your device’s date and time are incorrect. Open Settings to correct them.";
+"CLOCK_SKEW_APP_BLOCKING_SUBTITLE" = "Signal, cihazının tarihi ve saati hatalıyken kullanılamaz. Tarihi ve saati düzeltmek için Ayarlar'ı aç.";
 
 /* Title for a screen shown when the app can't be used until the user corrects their device's date and time. */
-"CLOCK_SKEW_APP_BLOCKING_TITLE" = "Date is Inaccurate";
+"CLOCK_SKEW_APP_BLOCKING_TITLE" = "Tarih Hatalı";
 
 /* VoiceOver hint for an expanded collapse set button. */
 "COLLAPSE_SET_ACCESSIBILITY_HINT_COLLAPSE" = "Güncellemeleri gizle";
@@ -2464,9 +2476,6 @@
 /* Alert body */
 "CONTACT_SUPPORT_PROMPT_ERROR_ALERT_BODY" = "Signal destek isteğinizi tamamlayamadı.";
 
-/* button text */
-"CONTACT_SUPPORT_PROMPT_ERROR_TRY_AGAIN" = "Yeniden Dene";
-
 /* Alert body */
 "CONTACT_SUPPORT_PROMPT_TO_INCLUDE_DEBUG_LOG_MESSAGE" = "Hata ayıklama günlükleriniz sorununuzu çözmemizi hızlandıracaktır. Günlüklerinizi göndermeniz isteğe bağlıdır.";
 
@@ -2539,26 +2548,11 @@
 /* Title for the button in a warning sheet shown before the user pastes their 'Recovery Key' into the chat input text field that acknowledges the warning and proceeds with the paste. */
 "CONVERSATION_INPUT_PASTE_RECOVERY_KEY_WARNING_SHEET_SHARE_BUTTON_TITLE" = "Anahtarı Paylaş";
 
-/* Title for the 'conversation mute confirmation' alert. */
-"CONVERSATION_MUTE_CONFIRMATION_ALERT_TITLE" = "Bu sohbeti sessize al…";
-
-/* 1 day */
-"CONVERSATION_MUTE_CONFIRMATION_OPTION_1D" = "1 gün";
-
-/* 1 hour */
-"CONVERSATION_MUTE_CONFIRMATION_OPTION_1H" = "1 saat";
-
-/* 1 week */
-"CONVERSATION_MUTE_CONFIRMATION_OPTION_1W" = "1 hafta";
-
-/* 8 hours */
-"CONVERSATION_MUTE_CONFIRMATION_OPTION_8H" = "8 saat";
-
-/* Always */
-"CONVERSATION_MUTE_CONFIRMATION_OPTION_ALWAYS" = "Her zaman";
-
 /* Message indicating that only administrators can send message to an announcement-only group. */
 "CONVERSATION_PICKER_BLOCKED_BY_ANNOUNCEMENT_ONLY" = "Bu gruba yalnızca yöneticiler ileti gönderebilir.";
+
+/* Displayed at the bottom of chat picker in gray if no chats are selected. */
+"CONVERSATION_PICKER_CHOOSE_RECIPIENT" = "Choose a recipient";
 
 /* table section header for section containing groups */
 "CONVERSATION_PICKER_SECTION_GROUPS" = "Gruplar";
@@ -2713,7 +2707,7 @@
 /* Label for button to mute a thread for a day. */
 "CONVERSATION_SETTINGS_MUTE_ONE_DAY_ACTION" = "1 gün";
 
-/* Label for button to mute a thread for a hour. */
+/* Label for button to mute a thread for an hour. */
 "CONVERSATION_SETTINGS_MUTE_ONE_HOUR_ACTION" = "1 saat";
 
 /* Label for button to mute a thread for a week. */
@@ -3169,6 +3163,12 @@
 /* Description message on new device displayed during device transfer. */
 "DEVICE_TRANSFER_STATUS_NEW_DEVICE_CONNECTING_MESSAGE" = "Eski cihazını yakınına getir ve Wi-Fi ile Bluetooth'un etkinleştirildiğinden emin ol.";
 
+/* Description message on new device displayed during device transfer when using WiFiAware. */
+"DEVICE_TRANSFER_STATUS_NEW_DEVICE_CONNECTING_WIFI_AWARE_MESSAGE" = "Bring your old device nearby, and make sure Wi-Fi and Bluetooth are enabled. Select this device from the list of devices on the old device.  If device is not visible on old device, select 'Pair New Device' below.";
+
+/* Title for paring an old device to transfer to. */
+"DEVICE_TRANSFER_STATUS_NEW_DEVICE_PAIR_DEVICE" = "Pair a new device";
+
 /* Status message on new device when transfer is starting. */
 "DEVICE_TRANSFER_STATUS_NEW_DEVICE_STARTING" = "Eski cihaza bağlanmak için bekliyor…";
 
@@ -3193,11 +3193,17 @@
 /* Description message on old device displayed during device transfer. */
 "DEVICE_TRANSFER_STATUS_OLD_DEVICE_CONNECTING_MESSAGE" = "Yeni cihazını yakınına getir ve Wi-Fi ile Bluetooth'un etkinleştirildiğinden emin ol.";
 
+/* Description message on old device displayed during device connection when using WiFiAware. */
+"DEVICE_TRANSFER_STATUS_OLD_DEVICE_CONNECTING_WIFI_AWARE_MESSAGE" = "Bring your new device nearby, and make sure Wi-Fi and Bluetooth are enabled.";
+
 /* Status message on old device when transfer is starting. */
 "DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING" = "Yeni cihaza bağlanmak için bekliyor…";
 
-/* Action asking user to try again after transfer failure. */
-"DEVICE_TRANSFER_TRY_AGAIN_ACTION" = "Yeniden Dene";
+/* Status message on old device when WiFiAware transfer is starting. */
+"DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING_WIFI_AWARE" = "Select new device to connect to…";
+
+/* Description message on old device displayed during device discovery when using WiFiAware. */
+"DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING_WIFI_AWARE_MESSAGE" = "Select the new device from the list of paired devices below. If the new device is not visible, select 'Pair a new device' to begin the process.";
 
 /* table cell label in conversation settings */
 "DISAPPEARING_MESSAGES" = "Kaybolan İletiler";
@@ -3385,9 +3391,6 @@
 /* Title for a button asking the user to renew their subscription, because it has expired. */
 "DONATION_BADGE_ISSUE_SHEET_RENEW_SUBSCRIPTION_BUTTON_TITLE" = "Aboneliği Yenile";
 
-/* Title for a button asking the user to try their donation again, because something went wrong. */
-"DONATION_BADGE_ISSUE_SHEET_TRY_AGAIN_BUTTON_TITLE" = "Yeniden Dene";
-
 /* When donating on behalf of a friend, a badge will be sent. This shows how long the badge lasts. Embeds {{formatted duration}}. */
 "DONATION_FOR_A_FRIEND_ROW_DURATION" = "Son %1$@";
 
@@ -3555,9 +3558,6 @@
 
 /* Title for an action in an action sheet asking the user to renew a subscription that has failed to renew. */
 "DONATION_SETTINGS_MY_SUPPORT_ACTION_SHEET_ACTION_TITLE_RENEW_SUBSCRIPTION" = "Aboneliği Yenile";
-
-/* Title for an action in an action sheet asking the user to try again, in reference to a donation that failed. */
-"DONATION_SETTINGS_MY_SUPPORT_ACTION_SHEET_ACTION_TITLE_TRY_AGAIN" = "Yeniden Dene";
 
 /* Prompt the user asking if they want to keep the current in-flight, but unauthorized donation, or try again. */
 "DONATION_SETTINGS_MY_SUPPORT_BANK_PAYMENT_AWAITING_AUTHORIZATION_MESSAGE" = "iDEAL | Wero bağışın onaylanamadı. Bağışını onaylamak için bankacılık uygulamanı kontrol et veya tekrar dene.";
@@ -4957,6 +4957,9 @@
 /* Title for the 'Select Chats' option in the ChatList. */
 "HOME_VIEW_TITLE_SELECT_CHATS" = "Sohbetleri Seç";
 
+/* Title for the mute duration menu in the toolbar of the chat list if multi-select is active. */
+"HOME_VIEW_TOOLBAR_MUTE_MENU_TITLE" = "Mute selected chats for…";
+
 /* Title 'Read All' button in the toolbar of the ChatList if multi-section is active. */
 "HOME_VIEW_TOOLBAR_READ_ALL" = "Tümünü Oku";
 
@@ -5452,6 +5455,12 @@
 /* Title for a sheet asking the user to select their backup to restore from during registration. */
 "LOCAL_BACKUPS_SELECT_HERO_SHEET_TITLE" = "Yedekleme klasörünü seç";
 
+/* Message for an action sheet informing the user we were unable to save their local backup location */
+"LOCAL_FILE_BACKUP_CHOOSE_FOLDER_ERROR_MESSAGE" = "Something went wrong and the folder location you selected couldn’t be saved. Try again. If this problem persists, please contact support.";
+
+/* Title for an action sheet informing the user we were unable to save their local backup location */
+"LOCAL_FILE_BACKUP_CHOOSE_FOLDER_ERROR_TITLE" = "Couldn’t Save Folder Location";
+
 /* Button for a sheet asking the user to choose a new local file backup folder */
 "LOCAL_FILE_BACKUP_CHOOSE_NEW_FOLDER_SHEET_BUTTON" = "Klasör seç";
 
@@ -5471,7 +5480,7 @@
 "LOCAL_FILE_BACKUP_ONBOARDING_INTRO_BULLET_3" = "Yedeklemeleri istediğin zaman kapat";
 
 /* Subtitle for a view introducing local file backups during the onboarding flow. */
-"LOCAL_FILE_BACKUP_ONBOARDING_INTRO_SUBTITLE" = "Back up your messages to a folder on your device. Your backup is end-to-end encrypted and can be restored by installing a new copy of Signal and choosing “Restore or Transfer“.";
+"LOCAL_FILE_BACKUP_ONBOARDING_INTRO_SUBTITLE" = "Mesajlarını cihazındaki bir klasöre yedekle. Yedeklemen uçtan uca şifrelidir ve yeni bir Signal kopyası yüklenip \"Geri Yükle veya Aktar\" seçilerek geri yüklenebilir.";
 
 /* Title for a view introducing local file backups during the onboarding flow. */
 "LOCAL_FILE_BACKUP_ONBOARDING_INTRO_TITLE" = "Cihazda yedeklemeler";
@@ -5486,22 +5495,22 @@
 "LOCAL_FILE_BACKUPS_CHOOSE_FOLDER_TITLE" = "Klasör seç";
 
 /* Warning shown when a user tries to enable local file backups with optimize media enabled */
-"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET" = "You have Optimize Signal Storage on. If you want to include all media in your on-device backup, turn the setting off.";
+"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET" = "Signal Depolama Alanını Optimize Et özelliğin açık. Cihazda yedeklemende bulunan tüm medyayı dahil etmek istiyorsan, ayarı kapat.";
 
 /* Message for a sheet warning the user about enabling Optimize Storage with local backups enabled. */
-"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_2_BODY" = "Turning on “Optimize Signal storage“ will offload old media from your device. You can download it again at any time. It will also remove old media from your on-device backup.";
+"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_2_BODY" = "\"Signal Depolama Alanını Optimize Et\" özelliğinin açılması cihazındaki eski medyayı kaldırır. İstediğin zaman tekrar indirebilirsin. Eski medyayı aynı zamanda cihazda yedeklemenden de kaldırır.";
 
 /* Title for a sheet warning the user about enabling Optimize Storage with local backups enabled. */
-"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_2_TITLE" = "Media Will Be Removed From Your On-Device Backup";
+"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_2_TITLE" = "Medya, Cihazda Yedeklemenden Kaldırılacak";
 
 /* Action in a sheet warning the user about enabling Optimize Storage with local backups enabled, that turns on Optimize Storage. */
-"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_2_TURN_ON" = "Turn on";
+"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_2_TURN_ON" = "Aç";
 
 /* Action in an action sheet offering to continue anyway. */
-"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_CONTINUE" = "Continue Without Turning Off";
+"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_CONTINUE" = "Kapatmadan Devam Et";
 
 /* Action in an action sheet offering to go to the optimize local storage setting. */
-"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_VIEW_SETTING" = "View Setting";
+"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_VIEW_SETTING" = "Ayarı Görüntüle";
 
 /* A string indicating that the user can search for a location */
 "LOCATION_PICKER_SEARCH_PLACEHOLDER" = "İsim veya adres ile ara";
@@ -5518,8 +5527,17 @@
 /* Title for the 'long text message' view. */
 "LONG_TEXT_VIEW_TITLE" = "İleti";
 
-/* Message for a sheet warning the user that their device is low on storage space. */
-"LOW_DISK_SPACE_WARNING_SHEET_MESSAGE" = "Cihazında depolama alanı azalıyor. Depolama alanın tükenirse, Signal'I kullanamayacaksın. Ayarlardan depolama alanını yöneterek alan boşalt.";
+/* Message for a sheet warning the user that their device is low on storage space. Embeds 1:{{ the localized name of the user's device model, e.g. iPhone }}; 2:{{ an amount of storage space as a file size, e.g. 1 GB }}. */
+"LOW_DISK_SPACE_WARNING_SHEET_MESSAGE_FORMAT" = "Your %1$@ is running low on storage space. If it fills up, Signal will stop working and you could lose data. Free up at least %2$@ of space.";
+
+/* A suggestion for freeing up storage space, on a sheet warning the user that their device is low on storage space. */
+"LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_DELETE_CAMERA_ROLL_MEDIA" = "Delete large videos from your Photos app, Signal, or other messaging apps";
+
+/* A suggestion for freeing up storage space, on a sheet warning the user that their device is low on storage space. */
+"LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_DELETE_DOWNLOADED_MEDIA" = "Delete downloaded music or other media";
+
+/* A suggestion for freeing up storage space, on a sheet warning the user that their device is low on storage space. */
+"LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_REMOVE_APPS" = "Go to iOS Settings > General > Storage. Review the recommendations and remove apps you don't use";
 
 /* Title for a sheet warning the user that their device is low on storage space. */
 "LOW_DISK_SPACE_WARNING_SHEET_TITLE" = "Depolama Alanı Düşük";
@@ -6311,7 +6329,7 @@
 "NOTE_TO_SELF" = "Kendime Not";
 
 /* Body for a notification shown when Signal can't fetch messages because the device's date and time are incorrect. */
-"NOTIFICATION_BODY_CLOCK_SKEW" = "Signal can’t receive messages while your device’s date and time are incorrect. Open Settings to correct them.";
+"NOTIFICATION_BODY_CLOCK_SKEW" = "Signal, cihazının tarihi ve saati hatalıysa mesajları alamaz. Tarihi ve saati düzeltmek için Ayarlar'ı aç.";
 
 /* Body for a notification representing a message request. */
 "NOTIFICATION_BODY_INCOMING_MESSAGE_REQUEST" = "Mesaj İsteği";
@@ -6410,10 +6428,10 @@
 "ONBOARDING_2FA_SKIP_PIN_ENTRY_TITLE" = "PIN Girişini Atla?";
 
 /* Subtitle for the sheet that lets users pick from available local backups to restore. */
-"ONBOARDING_CHOOSE_BACKUP_SHEET_SUBTITLE" = "Choosing an older backup may result in lost messages or media.";
+"ONBOARDING_CHOOSE_BACKUP_SHEET_SUBTITLE" = "Daha eski bir yedeklemenin seçilmesi, mesajların veya medyanın kaybolmasıyla sonuçlanabilir.";
 
 /* Title for the sheet that lets users pick from available local backups to restore. */
-"ONBOARDING_CHOOSE_BACKUP_SHEET_TITLE" = "Choose a Backup to Restore";
+"ONBOARDING_CHOOSE_BACKUP_SHEET_TITLE" = "Geri Yüklemek için Bir Yedekleme Seç";
 
 /* The body for the device transfer 'choice' view 'restore backup' option */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_BACKUPS_BODY" = "Hesabını ve mesajlarını Signal Yedeklemenden geri yükle";
@@ -6467,7 +6485,7 @@
 "ONBOARDING_CONFIRM_BACKUP_RESTORE_BODY_3_PAID" = "Medyanın tamamı";
 
 /* Text for action button that opens a picker to choose an older local backup. */
-"ONBOARDING_CONFIRM_BACKUP_RESTORE_CHOOSE_OLDER_ACTION" = "Choose an Older Backup";
+"ONBOARDING_CONFIRM_BACKUP_RESTORE_CHOOSE_OLDER_ACTION" = "Eski Bir Yedeklemeyi Seç";
 
 /* Text for action button confirming the restore. */
 "ONBOARDING_CONFIRM_BACKUP_RESTORE_CONFIRM_ACTION" = "Yedeği geri yükle";
@@ -7912,9 +7930,6 @@
 /* Skip restore action label for backup restore error recovery. */
 "REGISTRATION_BACKUP_RESTORE_ERROR_SKIP_RESTORE_ACTION" = "Geri yüklemeyi atla";
 
-/* Try again action label for backup restore error recovery. */
-"REGISTRATION_BACKUP_RESTORE_ERROR_TRY_AGAIN_ACTION" = "Yeniden Dene";
-
 /* Body for a sheet telling users restoring a backup unrecoverably failed. */
 "REGISTRATION_BACKUP_RESTORE_ERROR_UNRETRYABLE_SERVER_ERROR_BODY" = "Yedeklemen geri yüklenirken bir hata oluştu. Yedeklemen kurtarılamaz. Lütfen yardım için destek ekibiyle iletişime geç.";
 
@@ -8933,22 +8948,34 @@
 "SETTINGS_LOCAL_FILE_BACKUPS_LAST_BACKUP_DATE" = "Son Yedekleme";
 
 /* Message for an action sheet when a user cannot perform a remote backup because a local backup is in progress */
-"SETTINGS_LOCAL_FILE_BACKUPS_LOCAL_BACKUP_IN_PROGRESS_MESSAGE" = "Unable to perform a Signal Secure Backup because an on-device backup is in progress. Try again later.";
+"SETTINGS_LOCAL_FILE_BACKUPS_LOCAL_BACKUP_IN_PROGRESS_MESSAGE" = "Signal Güvenli Yedekleme gerçekleştirilemiyor çünkü cihazda yedekleme sürdürülüyor. Daha sonra tekrar dene.";
+
+/* Label for a progress bar while attachments are being copied for an on-device backup. Embeds 1:{{ percentage complete }}. */
+"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS" = "Copying attachments (%1$@)";
+
+/* Label for a progress bar while the attachments are being prepared for an on-device backup. Embeds 1:{{ percentage complete }}. */
+"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_ATTACHMENTS" = "Preparing attachments (%1$@)";
+
+/* Label for a progress bar while the on-device backup is being prepared. Embeds 1:{{ percentage complete }}. */
+"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_BACKUP" = "Preparing backup (%1$@)";
+
+/* Label for a progress bar while attachments are being restored for an on-device backup. Embeds {{%1$@ completed bytes restored, %2$@ total bytes to restore  }}. */
+"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_RESTORING_ATTACHMENTS" = "Restoring attachments (%1$@ of %2$@)";
 
 /* Message for an action sheet when a user cannot perform a local backup because a remote backup is in progress */
-"SETTINGS_LOCAL_FILE_BACKUPS_REMOTE_BACKUP_IN_PROGRESS_MESSAGE" = "Unable to perform an on-device backup because a Signal Secure Backup is in progress. Try again later.";
+"SETTINGS_LOCAL_FILE_BACKUPS_REMOTE_BACKUP_IN_PROGRESS_MESSAGE" = "Cihazda yedekleme gerçekleştirilemiyor çünkü Signal Güvenli Yedekleme sürdürülüyor. Daha sonra tekrar dene.";
 
 /* Footer text on the on-device backups settings page explaining how to restore a backup. */
 "SETTINGS_LOCAL_FILE_BACKUPS_RESTORE_FOOTER" = "Bir yedeklemeyi geri yüklemek için Signal'ı yeniden yükle. Uygulamayı aç, \"Geri Yükle veya Aktar\"a dokun ve \"Cihazda Yedekleme\"yi seç.";
 
 /* Label for the button that turns off on-device backups. */
-"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF" = "Turn Off & Delete Backup";
+"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF" = "Kapat ve Yedeklemeyi Sil";
 
 /* Message shown on an action sheet when a user's backup fails to delete. Embeds {{ local file backup location }} */
-"SETTINGS_LOCAL_FILE_BACKUPS_TURNING_OFF_ERROR_MESSAGE_FORMAT" = "Your backup could not be deleted due to an error. You must manually delete the folder. In the Files app, go to “%1$@” and manually delete the folder and its contents. No new backups will be created.";
+"SETTINGS_LOCAL_FILE_BACKUPS_TURNING_OFF_ERROR_MESSAGE_FORMAT" = "Yedeklemen bir hata nedeniyle silinemedi. Klasörü manuel olarak silmelisin. Dosyalar uygulamasında, \"%1$@\" adresine git ve klasör ile içindekileri manuel olarak sil. Yeni yedekleme oluşturulmayacaktır.";
 
 /* Title shown on an action sheet when a user's backup fails to delete */
-"SETTINGS_LOCAL_FILE_BACKUPS_TURNING_OFF_ERROR_TITLE" = "Couldn’t Delete Backup";
+"SETTINGS_LOCAL_FILE_BACKUPS_TURNING_OFF_ERROR_TITLE" = "Yedekleme Silinemedi";
 
 /* Label for the row that shows the on-device backup recovery key. */
 "SETTINGS_LOCAL_FILE_BACKUPS_VIEW_RECOVERY_KEY" = "Kurtarma Anahtarını Görüntüle";
@@ -8999,10 +9026,28 @@
 "SETTINGS_NOTIFICATIONS" = "Bildirimler";
 
 /* Header for the section of notification settings controlling the app icon's badge. */
-"SETTINGS_NOTIFICATIONS_APP_BADGE_SECTION" = "App Badge";
+"SETTINGS_NOTIFICATIONS_APP_BADGE_SECTION" = "Uygulama Rozeti";
 
 /* Explanation for the switch controlling whether a notification is shown when a phone contact joins Signal. */
-"SETTINGS_NOTIFICATIONS_CONTACT_JOINED_SIGNAL_FOOTER" = "Show a notification when a phone contact joins Signal.";
+"SETTINGS_NOTIFICATIONS_CONTACT_JOINED_SIGNAL_FOOTER" = "Telefona kayıtlı bir kişi Signal'a katıldığında bildirim göster.";
+
+/* Label for a switch controlling whether reactions to your messages generate notifications. */
+"SETTINGS_NOTIFICATIONS_REACTIONS" = "Reaction Notifications";
+
+/* Explanation for the switch controlling whether reactions to your messages generate notifications. */
+"SETTINGS_NOTIFICATIONS_REACTIONS_FOOTER" = "Show notifications for reactions to messages you send.";
+
+/* Label for a button that resets all notification settings to their defaults. */
+"SETTINGS_NOTIFICATIONS_RESET" = "Reset Notification Settings";
+
+/* Label for the button that confirms notification settings should be reset. */
+"SETTINGS_NOTIFICATIONS_RESET_CONFIRMATION_ACTION" = "Reset";
+
+/* Question confirming that notification settings should be reset. */
+"SETTINGS_NOTIFICATIONS_RESET_CONFIRMATION_MESSAGE" = "Reset all notification settings to default for all chats?";
+
+/* Explanation for the button that resets all notification settings. */
+"SETTINGS_NOTIFICATIONS_RESET_FOOTER" = "Reset notification settings to default, including custom settings for your chats.";
 
 /* Label for the 'agree to payments terms' button in the 'activate payments confirmation' UI in the payment settings. */
 "SETTINGS_PAYMENTS_ACTIVATE_PAYMENTS_CONFIRM_AGREE" = "Etkinleştir";
@@ -9674,7 +9719,7 @@
 "SHARE_ACTION_MESSAGE" = "İleti";
 
 /* Message for an action sheet shown when sharing fails because the device's date and time are incorrect. */
-"SHARE_EXTENSION_FAILED_SENDING_BECAUSE_CLOCK_SKEW_MESSAGE" = "Your device’s date and time are incorrect, and Signal may not have sent your message. Open Settings to correct your device’s date and time.";
+"SHARE_EXTENSION_FAILED_SENDING_BECAUSE_CLOCK_SKEW_MESSAGE" = "Cihazının tarihi ve saati hatalı ve Signal mesajını göndermemiş olabilir. Cihazının tarihini ve saatini düzeltmek için Ayarlar'ı aç.";
 
 /* alert body when sharing file failed because of untrusted/changed identity keys */
 "SHARE_EXTENSION_FAILED_SENDING_BECAUSE_UNTRUSTED_IDENTITY_FORMAT" = "%1$@ ile olan güvenlik numaranız yakın zamanda değişti. Yeniden göndermeden önce ana uygulamadan doğrulamak isteyebilirsiniz.";
@@ -10359,6 +10404,9 @@
 
 /* Notification prompting the user to relaunch Signal after a device transfer completed. */
 "TRANSFER_RELAUNCH_NOTIFICATION" = "Mesajlaşmaya başlamak için Signal'i aç";
+
+/* Label for a button that says 'Try Again'. */
+"TRY_AGAIN_BUTTON_TITLE" = "Try Again";
 
 /* Label for the cancel button in an alert or action sheet. */
 "TXT_CANCEL_TITLE" = "İptal";

@@ -238,6 +238,9 @@
 /* Action in an action sheet offering to attempt recovery of a corrupted database. */
 "APP_LAUNCH_FAILURE_DATABASE_RECOVERY_ACTION_TITLE" = "Відновити";
 
+/* Action in an action sheet offering to exit the app. */
+"APP_LAUNCH_FAILURE_EXIT_APP_ACTION_TITLE" = "Exit Signal";
+
 /* Error indicating that the app could not launch without reverting unknown database migrations. */
 "APP_LAUNCH_FAILURE_INVALID_DATABASE_VERSION_MESSAGE" = "Будь ласка, оновіть Signal до останньої версії.";
 
@@ -250,11 +253,11 @@
 /* Error indicating that the app crashed during the previous launch. */
 "APP_LAUNCH_FAILURE_LAST_LAUNCH_CRASHED_TITLE" = "Не вдається відкрити Signal";
 
-/* Error description indicating that the app crashed because there was low storage space available on the device. */
-"APP_LAUNCH_FAILURE_LOW_STORAGE_SPACE_AVAILABLE_MESSAGE" = "Не вдалося відкрити Signal, бо на пристрої не вистачає пам'яті. Відкрийте параметри та звільніть місце в пам'яті.";
+/* Message for an error sheet shown when the app cannot launch because the device is out of storage space. Embeds 1:{{ the localized name of the user's device model, e.g. iPhone }}; 2:{{ an amount of storage space as a file size, e.g. 1 GB }}. */
+"APP_LAUNCH_FAILURE_NOT_ENOUGH_STORAGE_SPACE_MESSAGE_FORMAT" = "Signal can’t open because your %1$@ is out of storage space. Free up at least %2$@, then reopen Signal.\n\nGo to iOS Settings > General > Storage and remove apps you don't use, delete large videos from your Photos app or other apps, and delete downloaded music and media.";
 
-/* Error title indicating that the app crashed because there was low storage space available on the device. */
-"APP_LAUNCH_FAILURE_LOW_STORAGE_SPACE_AVAILABLE_TITLE" = "Пам'яті майже не лишилося";
+/* Title for an error sheet shown when the app cannot launch because the device is out of storage space. */
+"APP_LAUNCH_FAILURE_NOT_ENOUGH_STORAGE_SPACE_TITLE" = "Not Enough Storage Space";
 
 /* Error indicating that the app could not restore transferred data. */
 "APP_LAUNCH_FAILURE_RESTORE_FAILED_MESSAGE" = "Не вдалося відновити дані, перенесені з вашого старого пристрою. Будь ласка, надішліть журнал налагодження на support@signal.org, щоб ми могли виправити цю проблему. Якщо ви заново встановите Signal, історію повідомлень може бути втрачено.";
@@ -2122,6 +2125,15 @@
 /* Button at top of chat list indicating the active filter is 'Filtered by Unread' and tapping will clear the filter */
 "CHAT_LIST_FILTERED_BY_UNREAD_CLEAR_BUTTON" = "Показано непрочитані";
 
+/* Title shown on chat list banner for restoring media from a backup is finished */
+"CHAT_LIST_LOCAL_FILE_BACKUP_RESTORE_FINISHED_TITLE" = "Attachment Restore Complete";
+
+/* Progress label showing bytes restored from an on-device backup. Embeds {{ %1$@ formatted bytes restored, %2$@ formatted total bytes to restore }}. */
+"CHAT_LIST_LOCAL_FILE_BACKUP_RESTORE_PROGRESS_VIEW_PROGRESS_FORMAT" = "%1$@ of %2$@";
+
+/* Title shown on the chat list banner while restoring attachments from an on-device backup. */
+"CHAT_LIST_LOCAL_FILE_BACKUP_RESTORE_PROGRESS_VIEW_TITLE" = "Restoring Attachments";
+
 /* Message shown in the chat list when the chat list is empty. */
 "CHAT_LIST_NO_CHATS_SUBTITLE" = "Тут будуть недавні чати.";
 
@@ -2204,13 +2216,13 @@
 "CHOOSE_BACKUP_PLAN_TITLE" = "Оберіть план резервного копіювання";
 
 /* Text on a screen shown when the app can't be used until the user corrects their device's date and time. Embeds {{ the device's current date and time, in UTC }}. */
-"CLOCK_SKEW_APP_BLOCKING_DEVICE_TIME_FORMAT" = "Your device’s time is %1$@ UTC.";
+"CLOCK_SKEW_APP_BLOCKING_DEVICE_TIME_FORMAT" = "Час на вашому пристрої: %1$@ UTC.";
 
 /* Subtitle for a screen shown when the app can't be used until the user corrects their device's date and time. */
-"CLOCK_SKEW_APP_BLOCKING_SUBTITLE" = "Signal can’t be used while your device’s date and time are incorrect. Open Settings to correct them.";
+"CLOCK_SKEW_APP_BLOCKING_SUBTITLE" = "Signal не можна використовувати, якщо на пристрої неправильно налаштовано дату й час. Змініть дату і час у параметрах.";
 
 /* Title for a screen shown when the app can't be used until the user corrects their device's date and time. */
-"CLOCK_SKEW_APP_BLOCKING_TITLE" = "Date is Inaccurate";
+"CLOCK_SKEW_APP_BLOCKING_TITLE" = "Неправильна дата";
 
 /* VoiceOver hint for an expanded collapse set button. */
 "COLLAPSE_SET_ACCESSIBILITY_HINT_COLLAPSE" = "Сховати оновлення";
@@ -2464,9 +2476,6 @@
 /* Alert body */
 "CONTACT_SUPPORT_PROMPT_ERROR_ALERT_BODY" = "Signal не зміг виконати ваш запит до служби підтримки.";
 
-/* button text */
-"CONTACT_SUPPORT_PROMPT_ERROR_TRY_AGAIN" = "Спробувати знову";
-
 /* Alert body */
 "CONTACT_SUPPORT_PROMPT_TO_INCLUDE_DEBUG_LOG_MESSAGE" = "Ваш журнал налагодження допоможе нам швидше усунути проблему. Надсилати журнал необов'язково.";
 
@@ -2539,26 +2548,11 @@
 /* Title for the button in a warning sheet shown before the user pastes their 'Recovery Key' into the chat input text field that acknowledges the warning and proceeds with the paste. */
 "CONVERSATION_INPUT_PASTE_RECOVERY_KEY_WARNING_SHEET_SHARE_BUTTON_TITLE" = "Поділитися ключем";
 
-/* Title for the 'conversation mute confirmation' alert. */
-"CONVERSATION_MUTE_CONFIRMATION_ALERT_TITLE" = "Вимкнути сповіщення чату на…";
-
-/* 1 day */
-"CONVERSATION_MUTE_CONFIRMATION_OPTION_1D" = "1 день";
-
-/* 1 hour */
-"CONVERSATION_MUTE_CONFIRMATION_OPTION_1H" = "1 година";
-
-/* 1 week */
-"CONVERSATION_MUTE_CONFIRMATION_OPTION_1W" = "1 тиждень";
-
-/* 8 hours */
-"CONVERSATION_MUTE_CONFIRMATION_OPTION_8H" = "8 годин";
-
-/* Always */
-"CONVERSATION_MUTE_CONFIRMATION_OPTION_ALWAYS" = "Назавжди";
-
 /* Message indicating that only administrators can send message to an announcement-only group. */
 "CONVERSATION_PICKER_BLOCKED_BY_ANNOUNCEMENT_ONLY" = "Надсилати повідомлення цій групі можуть тільки адміністратори.";
+
+/* Displayed at the bottom of chat picker in gray if no chats are selected. */
+"CONVERSATION_PICKER_CHOOSE_RECIPIENT" = "Choose a recipient";
 
 /* table section header for section containing groups */
 "CONVERSATION_PICKER_SECTION_GROUPS" = "Групи";
@@ -2713,7 +2707,7 @@
 /* Label for button to mute a thread for a day. */
 "CONVERSATION_SETTINGS_MUTE_ONE_DAY_ACTION" = "1 день";
 
-/* Label for button to mute a thread for a hour. */
+/* Label for button to mute a thread for an hour. */
 "CONVERSATION_SETTINGS_MUTE_ONE_HOUR_ACTION" = "1 година";
 
 /* Label for button to mute a thread for a week. */
@@ -3169,6 +3163,12 @@
 /* Description message on new device displayed during device transfer. */
 "DEVICE_TRANSFER_STATUS_NEW_DEVICE_CONNECTING_MESSAGE" = "Піднесіть старий пристрій ближче. Не забудьте ввімкнути Wi-Fi і Bluetooth.";
 
+/* Description message on new device displayed during device transfer when using WiFiAware. */
+"DEVICE_TRANSFER_STATUS_NEW_DEVICE_CONNECTING_WIFI_AWARE_MESSAGE" = "Bring your old device nearby, and make sure Wi-Fi and Bluetooth are enabled. Select this device from the list of devices on the old device.  If device is not visible on old device, select 'Pair New Device' below.";
+
+/* Title for paring an old device to transfer to. */
+"DEVICE_TRANSFER_STATUS_NEW_DEVICE_PAIR_DEVICE" = "Pair a new device";
+
 /* Status message on new device when transfer is starting. */
 "DEVICE_TRANSFER_STATUS_NEW_DEVICE_STARTING" = "Очікування на з'єднання зі старим пристроєм…";
 
@@ -3193,11 +3193,17 @@
 /* Description message on old device displayed during device transfer. */
 "DEVICE_TRANSFER_STATUS_OLD_DEVICE_CONNECTING_MESSAGE" = "Піднесіть новий пристрій ближче. Не забудьте ввімкнути Wi-Fi і Bluetooth.";
 
+/* Description message on old device displayed during device connection when using WiFiAware. */
+"DEVICE_TRANSFER_STATUS_OLD_DEVICE_CONNECTING_WIFI_AWARE_MESSAGE" = "Bring your new device nearby, and make sure Wi-Fi and Bluetooth are enabled.";
+
 /* Status message on old device when transfer is starting. */
 "DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING" = "Очікування на з'єднання з новим пристроєм…";
 
-/* Action asking user to try again after transfer failure. */
-"DEVICE_TRANSFER_TRY_AGAIN_ACTION" = "Спробувати знову";
+/* Status message on old device when WiFiAware transfer is starting. */
+"DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING_WIFI_AWARE" = "Select new device to connect to…";
+
+/* Description message on old device displayed during device discovery when using WiFiAware. */
+"DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING_WIFI_AWARE_MESSAGE" = "Select the new device from the list of paired devices below. If the new device is not visible, select 'Pair a new device' to begin the process.";
 
 /* table cell label in conversation settings */
 "DISAPPEARING_MESSAGES" = "Тимчасові повідомлення";
@@ -3385,9 +3391,6 @@
 /* Title for a button asking the user to renew their subscription, because it has expired. */
 "DONATION_BADGE_ISSUE_SHEET_RENEW_SUBSCRIPTION_BUTTON_TITLE" = "Поновити підписку";
 
-/* Title for a button asking the user to try their donation again, because something went wrong. */
-"DONATION_BADGE_ISSUE_SHEET_TRY_AGAIN_BUTTON_TITLE" = "Спробувати знову";
-
 /* When donating on behalf of a friend, a badge will be sent. This shows how long the badge lasts. Embeds {{formatted duration}}. */
 "DONATION_FOR_A_FRIEND_ROW_DURATION" = "Дійсний %1$@";
 
@@ -3555,9 +3558,6 @@
 
 /* Title for an action in an action sheet asking the user to renew a subscription that has failed to renew. */
 "DONATION_SETTINGS_MY_SUPPORT_ACTION_SHEET_ACTION_TITLE_RENEW_SUBSCRIPTION" = "Поновити підписку";
-
-/* Title for an action in an action sheet asking the user to try again, in reference to a donation that failed. */
-"DONATION_SETTINGS_MY_SUPPORT_ACTION_SHEET_ACTION_TITLE_TRY_AGAIN" = "Спробувати знову";
 
 /* Prompt the user asking if they want to keep the current in-flight, but unauthorized donation, or try again. */
 "DONATION_SETTINGS_MY_SUPPORT_BANK_PAYMENT_AWAITING_AUTHORIZATION_MESSAGE" = "Ми не змогли підтвердити ваш донат через iDEAL | Wero. Зайдіть у застосунок свого банку й схваліть платіж або повторіть його.";
@@ -4957,6 +4957,9 @@
 /* Title for the 'Select Chats' option in the ChatList. */
 "HOME_VIEW_TITLE_SELECT_CHATS" = "Вибрати чати";
 
+/* Title for the mute duration menu in the toolbar of the chat list if multi-select is active. */
+"HOME_VIEW_TOOLBAR_MUTE_MENU_TITLE" = "Mute selected chats for…";
+
 /* Title 'Read All' button in the toolbar of the ChatList if multi-section is active. */
 "HOME_VIEW_TOOLBAR_READ_ALL" = "Прочитати всі";
 
@@ -5452,6 +5455,12 @@
 /* Title for a sheet asking the user to select their backup to restore from during registration. */
 "LOCAL_BACKUPS_SELECT_HERO_SHEET_TITLE" = "Виберіть папку з резервною копією";
 
+/* Message for an action sheet informing the user we were unable to save their local backup location */
+"LOCAL_FILE_BACKUP_CHOOSE_FOLDER_ERROR_MESSAGE" = "Something went wrong and the folder location you selected couldn’t be saved. Try again. If this problem persists, please contact support.";
+
+/* Title for an action sheet informing the user we were unable to save their local backup location */
+"LOCAL_FILE_BACKUP_CHOOSE_FOLDER_ERROR_TITLE" = "Couldn’t Save Folder Location";
+
 /* Button for a sheet asking the user to choose a new local file backup folder */
 "LOCAL_FILE_BACKUP_CHOOSE_NEW_FOLDER_SHEET_BUTTON" = "Обрати папку";
 
@@ -5471,7 +5480,7 @@
 "LOCAL_FILE_BACKUP_ONBOARDING_INTRO_BULLET_3" = "Можна вимкнути в будь-який час";
 
 /* Subtitle for a view introducing local file backups during the onboarding flow. */
-"LOCAL_FILE_BACKUP_ONBOARDING_INTRO_SUBTITLE" = "Back up your messages to a folder on your device. Your backup is end-to-end encrypted and can be restored by installing a new copy of Signal and choosing “Restore or Transfer“.";
+"LOCAL_FILE_BACKUP_ONBOARDING_INTRO_SUBTITLE" = "Зберігайте повідомлення в папці на цьому пристрої. Резервна копія захищена наскрізним шифруванням, і дані з неї можна відновити, якщо заново встановити Signal і вибрати «Відновлення або перенесення акаунту».";
 
 /* Title for a view introducing local file backups during the onboarding flow. */
 "LOCAL_FILE_BACKUP_ONBOARDING_INTRO_TITLE" = "Резервна копія на пристрої";
@@ -5486,22 +5495,22 @@
 "LOCAL_FILE_BACKUPS_CHOOSE_FOLDER_TITLE" = "Оберіть папку";
 
 /* Warning shown when a user tries to enable local file backups with optimize media enabled */
-"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET" = "You have Optimize Signal Storage on. If you want to include all media in your on-device backup, turn the setting off.";
+"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET" = "У вас увімкнено функцію «Оптимізувати сховище Signal». Якщо ви хочете зберігати всі медіафайли в резервній копії на пристрої, вимкніть це налаштування.";
 
 /* Message for a sheet warning the user about enabling Optimize Storage with local backups enabled. */
-"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_2_BODY" = "Turning on “Optimize Signal storage“ will offload old media from your device. You can download it again at any time. It will also remove old media from your on-device backup.";
+"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_2_BODY" = "Якщо ввімкнути функцію «Оптимізувати сховище Signal», старі медіафайли буде вивантажено з пристрою. Ви можете завантажити їх у будь-який час. Також старі медіафайли буде вилучено з резервної копії на пристрої.";
 
 /* Title for a sheet warning the user about enabling Optimize Storage with local backups enabled. */
-"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_2_TITLE" = "Media Will Be Removed From Your On-Device Backup";
+"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_2_TITLE" = "З резервної копії на пристрої буде вилучено медіафайли";
 
 /* Action in a sheet warning the user about enabling Optimize Storage with local backups enabled, that turns on Optimize Storage. */
-"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_2_TURN_ON" = "Turn on";
+"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_2_TURN_ON" = "Увімкнути";
 
 /* Action in an action sheet offering to continue anyway. */
-"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_CONTINUE" = "Continue Without Turning Off";
+"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_CONTINUE" = "Не вимикати й продовжити";
 
 /* Action in an action sheet offering to go to the optimize local storage setting. */
-"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_VIEW_SETTING" = "View Setting";
+"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_VIEW_SETTING" = "Відкрити налаштування";
 
 /* A string indicating that the user can search for a location */
 "LOCATION_PICKER_SEARCH_PLACEHOLDER" = "Пошук за назвою / адресою";
@@ -5518,8 +5527,17 @@
 /* Title for the 'long text message' view. */
 "LONG_TEXT_VIEW_TITLE" = "Повідомлення";
 
-/* Message for a sheet warning the user that their device is low on storage space. */
-"LOW_DISK_SPACE_WARNING_SHEET_MESSAGE" = "На вашому пристрої недостатньо пам'яті. Якщо місце закінчиться, ви не зможете використовувати Signal. Звільніть місце, налаштувавши використання сховища.";
+/* Message for a sheet warning the user that their device is low on storage space. Embeds 1:{{ the localized name of the user's device model, e.g. iPhone }}; 2:{{ an amount of storage space as a file size, e.g. 1 GB }}. */
+"LOW_DISK_SPACE_WARNING_SHEET_MESSAGE_FORMAT" = "Your %1$@ is running low on storage space. If it fills up, Signal will stop working and you could lose data. Free up at least %2$@ of space.";
+
+/* A suggestion for freeing up storage space, on a sheet warning the user that their device is low on storage space. */
+"LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_DELETE_CAMERA_ROLL_MEDIA" = "Delete large videos from your Photos app, Signal, or other messaging apps";
+
+/* A suggestion for freeing up storage space, on a sheet warning the user that their device is low on storage space. */
+"LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_DELETE_DOWNLOADED_MEDIA" = "Delete downloaded music or other media";
+
+/* A suggestion for freeing up storage space, on a sheet warning the user that their device is low on storage space. */
+"LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_REMOVE_APPS" = "Go to iOS Settings > General > Storage. Review the recommendations and remove apps you don't use";
 
 /* Title for a sheet warning the user that their device is low on storage space. */
 "LOW_DISK_SPACE_WARNING_SHEET_TITLE" = "Пам'яті майже не лишилося";
@@ -6311,7 +6329,7 @@
 "NOTE_TO_SELF" = "Нотатник";
 
 /* Body for a notification shown when Signal can't fetch messages because the device's date and time are incorrect. */
-"NOTIFICATION_BODY_CLOCK_SKEW" = "Signal can’t receive messages while your device’s date and time are incorrect. Open Settings to correct them.";
+"NOTIFICATION_BODY_CLOCK_SKEW" = "Signal не може відновити повідомлення, якщо на пристрої неправильно налаштовано дату й час. Змініть дату і час у параметрах.";
 
 /* Body for a notification representing a message request. */
 "NOTIFICATION_BODY_INCOMING_MESSAGE_REQUEST" = "Запит на повідомлення";
@@ -6410,10 +6428,10 @@
 "ONBOARDING_2FA_SKIP_PIN_ENTRY_TITLE" = "Не вводити PIN-код?";
 
 /* Subtitle for the sheet that lets users pick from available local backups to restore. */
-"ONBOARDING_CHOOSE_BACKUP_SHEET_SUBTITLE" = "Choosing an older backup may result in lost messages or media.";
+"ONBOARDING_CHOOSE_BACKUP_SHEET_SUBTITLE" = "Якщо вибрати старішу резервну копію, ви можете втратити якісь повідомлення і медіафайли.";
 
 /* Title for the sheet that lets users pick from available local backups to restore. */
-"ONBOARDING_CHOOSE_BACKUP_SHEET_TITLE" = "Choose a Backup to Restore";
+"ONBOARDING_CHOOSE_BACKUP_SHEET_TITLE" = "Виберіть резервну копію";
 
 /* The body for the device transfer 'choice' view 'restore backup' option */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_BACKUPS_BODY" = "Відновити акаунт і повідомлення з резервної копії від Signal";
@@ -6467,7 +6485,7 @@
 "ONBOARDING_CONFIRM_BACKUP_RESTORE_BODY_3_PAID" = "Усі ваші медіафайли";
 
 /* Text for action button that opens a picker to choose an older local backup. */
-"ONBOARDING_CONFIRM_BACKUP_RESTORE_CHOOSE_OLDER_ACTION" = "Choose an Older Backup";
+"ONBOARDING_CONFIRM_BACKUP_RESTORE_CHOOSE_OLDER_ACTION" = "Вибрати старішу резервну копію";
 
 /* Text for action button confirming the restore. */
 "ONBOARDING_CONFIRM_BACKUP_RESTORE_CONFIRM_ACTION" = "Відновити з резервної копії";
@@ -7912,9 +7930,6 @@
 /* Skip restore action label for backup restore error recovery. */
 "REGISTRATION_BACKUP_RESTORE_ERROR_SKIP_RESTORE_ACTION" = "Не відновлювати";
 
-/* Try again action label for backup restore error recovery. */
-"REGISTRATION_BACKUP_RESTORE_ERROR_TRY_AGAIN_ACTION" = "Спробувати знову";
-
 /* Body for a sheet telling users restoring a backup unrecoverably failed. */
 "REGISTRATION_BACKUP_RESTORE_ERROR_UNRETRYABLE_SERVER_ERROR_BODY" = "Під час відновлення резервної копії сталася помилка. Вашу резервну копію неможливо відновити. Будь ласка, зверніться до служби підтримки по допомогу.";
 
@@ -8933,22 +8948,34 @@
 "SETTINGS_LOCAL_FILE_BACKUPS_LAST_BACKUP_DATE" = "Найновіша резервна копія";
 
 /* Message for an action sheet when a user cannot perform a remote backup because a local backup is in progress */
-"SETTINGS_LOCAL_FILE_BACKUPS_LOCAL_BACKUP_IN_PROGRESS_MESSAGE" = "Unable to perform a Signal Secure Backup because an on-device backup is in progress. Try again later.";
+"SETTINGS_LOCAL_FILE_BACKUPS_LOCAL_BACKUP_IN_PROGRESS_MESSAGE" = "Не вдалося створити резервну копію від Signal, тому що триває резервне копіювання на пристрої. Спробуйте пізніше.";
+
+/* Label for a progress bar while attachments are being copied for an on-device backup. Embeds 1:{{ percentage complete }}. */
+"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS" = "Copying attachments (%1$@)";
+
+/* Label for a progress bar while the attachments are being prepared for an on-device backup. Embeds 1:{{ percentage complete }}. */
+"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_ATTACHMENTS" = "Preparing attachments (%1$@)";
+
+/* Label for a progress bar while the on-device backup is being prepared. Embeds 1:{{ percentage complete }}. */
+"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_BACKUP" = "Preparing backup (%1$@)";
+
+/* Label for a progress bar while attachments are being restored for an on-device backup. Embeds {{%1$@ completed bytes restored, %2$@ total bytes to restore  }}. */
+"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_RESTORING_ATTACHMENTS" = "Restoring attachments (%1$@ of %2$@)";
 
 /* Message for an action sheet when a user cannot perform a local backup because a remote backup is in progress */
-"SETTINGS_LOCAL_FILE_BACKUPS_REMOTE_BACKUP_IN_PROGRESS_MESSAGE" = "Unable to perform an on-device backup because a Signal Secure Backup is in progress. Try again later.";
+"SETTINGS_LOCAL_FILE_BACKUPS_REMOTE_BACKUP_IN_PROGRESS_MESSAGE" = "Не вдалося створити резервну копію на пристрої, тому що триває резервне копіювання від Signal. Спробуйте пізніше.";
 
 /* Footer text on the on-device backups settings page explaining how to restore a backup. */
 "SETTINGS_LOCAL_FILE_BACKUPS_RESTORE_FOOTER" = "Щоб відновити дані з резервної копії, встановіть застосунок Signal ще раз. Відкрийте застосунок, натисніть «Відновлення або перенесення акаунту» > «Резервна копія на пристрої».";
 
 /* Label for the button that turns off on-device backups. */
-"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF" = "Turn Off & Delete Backup";
+"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF" = "Вимкнути й видалити резервну копію";
 
 /* Message shown on an action sheet when a user's backup fails to delete. Embeds {{ local file backup location }} */
-"SETTINGS_LOCAL_FILE_BACKUPS_TURNING_OFF_ERROR_MESSAGE_FORMAT" = "Your backup could not be deleted due to an error. You must manually delete the folder. In the Files app, go to “%1$@” and manually delete the folder and its contents. No new backups will be created.";
+"SETTINGS_LOCAL_FILE_BACKUPS_TURNING_OFF_ERROR_MESSAGE_FORMAT" = "Нам не вдалося видалити резервну копію через помилку. Вам потрібно видалити папку вручну. Перейдіть у «%1$@» у файловому менеджері й видаліть папку та її вміст вручну. Нову резервну копію не буде створено.";
 
 /* Title shown on an action sheet when a user's backup fails to delete */
-"SETTINGS_LOCAL_FILE_BACKUPS_TURNING_OFF_ERROR_TITLE" = "Couldn’t Delete Backup";
+"SETTINGS_LOCAL_FILE_BACKUPS_TURNING_OFF_ERROR_TITLE" = "Не вдалося видалити резервну копію";
 
 /* Label for the row that shows the on-device backup recovery key. */
 "SETTINGS_LOCAL_FILE_BACKUPS_VIEW_RECOVERY_KEY" = "Переглянути ключ відновлення";
@@ -8999,10 +9026,28 @@
 "SETTINGS_NOTIFICATIONS" = "Сповіщення";
 
 /* Header for the section of notification settings controlling the app icon's badge. */
-"SETTINGS_NOTIFICATIONS_APP_BADGE_SECTION" = "App Badge";
+"SETTINGS_NOTIFICATIONS_APP_BADGE_SECTION" = "Значок застосунку";
 
 /* Explanation for the switch controlling whether a notification is shown when a phone contact joins Signal. */
-"SETTINGS_NOTIFICATIONS_CONTACT_JOINED_SIGNAL_FOOTER" = "Show a notification when a phone contact joins Signal.";
+"SETTINGS_NOTIFICATIONS_CONTACT_JOINED_SIGNAL_FOOTER" = "Показувати сповіщення, коли контакт із телефона приєднується до Signal.";
+
+/* Label for a switch controlling whether reactions to your messages generate notifications. */
+"SETTINGS_NOTIFICATIONS_REACTIONS" = "Reaction Notifications";
+
+/* Explanation for the switch controlling whether reactions to your messages generate notifications. */
+"SETTINGS_NOTIFICATIONS_REACTIONS_FOOTER" = "Show notifications for reactions to messages you send.";
+
+/* Label for a button that resets all notification settings to their defaults. */
+"SETTINGS_NOTIFICATIONS_RESET" = "Reset Notification Settings";
+
+/* Label for the button that confirms notification settings should be reset. */
+"SETTINGS_NOTIFICATIONS_RESET_CONFIRMATION_ACTION" = "Reset";
+
+/* Question confirming that notification settings should be reset. */
+"SETTINGS_NOTIFICATIONS_RESET_CONFIRMATION_MESSAGE" = "Reset all notification settings to default for all chats?";
+
+/* Explanation for the button that resets all notification settings. */
+"SETTINGS_NOTIFICATIONS_RESET_FOOTER" = "Reset notification settings to default, including custom settings for your chats.";
 
 /* Label for the 'agree to payments terms' button in the 'activate payments confirmation' UI in the payment settings. */
 "SETTINGS_PAYMENTS_ACTIVATE_PAYMENTS_CONFIRM_AGREE" = "Активувати";
@@ -9674,7 +9719,7 @@
 "SHARE_ACTION_MESSAGE" = "Повідомлення";
 
 /* Message for an action sheet shown when sharing fails because the device's date and time are incorrect. */
-"SHARE_EXTENSION_FAILED_SENDING_BECAUSE_CLOCK_SKEW_MESSAGE" = "Your device’s date and time are incorrect, and Signal may not have sent your message. Open Settings to correct your device’s date and time.";
+"SHARE_EXTENSION_FAILED_SENDING_BECAUSE_CLOCK_SKEW_MESSAGE" = "На вашому пристрої неправильно налаштовано дату й час, тому Signal, можливо, не надіслав ваше повідомлення. Змініть дату і час у параметрах.";
 
 /* alert body when sharing file failed because of untrusted/changed identity keys */
 "SHARE_EXTENSION_FAILED_SENDING_BECAUSE_UNTRUSTED_IDENTITY_FORMAT" = "Ваш код безпеки для чатів з користувачем %1$@ недавно змінився. Можливо, варто його перевірити в основному застосунку, перш ніж надсилати повідомлення знову.";
@@ -10359,6 +10404,9 @@
 
 /* Notification prompting the user to relaunch Signal after a device transfer completed. */
 "TRANSFER_RELAUNCH_NOTIFICATION" = "Відкрийте Signal, щоб почати спілкування";
+
+/* Label for a button that says 'Try Again'. */
+"TRY_AGAIN_BUTTON_TITLE" = "Try Again";
 
 /* Label for the cancel button in an alert or action sheet. */
 "TXT_CANCEL_TITLE" = "Закрити";
