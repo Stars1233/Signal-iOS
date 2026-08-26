@@ -25,7 +25,7 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
         case backupFile = "main"
         case metadataFile = "metadata"
 
-        public static let backupDirectoryPrefix = "signal-backups-"
+        public static let backupDirectoryPrefix = "signal-backup-"
 
         static let dateFormatter: DateFormatter = {
             let formatter = DateFormatter()
