@@ -175,14 +175,19 @@ enum DeviceTransfer {
     }
 
     @MainActor
-    protocol OutgoingConnection {
+    protocol PeerDiscovery {
+        var discoveredPeerStream: AsyncThrowingStream<[PeerID], Swift.Error> { get }
+    }
+
+    @MainActor
+    protocol OutgoingConnection: PeerDiscovery {
         var selectedPeer: (any PeerID)? { get }
         func connect(peer: any PeerID) async throws -> Session
         func stop(error: Swift.Error?)
     }
 
     @MainActor
-    protocol IncomingConnection {
+    protocol IncomingConnection: PeerDiscovery {
         func start(mode: DeviceTransfer.Mode) throws -> URL
         func waitForConnection() async throws -> Session
         func stop(error: Swift.Error?)

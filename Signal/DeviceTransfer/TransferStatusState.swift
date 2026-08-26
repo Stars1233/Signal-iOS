@@ -148,6 +148,7 @@ class TransferStatusViewModel: ObservableObject {
 
     var confirmCancellation: (() async -> Bool) = { return true }
     var cancelTransferBlock: (() -> Void) = {}
+    var onPeerDiscovered: (@MainActor (TransferStatusViewModel.PeerIDWrapper) -> Void) = { _ in }
     var onPeerSelected: (@MainActor (TransferStatusViewModel.PeerIDWrapper) -> Void) = { _ in }
     var onSuccess: (@MainActor () -> Void) = {}
     var onFailure: ((Error) -> Void) = { _ in }

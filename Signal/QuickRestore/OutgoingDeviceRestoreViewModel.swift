@@ -22,6 +22,8 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
     private let registrationStateChangeManager: RegistrationStateChangeManager
     private let tsAccountManager: TSAccountManager
 
+    private var listenForPairingTask: Task<Void, Error>?
+
     @MainActor
     init(
         db: DB,
@@ -92,6 +94,13 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
             if let peer = outgoingDeviceTransferTask.selectedPeer {
                 transferStatusViewModel.selectedPeer = .init(wrappedPeer: peer)
             }
+
+            self.listenForPairingTask = Task {
+                for try await peer in outgoingDeviceTransferTask.pairedPeerStream {
+                    let wrappedPeer = TransferStatusViewModel.PeerIDWrapper(wrappedPeer: peer)
+                    transferStatusViewModel.onPeerDiscovered(wrappedPeer)
+                }
+            }
             self.outgoingDeviceTransferTask = outgoingDeviceTransferTask
         }
 
@@ -118,6 +127,7 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
     /// begin a device transfer.
     @MainActor
     func startTransfer() async throws {
+        self.listenForPairingTask.take()?.cancel()
         guard let outgoingDeviceTransferTask else {
             throw OWSAssertionError("Transfer started before negotiating connection")
         }
@@ -141,6 +151,7 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
 
     @MainActor
     private func cancelTransfer() {
+        self.listenForPairingTask.take()?.cancel()
         stopListeningForTransfer(error: CancellationError())
         transferStatusViewModel.state = .cancelled
     }

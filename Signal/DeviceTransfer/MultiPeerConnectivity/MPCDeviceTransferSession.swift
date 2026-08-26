@@ -190,7 +190,7 @@ class MPCDeviceTransferSession:
         didFinishReceivingResourceWithName resourceName: String,
         fromPeer peerId: MCPeerID,
         at localURL: URL?,
-        withError error: Swift.Error?,
+        withError error: Error?,
     ) {
         if let error {
             messageSink.finish(throwing: error)

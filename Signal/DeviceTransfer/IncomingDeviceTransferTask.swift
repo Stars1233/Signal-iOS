@@ -32,6 +32,10 @@ class IncomingDeviceTransferTask {
     private var messagesReceiverTask: Task<Void, Error>?
     private var transferFinishedContinuation: CheckedContinuation<Void, Error>?
 
+    let pairedPeerStream: AsyncThrowingStream<DeviceTransfer.PeerID, Error>
+    private let pairedPeerSink: AsyncThrowingStream<DeviceTransfer.PeerID, Error>.Continuation
+    private var pairedPeerListenTask: Task<Void, Error>?
+
     init(
         db: DB,
         deviceSleepManager: DeviceSleepManager?,
@@ -47,6 +51,25 @@ class IncomingDeviceTransferTask {
         self.newDeviceServiceAdvertiser = deviceTransferConnectionFactory.buildIncomingConnection(
             tsAccountManager: tsAccountManager,
         )
+        (self.pairedPeerStream, self.pairedPeerSink) = AsyncThrowingStream.makeStream()
+        self.pairedPeerListenTask = Task {
+            var priorPeerList: [String: DeviceTransfer.PeerID]?
+            for try await peers in self.newDeviceServiceAdvertiser.discoveredPeerStream {
+                let peerDictionary = Dictionary(uniqueKeysWithValues: zip(peers.map(\.peerID), peers))
+                if let priorPeerList {
+                    if
+                        let newPeerID = Set(peerDictionary.keys).subtracting(Set(priorPeerList.keys)).first,
+                        let newPeer = peerDictionary[newPeerID]
+                    {
+                        self.pairedPeerSink.yield(newPeer)
+                    }
+                } else {
+                    // The 'newly paired peer' is determined by recording the first list of peered devices
+                    // and checking this against any future list to find the first new device.
+                    priorPeerList = peerDictionary
+                }
+            }
+        }
     }
 
     // MARK: - Public methods

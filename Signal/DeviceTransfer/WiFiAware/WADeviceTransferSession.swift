@@ -31,7 +31,7 @@ class WADeviceTransferSession: DeviceTransfer.Session {
 
     private var receiverTask: Task<Void, Error>?
 
-    var messages: AsyncThrowingStream<DeviceTransfer.SessionMessage, any Error>
+    var messages: AsyncThrowingStream<DeviceTransfer.SessionMessage, Error>
     private let messageSink: AsyncThrowingStream<DeviceTransfer.SessionMessage, Error>.Continuation
 
     init(connection: WiFiAwareConnection) throws {

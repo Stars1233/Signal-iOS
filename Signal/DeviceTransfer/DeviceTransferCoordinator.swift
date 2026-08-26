@@ -18,6 +18,11 @@ public class DeviceTransferCoordinator: Equatable {
     private let restoreMode: DeviceTransfer.Mode
     public let supportsWifiAware: Bool
 
+    @MainActor
+    var pairedPeerStream: AsyncThrowingStream<DeviceTransfer.PeerID, Error> {
+        incomingDeviceTransferTask.pairedPeerStream
+    }
+
     public var confirmCancellation: () async -> Bool {
         get { transferStatusViewModel.confirmCancellation }
         set {

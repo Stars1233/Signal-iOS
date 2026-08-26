@@ -33,6 +33,10 @@ class MPCDeviceTransferBrowser:
     private let tsAccountManager: TSAccountManager
     private let expectedConnectionData: ConnectionData
 
+    // This is here to satisfy the PeerDiscovery, but we don't currently notify when
+    // peers are discovered, since the peer selection is handled differently in MPC
+    let discoveredPeerStream: AsyncThrowingStream<[DeviceTransfer.PeerID], Error>
+
     @MainActor
     init(
         tsAccountManager: TSAccountManager,
@@ -50,6 +54,7 @@ class MPCDeviceTransferBrowser:
             peer: peerId.mcPeerID,
             serviceType: DeviceTransfer.Constants.newDeviceServiceIdentifier,
         )
+        (self.discoveredPeerStream, _) = AsyncThrowingStream.makeStream()
         super.init()
         browser.delegate = self
     }
@@ -209,7 +214,7 @@ class MPCDeviceTransferBrowser:
 
     func browser(
         _ browser: MCNearbyServiceBrowser,
-        didNotStartBrowsingForPeers error: Swift.Error,
+        didNotStartBrowsingForPeers error: Error,
     ) {
         Task { @MainActor in
             self.connectionError(error)

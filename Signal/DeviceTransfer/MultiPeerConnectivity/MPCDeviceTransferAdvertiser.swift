@@ -27,6 +27,10 @@ class MPCDeviceTransferAdvertiser:
     private var connectionContinuation: CheckedContinuation<DeviceTransfer.Session, Error>?
     private var waitTask: Task<DeviceTransfer.Session, Error>?
 
+    // This is here to satisfy the PeerDiscovery, but we don't currently notify when
+    // peers are discovered, since the peer selection is handled differently in MPC
+    let discoveredPeerStream: AsyncThrowingStream<[DeviceTransfer.PeerID], Error>
+
     @MainActor
     init(tsAccountManager: TSAccountManager) {
         self.tsAccountManager = tsAccountManager
@@ -37,6 +41,7 @@ class MPCDeviceTransferAdvertiser:
             discoveryInfo: nil,
             serviceType: DeviceTransfer.Constants.newDeviceServiceIdentifier,
         )
+        (self.discoveredPeerStream, _) = AsyncThrowingStream.makeStream()
         super.init()
         advertiser.delegate = self
     }
@@ -163,7 +168,7 @@ class MPCDeviceTransferAdvertiser:
         }
     }
 
-    func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didNotStartAdvertisingPeer error: Swift.Error) {
+    func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didNotStartAdvertisingPeer error: Error) {
         Task { @MainActor in
             self.connectionError(error: error)
         }

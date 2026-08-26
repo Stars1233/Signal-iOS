@@ -30,6 +30,10 @@ class OutgoingDeviceTransferTask {
     private let waitTask = AtomicValue<Task<Void, Error>?>(nil, lock: .init())
     private let sendTask = AtomicValue<Task<Void, Error>?>(nil, lock: .init())
 
+    let pairedPeerStream: AsyncThrowingStream<DeviceTransfer.PeerID, Error>
+    private let pairedPeerSink: AsyncThrowingStream<DeviceTransfer.PeerID, Error>.Continuation
+    private var pairedPeerListenTask: Task<Void, Error>?
+
     var selectedPeer: (any DeviceTransfer.PeerID)? {
         newDeviceServiceBrowser.selectedPeer
     }
@@ -49,6 +53,25 @@ class OutgoingDeviceTransferTask {
             tsAccountManager: tsAccountManager,
             deviceTransferURL: deviceTransferURL,
         )
+        (self.pairedPeerStream, self.pairedPeerSink) = AsyncThrowingStream.makeStream()
+        self.pairedPeerListenTask = Task {
+            var priorPeerList: [String: DeviceTransfer.PeerID]?
+            for try await peers in self.newDeviceServiceBrowser.discoveredPeerStream {
+                let peerDictionary = Dictionary(uniqueKeysWithValues: zip(peers.map(\.peerID), peers))
+                if let priorPeerList {
+                    if
+                        let newPeerID = Set(peerDictionary.keys).subtracting(Set(priorPeerList.keys)).first,
+                        let newPeer = peerDictionary[newPeerID]
+                    {
+                        self.pairedPeerSink.yield(newPeer)
+                    }
+                } else {
+                    // The 'newly paired peer' is determined by recording the first list of peered devices
+                    // and checking this against any future list to find the first new device.
+                    priorPeerList = peerDictionary
+                }
+            }
+        }
     }
 
     func connectToNewDevice(peer: any DeviceTransfer.PeerID) async throws {
@@ -317,6 +340,7 @@ class OutgoingDeviceTransferTask {
         session.take()?.disconnect(error: error)
         waitTask.swap(nil)?.cancel()
         sendTask.swap(nil)?.cancel()
+        pairedPeerListenTask.take()?.cancel()
         newDeviceServiceBrowser.stop(error: error)
         throughputMonitor?.stop()
         deviceSleepManager?.removeBlock(blockObject: sleepBlockObject)

@@ -255,19 +255,16 @@ class OutgoingDeviceRestorePresenter: OutgoingDeviceRestoreInitialPresenter {
                 var continuation: CheckedContinuation<TransferStatusViewModel.PeerIDWrapper, Error>?
                 let selectedPeer = viewModel.transferStatusViewModel.selectedPeer
                 if selectedPeer == nil {
-                    viewModel.transferStatusViewModel.onPeerSelected = { peer in
-                        // onPeerSelected happens when the DeviceDiscoveryUI returns a selected peer
-                        // However, DeviceDiscoveryUI has unfortunate behavior that dismisses _all_
-                        // presented UI, and results in dismissing the progress VC along with it's
-                        // own UI. To remedy this, preemptively dismiss and re-present the transfer progress UI.
-                        presentingViewController.dismiss(animated: true)
+                    viewModel.transferStatusViewModel.onPeerDiscovered = { [weak self] peer in
                         Task {
-                            await self.pushProgressViewController(
-                                viewModel: viewModel,
-                                presentingViewController: presentingViewController,
-                            )
+                            await self?.dismissSystemModalIfPresented(presentingViewController: presentingViewController)
                         }
-                        continuation.take()?.resume(returning: peer)
+                    }
+                    viewModel.transferStatusViewModel.onPeerSelected = { [weak self] peer in
+                        Task {
+                            await self?.dismissSystemModalIfPresented(presentingViewController: presentingViewController)
+                            continuation.take()?.resume(returning: peer)
+                        }
                     }
                 }
                 await pushProgressViewController(
@@ -289,6 +286,32 @@ class OutgoingDeviceRestorePresenter: OutgoingDeviceRestoreInitialPresenter {
             }
         } catch {
             await handleError(error, presentingViewController: presentingViewController)
+        }
+    }
+
+    @MainActor
+    private func dismissSystemModalIfPresented(presentingViewController: UIViewController?) async {
+        guard let presentingViewController else {
+            owsFailDebug("Attempting dismiss with no presenting view controller")
+            return
+        }
+        guard let viewModel else {
+            return
+        }
+        if
+            let presentedVC = presentingViewController.presentedViewController,
+            let frontmostVC = UIApplication.shared.frontmostViewController,
+            frontmostVC != presentedVC
+        {
+            // onPeerSelected happens when the DeviceDiscoveryUI returns a selected peer
+            // However, DeviceDiscoveryUI has unfortunate behavior that dismisses _all_
+            // presented UI, and results in dismissing the progress VC along with it's
+            // own UI. To remedy this, preemptively dismiss and re-present the transfer progress UI.
+            await presentingViewController.awaitableDismiss(animated: true)
+            await self.pushProgressViewController(
+                viewModel: viewModel,
+                presentingViewController: presentingViewController,
+            )
         }
     }
 
