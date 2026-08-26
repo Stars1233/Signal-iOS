@@ -384,6 +384,7 @@ public struct KeyValueStoreDeleter {
         "OrchestratingSVRImpl",
         "PinnedConversationManager",
         "PniHelloWorldManagerImpl",
+        "PreKeyManager",
         "RemoteMegaphoneFetcher",
         "SSKKyberPreKeyStoreACIKeyStore",
         "SSKKyberPreKeyStorePNIKeyStore",
