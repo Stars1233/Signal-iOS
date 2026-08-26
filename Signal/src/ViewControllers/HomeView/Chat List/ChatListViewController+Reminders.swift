@@ -64,10 +64,12 @@ public class CLVReminderViews {
             style: .warning,
             text: deregisteredText,
             actionTitle: deregisteredActionTitle,
-            tapAction: { [weak chatListViewController] in
+            tapAction: { [weak self] in
                 switch deregisteredState {
                 case .deregistered:
-                    guard let chatListViewController else { return }
+                    guard let self, let chatListViewController else {
+                        return
+                    }
                     RegistrationUtils.showReRegistrationPrompt(fromViewController: chatListViewController)
                 case .delinked:
                     RegistrationUtils.showReLinking()
