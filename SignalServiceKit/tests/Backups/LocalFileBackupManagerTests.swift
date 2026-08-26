@@ -36,6 +36,7 @@ struct LocalFileBackupManagerTests {
             orphanedAttachmentCleaner: orphanedAttachmentCleaner,
             localFileBackupStore: LocalFileBackupStore(),
             securityScopedBookmarkAccess: SecurityScopedBookmarkAccessMock(hasAccess: true, url: nil),
+            restoreProgress: LocalFileBackupAttachmentRestoreProgress(),
         )
     }
 

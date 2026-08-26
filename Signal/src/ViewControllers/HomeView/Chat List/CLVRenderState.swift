@@ -77,12 +77,14 @@ struct CLVRenderState {
         case .reminders where hasVisibleReminders,
              .backupDownloadProgressView where shouldBackupDownloadProgressViewBeVisible,
              .backupExportProgressView where shouldBackupExportProgressViewBeVisible,
+             .localFileBackupRestoreProgressView where shouldLocalFileBackupRestoreProgressViewBeVisible,
              .archiveButton where hasArchivedThreadsRow:
             return Section(type: sectionType)
 
         case .reminders,
              .backupDownloadProgressView,
              .backupExportProgressView,
+             .localFileBackupRestoreProgressView,
              .archiveButton:
             return nil
 
@@ -116,6 +118,10 @@ struct CLVRenderState {
         viewInfo.shouldBackupExportProgressViewBeVisible
     }
 
+    var shouldLocalFileBackupRestoreProgressViewBeVisible: Bool {
+        viewInfo.shouldLocalFileBackupRestoreProgressViewBeVisible
+    }
+
     // MARK: UITableViewDataSource
 
     func numberOfRows(in section: Section) -> Int {
@@ -123,6 +129,7 @@ struct CLVRenderState {
         case .reminders,
              .backupDownloadProgressView,
              .backupExportProgressView,
+             .localFileBackupRestoreProgressView,
              .archiveButton,
              .inboxFilterFooter:
             return 1
@@ -147,6 +154,7 @@ struct CLVRenderState {
              .reminders,
              .backupDownloadProgressView,
              .backupExportProgressView,
+             .localFileBackupRestoreProgressView,
              .archiveButton:
             return nil
         }
@@ -166,6 +174,7 @@ struct CLVRenderState {
              .reminders,
              .backupDownloadProgressView,
              .backupExportProgressView,
+             .localFileBackupRestoreProgressView,
              .archiveButton:
             owsFailDebug("Section diffing not yet supported in section '\(section.type)'")
             return nil

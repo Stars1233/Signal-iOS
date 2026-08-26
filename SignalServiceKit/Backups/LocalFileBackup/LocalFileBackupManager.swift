@@ -61,6 +61,7 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
     private let orphanedAttachmentCleaner: OrphanedAttachmentCleaner
     private nonisolated let localFileBackupStore: LocalFileBackupStore
     private nonisolated let securityScopedBookmarkAccess: SecurityScopedBookmarkAccess
+    private let restoreProgress: LocalFileBackupAttachmentRestoreProgress
 
     private static let maxAllowedNumberOfBackups: Int = 2
 
@@ -76,6 +77,7 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
         orphanedAttachmentCleaner: OrphanedAttachmentCleaner,
         localFileBackupStore: LocalFileBackupStore,
         securityScopedBookmarkAccess: SecurityScopedBookmarkAccess,
+        restoreProgress: LocalFileBackupAttachmentRestoreProgress,
     ) {
         self.db = db
         self.dateProvider = dateProvider
@@ -85,6 +87,7 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
         self.logger = PrefixedLogger(prefix: "[LocalFileBackups]")
         self.localFileBackupStore = localFileBackupStore
         self.securityScopedBookmarkAccess = securityScopedBookmarkAccess
+        self.restoreProgress = restoreProgress
     }
 
     /*
@@ -150,6 +153,12 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
     }
 
     func _restoreLocalFileBackupAttachments(resolvedURL: URL) async throws {
+        let totalByteCount = db.read { tx in
+            localFileBackupStore.totalUnencryptedByteCountOfQueuedImports(tx: tx)
+        }
+
+        restoreProgress.beginObserving(totalByteCount: totalByteCount)
+
         while true {
             let attachmentsWithMetadata: [(AttachmentWithMetadata, BackupLocalFileAttachmentImportRecord)] = fetchImportRecordsAndAssociatedAttachmentRecords()
             if attachmentsWithMetadata.isEmpty {
@@ -194,8 +203,14 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
 
                     try localFileImport.delete(tx.database)
                 }
+
+                restoreProgress.didProcessAttachment(
+                    unencryptedByteCount: attachmentWithMetadata.metadata.unencryptedByteCount,
+                )
             }
         }
+
+        restoreProgress.didFinish()
     }
 
     // MARK: - Archiving

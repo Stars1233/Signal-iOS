@@ -658,6 +658,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
 
                 fileUrl = chosenBackup.appendingPathComponent(LocalFileBackupManager.FileStructure.backupFile.rawValue)
 
+                downloadProgress?.addSource(withLabel: "", unitCount: 1).complete()
                 // The recovery key has been derived, the backup file has been sourced,
                 // so this is the last possible point before we commit to importing the backup.
                 // At this point, persist the recovery key so if the app restarts after this point
@@ -673,7 +674,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
                     localIdentifiers: identity.localIdentifiers,
                     isPrimaryDevice: true,
                     source: .local(key: backupKey),
-                    progress: nil,
+                    progress: importProgress,
                     logger: self.logger,
                 )
 

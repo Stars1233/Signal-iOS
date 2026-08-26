@@ -35,6 +35,7 @@ struct LocalFileBackupExportJobRunnerTests {
             orphanedAttachmentCleaner: OrphanedAttachmentCleanerImpl(dateProvider: dateProvider, db: db),
             localFileBackupStore: localFileBackupStore,
             securityScopedBookmarkAccess: securityScopedBookmark,
+            restoreProgress: LocalFileBackupAttachmentRestoreProgress(),
         )
 
         self.localFileBackupExportJobStore = LocalFileBackupExportJobStore()

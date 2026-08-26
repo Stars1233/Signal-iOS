@@ -288,6 +288,7 @@ public class CLVLoadCoordinator {
             hasVisibleReminders: Bool,
             shouldBackupDownloadProgressViewBeVisible: Bool,
             shouldBackupExportProgressViewBeVisible: Bool,
+            shouldLocalFileBackupRestoreProgressViewBeVisible: Bool,
             lastViewInfo: CLVViewInfo,
             transaction: DBReadTransaction,
         ) -> CLVLoadInfo {
@@ -301,6 +302,7 @@ public class CLVLoadCoordinator {
                 hasVisibleReminders: hasVisibleReminders,
                 shouldBackupDownloadProgressViewBeVisible: shouldBackupDownloadProgressViewBeVisible,
                 shouldBackupExportProgressViewBeVisible: shouldBackupExportProgressViewBeVisible,
+                shouldLocalFileBackupRestoreProgressViewBeVisible: shouldLocalFileBackupRestoreProgressViewBeVisible,
                 transaction: transaction,
             )
 
@@ -402,6 +404,7 @@ public class CLVLoadCoordinator {
                 hasVisibleReminders: viewController.viewState.reminderViews.hasVisibleReminders,
                 shouldBackupDownloadProgressViewBeVisible: viewController.viewState.backupDownloadProgressView.shouldBeVisible,
                 shouldBackupExportProgressViewBeVisible: viewController.viewState.backupExportProgressView.shouldBeVisible,
+                shouldLocalFileBackupRestoreProgressViewBeVisible: viewController.viewState.localFileBackupRestoreProgressView.shouldBeVisible,
                 lastViewInfo: viewController.renderState.viewInfo,
                 transaction: transaction,
             )

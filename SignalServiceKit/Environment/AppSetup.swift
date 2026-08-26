@@ -1521,6 +1521,7 @@ extension AppSetup.GlobalsContinuation {
             recipientDatabaseTable: recipientDatabaseTable,
             reactionArchiver: backupReactionArchiver,
         )
+        let localFileBackupAttachmentRestoreProgress = LocalFileBackupAttachmentRestoreProgress()
         let localFileBackupManager = LocalFileBackupManager(
             db: db,
             dateProvider: dateProvider,
@@ -1529,6 +1530,7 @@ extension AppSetup.GlobalsContinuation {
             orphanedAttachmentCleaner: orphanedAttachmentCleaner,
             localFileBackupStore: localFileBackupStore,
             securityScopedBookmarkAccess: SecurityScopedBookmarkAccessImpl(),
+            restoreProgress: localFileBackupAttachmentRestoreProgress,
         )
         let backupArchiveManager = BackupArchiveManagerImpl(
             accountDataArchiver: BackupArchiveAccountDataArchiver(
@@ -1872,6 +1874,7 @@ extension AppSetup.GlobalsContinuation {
             linkPreviewManager: linkPreviewManager,
             linkPreviewSettingStore: linkPreviewSettingStore,
             linkPreviewSettingManager: linkPreviewSettingManager,
+            localFileBackupAttachmentRestoreProgress: localFileBackupAttachmentRestoreProgress,
             localFileBackupExportJobRunner: localFileBackupExportJobRunner,
             accountKeyStore: accountKeyStore,
             localFileBackupManager: localFileBackupManager,

@@ -107,6 +107,24 @@ public struct LocalFileBackupStore {
         }
     }
 
+    func totalUnencryptedByteCountOfQueuedImports(tx: DBReadTransaction) -> UInt64 {
+        let importTable = BackupLocalFileAttachmentImportRecord.databaseTableName
+        let metadataTable = BackupLocalFileAttachmentMetadataRecord.databaseTableName
+        let idColumn = BackupLocalFileAttachmentMetadataRecord.CodingKeys.attachmentRowId.stringValue
+        let byteCountColumn = BackupLocalFileAttachmentMetadataRecord.CodingKeys.unencryptedByteCount.stringValue
+
+        let sql = """
+        SELECT SUM("\(metadataTable)"."\(byteCountColumn)")
+        FROM "\(metadataTable)"
+        INNER JOIN "\(importTable)"
+            ON "\(metadataTable)"."\(idColumn)" = "\(importTable)"."\(idColumn)"
+        """
+
+        return failIfThrows {
+            UInt64(try Int64.fetchOne(tx.database, sql: sql) ?? 0)
+        }
+    }
+
     func insertExportRecord(attachmentId: Attachment.IDType, tx: DBWriteTransaction) {
         let attachmentToExport = BackupLocalFileAttachmentExportRecord(attachmentRowId: attachmentId)
         failIfThrows {

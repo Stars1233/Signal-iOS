@@ -17,10 +17,19 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
     private let localFileBackupExportJobStore: LocalFileBackupExportJobStore
     private let backupFailureStateManager: BackupFailureStateManager
 
-    private var latestProgressUpdate: OWSSequentialProgress<LocalFileBackupExportJobStage>?
+    // Archive progress
+    private var latestArchiveProgressUpdate: OWSSequentialProgress<LocalFileBackupExportJobStage>?
     private var progressUpdatesTask: Task<Void, Never>?
+    private weak var archiveProgressLabel: UILabel?
+
+    // Restore progress
+    private var latestAttachmentRestoreProgressUpdate: OWSProgress?
+    private let localFileBackupAttachmentRestoreProgress: LocalFileBackupAttachmentRestoreProgress
+    private var attachmentRestoreObserver: LocalFileBackupAttachmentRestoreProgressObserver?
+    private weak var attachmentRestoreProgressLabel: UILabel?
+
+    // Only ever one of archive/restore is visible; they share the hosting controller
     private lazy var progressBarHostingController = UIHostingController(rootView: PulsingProgressBar(value: 0))
-    private weak var progressLabel: UILabel?
 
     init(
         localFileBackupExportJobRunner: LocalFileBackupExportJobRunner,
@@ -30,6 +39,7 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
         localFileBackupManager: LocalFileBackupManager,
         localFileBackupExportJobStore: LocalFileBackupExportJobStore,
         backupFailureStateManager: BackupFailureStateManager,
+        localFileBackupAttachmentRestoreProgress: LocalFileBackupAttachmentRestoreProgress,
     ) {
         self.localFileBackupExportJobRunner = localFileBackupExportJobRunner
         self.localFileBackupStore = localFileBackupStore
@@ -38,6 +48,7 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
         self.localFileBackupManager = localFileBackupManager
         self.localFileBackupExportJobStore = localFileBackupExportJobStore
         self.backupFailureStateManager = backupFailureStateManager
+        self.localFileBackupAttachmentRestoreProgress = localFileBackupAttachmentRestoreProgress
     }
 
     deinit {
@@ -70,6 +81,13 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
         progressBarHostingController.didMove(toParent: self)
 
         observeExportJobUpdates()
+
+        let observer = localFileBackupAttachmentRestoreProgress.addObserver { progress in
+            Task { @MainActor [weak self] in
+                self?.onRestoreProgressUpdate(progress)
+            }
+        }
+        attachmentRestoreObserver = observer
     }
 
     private func observeExportJobUpdates() {
@@ -77,12 +95,12 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
         progressUpdatesTask = Task { @MainActor [weak self] in
             for await update in stream {
                 guard let self else { return }
-                let previous = self.latestProgressUpdate
+                let previous = self.latestArchiveProgressUpdate
                 switch update {
                 case .progress(let progress):
-                    self.latestProgressUpdate = progress
+                    self.latestArchiveProgressUpdate = progress
                 case .completion(let result):
-                    self.latestProgressUpdate = nil
+                    self.latestArchiveProgressUpdate = nil
                     switch result {
                     case .success:
                         break
@@ -90,16 +108,16 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
                         showSheetForLocalFileBackupExportJobError(error)
                     }
                 case nil:
-                    self.latestProgressUpdate = nil
+                    self.latestArchiveProgressUpdate = nil
                 }
 
                 // Avoid rebuilding the whole table contents every time.
                 let hadRow = previous != nil
-                let hasRow = self.latestProgressUpdate != nil
+                let hasRow = self.latestArchiveProgressUpdate != nil
                 if hadRow != hasRow {
                     self.updateTableContents()
                 } else if hasRow {
-                    self.updateProgressCellInPlace()
+                    self.updateArchiveProgressCellInPlace()
                 }
             }
         }
@@ -139,8 +157,10 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
         let contents = OWSTableContents()
 
         var sections: [OWSTableSection] = []
-        if let progressSection = makeProgressSection() {
-            sections.append(progressSection)
+        if let archiveProgressSection = makeArchiveProgressSection() {
+            sections.append(archiveProgressSection)
+        } else if let restoreProgressSection = makeRestoreProgressSection() {
+            sections.append(restoreProgressSection)
         } else {
             sections.append(makeBackUpNowSection())
         }
@@ -152,11 +172,32 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
         self.contents = contents
     }
 
-    // MARK: - Progress
+    // MARK: - Restore Progress
 
-    private func makeProgressSection() -> OWSTableSection? {
-        guard let update = latestProgressUpdate else { return nil }
+    @MainActor
+    private func onRestoreProgressUpdate(_ progress: OWSProgress) {
+        let previous = self.latestAttachmentRestoreProgressUpdate
 
+        if progress.isFinished || progress.totalUnitCount == 0 {
+            latestAttachmentRestoreProgressUpdate = nil
+        } else {
+            latestAttachmentRestoreProgressUpdate = progress
+        }
+
+        // Avoid rebuilding the whole table contents every time.
+        let hadRow = previous != nil
+        let hasRow = self.latestAttachmentRestoreProgressUpdate != nil
+        if hadRow != hasRow {
+            self.updateTableContents()
+        } else if hasRow {
+            self.updateRestoreProgressCellInPlace()
+        }
+    }
+
+    private func makeRestoreProgressSection() -> OWSTableSection? {
+        guard let latestAttachmentRestoreProgressUpdate else {
+            return nil
+        }
         let section = OWSTableSection()
         section.add(OWSTableItem(
             customCellBlock: { [weak self] in
@@ -167,7 +208,7 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
 
                 guard let self else { return UITableViewCell() }
 
-                let (percent, labelText) = self.progressDisplay(for: update)
+                let (percent, labelText) = self.restoreProgressDisplay(progress: latestAttachmentRestoreProgressUpdate)
                 let hostingController = self.progressBarHostingController
                 hostingController.rootView = PulsingProgressBar(value: percent)
 
@@ -191,7 +232,88 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
                 cell.contentView.addSubview(stack)
                 stack.autoPinEdgesToSuperviewMargins()
 
-                self.progressLabel = label
+                self.attachmentRestoreProgressLabel = label
+
+                return cell
+            },
+            actionBlock: nil,
+        ))
+
+        return section
+    }
+
+    private func updateRestoreProgressCellInPlace() {
+        guard
+            let update = latestAttachmentRestoreProgressUpdate,
+            let attachmentRestoreProgressLabel
+        else {
+            return
+        }
+        let (percent, labelText) = restoreProgressDisplay(progress: update)
+        progressBarHostingController.rootView = PulsingProgressBar(value: percent)
+
+        let oldText = attachmentRestoreProgressLabel.text
+        attachmentRestoreProgressLabel.text = labelText
+
+        if oldText != labelText {
+            tableView.recomputeRowHeights()
+        }
+    }
+
+    private func restoreProgressDisplay(progress: OWSProgress) -> (percent: Float, label: String) {
+        let totalBytes = progress.totalUnitCount
+        let completedBytes = progress.completedUnitCount
+        let label = String.nonPluralLocalizedStringWithFormat(
+            OWSLocalizedString(
+                "SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_RESTORING_ATTACHMENTS",
+                comment: "Label for a progress bar while attachments are being restored for an on-device backup. Embeds {{%1$@ completed bytes restored, %2$@ total bytes to restore  }}.",
+            ),
+            completedBytes.formatted(.owsByteCount()),
+            totalBytes.formatted(.owsByteCount()),
+        )
+        return (progress.percentComplete, label)
+    }
+
+    // MARK: - Archive progress
+
+    private func makeArchiveProgressSection() -> OWSTableSection? {
+        guard let update = latestArchiveProgressUpdate else { return nil }
+
+        let section = OWSTableSection()
+        section.add(OWSTableItem(
+            customCellBlock: { [weak self] in
+                let cell = OWSTableItem.newCell()
+                cell.preservesSuperviewLayoutMargins = true
+                cell.contentView.preservesSuperviewLayoutMargins = true
+                cell.selectionStyle = .none
+
+                guard let self else { return UITableViewCell() }
+
+                let (percent, labelText) = self.archiveProgressDisplay(for: update)
+                let hostingController = self.progressBarHostingController
+                hostingController.rootView = PulsingProgressBar(value: percent)
+
+                let label = UILabel()
+                label.font = .monospacedDigitSystemFont(
+                    ofSize: UIFont.dynamicTypeSubheadlineClamped.pointSize,
+                    weight: .regular,
+                )
+                label.textColor = .Signal.secondaryLabel
+                label.numberOfLines = 0
+                label.adjustsFontForContentSizeCategory = true
+                label.text = labelText
+
+                let stack = UIStackView(arrangedSubviews: [hostingController.view, label])
+                stack.axis = .vertical
+                stack.spacing = 12
+                stack.alignment = .fill
+                stack.isLayoutMarginsRelativeArrangement = true
+                stack.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 12, leading: 0, bottom: 0, trailing: 0)
+
+                cell.contentView.addSubview(stack)
+                stack.autoPinEdgesToSuperviewMargins()
+
+                self.archiveProgressLabel = label
 
                 return cell
             },
@@ -226,25 +348,25 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
         return section
     }
 
-    private func updateProgressCellInPlace() {
+    private func updateArchiveProgressCellInPlace() {
         guard
-            let update = latestProgressUpdate,
-            let progressLabel
+            let update = latestArchiveProgressUpdate,
+            let archiveProgressLabel
         else {
             return
         }
-        let (percent, labelText) = progressDisplay(for: update)
+        let (percent, labelText) = archiveProgressDisplay(for: update)
         progressBarHostingController.rootView = PulsingProgressBar(value: percent)
 
-        let oldText = progressLabel.text
-        progressLabel.text = labelText
+        let oldText = archiveProgressLabel.text
+        archiveProgressLabel.text = labelText
 
         if oldText != labelText {
             tableView.recomputeRowHeights()
         }
     }
 
-    private func progressDisplay(
+    private func archiveProgressDisplay(
         for update: OWSSequentialProgress<LocalFileBackupExportJobStage>,
     ) -> (percent: Float, label: String) {
         switch update.currentStep {

@@ -140,6 +140,7 @@ public class DependenciesBridge {
     public let linkPreviewSettingManager: any LinkPreviewSettingManager
     public let accountKeyStore: AccountKeyStore
     let localProfileChecker: LocalProfileChecker
+    public let localFileBackupAttachmentRestoreProgress: LocalFileBackupAttachmentRestoreProgress
     public let localFileBackupExportJobRunner: LocalFileBackupExportJobRunner
     public let localFileBackupManager: LocalFileBackupManager
     public let localUsernameManager: LocalUsernameManager
@@ -291,6 +292,7 @@ public class DependenciesBridge {
         linkPreviewManager: LinkPreviewManager,
         linkPreviewSettingStore: LinkPreviewSettingStore,
         linkPreviewSettingManager: any LinkPreviewSettingManager,
+        localFileBackupAttachmentRestoreProgress: LocalFileBackupAttachmentRestoreProgress,
         localFileBackupExportJobRunner: LocalFileBackupExportJobRunner,
         accountKeyStore: AccountKeyStore,
         localFileBackupManager: LocalFileBackupManager,
@@ -443,6 +445,7 @@ public class DependenciesBridge {
         self.linkPreviewSettingStore = linkPreviewSettingStore
         self.linkPreviewSettingManager = linkPreviewSettingManager
         self.accountKeyStore = accountKeyStore
+        self.localFileBackupAttachmentRestoreProgress = localFileBackupAttachmentRestoreProgress
         self.localFileBackupExportJobRunner = localFileBackupExportJobRunner
         self.localFileBackupManager = localFileBackupManager
         self.localProfileChecker = localProfileChecker
