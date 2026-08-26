@@ -43,8 +43,8 @@ class RegistrationChooseRestoreMethodViewController: OWSViewController, UIDocume
 
     private func localFileBackupRestoreButton() -> UIButton {
         return UIButton.registrationChoiceButton(
-            title: "(DEV ONLY) Restore from local backup",
-            subtitle: "(DEV ONLY) restore from local backup",
+            title: "(INTERNAL ONLY) Restore from local backup",
+            subtitle: "(INTERNAL ONLY) restore from local backup",
             iconName: "signal-backups-48",
             primaryAction: UIAction { [weak self] _ in
                 self?.didSelectRestoreFromLocalBackup()
