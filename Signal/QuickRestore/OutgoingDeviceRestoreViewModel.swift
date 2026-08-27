@@ -11,6 +11,7 @@ enum DeviceRestoreError: Error {
 }
 
 class OutgoingDeviceRestoreViewModel: ObservableObject {
+    private let logger = PrefixedLogger(prefix: "[WiFiAware][Outgoing]")
 
     private(set) var transferStatusViewModel = TransferStatusViewModel()
     private var outgoingDeviceTransferTask: OutgoingDeviceTransferTask?
@@ -61,7 +62,7 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
             let token = try await quickRestoreManager.register(deviceProvisioningUrl: provisioningURL)
             restoreMethod = try await quickRestoreManager.waitForRestoreMethodChoice(restoreMethodToken: token)
         } catch {
-            Logger.error("Failed to wait for restore method choice: \(error)")
+            logger.error("Failed to wait for restore method choice: \(error)")
             throw DeviceRestoreError.invalidRestoreData
         }
 
@@ -111,6 +112,7 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
     /// begin listening for the connection described in `PeerConnectionData`.
     @MainActor
     func waitForDeviceConnection(peer: any DeviceTransfer.PeerID) async throws {
+        logger.info("")
         guard let outgoingDeviceTransferTask else {
             throw OWSAssertionError("Transfer started before negotiating connection")
         }
@@ -127,6 +129,7 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
     /// begin a device transfer.
     @MainActor
     func startTransfer() async throws {
+        logger.info("")
         self.listenForPairingTask.take()?.cancel()
         guard let outgoingDeviceTransferTask else {
             throw OWSAssertionError("Transfer started before negotiating connection")
@@ -143,7 +146,7 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
         } catch where error is CancellationError {
             throw error
         } catch {
-            Logger.error("Failed transfer to new device")
+            logger.error("Failed transfer to new device \(error)")
             transferStatusViewModel.state = .error(error)
             throw error
         }

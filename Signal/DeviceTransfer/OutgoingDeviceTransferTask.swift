@@ -10,6 +10,7 @@ import SignalServiceKit
 
 @MainActor
 class OutgoingDeviceTransferTask {
+    private let logger = PrefixedLogger(prefix: "[DeviceTransfer][Outgoing]")
 
     private let db: DB
     private let registrationStateChangeManager: RegistrationStateChangeManager
@@ -75,6 +76,7 @@ class OutgoingDeviceTransferTask {
     }
 
     func connectToNewDevice(peer: any DeviceTransfer.PeerID) async throws {
+        logger.info("Connecting to new device")
         stop(error: nil)
         deviceSleepManager?.addBlock(blockObject: sleepBlockObject)
         if let task = waitTask.get() {
@@ -94,6 +96,7 @@ class OutgoingDeviceTransferTask {
 
     @MainActor
     func transferAccountToNewDevice(initializeProgressBlock: ((Progress) -> Void)? = nil) async throws {
+        logger.info("Begin transfer to new device")
         if let task = sendTask.get() {
             // Another task has already started the transfer, wait for it to complete
             try await task.value
@@ -113,6 +116,7 @@ class OutgoingDeviceTransferTask {
 
         try await session.waitForConnection()
 
+        logger.info("Begin receiving messages from new device")
         messagesReceiverTask = Task {
             do {
                 for try await message in session.messages {
@@ -169,6 +173,7 @@ class OutgoingDeviceTransferTask {
         // Only send the files if we haven't yet sent the manifest.
         guard !transferredFileIds.get().contains(DeviceTransfer.Constants.manifestIdentifier) else { return }
 
+        logger.info("Start sending files to new device")
         let task = sendTask.update {
             let task = Task {
                 do {
@@ -182,13 +187,15 @@ class OutgoingDeviceTransferTask {
                     }
                     self.failTransfer(.assertion, "Failed to send manifest to new device \(error)")
                 }
-                Logger.debug("finished transfer task")
+                logger.debug("finished transfer task")
             }
             $0 = task
             return task
         }
         try await task.value
         _ = sendTask.swap(nil)
+
+        logger.info("Finished sending files to new device")
 
         // wait for message back from caller
         try await withCheckedThrowingContinuation { continuation in
@@ -227,7 +234,7 @@ class OutgoingDeviceTransferTask {
             taskGroup.addTask { @MainActor in
                 // Make a copy of the database files within a write transaction so we can be confident
                 // they aren't mutated during the copy. We then transfer these copies.
-                let dbCopy = try await SSKEnvironment.shared.databaseStorageRef.awaitableWrite { tx in
+                let dbCopy = try await SSKEnvironment.shared.databaseStorageRef.awaitableWrite { [weak self] tx in
                     // The MultipeerConnectivity framework stalls if we try to send an empty
                     // file. The receiver requires a non-empty file. We can't send garbage
                     // (because that would corrupt the database), so mutate the database, force
@@ -241,7 +248,7 @@ class OutgoingDeviceTransferTask {
                         let walCopy = try Self.makeLocalCopy(databaseFile: database.wal)
                         return DatabaseCopy(db: dbCopy, wal: walCopy)
                     } catch {
-                        Logger.error("Failed to copy database files!")
+                        self?.logger.error("Failed to copy database files!")
                         throw error
                     }
                 }
@@ -285,7 +292,7 @@ class OutgoingDeviceTransferTask {
     private func send(session: DeviceTransfer.Session, file: DeviceTransferProtoFile) async throws {
         try Task.checkCancellation()
         if transferredFileIds.get().contains(file.identifier) {
-            Logger.info("File was already transferred, skipping")
+            logger.info("File was already transferred, skipping")
             return
         }
 
@@ -304,7 +311,7 @@ class OutgoingDeviceTransferTask {
                 throw OWSAssertionError("Mandatory database file is missing for transfer")
             }
 
-            Logger.warn("Missing file for transfer, it probably disappeared or was otherwise deleted. Sending missing file placeholder.")
+            logger.warn("Missing file for transfer, it probably disappeared or was otherwise deleted. Sending missing file placeholder.")
 
             url = OWSFileSystem.temporaryFileUrl(isAvailableWhileDeviceLocked: false)
             guard
@@ -362,7 +369,7 @@ class OutgoingDeviceTransferTask {
     }
 
     private func failTransfer(_ error: DeviceTransfer.Error, _ reason: String) {
-        Logger.error("Failed transfer \(reason)")
+        logger.error("Failed transfer \(reason)")
         stopTransfer(error: error)
     }
 
@@ -527,7 +534,7 @@ class OutgoingDeviceTransferTask {
 
     @MainActor
     private func sendManifest(manifest: DeviceTransferProtoManifest, session: DeviceTransfer.Session) async throws {
-        Logger.info("Sending manifest to new device.")
+        logger.info("Sending manifest to new device.")
 
         DeviceTransfer.Utils.resetTransferDirectory(createNewTransferDirectory: true)
 
@@ -550,7 +557,7 @@ class OutgoingDeviceTransferTask {
             size: UInt64(clamping: manifestData.count),
         )
 
-        Logger.info("Successfully sent manifest to new device.")
+        logger.info("Successfully sent manifest to new device.")
 
         transferredFileIds.update {
             $0.append(DeviceTransfer.Constants.manifestIdentifier)

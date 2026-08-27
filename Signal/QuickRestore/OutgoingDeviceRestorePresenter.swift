@@ -16,6 +16,7 @@ extension Notification.Name {
 }
 
 class OutgoingDeviceRestorePresenter: OutgoingDeviceRestoreInitialPresenter {
+    private let logger = PrefixedLogger(prefix: "[DeviceRestore][Outgoing]")
 
     private enum Constants {
         static let lastBackupAgeThreshold: TimeInterval = 30 * .minute
@@ -256,11 +257,13 @@ class OutgoingDeviceRestorePresenter: OutgoingDeviceRestoreInitialPresenter {
                 let selectedPeer = viewModel.transferStatusViewModel.selectedPeer
                 if selectedPeer == nil {
                     viewModel.transferStatusViewModel.onPeerDiscovered = { [weak self] peer in
+                        self?.logger.info("Peer discovered")
                         Task {
                             await self?.dismissSystemModalIfPresented(presentingViewController: presentingViewController)
                         }
                     }
                     viewModel.transferStatusViewModel.onPeerSelected = { [weak self] peer in
+                        self?.logger.info("Peer selected")
                         Task {
                             await self?.dismissSystemModalIfPresented(presentingViewController: presentingViewController)
                             continuation.take()?.resume(returning: peer)

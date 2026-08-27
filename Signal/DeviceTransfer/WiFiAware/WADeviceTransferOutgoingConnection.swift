@@ -10,6 +10,7 @@ import WiFiAware
 
 @available(iOS 26.0, *)
 class WADeviceTransferOutgoingConnection: DeviceTransfer.OutgoingConnection {
+    private let logger = PrefixedLogger(prefix: "[DeviceTransfer][WiFiAware][Outgoing]")
     let selectedPeer: (any DeviceTransfer.PeerID)? = nil
 
     let discoveredPeerStream: AsyncThrowingStream<[DeviceTransfer.PeerID], any Error>
@@ -21,16 +22,17 @@ class WADeviceTransferOutgoingConnection: DeviceTransfer.OutgoingConnection {
         (self.discoveredPeerStream, sink) = AsyncThrowingStream.makeStream()
         self.discoveredPeerSink = AtomicValue(sink, lock: .init())
 
-        self.discoveredPeerTask = Task {
+        self.discoveredPeerTask = Task { [weak self] in
             do {
                 for try await updatedDeviceList in WAPairedDevice.allDevices {
                     let pairedDevices = updatedDeviceList.values.map {
                         WADeviceTransferPeerId(pairedDevice: $0)
                     }
-                    discoveredPeerSink.get().yield(pairedDevices)
+                    self?.logger.info("Discovered peer")
+                    self?.discoveredPeerSink.get().yield(pairedDevices)
                 }
             } catch {
-                discoveredPeerSink.get().finish(throwing: error)
+                self?.discoveredPeerSink.get().finish(throwing: error)
             }
         }
     }
@@ -41,6 +43,7 @@ class WADeviceTransferOutgoingConnection: DeviceTransfer.OutgoingConnection {
     }
 
     func connect(peer: any DeviceTransfer.PeerID) async throws -> any DeviceTransfer.Session {
+        logger.info("Start connect")
         guard let peer = peer as? WADeviceTransferPeerId else {
             throw OWSAssertionError("Incompatible peer type encountered")
         }
@@ -48,16 +51,18 @@ class WADeviceTransferOutgoingConnection: DeviceTransfer.OutgoingConnection {
             for: .wifiAware(.connecting(to: .selected([peer.pairedDevice]), from: .deviceTransferService)),
         )
 
-        let endpoint = try await browser.run { waEndpoints in
+        let endpoint = try await browser.run { [weak self] waEndpoints in
             for endpoint in waEndpoints {
                 let discoveredPeer = WADeviceTransferPeerId(pairedDevice: endpoint.device)
                 if discoveredPeer.peerID == peer.peerID {
+                    self?.logger.debug("Found endpoint to connect to")
                     return .finish(endpoint)
                 }
             }
             return .continue
         }
 
+        logger.info("Connecting")
         let connection = NetworkConnection(
             to: endpoint,
             using: .parameters {
@@ -72,6 +77,8 @@ class WADeviceTransferOutgoingConnection: DeviceTransfer.OutgoingConnection {
             .wifiAware { $0.performanceMode = WiFiAware.Constants.appPerformanceMode }
             .serviceClass(WiFiAware.Constants.appServiceClass),
         )
+
+        logger.debug("Connected to endpoint")
         return try WADeviceTransferSession(connection: connection)
     }
 

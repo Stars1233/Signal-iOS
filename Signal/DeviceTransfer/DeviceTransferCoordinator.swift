@@ -9,6 +9,7 @@ import SignalServiceKit
 /// DeviceTransferCoordinator manages high-level orchestration of the device transfer flow,
 /// using a TransferStatusViewModel passed to the UI that drives progress and success/cancel behavior.
 public class DeviceTransferCoordinator: Equatable {
+    private let logger = PrefixedLogger(prefix: "[DeviceTransfer][Incoming]")
 
     let transferStatusViewModel = TransferStatusViewModel()
 
@@ -132,10 +133,12 @@ public class DeviceTransferCoordinator: Equatable {
             try await incomingDeviceTransferTask.waitForTransferFromOldDevice { [weak self] progress in
                 self?.initializeProgressTracking(progress: progress)
             }
+            logger.error("Transfer complete")
 
             transferStatusViewModel.state = .done
             transferStatusViewModel.onSuccess()
         } catch {
+            logger.error("Error during device transfer: \(error)")
             transferStatusViewModel.state = .error(error)
             throw error
         }

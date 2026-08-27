@@ -8,6 +8,7 @@ import SignalServiceKit
 
 @MainActor
 class IncomingDeviceTransferTask {
+    private let logger = PrefixedLogger(prefix: "[DeviceTransfer][Incoming]")
 
     // Incoming Device state
     private var manifest: DeviceTransferProtoManifest?
@@ -84,6 +85,7 @@ class IncomingDeviceTransferTask {
     }
 
     func waitForTransferFromOldDevice(initializeProgressBlock: ((Progress) -> Void)? = nil) async throws {
+        logger.info("Waiting for connection")
         let session = try await newDeviceServiceAdvertiser.waitForConnection()
         self.session = session
         self.initializeProgressBlock = initializeProgressBlock
@@ -102,6 +104,7 @@ class IncomingDeviceTransferTask {
             notificationObservers.removeAll()
         }
 
+        logger.info("Start listening for transfer messages")
         messagesReceiverTask = Task {
             do {
                 for try await message in session.messages {
@@ -165,7 +168,7 @@ class IncomingDeviceTransferTask {
     }
 
     private func failTransfer(_ error: DeviceTransfer.Error, _ reason: String) {
-        Logger.error("Failed transfer \(reason)")
+        logger.error("Failed transfer \(reason)")
         stopTransfer(error: error)
     }
 
@@ -311,7 +314,7 @@ class IncomingDeviceTransferTask {
 
         stopTransfer(notifyRegState: false)
 
-        Logger.info("Transfer complete")
+        logger.info("Transfer complete")
 
         transferFinishedContinuation.take()?.resume()
     }
@@ -329,11 +332,11 @@ class IncomingDeviceTransferTask {
         }
 
         guard !receivedFileIds.get().contains(fileIdentifier) else {
-            return Logger.info("Ignoring duplicate file: \(fileIdentifier)")
+            return logger.info("Ignoring duplicate file: \(fileIdentifier)")
         }
 
         guard !skippedFileIds.get().contains(fileIdentifier) else {
-            return Logger.info("Ignoring previously skipped file: \(fileIdentifier)")
+            return logger.info("Ignoring previously skipped file: \(fileIdentifier)")
         }
 
         guard
@@ -359,7 +362,7 @@ class IncomingDeviceTransferTask {
     private func finishReceiving(fileName: String, localUrl: URL) throws {
         if !transferInProgress {
             guard fileName == DeviceTransfer.Constants.manifestIdentifier else {
-                return Logger.info("Ignoring unexpected incoming file \(fileName)")
+                return logger.info("Ignoring unexpected incoming file \(fileName)")
             }
 
             handleReceivedManifest(at: localUrl)
@@ -378,11 +381,11 @@ class IncomingDeviceTransferTask {
         }
 
         guard !receivedFileIds.get().contains(fileIdentifier) else {
-            return Logger.info("Ignoring duplicate file: \(fileIdentifier)")
+            return logger.info("Ignoring duplicate file: \(fileIdentifier)")
         }
 
         guard !skippedFileIds.get().contains(fileIdentifier) else {
-            return Logger.info("Ignoring previously skipped file: \(fileIdentifier)")
+            return logger.info("Ignoring previously skipped file: \(fileIdentifier)")
         }
 
         guard
@@ -411,7 +414,7 @@ class IncomingDeviceTransferTask {
         }
 
         guard computedHash != DeviceTransfer.Constants.missingFileHash else {
-            Logger.warn("Received notification of missing file: \(file.identifier), skipping.")
+            logger.warn("Received notification of missing file: \(file.identifier), skipping.")
             skippedFileIds.update { $0.append(file.identifier) }
             return
         }
@@ -425,7 +428,7 @@ class IncomingDeviceTransferTask {
                 ).path,
             )
         } catch {
-            Logger.warn("Couldn't move file: \(error.shortDescription)")
+            logger.warn("Couldn't move file: \(error.shortDescription)")
             return failTransfer(DeviceTransfer.Error.assertion, "Failed to move file into place \(file.identifier)")
         }
 
