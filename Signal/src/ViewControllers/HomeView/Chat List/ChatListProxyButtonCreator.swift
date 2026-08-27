@@ -63,7 +63,7 @@ final class ChatListProxyButtonCreator: NSObject {
         switch proxyState {
         case .open:
             proxyStatusImage = .safetyNumber
-            tintColor = UIColor.ows_accentGreen
+            tintColor = .Signal.green
         case .closed:
             proxyStatusImage = .errorShield
             tintColor = .Signal.red
