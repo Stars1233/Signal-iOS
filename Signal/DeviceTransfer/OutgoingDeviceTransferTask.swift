@@ -79,18 +79,23 @@ class OutgoingDeviceTransferTask {
         logger.info("Connecting to new device")
         stop(error: nil)
         deviceSleepManager?.addBlock(blockObject: sleepBlockObject)
-        if let task = waitTask.get() {
-            try await task.value
-        } else {
-            let task = waitTask.update {
-                let task = Task {
-                    self.session = try await newDeviceServiceBrowser.connect(peer: peer)
+        do {
+            if let task = waitTask.get() {
+                try await task.value
+            } else {
+                let task = waitTask.update {
+                    let task = Task {
+                        self.session = try await newDeviceServiceBrowser.connect(peer: peer)
+                    }
+                    $0 = task
+                    return task
                 }
-                $0 = task
-                return task
+                try await task.value
+                _ = waitTask.swap(nil)
             }
-            try await task.value
-            _ = waitTask.swap(nil)
+        } catch {
+            logger.error("Failed to connect \(error)")
+            throw error
         }
     }
 

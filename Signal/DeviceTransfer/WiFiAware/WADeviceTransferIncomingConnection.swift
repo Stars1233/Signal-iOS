@@ -26,11 +26,14 @@ class WADeviceTransferIncomingConnection: DeviceTransfer.IncomingConnection {
         self.discoveredPeerTask = Task { [weak self] in
             do {
                 for try await updatedDeviceList in WAPairedDevice.allDevices {
-                    let pairedDevices = updatedDeviceList.values.map {
-                        WADeviceTransferPeerId(pairedDevice: $0)
+                    let pairedDevices: [DeviceTransfer.PeerID] = updatedDeviceList.values.compactMap { device in
+                        self?.logger.debug("Discovered peer \(device)")
+                        return WADeviceTransferPeerId(pairedDevice: device)
                     }
-                    self?.logger.info("Discovered peer")
-                    self?.discoveredPeerSink.get().yield(pairedDevices)
+                    if !pairedDevices.isEmpty {
+                        self?.logger.info("Discovered \(pairedDevices.count) peers")
+                        self?.discoveredPeerSink.get().yield(pairedDevices)
+                    }
                 }
             } catch {
                 self?.discoveredPeerSink.get().finish(throwing: error)
@@ -77,8 +80,32 @@ class WADeviceTransferIncomingConnection: DeviceTransfer.IncomingConnection {
                                 }
                                 .wifiAware { $0.performanceMode = WiFiAware.Constants.appPerformanceMode }
                                 .serviceClass(WiFiAware.Constants.appServiceClass),
-                            ).run { [weak self] connection in
-                                self?.logger.info("Connected to endpoint")
+                            ).onStateUpdate { [weak self] _, state in
+                                switch state {
+                                case .setup:
+                                    self?.logger.info("Connection: setup")
+                                case .ready:
+                                    self?.logger.info("Connection: ready")
+                                case .failed(let error):
+                                    self?.logger.info("Connection: failed: \(error)")
+                                case .cancelled:
+                                    self?.logger.info("Connection: cancelled")
+                                case .waiting(let error):
+                                    self?.logger.info("Connection: failed: \(error)")
+                                @unknown default:
+                                    self?.logger.info("Connection: unknown")
+                                }
+                            }.onServiceRegistrationUpdate { [weak self] _, change in
+                                switch change {
+                                case .add:
+                                    self?.logger.info("Connection: add service")
+                                case .remove:
+                                    self?.logger.info("Connection: remove service")
+                                @unknown default:
+                                    self?.logger.info("Connection: unknown")
+                                }
+                            }.run { [weak self] connection in
+                                self?.logger.info("Connection from endpoint")
                                 self?.connectionContinuation.take()?.resume(
                                     returning: try WADeviceTransferSession(connection: connection),
                                 )

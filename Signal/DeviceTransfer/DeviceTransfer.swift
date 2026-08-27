@@ -61,9 +61,16 @@ enum DeviceTransfer {
 
     static func platformSupportsWifiAware() -> Bool {
         if #available(iOS 26.0, *) {
-            return WACapabilities.supportedFeatures.contains(.wifiAware)
+            if WACapabilities.supportedFeatures.contains(.wifiAware) {
+                return true
+            } else {
+                Logger.info("[DeviceTransfer][WiFiAware] WiFiAware not a supported feature on this device.")
+                return false
+            }
+        } else {
+            Logger.info("[DeviceTransfer][WiFiAware] OS version too low to support WifiAware")
+            return false
         }
-        return false
     }
 
     enum Error: Swift.Error {
