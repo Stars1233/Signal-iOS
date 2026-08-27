@@ -135,7 +135,6 @@ public class QuickRestoreManager {
         let capabilities: [RegistrationProvisioningMessage.Capability]
         if
             deviceProvisioningUrl.capabilities.contains(.wifiaware),
-            DebugFlags.enableWifiAwareDeviceTransfer.get(),
             DeviceTransfer.platformSupportsWifiAware(),
             RemoteConfig.current.wifiAwareDeviceTransferEnabled
         {

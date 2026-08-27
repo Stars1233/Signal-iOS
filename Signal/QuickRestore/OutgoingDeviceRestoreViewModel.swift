@@ -74,7 +74,6 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
             if
                 #available(iOS 26.0, *),
                 provisioningURL.capabilities.contains(.wifiaware),
-                DebugFlags.enableWifiAwareDeviceTransfer.get(),
                 DeviceTransfer.platformSupportsWifiAware(),
                 RemoteConfig.current.wifiAwareDeviceTransferEnabled
             {
