@@ -165,7 +165,7 @@ class BackupAttachmentDownloadQueueRunnerImpl: BackupAttachmentDownloadQueueRunn
             return
         }
 
-        await progress.beginObserving()
+        progress.beginObserving()
 
         let backgroundTask = OWSBackgroundTask(
             label: #function + logString,
@@ -330,7 +330,7 @@ class BackupAttachmentDownloadQueueRunnerImpl: BackupAttachmentDownloadQueueRunn
             if record.record.isThumbnail {
                 progressSink = nil
             } else {
-                progressSink = await progress.willBeginDownloadingFullsizeAttachment(
+                progressSink = progress.willBeginDownloadingFullsizeAttachment(
                     withId: record.record.attachmentRowId,
                 )
             }
@@ -361,7 +361,7 @@ class BackupAttachmentDownloadQueueRunnerImpl: BackupAttachmentDownloadQueueRunn
                 // No longer at all eligible to download from this source.
                 // count this as having completed the download for progress tracking purposes.
                 if !record.record.isThumbnail {
-                    await progress.didFinishDownloadOfFullsizeAttachment(
+                    progress.didFinishDownloadOfFullsizeAttachment(
                         withId: record.record.attachmentRowId,
                         byteCount: UInt64(record.record.estimatedByteCount),
                     )
@@ -394,7 +394,7 @@ class BackupAttachmentDownloadQueueRunnerImpl: BackupAttachmentDownloadQueueRunn
                 }
                 // count this as having completed the download.
                 if !record.record.isThumbnail {
-                    await progress.didFinishDownloadOfFullsizeAttachment(
+                    progress.didFinishDownloadOfFullsizeAttachment(
                         withId: record.record.attachmentRowId,
                         byteCount: UInt64(record.record.estimatedByteCount),
                     )
@@ -569,7 +569,7 @@ class BackupAttachmentDownloadQueueRunnerImpl: BackupAttachmentDownloadQueueRunn
             await statusManager.jobDidSucceed(token: statusToken, mode: mode)
 
             if !record.record.isThumbnail {
-                await progress.didFinishDownloadOfFullsizeAttachment(
+                progress.didFinishDownloadOfFullsizeAttachment(
                     withId: record.record.attachmentRowId,
                     byteCount: UInt64(record.record.estimatedByteCount),
                 )
@@ -728,7 +728,7 @@ class BackupAttachmentDownloadQueueRunnerImpl: BackupAttachmentDownloadQueueRunn
                 Logger.info("Did drain thumbnail queue")
             case .fullsize:
                 Logger.info("Did drain fullsize queue")
-                await progress.didEmptyFullsizeDownloadQueue()
+                progress.didEmptyFullsizeDownloadQueue()
             }
             await statusManager.didEmptyQueue(for: mode)
             switch mode {

@@ -929,17 +929,15 @@ class BackupListMediaManagerImpl: BackupListMediaManager {
         if shouldMarkDownloadProgressFinished {
             tx.addSyncCompletion {
                 if !isThumbnail {
-                    Task {
-                        await self.backupAttachmentDownloadProgress.didFinishDownloadOfFullsizeAttachment(
-                            withId: attachment.id,
-                            byteCount: UInt64(QueuedBackupAttachmentDownload.estimatedByteCount(
-                                attachment: attachment,
-                                reference: nil,
-                                isThumbnail: isThumbnail,
-                                canDownloadFromMediaTier: true,
-                            )),
-                        )
-                    }
+                    self.backupAttachmentDownloadProgress.didFinishDownloadOfFullsizeAttachment(
+                        withId: attachment.id,
+                        byteCount: UInt64(QueuedBackupAttachmentDownload.estimatedByteCount(
+                            attachment: attachment,
+                            reference: nil,
+                            isThumbnail: isThumbnail,
+                            canDownloadFromMediaTier: true,
+                        )),
+                    )
                 }
             }
         }
@@ -990,13 +988,11 @@ class BackupListMediaManagerImpl: BackupListMediaManager {
         {
             logger.info("Marked discovered attachment \(attachment.id) done. fullsize? \(!isThumbnail)")
             if finishedRecord.isFullsize {
-                Task {
-                    await backupAttachmentUploadProgress.didUpdateProgressForFullsizeAttachment(
-                        uploadRecord: finishedRecord,
-                        completedByteCount: UInt64(safeCast: finishedRecord.estimatedByteCount),
-                        totalByteCount: UInt64(safeCast: finishedRecord.estimatedByteCount),
-                    )
-                }
+                backupAttachmentUploadProgress.didUpdateProgressForFullsizeAttachment(
+                    uploadRecord: finishedRecord,
+                    completedByteCount: UInt64(safeCast: finishedRecord.estimatedByteCount),
+                    totalByteCount: UInt64(safeCast: finishedRecord.estimatedByteCount),
+                )
             }
         }
 

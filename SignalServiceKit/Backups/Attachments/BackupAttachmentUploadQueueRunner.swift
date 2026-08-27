@@ -314,7 +314,7 @@ class BackupAttachmentUploadQueueRunnerImpl: BackupAttachmentUploadQueueRunner {
         func runTask(record: Store.Record, loader: TaskQueueLoader<TaskRunner>) async -> TaskRecordResult {
             let result = await _runTask(record: record, loader: loader)
             if case .success = result, record.record.isFullsize {
-                await progress.didUpdateProgressForFullsizeAttachment(
+                progress.didUpdateProgressForFullsizeAttachment(
                     uploadRecord: record.record,
                     completedByteCount: UInt64(safeCast: record.record.estimatedByteCount),
                     totalByteCount: UInt64(safeCast: record.record.estimatedByteCount),
@@ -507,7 +507,7 @@ class BackupAttachmentUploadQueueRunnerImpl: BackupAttachmentUploadQueueRunner {
                             guard let totalByteCount = progressUpdate.totalByteCount else {
                                 return
                             }
-                            await progress.didUpdateProgressForFullsizeAttachment(
+                            progress.didUpdateProgressForFullsizeAttachment(
                                 uploadRecord: record.record,
                                 completedByteCount: progressUpdate.completedByteCount,
                                 totalByteCount: totalByteCount,
@@ -700,7 +700,7 @@ class BackupAttachmentUploadQueueRunnerImpl: BackupAttachmentUploadQueueRunner {
             switch mode {
             case .fullsize:
                 logger.info("Did drain fullsize upload queue")
-                await progress.didEmptyFullsizeUploadQueue()
+                progress.didEmptyFullsizeUploadQueue()
             case .thumbnail:
                 logger.info("Did drain thumbnail upload queue")
             }

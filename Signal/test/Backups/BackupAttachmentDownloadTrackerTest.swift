@@ -273,10 +273,10 @@ private class MockAttachmentDownloadProgress: BackupAttachmentDownloadProgressMo
         self.progressMock = OWSProgress(completedUnitCount: precompleted, totalUnitCount: total)
     }
 
-    override func addObserver(_ block: @escaping (OWSProgress) -> Void) async -> BackupAttachmentDownloadProgressObserver {
+    override func addObserver(_ block: @escaping (OWSProgress) -> Void) -> BackupAttachmentDownloadProgressObserver {
         block(progressMock)
         mockObserverBlocks.update { $0.append(block) }
-        return await super.addObserver(block)
+        return super.addObserver(block)
     }
 }
 
