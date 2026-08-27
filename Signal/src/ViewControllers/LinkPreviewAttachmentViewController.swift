@@ -92,13 +92,20 @@ class LinkPreviewAttachmentViewController: InteractiveSheetViewController {
         stackView.axis = .vertical
         stackView.spacing = 24
         stackView.alignment = .fill
+        stackView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(stackView)
-        stackView.autoPinEdges(toSuperviewMarginsExcludingEdge: .bottom)
+        let bottomEdgeConstraint = contentView.bottomAnchor.constraint(equalTo: stackView.bottomAnchor, constant: 12)
+        bottomEdgeConstraint.priority = .defaultLow
+        NSLayoutConstraint.activate([
+            stackView.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor),
+            stackView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
+            stackView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
+            stackView.bottomAnchor.constraint(lessThanOrEqualTo: contentView.safeAreaLayoutGuide.bottomAnchor),
+            bottomEdgeConstraint,
+        ])
 
         // Bottom margin is flexible so that text field is positioned above the onscreen keyboard.
-        bottomContentMarginConstraint = contentView.bottomAnchor.constraint(equalTo: stackView.bottomAnchor, constant: 12)
-        bottomContentMarginConstraint?.priority = .defaultLow
-        bottomContentMarginConstraint?.isActive = true
+        bottomContentMarginConstraint = bottomEdgeConstraint
 
         textField.addAction(
             UIAction { [weak self] _ in self?.textDidChange() },
@@ -189,19 +196,44 @@ class LinkPreviewAttachmentViewController: InteractiveSheetViewController {
             name: UIResponder.keyboardWillChangeFrameNotification,
             object: nil,
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleKeyboardNotification(_:)),
+            name: UIResponder.keyboardDidHideNotification,
+            object: nil,
+        )
     }
 
     @objc
     private func handleKeyboardNotification(_ notification: Notification) {
         guard
+            let bottomContentMarginConstraint,
             let userInfo = notification.userInfo,
-            let beginFrame = userInfo[UIResponder.keyboardFrameBeginUserInfoKey] as? CGRect,
-            let endFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
+            let endFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect
+        else {
+            return
+        }
 
-        guard beginFrame.height != endFrame.height || beginFrame.minY == UIScreen.main.bounds.height else { return }
+        let keyboardFrame = view.convert(endFrame, from: nil)
+        let viewFrame = view.bounds
+
+        let keyboardHeight: CGFloat
+        if keyboardFrame.minY >= viewFrame.maxY {
+            // Offscreen
+            keyboardHeight = 0
+        } else if keyboardFrame.maxY < viewFrame.maxY {
+            // Floating
+            keyboardHeight = 0
+        } else {
+            keyboardHeight = keyboardFrame.height
+        }
+
+        let constraintValue = keyboardHeight + 12
+
+        guard bottomContentMarginConstraint.constant != constraintValue else { return }
 
         let layoutUpdateBlock = {
-            self.bottomContentMarginConstraint?.constant = endFrame.height + 12
+            bottomContentMarginConstraint.constant = constraintValue
             self.updateSheetHeight()
         }
         if
@@ -209,11 +241,12 @@ class LinkPreviewAttachmentViewController: InteractiveSheetViewController {
             let rawAnimationCurve = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? Int,
             let animationCurve = UIView.AnimationCurve(rawValue: rawAnimationCurve)
         {
-            UIView.animate(withDuration: animationDuration, delay: 0, options: animationCurve.asAnimationOptions) { [self] in
-                layoutUpdateBlock()
-                view.setNeedsLayout()
-                view.layoutIfNeeded()
-            }
+            let animator = UIViewPropertyAnimator(
+                duration: animationDuration,
+                curve: animationCurve,
+            )
+            animator.addAnimations(layoutUpdateBlock)
+            animator.startAnimation()
         } else {
             UIView.performWithoutAnimation {
                 layoutUpdateBlock()
