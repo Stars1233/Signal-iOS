@@ -1975,12 +1975,6 @@ private class TextStoryComposerView: TextAttachmentView, UITextViewDelegate {
         ])
 
         // Prepare text styling toolbar - attached to keyboard.
-        let toolbarSize = textViewAccessoryToolbar.systemLayoutSizeFitting(
-            CGSize(width: UIScreen.main.bounds.width, height: .greatestFiniteMagnitude),
-            withHorizontalFittingPriority: .required,
-            verticalFittingPriority: .fittingSizeLevel,
-        )
-        textViewAccessoryToolbar.bounds.size = toolbarSize
         textView.inputAccessoryView = textViewAccessoryToolbar
 
         // Text View

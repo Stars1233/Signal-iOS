@@ -153,11 +153,10 @@ final class RotationControl: UIControl, UIScrollViewDelegate {
     }
 
     private static let preferredWidth: CGFloat = {
-        if UIDevice.current.isIPad {
+        guard let window = CurrentAppContext().mainWindow, UIDevice.current.isIPad == false else {
             return 428 // screen width on iPhone 13 max
-        } else {
-            return min(UIScreen.main.bounds.width, UIScreen.main.bounds.height)
         }
+        return window.bounds.size.smallerAxis
     }()
 
     override var intrinsicContentSize: CGSize {

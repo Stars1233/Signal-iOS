@@ -128,11 +128,13 @@ class LinkPreviewAttachmentViewController: InteractiveSheetViewController {
 
         // Resize the view to it's final bounds so that resizing
         // isn't animated with keyboard.
-        UIView.performWithoutAnimation {
-            self.view.bounds = UIScreen.main.bounds
-            self.updateSheetHeight()
-            self.view.setNeedsLayout()
-            self.view.layoutIfNeeded()
+        if let windowBounds = CurrentAppContext().mainWindow?.bounds {
+            UIView.performWithoutAnimation {
+                self.view.bounds = windowBounds
+                self.updateSheetHeight()
+                self.view.setNeedsLayout()
+                self.view.layoutIfNeeded()
+            }
         }
 
         textField.becomeFirstResponder()

@@ -141,12 +141,6 @@ public extension UIDevice {
         return userInterfaceIdiom == .pad
     }
 
-    var isFullScreen: Bool {
-        let windowSize = CurrentAppContext().frame.size
-        let screenSize = UIScreen.main.bounds.size
-        return windowSize.largerAxis == screenSize.largerAxis && windowSize.smallerAxis == screenSize.smallerAxis
-    }
-
     @objc
     var defaultSupportedOrientations: UIInterfaceOrientationMask {
         return isIPad ? .all : .allButUpsideDown

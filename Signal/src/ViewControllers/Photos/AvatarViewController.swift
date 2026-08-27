@@ -30,9 +30,10 @@ class AvatarViewController: OWSViewController, InteractivelyDismissableViewContr
                 : .asUser,
         )
         guard
+            let appWindow = CurrentAppContext().mainWindow,
             let avatarImage = SSKEnvironment.shared.avatarBuilderRef.avatarImage(
                 forThread: thread,
-                diameterPoints: UInt(UIScreen.main.bounds.size.smallerAxis),
+                diameterPoints: UInt(appWindow.bounds.size.smallerAxis),
                 localUserDisplayMode: localUserDisplayMode,
                 transaction: readTx,
             ) else { return nil }
@@ -45,15 +46,14 @@ class AvatarViewController: OWSViewController, InteractivelyDismissableViewContr
     }
 
     init?(address: SignalServiceAddress, renderLocalUserAsNoteToSelf: Bool, readTx: DBReadTransaction) {
-        let avatarImage = SSKEnvironment.shared.avatarBuilderRef.avatarImage(
-            forAddress: address,
-            diameterPoints: UInt(UIScreen.main.bounds.size.smallerAxis),
-            localUserDisplayMode: renderLocalUserAsNoteToSelf ? .noteToSelf : .asUser,
-            transaction: readTx,
-        )
-        guard let avatarImage else {
-            return nil
-        }
+        guard
+            let appWindow = CurrentAppContext().mainWindow,
+            let avatarImage = SSKEnvironment.shared.avatarBuilderRef.avatarImage(
+                forAddress: address,
+                diameterPoints: UInt(appWindow.bounds.size.smallerAxis),
+                localUserDisplayMode: renderLocalUserAsNoteToSelf ? .noteToSelf : .asUser,
+                transaction: readTx,
+            ) else { return nil }
 
         self.avatarImage = avatarImage
         super.init()
