@@ -386,7 +386,7 @@ class ImageEditorCanvasView: UIView, ImageEditorModelObserver {
             ),
             attributes: [
                 .font: UIFont.dynamicTypeBody,
-                .foregroundColor: UIColor.ows_white,
+                .foregroundColor: UIColor.white,
             ],
         )
         label.attributedText = text

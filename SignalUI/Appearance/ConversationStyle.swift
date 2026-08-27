@@ -279,7 +279,7 @@ public struct ConversationStyle {
     }
 
     public static var bubbleTextColorOutgoingThemed: ThemedColor {
-        ThemedColor(light: UIColor.ows_white, dark: UIColor.ows_gray05)
+        ThemedColor(light: UIColor.white, dark: UIColor.ows_gray05)
     }
 
     public static var bubbleTextColorIncoming: UIColor {

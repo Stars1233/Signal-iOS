@@ -692,7 +692,7 @@ class ChatListCell: UITableViewCell, ReusableTableViewCell {
         return CVLabelConfig.unstyledText(
             text,
             font: unreadFont,
-            textColor: .ows_white,
+            textColor: .white,
             numberOfLines: 1,
             lineBreakMode: .byTruncatingTail,
             textAlignment: .center,

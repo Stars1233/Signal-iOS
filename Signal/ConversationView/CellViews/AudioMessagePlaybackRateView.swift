@@ -323,7 +323,7 @@ class AudioMessagePlaybackRateView: ManualLayoutViewWithLayer {
 
     open func makeBackgroundColor() -> UIColor {
         isIncoming
-            ? (Theme.isDarkThemeEnabled ? UIColor.ows_white : .ows_black).withAlphaComponent(0.08)
+            ? (Theme.isDarkThemeEnabled ? UIColor.white : .black).withAlphaComponent(0.08)
             : UIColor.ows_whiteAlpha20
     }
 
@@ -332,7 +332,7 @@ class AudioMessagePlaybackRateView: ManualLayoutViewWithLayer {
     open func makeTextColor() -> UIColor {
         return isIncoming
             ? (Theme.isDarkThemeEnabled ? .ows_gray15 : .ows_gray60)
-            : .ows_white
+            : .white
     }
 
     private lazy var textColor: UIColor = { makeTextColor() }()

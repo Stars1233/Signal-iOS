@@ -438,7 +438,7 @@ private class ChatColorPicker: UIView {
                         "CHAT_COLOR_SETTINGS_AUTO",
                         comment: "Label for the 'automatic chat color' option in the chat color settings view.",
                     )
-                    label.textColor = .ows_white
+                    label.textColor = .white
                     label.font = UIFont.systemFont(ofSize: 13)
                     label.adjustsFontSizeToFitWidth = true
                     view.addSubview(label)
@@ -683,7 +683,7 @@ private class ChatColorTooltip: TooltipView {
             comment: "Tooltip highlighting the auto chat color option.",
         )
         label.font = .dynamicTypeSubheadline
-        label.textColor = .ows_white
+        label.textColor = .white
         label.numberOfLines = 0
         label.lineBreakMode = .byWordWrapping
         return horizontalStack(forSubviews: [label])

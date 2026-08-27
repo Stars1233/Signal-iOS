@@ -1027,7 +1027,7 @@ public class ChatListViewController: OWSViewController, HomeTabViewController {
 
         let iconView = UIImageView.withTemplateImageName(
             "payment",
-            tintColor: Theme.isDarkThemeEnabled ? .ows_gray15 : .ows_white,
+            tintColor: Theme.isDarkThemeEnabled ? .ows_gray15 : .white,
         )
         iconView.autoSetDimensions(to: .square(24))
         let iconCircleView = OWSLayerView.circleView(size: CGFloat(Self.paymentsBannerAvatarSize))
@@ -1126,9 +1126,7 @@ public class ChatListViewController: OWSViewController, HomeTabViewController {
 
         let dismissIcon = UIImageView.withTemplateImageName(
             "x-compact",
-            tintColor: Theme.isDarkThemeEnabled
-                ? .ows_white
-                : .ows_gray60,
+            tintColor: Theme.isDarkThemeEnabled ? .white : .ows_gray60,
         )
         dismissIcon.autoSetDimensions(to: .square(16))
         dismissButton.addSubview(dismissIcon)

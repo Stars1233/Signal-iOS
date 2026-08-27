@@ -117,7 +117,7 @@ class FlipCameraTooltipView: TooltipView {
             comment: "Tooltip notifying users that the flip camera button moved to the picture-in-picture view of themselves in a call",
         )
         label.font = .dynamicTypeSubheadline
-        label.textColor = .ows_white
+        label.textColor = .white
         label.numberOfLines = 0
         label.lineBreakMode = .byWordWrapping
         return horizontalStack(forSubviews: [label])

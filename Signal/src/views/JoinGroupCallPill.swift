@@ -22,7 +22,7 @@ class JoinGroupCallPill: UIControl {
 
     private let callImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.setTemplateImageName("video-fill", tintColor: .ows_white)
+        imageView.setTemplateImageName("video-fill", tintColor: .white)
         imageView.isUserInteractionEnabled = false
         return imageView
     }()
@@ -95,7 +95,7 @@ class JoinGroupCallPill: UIControl {
     }
 
     private func applyStyle() {
-        let enabledColor: UIColor = Theme.isDarkThemeEnabled ? .ows_whiteAlpha90 : .ows_white
+        let enabledColor: UIColor = Theme.isDarkThemeEnabled ? .ows_whiteAlpha90 : .white
         callLabel.textColor = isEnabled ? enabledColor : .ows_whiteAlpha40
         callImageView.tintColor = isEnabled ? enabledColor : .ows_whiteAlpha40
 

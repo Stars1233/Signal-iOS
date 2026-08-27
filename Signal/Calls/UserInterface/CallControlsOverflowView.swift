@@ -83,7 +83,7 @@ class CallControlsOverflowView: UIView {
                 withBackgroundColor: .ows_gray75,
                 cornerRadius: Constants.stackViewCornerRadius,
             )
-            backgroundView.layer.shadowColor = UIColor.ows_black.cgColor
+            backgroundView.layer.shadowColor = UIColor.black.cgColor
             backgroundView.layer.shadowRadius = Constants.stackViewBackgroundViewShadowRadius
             backgroundView.layer.shadowOpacity = Constants.stackViewBackgroundViewShadowOpacity
             backgroundView.layer.shadowOffset = .zero
@@ -91,7 +91,7 @@ class CallControlsOverflowView: UIView {
             let shadowView = UIView()
             shadowView.backgroundColor = .ows_gray75
             shadowView.layer.cornerRadius = Constants.stackViewCornerRadius
-            shadowView.layer.shadowColor = UIColor.ows_black.cgColor
+            shadowView.layer.shadowColor = UIColor.black.cgColor
             shadowView.layer.shadowRadius = Constants.stackViewShadowRadius
             shadowView.layer.shadowOpacity = Constants.stackViewShadowOpacity
             shadowView.layer.shadowOffset = Constants.stackViewShadowOffset

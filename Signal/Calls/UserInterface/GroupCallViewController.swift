@@ -450,7 +450,7 @@ final class GroupCallViewController: UIViewController {
         view = UIView()
         view.clipsToBounds = true
 
-        view.backgroundColor = .ows_black
+        view.backgroundColor = .black
 
         scrollView.delegate = self
         view.addSubview(scrollView)

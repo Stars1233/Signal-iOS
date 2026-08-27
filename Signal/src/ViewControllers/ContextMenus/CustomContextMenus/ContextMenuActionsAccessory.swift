@@ -413,7 +413,7 @@ private class ContextMenuActionsView: UIView, UIGestureRecognizerDelegate, UIScr
             layer.cornerRadius = cornerRadius
             layer.shadowRadius = 64
             layer.shadowOffset = CGSize(width: 0, height: 32)
-            layer.shadowColor = UIColor.ows_black.cgColor
+            layer.shadowColor = UIColor.black.cgColor
             layer.shadowOpacity = 0.2
         }
 

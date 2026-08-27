@@ -211,14 +211,14 @@ private class RemoteMuteBannerView: UIView {
         mutedIcon.attributedText = .with(
             image: UIImage(named: "mic-slash")!,
             font: .dynamicTypeTitle3,
-            attributes: [.foregroundColor: UIColor.ows_white],
+            attributes: [.foregroundColor: UIColor.white],
         )
         mutedIcon.setContentCompressionResistancePriority(
             .required,
             for: .horizontal,
         )
         mutedIcon.contentMode = .scaleAspectFit
-        mutedIcon.tintColor = .ows_white
+        mutedIcon.tintColor = .white
         mutedIcon.setContentHuggingHorizontalHigh()
         mutedIcon.setCompressionResistanceVerticalHigh()
 
@@ -229,7 +229,7 @@ private class RemoteMuteBannerView: UIView {
         label.setCompressionResistanceHorizontalHigh()
         label.numberOfLines = 0
         label.font = UIFont.dynamicTypeSubheadlineClamped.semibold()
-        label.textColor = .ows_white
+        label.textColor = .white
         label.text = text
 
         hStack.addArrangedSubview(.hStretchingSpacer())

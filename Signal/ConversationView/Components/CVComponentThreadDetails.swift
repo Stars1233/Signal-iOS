@@ -106,7 +106,7 @@ public class CVComponentThreadDetails: CVComponentBase, CVRootComponent {
                 subviews = [lottieView]
             } else {
                 let unblurAvatarIconView = CVImageView()
-                unblurAvatarIconView.setTemplateImageName("tap-outline-24", tintColor: .ows_white)
+                unblurAvatarIconView.setTemplateImageName("tap-outline-24", tintColor: .white)
                 unblurAvatarSubviewInfos.append(CGSize.square(24).asManualSubviewInfo(hasFixedSize: true))
 
                 let unblurAvatarLabelConfig = CVLabelConfig.unstyledText(
@@ -115,7 +115,7 @@ public class CVComponentThreadDetails: CVComponentBase, CVRootComponent {
                         comment: "Indicator that a blurred avatar can be revealed by tapping.",
                     ),
                     font: UIFont.dynamicTypeSubheadlineClamped,
-                    textColor: .ows_white,
+                    textColor: .white,
                 )
                 let maxWidth = CGFloat(avatarSizeClass.diameter) - 12
                 let unblurAvatarLabelSize = CVText.measureLabel(

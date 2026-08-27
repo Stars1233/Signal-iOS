@@ -36,8 +36,8 @@ public class ViewOnceTooltip: TooltipView {
             "VIEW_ONCE_MESSAGES_TOOLTIP",
             comment: "Tooltip highlighting the view once messages button.",
         )
-        label.font = UIFont.dynamicTypeSubheadline
-        label.textColor = UIColor.ows_white
+        label.font = .dynamicTypeSubheadline
+        label.textColor = .white
         label.numberOfLines = 0
         label.lineBreakMode = .byWordWrapping
 

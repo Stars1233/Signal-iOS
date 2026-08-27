@@ -583,8 +583,8 @@ private class SpectrumSlider: ManualLayoutView {
 
         let knobView = self.knobView
         knobView.addPillBlock()
-        knobView.backgroundColor = .ows_white
-        knobView.layer.shadowColor = UIColor.ows_black.cgColor
+        knobView.backgroundColor = .white
+        knobView.layer.shadowColor = UIColor.black.cgColor
         knobView.layer.shadowOffset = CGSize(width: 0, height: 2)
         knobView.layer.shadowOpacity = 0.3
         knobView.layer.shadowRadius = Self.knobShadowRadius
@@ -1078,8 +1078,8 @@ private class CustomColorPreviewView: UIView {
             self.translatesAutoresizingMaskIntoConstraints = false
             self.autoSetDimensions(to: .square(Self.knobSize))
 
-            swatchView.layer.borderColor = UIColor.ows_white.cgColor
-            swatchView.layer.shadowColor = UIColor.ows_black.cgColor
+            swatchView.layer.borderColor = UIColor.white.cgColor
+            swatchView.layer.shadowColor = UIColor.black.cgColor
             swatchView.layer.shadowOffset = CGSize(width: 0, height: 2)
             swatchView.layer.shadowOpacity = 0.3
             swatchView.layer.shadowRadius = 4
@@ -1089,7 +1089,7 @@ private class CustomColorPreviewView: UIView {
 
             let selectedColor = (
                 Theme.isDarkThemeEnabled
-                    ? UIColor.ows_white
+                    ? UIColor.white
                     : UIColor(white: 0, alpha: 0.6),
             )
             selectedBorder.layer.borderColor = selectedColor.cgColor
@@ -1342,7 +1342,7 @@ private class CustomColorPreviewView: UIView {
         knobView2ConstraintY.constant = vector2.y
 
         axisShapeLayer.frame = self.bounds
-        axisShapeLayer.fillColor = UIColor.ows_white.cgColor
+        axisShapeLayer.fillColor = UIColor.white.cgColor
         axisShapeLayer.strokeColor = UIColor(white: 0, alpha: 0.1).cgColor
         let axisPath = UIBezierPath()
         let knobCenter1 = self.bounds.center + vector1
@@ -1572,7 +1572,7 @@ private class CustomColorTooltip: TooltipView {
             comment: "Tooltip highlighting the custom chat color controls.",
         )
         label.font = .dynamicTypeSubheadline
-        label.textColor = .ows_white
+        label.textColor = .white
         label.numberOfLines = 0
         label.lineBreakMode = .byWordWrapping
         return horizontalStack(forSubviews: [label])

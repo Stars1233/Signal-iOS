@@ -368,7 +368,7 @@ class AudioAllMediaPresenter: AudioPresenter {
 
 class AllMediaAudioMessagePlaybackRateView: AudioMessagePlaybackRateView {
     override func makeBackgroundColor() -> UIColor {
-        return (Theme.isDarkThemeEnabled ? UIColor.ows_white : .ows_black).withAlphaComponent(0.08)
+        (Theme.isDarkThemeEnabled ? UIColor.white : .black).withAlphaComponent(0.08)
     }
 
     override func makeTextColor() -> UIColor {

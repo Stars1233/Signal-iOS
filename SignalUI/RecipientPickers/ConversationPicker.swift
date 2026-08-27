@@ -1129,7 +1129,7 @@ private class VideoSegmentingTooltipView: TooltipView {
         let label = UILabel()
         label.text = text
         label.font = .dynamicTypeFootnoteClamped
-        label.textColor = .ows_white
+        label.textColor = .white
         label.numberOfLines = 0
 
         let containerView = UIView()

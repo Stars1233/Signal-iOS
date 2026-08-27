@@ -165,7 +165,7 @@ final class AppIconSettingsTableViewController: OWSTableViewController2 {
 
             layer.cornerRadius = iconSize * 0.24 * (4 / 3)
             layer.cornerCurve = .continuous
-            let borderColor: UIColor = Theme.isDarkThemeEnabled ? .ows_gray05 : .ows_black
+            let borderColor: UIColor = Theme.isDarkThemeEnabled ? .ows_gray05 : .black
             layer.borderColor = borderColor.cgColor
 
             button.translatesAutoresizingMaskIntoConstraints = false

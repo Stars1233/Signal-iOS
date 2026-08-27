@@ -156,11 +156,6 @@ public extension UIColor {
 
     // MARK: - GreyScale
 
-    @objc(ows_whiteColor)
-    class var ows_white: UIColor {
-        return UIColor(rgbHex: 0xFFFFFF)
-    }
-
     class var ows_gray02: UIColor {
         return UIColor(rgbHex: 0xF6F6F6)
     }
@@ -233,10 +228,6 @@ public extension UIColor {
 
     class var ows_gray95: UIColor {
         return UIColor(rgbHex: 0x121212)
-    }
-
-    class var ows_black: UIColor {
-        return UIColor(rgbHex: 0x000000)
     }
 
     // MARK: Masks

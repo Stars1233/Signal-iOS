@@ -163,7 +163,7 @@ class CallMemberCameraOffView: UIView, CallMemberComposableView {
     }
 
     func clearConfiguration() {
-        self.backgroundColor = .ows_black
+        self.backgroundColor = .black
         self.blurredAvatarBackgroundView.clear()
         avatarView?.reset()
     }
@@ -202,7 +202,7 @@ class CallMemberCameraOffView: UIView, CallMemberComposableView {
     private func createDetailedVideoOffIndicatorView() -> UIStackView {
         let icon = UIImageView()
         icon.contentMode = .scaleAspectFit
-        icon.setTemplateImageName("video-slash-fill-28", tintColor: .ows_white)
+        icon.setTemplateImageName("video-slash-fill-28", tintColor: .white)
 
         let label = UILabel()
         label.font = .dynamicTypeCaption1
@@ -245,7 +245,7 @@ class CallMemberCameraOffView: UIView, CallMemberComposableView {
     private func createVideoOffIndicatorImageView() -> UIImageView {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFit
-        imageView.setTemplateImageName("video-slash-fill-28", tintColor: .ows_white)
+        imageView.setTemplateImageName("video-slash-fill-28", tintColor: .white)
         return imageView
     }
 

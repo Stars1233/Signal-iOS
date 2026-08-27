@@ -287,7 +287,7 @@ public final class Theme {
     }
 
     public static var actionSheetBackgroundColor: UIColor {
-        isDarkThemeEnabled ? .ows_gray75 : .ows_white
+        isDarkThemeEnabled ? .ows_gray75 : .white
     }
 
     public class var washColor: UIColor {

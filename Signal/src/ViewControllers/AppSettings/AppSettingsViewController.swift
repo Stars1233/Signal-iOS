@@ -342,7 +342,7 @@ class AppSettingsViewController: OWSTableViewController2 {
                         let unreadLabel = UILabel()
                         unreadLabel.text = OWSFormat.formatUInt(min(9, unreadPaymentsCount))
                         unreadLabel.font = .dynamicTypeSubheadlineClamped
-                        unreadLabel.textColor = .ows_white
+                        unreadLabel.textColor = .white
 
                         let unreadBadge = OWSLayerView.circleView()
                         unreadBadge.backgroundColor = .ows_accentBlue
