@@ -15,7 +15,7 @@ final class SurveyDebugLogViewController: CallQualitySurveySheetViewController {
 
     private let tableViewController = OWSTableViewController2()
 
-    private var shouldSubmitDebugLogs = false
+    private var shouldSubmitDebugLogs = true
     private var logs: DebugLogs
 
     private let rating: CallQualitySurvey.Rating
