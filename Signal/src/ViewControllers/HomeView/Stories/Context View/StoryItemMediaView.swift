@@ -1072,7 +1072,7 @@ class StoryItemMediaView: UIView, VideoPlayerDelegate {
     }
 }
 
-class StoryItem: NSObject {
+class StoryItem: Equatable {
     let message: StoryMessage
     let numberOfReplies: UInt64
     enum Attachment: Equatable {
@@ -1159,5 +1159,11 @@ class StoryItem: NSObject {
         case .stream, .text:
             return false
         }
+    }
+
+    // MARK: - Equatable
+
+    static func ==(lhs: StoryItem, rhs: StoryItem) -> Bool {
+        return lhs.message.uniqueId == rhs.message.uniqueId
     }
 }
