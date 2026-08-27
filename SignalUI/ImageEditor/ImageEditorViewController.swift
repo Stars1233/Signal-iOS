@@ -450,8 +450,16 @@ class ImageEditorViewController: OWSViewController, UIGestureRecognizerDelegate,
     }
 
     override var prefersStatusBarHidden: Bool {
-        guard DependenciesBridge.shared.currentCallProvider.hasCurrentCall == false else { return false }
-        return (UIDevice.current.hasIPhoneXNotch == false) && (UIDevice.current.isIPad == false)
+        guard DependenciesBridge.shared.currentCallProvider.hasCurrentCall == false else {
+            return super.prefersStatusBarHidden
+        }
+        guard
+            let appWindow = CurrentAppContext().mainWindow,
+            appWindow.shouldHideStatusBarForFullScreenPresentation
+        else {
+            return super.prefersStatusBarHidden
+        }
+        return true
     }
 
     override var preferredStatusBarStyle: UIStatusBarStyle {

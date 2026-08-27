@@ -348,3 +348,17 @@ public extension UITraitCollection {
         fraction * hairlineWidth
     }
 }
+
+// MARK: -
+
+public extension UIWindow {
+
+    /// Designed for view controllers to consult if app is running on a legacy device
+    /// where there is no dedicated area for the status bar.
+    ///
+    /// - returns `true` if app is running in a `phone` environment and status bar should to be hidden for better user experience.
+    var shouldHideStatusBarForFullScreenPresentation: Bool {
+        guard traitCollection.userInterfaceIdiom == .phone else { return false }
+        return safeAreaInsets.top <= 20
+    }
+}

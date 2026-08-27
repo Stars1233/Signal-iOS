@@ -267,8 +267,16 @@ public final class AttachmentApprovalViewController: OWSViewController, UIPageVi
     // MARK: - View Lifecycle
 
     override public var prefersStatusBarHidden: Bool {
-        guard DependenciesBridge.shared.currentCallProvider.hasCurrentCall == false else { return false }
-        return (UIDevice.current.isIPad || UIDevice.current.hasIPhoneXNotch) == false
+        guard DependenciesBridge.shared.currentCallProvider.hasCurrentCall == false else {
+            return super.prefersStatusBarHidden
+        }
+        guard
+            let appWindow = CurrentAppContext().mainWindow,
+            appWindow.shouldHideStatusBarForFullScreenPresentation
+        else {
+            return super.prefersStatusBarHidden
+        }
+        return true
     }
 
     override public var preferredStatusBarStyle: UIStatusBarStyle {

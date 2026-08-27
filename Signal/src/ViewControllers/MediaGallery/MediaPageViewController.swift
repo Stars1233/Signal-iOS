@@ -362,7 +362,7 @@ class MediaPageViewController: UIPageViewController {
     }
 
     private var shouldHideStatusBar: Bool {
-        guard !UIDevice.current.isIPad else { return shouldHideToolbars }
+        guard traitCollection.userInterfaceIdiom == .phone else { return shouldHideToolbars }
         return shouldHideToolbars || traitCollection.verticalSizeClass == .compact
     }
 
