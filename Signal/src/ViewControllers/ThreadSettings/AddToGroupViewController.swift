@@ -110,8 +110,13 @@ final class AddToGroupViewController: OWSTableViewController2, UISearchResultsUp
     private func updateTableContents() {
         AssertIsOnMainThread()
 
+        let alreadyAMemberText = OWSLocalizedString(
+            "ADD_TO_GROUP_ALREADY_A_MEMBER",
+            comment: "Text indicating your contact is already a member of the group on the 'add to group' view.",
+        )
+
         let db = DependenciesBridge.shared.db
-        let groups: [(thread: TSGroupThread, isAlreadyAMember: Bool)] = db.read { tx in
+        let groups: [(thread: TSGroupThread, isAlreadyAMember: Bool, subtitle: String)] = db.read { tx in
             groupThreads.compactMap { thread in
                 guard
                     searchText.map({
@@ -135,22 +140,22 @@ final class AddToGroupViewController: OWSTableViewController2, UISearchResultsUp
                 } else {
                     isAlreadyAMember = false
                 }
-                return (thread, isAlreadyAMember)
+                let subtitle = if isAlreadyAMember {
+                    alreadyAMemberText
+                } else {
+                    GroupViewUtils.membersNamesPreview(for: thread, tx: tx)
+                }
+                return (thread, isAlreadyAMember, subtitle)
             }
         }
 
-        let alreadyAMemberText = OWSLocalizedString(
-            "ADD_TO_GROUP_ALREADY_A_MEMBER",
-            comment: "Text indicating your contact is already a member of the group on the 'add to group' view.",
-        )
-
-        func item(thread: TSGroupThread, isAlreadyAMember: Bool) -> OWSTableItem {
+        func item(thread: TSGroupThread, isAlreadyAMember: Bool, subtitle: String) -> OWSTableItem {
             OWSTableItem(
                 customCellBlock: {
                     let cell = GroupTableViewCell()
                     cell.configure(
                         thread: thread,
-                        customSubtitle: isAlreadyAMember ? alreadyAMemberText : nil,
+                        customSubtitle: subtitle,
                         customTextColor: isAlreadyAMember ? .Signal.tertiaryLabel : nil,
                     )
                     cell.isUserInteractionEnabled = !isAlreadyAMember
@@ -163,7 +168,11 @@ final class AddToGroupViewController: OWSTableViewController2, UISearchResultsUp
         }
 
         if searchText != nil {
-            let items = groups.map { item(thread: $0.thread, isAlreadyAMember: $0.isAlreadyAMember) }
+            let items = groups.map { group in item(
+                thread: group.thread,
+                isAlreadyAMember: group.isAlreadyAMember,
+                subtitle: group.subtitle,
+            ) }
             self.contents = OWSTableContents(sections: [OWSTableSection(items: items)])
         } else {
             let sections = collation.sectionTitles.map(OWSTableSection.init(title:))
@@ -173,7 +182,11 @@ final class AddToGroupViewController: OWSTableViewController2, UISearchResultsUp
                     for: group.thread.groupNameOrDefault as NSString,
                     collationStringSelector: #selector(getter: NSObjectProtocol.description),
                 )
-                sections[safe: sectionIndex]?.add(item(thread: group.thread, isAlreadyAMember: group.isAlreadyAMember))
+                sections[safe: sectionIndex]?.add(item(
+                    thread: group.thread,
+                    isAlreadyAMember: group.isAlreadyAMember,
+                    subtitle: group.subtitle,
+                ))
             }
 
             for section in sections where section.itemCount == 0 {

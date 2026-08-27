@@ -1050,15 +1050,16 @@ extension RecipientPickerViewController {
     private func groupCell(for groupThread: TSGroupThread, recipient: PickedRecipient) -> UITableViewCell? {
         let cell = GroupTableViewCell()
 
-        if let delegate {
-            SSKEnvironment.shared.databaseStorageRef.read { tx in
+        let subtitle = SSKEnvironment.shared.databaseStorageRef.read { tx -> String in
+            if let delegate {
                 cell.selectionStyle = delegate.recipientPicker(self, selectionStyleForRecipient: recipient, transaction: tx)
                 cell.accessoryMessage = delegate.recipientPicker(self, accessoryMessageForRecipient: recipient, transaction: tx)
                 cell.customAccessoryView = delegate.recipientPicker(self, contactCellAccessoryForRecipient: recipient, transaction: tx)?.accessoryView
             }
+            return GroupViewUtils.membersNamesPreview(for: groupThread, tx: tx)
         }
 
-        cell.configure(thread: groupThread)
+        cell.configure(thread: groupThread, customSubtitle: subtitle)
 
         return cell
     }

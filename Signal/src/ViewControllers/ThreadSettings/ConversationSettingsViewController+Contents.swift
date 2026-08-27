@@ -1295,11 +1295,18 @@ extension ConversationSettingsViewController {
             groupThreadsToRender = mutualGroupThreads
         }
 
-        for groupThread in groupThreadsToRender {
+        let db = DependenciesBridge.shared.db
+        let groups = db.read { tx in
+            groupThreadsToRender.map { thread in
+                (thread, GroupViewUtils.membersNamesPreview(for: thread, tx: tx))
+            }
+        }
+
+        for (groupThread, subtitle) in groups {
             section.add(OWSTableItem(
                 customCellBlock: {
                     let cell = GroupTableViewCell()
-                    cell.configure(thread: groupThread)
+                    cell.configure(thread: groupThread, customSubtitle: subtitle)
                     return cell
                 },
                 actionBlock: {
