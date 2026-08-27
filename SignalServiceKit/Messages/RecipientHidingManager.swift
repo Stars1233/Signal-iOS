@@ -64,7 +64,7 @@ public protocol RecipientHidingManager {
         inKnownMessageRequestState: Bool,
         wasLocallyInitiated: Bool,
         tx: DBWriteTransaction,
-    ) throws
+    )
 
     /// Removes a recipient from the hidden recipient table.
     ///
@@ -256,7 +256,7 @@ public final class RecipientHidingManagerImpl: RecipientHidingManager {
         inKnownMessageRequestState: Bool,
         wasLocallyInitiated: Bool,
         tx: DBWriteTransaction,
-    ) throws {
+    ) {
         Logger.info("Hiding recipient")
         guard !isHiddenRecipient(recipientId: recipient.id, tx: tx) else {
             // This is a perhaps extraneous safeguard against
@@ -265,8 +265,8 @@ public final class RecipientHidingManagerImpl: RecipientHidingManager {
             // hide an already-hidden recipient. However, we return here,
             // just in case, in order to avoid the side-effects of
             // `didSetAsHidden`.
-            Logger.warn("Cannot hide already-hidden recipient.")
-            throw RecipientHidingError.recipientAlreadyHidden
+            Logger.warn("can't hide already-hidden recipient")
+            return
         }
 
         let record = HiddenRecipient(

@@ -764,30 +764,26 @@ public class BackupArchiveContactRecipientArchiver: BackupArchiveProtoStreamWrit
             blockingManager.addBlockedAddress(recipient.address, tx: context.tx)
         }
 
-        do {
-            func addHiddenRecipient(isHiddenInKnownMessageRequestState: Bool) throws {
-                try recipientHidingManager.addHiddenRecipient(
-                    &recipient,
-                    inKnownMessageRequestState: isHiddenInKnownMessageRequestState,
-                    wasLocallyInitiated: false,
-                    tx: context.tx,
-                )
+        func addHiddenRecipient(isHiddenInKnownMessageRequestState: Bool) {
+            recipientHidingManager.addHiddenRecipient(
+                &recipient,
+                inKnownMessageRequestState: isHiddenInKnownMessageRequestState,
+                wasLocallyInitiated: false,
+                tx: context.tx,
+            )
 
-                context.setNeedsPostRestoreContactHiddenInfoMessage(
-                    recipientId: recipientProto.recipientId,
-                )
-            }
+            context.setNeedsPostRestoreContactHiddenInfoMessage(
+                recipientId: recipientProto.recipientId,
+            )
+        }
 
-            switch contactProto.visibility {
-            case .hidden:
-                try addHiddenRecipient(isHiddenInKnownMessageRequestState: false)
-            case .hiddenMessageRequest:
-                try addHiddenRecipient(isHiddenInKnownMessageRequestState: true)
-            case .visible, .UNRECOGNIZED:
-                break
-            }
-        } catch let error {
-            return restoreFrameError(.databaseInsertionFailed(error))
+        switch contactProto.visibility {
+        case .hidden:
+            addHiddenRecipient(isHiddenInKnownMessageRequestState: false)
+        case .hiddenMessageRequest:
+            addHiddenRecipient(isHiddenInKnownMessageRequestState: true)
+        case .visible, .UNRECOGNIZED:
+            break
         }
 
         var partialErrors = [BackupArchive.RestoreFrameError]()
