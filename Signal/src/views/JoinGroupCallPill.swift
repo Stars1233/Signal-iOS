@@ -36,7 +36,7 @@ class JoinGroupCallPill: UIControl {
 
     private let backgroundPill: PillView = {
         let pill = PillView()
-        pill.backgroundColor = .ows_accentGreen
+        pill.backgroundColor = .Signal.green
         pill.isUserInteractionEnabled = false
         return pill
     }()

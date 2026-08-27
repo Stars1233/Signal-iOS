@@ -130,14 +130,6 @@ public extension UIColor {
 
 public extension UIColor {
 
-    // MARK: Accent Colors
-
-    /// Making calls, success states
-    @objc(ows_accentGreenColor)
-    class var ows_accentGreen: UIColor {
-        return UIColor(rgbHex: 0x4CAF50)
-    }
-
     // MARK: - GreyScale
 
     class var ows_gray02: UIColor {

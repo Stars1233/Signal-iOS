@@ -446,7 +446,7 @@ class IndividualCallViewController: OWSViewController, IndividualCallObserver {
             "CALL_VIEW_ACCEPT_INCOMING_CALL_LABEL",
             comment: "label for accepting incoming calls",
         )
-        audioAnswerIncomingButton.unselectedBackgroundColor = .ows_accentGreen
+        audioAnswerIncomingButton.unselectedBackgroundColor = .Signal.green
         audioAnswerIncomingButton.accessibilityLabel = OWSLocalizedString(
             "CALL_VIEW_ACCEPT_INCOMING_CALL_LABEL",
             comment: "label for accepting incoming calls",
@@ -473,7 +473,7 @@ class IndividualCallViewController: OWSViewController, IndividualCallObserver {
             "CALL_VIEW_ACCEPT_INCOMING_CALL_LABEL",
             comment: "label for accepting incoming calls",
         )
-        videoAnswerIncomingButton.unselectedBackgroundColor = .ows_accentGreen
+        videoAnswerIncomingButton.unselectedBackgroundColor = .Signal.green
         videoAnswerIncomingButton.accessibilityLabel = OWSLocalizedString(
             "CALL_VIEW_ACCEPT_INCOMING_CALL_LABEL",
             comment: "label for accepting incoming calls",
