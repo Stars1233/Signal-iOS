@@ -128,7 +128,7 @@ class FlipCameraTooltipView: TooltipView {
     }
 
     override var bubbleColor: UIColor {
-        .ows_accentBlue
+        .Signal.accent
     }
 
     override var tailReferenceViewUsesAutolayout: Bool {

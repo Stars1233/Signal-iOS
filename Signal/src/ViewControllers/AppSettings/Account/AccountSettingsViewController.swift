@@ -138,7 +138,7 @@ class AccountSettingsViewController: OWSTableViewController2 {
                         return OWSLocalizedString("SETTINGS_RELINK_BUTTON", comment: "Label for re-link button.")
                     }
                 }(),
-                textColor: .ows_accentBlue,
+                textColor: .Signal.accent,
                 actionBlock: { [unowned self] in
                     switch deregistrationState {
                     case .deregistered:

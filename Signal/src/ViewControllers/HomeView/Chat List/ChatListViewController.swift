@@ -434,7 +434,7 @@ public class ChatListViewController: OWSViewController, HomeTabViewController {
         layerView.layoutMargins = UIEdgeInsets(top: 11 + kTailHeight, leading: 16, bottom: 11, trailing: 16)
 
         let shapeLayer = CAShapeLayer()
-        shapeLayer.fillColor = UIColor.ows_accentBlue.cgColor
+        shapeLayer.fillColor = UIColor.Signal.accent.cgColor
         layerView.layer.addSublayer(shapeLayer)
         layerView.layoutCallback = { view in
             let bezierPath = UIBezierPath()
@@ -1108,7 +1108,7 @@ public class ChatListViewController: OWSViewController, HomeTabViewController {
 
         let viewLabel = UILabel()
         viewLabel.text = CommonStrings.viewButton
-        viewLabel.textColor = Theme.accentBlueColor
+        viewLabel.textColor = .Signal.accent
         viewLabel.font = UIFont.dynamicTypeSubheadlineClamped
 
         let textStack = UIStackView(arrangedSubviews: [titleLabel, viewLabel])

@@ -602,7 +602,7 @@ class CLVTableDataSource: NSObject, UITableViewDataSource, UITableViewDelegate {
             filterFooterCell.message = inboxFilterSection.message
         }
 
-        cell.tintColor = .ows_accentBlue
+        cell.tintColor = .Signal.accent
         return cell
     }
 

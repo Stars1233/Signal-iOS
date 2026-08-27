@@ -1140,7 +1140,7 @@ private class VideoSegmentingTooltipView: TooltipView {
         return containerView
     }
 
-    override var bubbleColor: UIColor { .ows_accentBlue }
+    override var bubbleColor: UIColor { .Signal.accent }
     override var bubbleHSpacing: CGFloat { 28 }
     override var bubbleInsets: UIEdgeInsets { .zero }
     override var stretchesBubbleHorizontally: Bool { true }

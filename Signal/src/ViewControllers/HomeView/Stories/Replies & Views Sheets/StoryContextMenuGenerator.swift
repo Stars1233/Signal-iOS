@@ -130,7 +130,7 @@ class StoryContextMenuGenerator {
         guard let action = goToChatAction(thread: thread) else {
             return nil
         }
-        return action.asContextualAction(backgroundColor: .ows_accentBlue)
+        return action.asContextualAction(backgroundColor: .Signal.accent)
     }
 }
 

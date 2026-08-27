@@ -45,7 +45,7 @@ public class ViewOnceTooltip: TooltipView {
     }
 
     override public var bubbleColor: UIColor {
-        return UIColor.ows_accentBlue
+        return .Signal.accent
     }
 
     override public var bubbleInsets: UIEdgeInsets {

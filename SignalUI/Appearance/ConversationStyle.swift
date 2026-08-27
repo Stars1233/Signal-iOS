@@ -373,7 +373,7 @@ public struct ConversationStyle {
 
     public func bubbleReadMoreTextColor(message: TSMessage) -> UIColor {
         if message is TSIncomingMessage {
-            return isDarkThemeEnabled ? .ows_whiteAlpha90 : .ows_accentBlue
+            return isDarkThemeEnabled ? .ows_whiteAlpha90 : .Signal.accent
         } else if message is TSOutgoingMessage {
             return isDarkThemeEnabled ? .ows_whiteAlpha90 : .white
         } else if message is TSReleaseNotesMessage {

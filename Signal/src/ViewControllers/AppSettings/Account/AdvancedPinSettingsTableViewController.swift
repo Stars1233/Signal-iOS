@@ -61,7 +61,7 @@ class AdvancedPinSettingsTableViewController: OWSTableViewController2 {
                     "SETTINGS_ADVANCED_PINS_ENABLE_PIN_ACTION",
                     comment: "",
                 ),
-            textColor: Theme.accentBlueColor,
+            textColor: .Signal.accent,
             actionBlock: { [weak self] in
                 self?.enableOrDisablePin(
                     isPinEnabled: isPinEnabled,

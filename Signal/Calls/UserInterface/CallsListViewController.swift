@@ -1833,7 +1833,7 @@ extension CallsListViewController: UITableViewDelegate {
 
         let goToChatAction = ContextualActionBuilder.makeContextualAction(
             style: .normal,
-            color: .ows_accentBlue,
+            color: .Signal.accent,
             image: .arrowSquareUprightFill,
             title: Strings.goToChatActionTitle,
         ) { [weak self] completion in

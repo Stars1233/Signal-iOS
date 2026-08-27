@@ -267,7 +267,7 @@ class MyStoryCell: UITableViewCell {
             iconView.autoSetDimensions(to: .square(20))
             iconView.layer.cornerRadius = 10
             iconView.autoCenterInSuperview()
-            iconView.backgroundColor = .ows_accentBlue
+            iconView.backgroundColor = .Signal.accent
 
             // NOTE: gets written over by the cell's theme application.
             outerCircle.backgroundColor = .Signal.background

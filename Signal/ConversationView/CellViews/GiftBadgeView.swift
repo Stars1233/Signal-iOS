@@ -516,7 +516,7 @@ private class GiftWrapView: UIView {
         wrappingContainer.autoPinEdgesToSuperviewEdges()
 
         let wrappingView = self.wrappingView
-        wrappingView.backgroundColor = .ows_accentBlue
+        wrappingView.backgroundColor = .Signal.accent
         wrappingContainer.addSubview(wrappingView)
 
         let horizontalWrap = UIView()

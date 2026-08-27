@@ -1579,7 +1579,7 @@ private class CustomColorTooltip: TooltipView {
     }
 
     override var bubbleColor: UIColor {
-        .ows_accentBlue
+        .Signal.accent
     }
 
     override var tailDirection: TooltipView.TailDirection {

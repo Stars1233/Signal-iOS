@@ -602,7 +602,7 @@ extension RecipientPickerViewController {
                 icon: icon,
                 iconSize: AvatarBuilder.standardAvatarSizePoints,
                 innerIconSize: innerIconSize,
-                iconTintColor: Theme.accentBlueColor,
+                iconTintColor: .Signal.accent,
             )
             iconView.backgroundColor = tableViewController.cellBackgroundColor
 

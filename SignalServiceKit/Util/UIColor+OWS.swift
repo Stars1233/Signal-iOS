@@ -130,23 +130,7 @@ public extension UIColor {
 
 public extension UIColor {
 
-    // MARK: Brand Colors
-
-    class var ows_signalBlue: UIColor {
-        return UIColor(rgbHex: 0x3A76F0)
-    }
-
-    class var ows_signalBlueDark: UIColor {
-        return UIColor(rgbHex: 0x1851B4)
-    }
-
     // MARK: Accent Colors
-
-    /// Nav Bar, Primary Buttons
-    class var ows_accentBlue: UIColor {
-        // Ultramarine UI
-        return UIColor(rgbHex: 0x2C6BED)
-    }
 
     /// Making calls, success states
     @objc(ows_accentGreenColor)

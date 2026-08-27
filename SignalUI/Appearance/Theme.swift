@@ -60,7 +60,7 @@ public final class Theme {
         // so we don't do it.
 
         UITableViewCell.appearance().tintColor = primaryIconColor
-        UIToolbar.appearance().tintColor = .ows_accentBlue
+        UIToolbar.appearance().tintColor = .Signal.accent
 
         // If we set NSShadowAttributeName, the NSForegroundColorAttributeName value is ignored.
         UINavigationBar.appearance().titleTextAttributes = [
@@ -314,15 +314,6 @@ public final class Theme {
     }
 
     public class var toolbarBackgroundColor: UIColor { navbarBackgroundColor }
-
-    // For accessibility:
-    //
-    // * Flat areas (e.g. button backgrounds) should use UIColor.ows_accentBlue.
-    // * Fine detail (e.g., text, non-filled icons) should use Theme.accentBlueColor.
-    //   It is brighter in dark mode, improving legibility.
-    public class var accentBlueColor: UIColor {
-        UIColor.Signal.accent.resolvedColor(with: currentThemeTraitCollection)
-    }
 
     public class var launchScreenBackgroundColor: UIColor {
         backgroundColor

@@ -148,7 +148,7 @@ class RegistrationPinViewController: OWSViewController {
         let result = UIButton()
         result.setTemplateImage(
             UIImage(imageLiteralResourceName: "NavBarBack"),
-            tintColor: Theme.accentBlueColor,
+            tintColor: .Signal.accent,
         )
         result.autoSetDimensions(to: CGSize(square: 40))
         result.addAction(

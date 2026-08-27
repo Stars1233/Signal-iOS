@@ -172,7 +172,7 @@ class AppSettingsViewController: OWSTableViewController2 {
             let accessoryContentView: UIView?
             if self.hasExpiredGiftBadge {
                 let imageView = UIImageView(image: UIImage(imageLiteralResourceName: "info-fill"))
-                imageView.tintColor = Theme.accentBlueColor
+                imageView.tintColor = .Signal.accent
                 imageView.autoSetDimensions(to: CGSize(square: 24))
                 accessoryContentView = imageView
             } else {
@@ -345,7 +345,7 @@ class AppSettingsViewController: OWSTableViewController2 {
                         unreadLabel.textColor = .white
 
                         let unreadBadge = OWSLayerView.circleView()
-                        unreadBadge.backgroundColor = .ows_accentBlue
+                        unreadBadge.backgroundColor = .Signal.accent
                         unreadBadge.addSubview(unreadLabel)
                         unreadLabel.autoCenterInSuperview()
                         unreadLabel.autoPinEdge(toSuperviewEdge: .top, withInset: 3)
@@ -477,7 +477,7 @@ class AppSettingsViewController: OWSTableViewController2 {
                 "APP_SETTINGS_EDIT_PROFILE_NAME_PROMPT",
                 comment: "Text prompting user to edit their profile name.",
             )
-            nameLabel.textColor = Theme.accentBlueColor
+            nameLabel.textColor = .Signal.accent
         }
 
         @discardableResult

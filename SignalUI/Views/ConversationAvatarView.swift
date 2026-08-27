@@ -478,7 +478,7 @@ public class ConversationAvatarView: UIView, CVView, PrimaryImageView {
             storyStateView.layer.borderWidth = configuration.sizeClass.storyViewedBorderSize
         case .unviewed:
             storyStateView.isHidden = false
-            storyStateView.layer.borderColor = UIColor.ows_accentBlue.cgColor
+            storyStateView.layer.borderColor = UIColor.Signal.accent.cgColor
             storyStateView.layer.borderWidth = configuration.sizeClass.storyUnviewedBorderSize
         }
 
