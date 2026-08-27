@@ -165,7 +165,8 @@ public class GroupManager: NSObject {
                 lastVerifiedGroupNameHash: lastVerifiedGroupNameHash,
                 transaction: tx,
             )
-            SSKEnvironment.shared.profileManagerRef.addGroupId(
+            let profileManager = SSKEnvironment.shared.profileManagerRef
+            profileManager.addGroupId(
                 toProfileWhitelist: groupModel.groupId,
                 userProfileWriter: .localUser,
                 transaction: tx,
@@ -392,15 +393,17 @@ public class GroupManager: NSObject {
         secretParams: GroupSecretParams,
         waitForMessageProcessing: Bool = false,
     ) async throws {
+        let databaseStorage = SSKEnvironment.shared.databaseStorageRef
+        let profileManager = SSKEnvironment.shared.profileManagerRef
         if waitForMessageProcessing {
             try await GroupManager.waitForMessageFetchingAndProcessingWithTimeout()
         }
         let groupId = try secretParams.getPublicParams().getGroupIdentifier()
-        await SSKEnvironment.shared.databaseStorageRef.awaitableWrite { transaction in
-            SSKEnvironment.shared.profileManagerRef.addGroupId(
+        await databaseStorage.awaitableWrite { tx in
+            profileManager.addGroupId(
                 toProfileWhitelist: groupId.serialize(),
                 userProfileWriter: .localUser,
-                transaction: transaction,
+                transaction: tx,
             )
         }
         try await updateGroupV2(
@@ -499,6 +502,9 @@ public class GroupManager: NSObject {
         inviteLinkPassword: Data,
         downloadedAvatar: (avatarUrlPath: String, avatarData: Data?)?,
     ) async throws {
+        let databaseStorage = SSKEnvironment.shared.databaseStorageRef
+        let profileManager = SSKEnvironment.shared.profileManagerRef
+
         let groupId = try secretParams.getPublicParams().getGroupIdentifier()
 
         try await ensureLocalProfileHasCommitmentIfNecessary()
@@ -508,11 +514,11 @@ public class GroupManager: NSObject {
             downloadedAvatar: downloadedAvatar,
         )
 
-        await SSKEnvironment.shared.databaseStorageRef.awaitableWrite { transaction in
-            SSKEnvironment.shared.profileManagerRef.addGroupId(
+        await databaseStorage.awaitableWrite { tx in
+            profileManager.addGroupId(
                 toProfileWhitelist: groupId.serialize(),
                 userProfileWriter: .localUser,
-                transaction: transaction,
+                transaction: tx,
             )
         }
     }
@@ -1226,7 +1232,8 @@ public class GroupManager: NSObject {
         // Ensure the thread is in our profile whitelist if we're a member of the group.
         // We don't want to do this if we're just a pending member or are leaving/have
         // already left the group.
-        SSKEnvironment.shared.profileManagerRef.addGroupId(
+        let profileManager = SSKEnvironment.shared.profileManagerRef
+        profileManager.addGroupId(
             toProfileWhitelist: newGroupModel.groupId,
             userProfileWriter: .localUser,
             transaction: tx,

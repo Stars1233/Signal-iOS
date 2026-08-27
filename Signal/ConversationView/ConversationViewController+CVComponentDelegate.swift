@@ -974,12 +974,10 @@ extension ConversationViewController: CVComponentDelegate {
                 style: .destructive,
             ) { [weak self] _ in
                 guard self != nil else { return }
-                SSKEnvironment.shared.databaseStorageRef.write { tx in
-                    SSKEnvironment.shared.blockingManagerRef.addBlockedAddress(
-                        address,
-                        blockMode: .local,
-                        transaction: tx,
-                    )
+                let blockingManager = SSKEnvironment.shared.blockingManagerRef
+                let databaseStorage = SSKEnvironment.shared.databaseStorageRef
+                databaseStorage.write { tx in
+                    blockingManager.addBlockedAddress(address, blockMode: .local, transaction: tx)
                 }
             },
         )

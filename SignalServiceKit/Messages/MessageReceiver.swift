@@ -405,7 +405,8 @@ public final class MessageReceiver {
 
                 if dataMessage.hasProfileKey {
                     if let groupId {
-                        SSKEnvironment.shared.profileManagerRef.addGroupId(
+                        let profileManager = SSKEnvironment.shared.profileManagerRef
+                        profileManager.addGroupId(
                             toProfileWhitelist: groupId.serialize(),
                             userProfileWriter: .syncMessage,
                             transaction: tx,
