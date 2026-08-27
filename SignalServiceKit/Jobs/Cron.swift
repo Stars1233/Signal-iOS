@@ -59,10 +59,10 @@ public class Cron {
 
     /// Unique keys that identify Cron jobs.
     ///
-    /// All state related to these keys is cleared when the app's version number
-    /// changes. These are therefore safe to add/remove/rename without migrating
-    /// anything that's been written to disk. (This statement is not true for
-    /// local builds, but it's true for all TestFlight/App Store builds.)
+    /// These can be removed without writing GRDB migrations.
+    ///
+    /// If shouldRunOnAppUpgrade is true, renaming one of these will force the
+    /// job to run without delay during the next upgrade.
     public enum UniqueKey: String {
         case checkUsername
         case cleanUpCallingAssets
@@ -85,6 +85,13 @@ public class Cron {
         case refreshBackup
         case refreshSVRCredentials
         case updateAttributes
+
+        var shouldRunOnAppUpgrade: Bool {
+            switch self {
+            case .keyTransparencySelfCheck: false
+            default: true
+            }
+        }
     }
 
     init(
@@ -375,7 +382,12 @@ public class Cron {
     }
 
     public func resetMostRecentDates(tx: DBWriteTransaction) {
-        dateStore.removeAll(tx: tx)
+        for key in dateStore.fetchKeys(tx: tx) {
+            if let uniqueKey = UniqueKey(rawValue: key), !uniqueKey.shouldRunOnAppUpgrade {
+                continue
+            }
+            dateStore.removeValue(forKey: key, tx: tx)
+        }
     }
 
     public func runOnce(ctx: CronContext) async {
