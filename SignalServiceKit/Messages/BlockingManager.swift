@@ -286,24 +286,23 @@ public class BlockingManager {
 
         Logger.info("Removed blocked groupId: \(groupId.toHex())")
 
-        let groupThread = TSGroupThread.fetchThread(forGroupIdData: groupId, tx: transaction)
-
         if wasLocallyInitiated {
             let masterKey = { () -> GroupMasterKey? in
-                if let groupThread {
-                    return try? (groupThread.groupModel as? TSGroupModelV2)?.masterKey()
+                guard let groupId = try? GroupIdentifier(contents: groupId) else {
+                    // Not a V2 group.
+                    return nil
                 }
-                if GroupManager.isV2GroupId(groupId) {
-                    // TODO: Check groups we're still trying to restore from Storage Service.
-                }
-                return nil
+                let groupRecord = GroupStore().fetchGroup(forGroupId: groupId, tx: transaction)
+                let masterKey = groupRecord?.masterKey
+                owsAssertDebug(masterKey != nil, "should have MasterKey when unblocking V2 group")
+                return masterKey
             }()
             if let masterKey {
                 SSKEnvironment.shared.storageServiceManagerRef.recordPendingUpdates(updatedGroupV2MasterKeys: [masterKey])
             }
         }
 
-        if let groupThread {
+        if let groupThread = TSGroupThread.fetchThread(forGroupIdData: groupId, tx: transaction) {
             // Insert an info message that we unblocked.
             DependenciesBridge.shared.interactionStore.insertInteraction(
                 TSInfoMessage(thread: groupThread, messageType: .unblockedGroup),
