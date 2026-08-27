@@ -28,6 +28,7 @@ struct LocalFileBackupExportJobRunnerTests {
         let securityScopedBookmark = SecurityScopedBookmarkAccessMock(hasAccess: true, url: backupsURL)
 
         self.localFileBackupManager = LocalFileBackupManager(
+            appReadiness: AppReadinessMock(),
             db: db,
             dateProvider: dateProvider,
             attachmentStore: AttachmentStore(),

@@ -127,6 +127,7 @@ public class RegistrationCoordinatorTest {
         }
 
         let localFileBackupManager = LocalFileBackupManager(
+            appReadiness: AppReadinessMock(),
             db: db,
             dateProvider: { Date() },
             attachmentStore: AttachmentStore(),

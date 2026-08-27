@@ -1523,6 +1523,7 @@ extension AppSetup.GlobalsContinuation {
         )
         let localFileBackupAttachmentRestoreProgress = LocalFileBackupAttachmentRestoreProgress()
         let localFileBackupManager = LocalFileBackupManager(
+            appReadiness: appReadiness,
             db: db,
             dateProvider: dateProvider,
             attachmentStore: attachmentStore,

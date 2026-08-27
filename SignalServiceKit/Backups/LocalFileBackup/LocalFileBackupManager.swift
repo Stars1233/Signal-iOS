@@ -70,6 +70,7 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
     public static let attachmentBatchSize = 50
 
     init(
+        appReadiness: AppReadiness,
         db: DB,
         dateProvider: @escaping DateProvider,
         attachmentStore: AttachmentStore,
@@ -88,6 +89,19 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
         self.localFileBackupStore = localFileBackupStore
         self.securityScopedBookmarkAccess = securityScopedBookmarkAccess
         self.restoreProgress = restoreProgress
+
+        super.init()
+
+        appReadiness.runNowOrWhenMainAppDidBecomeReadyAsync { [weak self] in
+            guard BuildFlags.LocalFileBackups.restore else { return }
+            Task { [weak self] in
+                do {
+                    try await self?.restoreLocalFileBackupAttachments()
+                } catch {
+                    Logger.error("Failed to resume local file backup restore: \(error)")
+                }
+            }
+        }
     }
 
     /*
@@ -180,15 +194,29 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
 
                 let attachmentKey = try AttachmentKey(combinedKey: attachmentWithMetadata.metadata.localKey)
 
-                let pendingAttachment = try await attachmentValidator.validateDownloadedContents(
-                    ofEncryptedFileAt: destination,
-                    attachmentKey: attachmentKey,
-                    plaintextLength: attachmentWithMetadata.metadata.unencryptedByteCount,
-                    integrityCheck: .plaintextHash(plaintextHash),
-                    mimeType: attachmentWithMetadata.attachment.mimeType,
-                    renderingFlag: .default,
-                    sourceFilename: nil,
-                )
+                var pendingAttachment: PendingAttachment
+                do {
+                    pendingAttachment = try await attachmentValidator.validateDownloadedContents(
+                        ofEncryptedFileAt: destination,
+                        attachmentKey: attachmentKey,
+                        plaintextLength: attachmentWithMetadata.metadata.unencryptedByteCount,
+                        integrityCheck: .plaintextHash(plaintextHash),
+                        mimeType: attachmentWithMetadata.attachment.mimeType,
+                        renderingFlag: .default,
+                        sourceFilename: nil,
+                    )
+                } catch let error as CancellationError {
+                    throw error
+                } catch {
+                    Logger.error("Error validating attachment id \(attachmentWithMetadata.attachment.id), error: \(error)")
+                    restoreProgress.didProcessAttachment(
+                        unencryptedByteCount: attachmentWithMetadata.metadata.unencryptedByteCount,
+                    )
+                    _ = try db.write { tx in
+                        try localFileImport.delete(tx.database)
+                    }
+                    continue
+                }
 
                 try db.write { tx in
                     try attachmentStore.updateLocalFileBackupAttachmentAsTransferred(

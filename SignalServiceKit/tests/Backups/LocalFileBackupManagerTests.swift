@@ -29,6 +29,7 @@ struct LocalFileBackupManagerTests {
         )
 
         self.localFileBackupManager = LocalFileBackupManager(
+            appReadiness: AppReadinessMock(),
             db: db,
             dateProvider: { Date() },
             attachmentStore: attachmentStore,
