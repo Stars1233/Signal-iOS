@@ -176,7 +176,9 @@ public class AppEnvironment: NSObject {
             monitoringInterval: 5 * .second,
         )
 
-        self.passwordManagerManager = PasswordManagerManager()
+        self.passwordManagerManager = PasswordManagerManager(
+            tsAccountManager: DependenciesBridge.shared.tsAccountManager,
+        )
 
         self.provisioningManager = ProvisioningManager(
             accountKeyStore: DependenciesBridge.shared.accountKeyStore,
