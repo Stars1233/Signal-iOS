@@ -65,8 +65,8 @@ public class CLVLocalFileBackupRestoreProgressView: LocalFileBackupRestoreProgre
 
     @MainActor
     func startTracking() {
-        let observer = localFileBackupAttachmentRestoreProgress.addObserver { progress in
-            Task { @MainActor [weak self] in
+        let observer = localFileBackupAttachmentRestoreProgress.addObserver { [weak self] progress in
+            Task { @MainActor in
                 self?.onProgress(progress)
             }
         }

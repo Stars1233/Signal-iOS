@@ -82,8 +82,8 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
 
         observeExportJobUpdates()
 
-        let observer = localFileBackupAttachmentRestoreProgress.addObserver { progress in
-            Task { @MainActor [weak self] in
+        let observer = localFileBackupAttachmentRestoreProgress.addObserver { [weak self] progress in
+            Task { @MainActor in
                 self?.onRestoreProgressUpdate(progress)
             }
         }
@@ -781,7 +781,8 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
                     "LOCAL_FILE_BACKUP_CHOOSE_NEW_FOLDER_SHEET_BUTTON",
                     comment: "Button for a sheet asking the user to choose a new local file backup folder",
                 ),
-                handler: { _ in
+                handler: { [weak self] _ in
+                    guard let self else { return }
                     LocalFileBackupArchiveFolderPicker.present(
                         fromViewController: self,
                         manager: self.localFileBackupManager,

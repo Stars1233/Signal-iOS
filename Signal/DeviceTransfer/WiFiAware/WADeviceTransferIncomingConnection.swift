@@ -62,7 +62,8 @@ class WADeviceTransferIncomingConnection: DeviceTransfer.IncomingConnection {
         logger.info("Wait for connection")
         return try await withCheckedThrowingContinuation { continuation in
             self.connectionContinuation = continuation
-            connectionTask = Task {
+            connectionTask = Task { [weak self] in
+                guard let self else { return }
                 do {
                     while true {
                         try Task.checkCancellation()
