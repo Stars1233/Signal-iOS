@@ -802,22 +802,23 @@ class RecipientMergerImpl: RecipientMerger {
         // Don't throw errors or return until we've saved every affectedRecipient
         // to the database.
 
-        let (mergedRecipient, newRecipients) = applyMerge(tx)
+        let mergedRecipient: SignalRecipient
+        let otherUpdatedRecipients: [SignalRecipient]
+        (mergedRecipient, otherUpdatedRecipients) = applyMerge(tx)
 
         // Always put `mergedRecipient` at the end to ensure we don't violate
         // UNIQUE constraints. Note that `mergedRecipient` might be brand new, so
         // we might not find it during the call to `removeAll`.
-        owsPrecondition(!newRecipients.contains(where: { $0.uniqueId == mergedRecipient.uniqueId }))
-        let affectedRecipients = newRecipients + [mergedRecipient]
+        owsPrecondition(!otherUpdatedRecipients.contains(where: { $0.uniqueId == mergedRecipient.uniqueId }))
 
         let sessionEvents = prepareSessionEventsToInsert(
             oldRecipients: oldRecipients,
-            affectedRecipients: affectedRecipients,
             mergedRecipient: mergedRecipient,
+            otherUpdatedRecipients: otherUpdatedRecipients,
             tx: tx,
         )
 
-        for affectedRecipient in affectedRecipients {
+        for affectedRecipient in otherUpdatedRecipients {
             if affectedRecipient.isEmpty {
                 // TODO: Should we clean up any more state related to the discarded recipient?
                 sessionStore.mergeRecipientId(affectedRecipient.id, into: mergedRecipient.id, localIdentity: .aci, tx: tx)
@@ -835,7 +836,15 @@ class RecipientMergerImpl: RecipientMerger {
             }
         }
 
+        recipientDatabaseTable.updateRecipient(mergedRecipient, transaction: tx)
+        if oldRecipients.contains(where: { $0.uniqueId == mergedRecipient.uniqueId }) {
+            searchableNameIndexer.update(mergedRecipient, tx: tx)
+        } else {
+            searchableNameIndexer.insert(mergedRecipient, tx: tx)
+        }
+
         if shouldUpdateStorageService {
+            let affectedRecipients = otherUpdatedRecipients + [mergedRecipient]
             storageServiceManager.recordPendingUpdates(updatedRecipientUniqueIds: affectedRecipients.map { $0.uniqueId })
         }
 
@@ -870,11 +879,12 @@ class RecipientMergerImpl: RecipientMerger {
 
     private func prepareSessionEventsToInsert(
         oldRecipients: [SignalRecipient],
-        affectedRecipients: [SignalRecipient],
         mergedRecipient: SignalRecipient,
+        otherUpdatedRecipients: [SignalRecipient],
         tx: DBWriteTransaction,
     ) -> [SessionEvent] {
         var result = [SessionEvent]()
+        let affectedRecipients = otherUpdatedRecipients + [mergedRecipient]
         for oldRecipient in oldRecipients {
             let newRecipient = affectedRecipients.first(where: { $0.uniqueId == oldRecipient.uniqueId }) ?? oldRecipient
             let recipientPair = MergePair(
