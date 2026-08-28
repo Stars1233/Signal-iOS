@@ -661,6 +661,7 @@
 		500CC1E72F15C20B001A86F7 /* ReceiptMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500CC1E62F15C20B001A86F7 /* ReceiptMessage.swift */; };
 		500CC1E92F15C8A7001A86F7 /* OutgoingCallMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500CC1E82F15C8A7001A86F7 /* OutgoingCallMessage.swift */; };
 		500CC1EB2F15D1E5001A86F7 /* StickerPackSyncMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500CC1EA2F15D1E5001A86F7 /* StickerPackSyncMessage.swift */; };
+		500D7B74303F650D0097EB74 /* AnyGroupIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500D7B73303F650D0097EB74 /* AnyGroupIdentifier.swift */; };
 		500F35232FFDA1010007B0D1 /* SendMessageResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F35222FFDA1010007B0D1 /* SendMessageResult.swift */; };
 		500FB6182915B86D00257951 /* UITableView+ReusableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500FB6172915B86D00257951 /* UITableView+ReusableCell.swift */; };
 		500FE4E0288A11B000FA090C /* ConversationViewController+GiftBadges.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500FE4DF288A11AF00FA090C /* ConversationViewController+GiftBadges.swift */; };
@@ -706,6 +707,7 @@
 		502D45482A0AD7BE00B8BCE0 /* ThreadReplyInfoStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 502D45472A0AD7BE00B8BCE0 /* ThreadReplyInfoStore.swift */; };
 		502D69322A7AC07C0085B656 /* Dictionary+SSK.swift in Sources */ = {isa = PBXBuildFile; fileRef = 502D69312A7AC07C0085B656 /* Dictionary+SSK.swift */; };
 		502D9AA4303CC73700FA0D7D /* SenderKeyExpirationJob.swift in Sources */ = {isa = PBXBuildFile; fileRef = 502D9AA3303CC73700FA0D7D /* SenderKeyExpirationJob.swift */; };
+		502E586D3040BED600D30164 /* AnyGroupIdentifierTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 502E586C3040BED600D30164 /* AnyGroupIdentifierTest.swift */; };
 		502F187F2D5530AA00A1BD62 /* LazyDatabaseMigratorRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 502F187E2D5530AA00A1BD62 /* LazyDatabaseMigratorRunner.swift */; };
 		50311B8B2BC0C2A100AE5A5F /* MonotonicDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50311B8A2BC0C2A100AE5A5F /* MonotonicDate.swift */; };
 		503158F22B57B0010023A5DB /* ServiceIdTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 503158F12B57B0010023A5DB /* ServiceIdTest.swift */; };
@@ -5004,6 +5006,7 @@
 		500CC1E62F15C20B001A86F7 /* ReceiptMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptMessage.swift; sourceTree = "<group>"; };
 		500CC1E82F15C8A7001A86F7 /* OutgoingCallMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutgoingCallMessage.swift; sourceTree = "<group>"; };
 		500CC1EA2F15D1E5001A86F7 /* StickerPackSyncMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StickerPackSyncMessage.swift; sourceTree = "<group>"; };
+		500D7B73303F650D0097EB74 /* AnyGroupIdentifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnyGroupIdentifier.swift; sourceTree = "<group>"; };
 		500F35222FFDA1010007B0D1 /* SendMessageResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendMessageResult.swift; sourceTree = "<group>"; };
 		500FB6172915B86D00257951 /* UITableView+ReusableCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UITableView+ReusableCell.swift"; sourceTree = "<group>"; };
 		500FE4DF288A11AF00FA090C /* ConversationViewController+GiftBadges.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ConversationViewController+GiftBadges.swift"; sourceTree = "<group>"; };
@@ -5054,6 +5057,7 @@
 		502D45472A0AD7BE00B8BCE0 /* ThreadReplyInfoStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadReplyInfoStore.swift; sourceTree = "<group>"; };
 		502D69312A7AC07C0085B656 /* Dictionary+SSK.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Dictionary+SSK.swift"; sourceTree = "<group>"; };
 		502D9AA3303CC73700FA0D7D /* SenderKeyExpirationJob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SenderKeyExpirationJob.swift; sourceTree = "<group>"; };
+		502E586C3040BED600D30164 /* AnyGroupIdentifierTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnyGroupIdentifierTest.swift; sourceTree = "<group>"; };
 		502F187E2D5530AA00A1BD62 /* LazyDatabaseMigratorRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LazyDatabaseMigratorRunner.swift; sourceTree = "<group>"; };
 		50311B8A2BC0C2A100AE5A5F /* MonotonicDate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonotonicDate.swift; sourceTree = "<group>"; };
 		503158F12B57B0010023A5DB /* ServiceIdTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceIdTest.swift; sourceTree = "<group>"; };
@@ -14649,6 +14653,7 @@
 		F94261E2289B1B5400460798 /* Groups */ = {
 			isa = PBXGroup;
 			children = (
+				502E586C3040BED600D30164 /* AnyGroupIdentifierTest.swift */,
 				50FA17113006F244007529C6 /* GroupInviteLinkTest.swift */,
 				5090B1A02F8D7239003F029D /* GroupMembershipTest.swift */,
 				F94261E3289B1B5400460798 /* GroupModelsTest.swift */,
@@ -15924,6 +15929,7 @@
 		F9C5CBA3289453B200548EEE /* Groups */ = {
 			isa = PBXGroup;
 			children = (
+				500D7B73303F650D0097EB74 /* AnyGroupIdentifier.swift */,
 				F9C5CBA5289453B200548EEE /* GroupAccess.swift */,
 				50FA170F3006A9E6007529C6 /* GroupInviteLink.swift */,
 				50FA17133006F635007529C6 /* GroupInviteLinkConfiguration.swift */,
@@ -19308,6 +19314,7 @@
 				0484CECE2F44B7BE009AB2CB /* AdminDeleteRecord.swift in Sources */,
 				728BFE4C2C5C3427008F20F1 /* Aes256Key.swift in Sources */,
 				667DEE5F2BC7175300EFF32D /* AllMediaCategory.swift in Sources */,
+				500D7B74303F650D0097EB74 /* AnyGroupIdentifier.swift in Sources */,
 				720547F52B9C97EC00E2CF2F /* APNSRotationStore.swift in Sources */,
 				724329692BE3A0C60089206A /* AppContext.swift in Sources */,
 				F9C5CE40289453B400548EEE /* AppExpiry.swift in Sources */,
@@ -20533,6 +20540,7 @@
 			files = (
 				50E51A3B2AE989C4004F9069 /* AccountAttributesTest.swift in Sources */,
 				F915A77229CB6F6F00EB6F68 /* AccountDataReportTest.swift in Sources */,
+				502E586D3040BED600D30164 /* AnyGroupIdentifierTest.swift in Sources */,
 				F908C67B29F08E4E00C3EFC4 /* AppExpiryTest.swift in Sources */,
 				66B1E2702CB48C53005F43AC /* Array+SSKTest.swift in Sources */,
 				D92EFDEF2F69B9D80031D257 /* AttachmentBackfillManagerTest.swift in Sources */,

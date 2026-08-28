@@ -19,6 +19,24 @@ struct GroupStore {
     }
 
     func fetchGroupOrInsert(
+        groupId: AnyGroupIdentifier,
+        refreshedAt: Date = GroupRecord.addingRefreshJitter(toDate: Date()),
+        tx: DBWriteTransaction,
+    ) -> GroupRecord {
+        let groupIdData = groupId.serialize()
+        if let existingRecord = fetchGroup(forGroupIdData: groupIdData, tx: tx) {
+            return existingRecord
+        }
+        return GroupRecord.insertRecord(
+            groupId: groupIdData,
+            threadId: nil, // set later
+            masterKey: nil, // set later
+            refreshedAt: refreshedAt,
+            tx: tx,
+        )
+    }
+
+    func fetchGroupOrInsert(
         secretParams: GroupSecretParams,
         refreshedAt: Date = GroupRecord.addingRefreshJitter(toDate: Date()),
         tx: DBWriteTransaction,

@@ -2050,7 +2050,8 @@ extension StorageServiceAccountRecordUpdater {
 
             switch pinnedThread.threadId {
             case .groupId(let _groupId):
-                if let groupId = try? GroupIdentifier(contents: _groupId) {
+                switch try? AnyGroupIdentifier.parseFrom(_groupId) {
+                case .V2(let groupId):
                     let groupRecord = GroupStore().fetchGroup(forGroupId: groupId, tx: tx)
                     guard let groupRecord, let secretParams = groupRecord.deriveSecretParams() else {
                         Logger.warn("skipping pinned group without secret params")
@@ -2058,8 +2059,10 @@ extension StorageServiceAccountRecordUpdater {
                     }
                     let masterKey = failIfThrows { try secretParams.getMasterKey() }
                     pinnedConversationBuilder.setIdentifier(.groupMasterKey(masterKey.serialize()))
-                } else {
-                    owsAssertDebug(GroupManager.isV1GroupId(_groupId))
+                case .V1(let groupId):
+                    pinnedConversationBuilder.setIdentifier(.legacyGroupID(groupId.rawValue))
+                case nil:
+                    owsFailDebug("malformed pinned group id")
                     pinnedConversationBuilder.setIdentifier(.legacyGroupID(_groupId))
                 }
             case .recipientId(let recipientId):

@@ -236,7 +236,7 @@ public class BlockingManager {
         let interactionStore = DependenciesBridge.shared.interactionStore
         let storageServiceManager = SSKEnvironment.shared.storageServiceManagerRef
 
-        guard GroupManager.isValidGroupIdOfAnyKind(groupId) else {
+        guard (try? AnyGroupIdentifier.parseFrom(groupId)) != nil else {
             owsFailDebug("Can't block invalid groupId: \(groupId.toHex())")
             return
         }

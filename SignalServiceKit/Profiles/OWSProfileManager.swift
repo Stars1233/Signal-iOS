@@ -718,17 +718,18 @@ extension OWSProfileManager: ProfileManager {
         let allWhitelistedGroupKeys = whitelistedGroupsStore.fetchKeys(tx: tx)
 
         return allWhitelistedGroupKeys.lazy
-            .compactMap { self.groupIdForGroupKey($0) }
+            .compactMap { self.groupIdForGroupKey($0)?.serialize() }
             .filter { SSKEnvironment.shared.blockingManagerRef.isGroupIdBlocked_deprecated($0, tx: tx) }
     }
 
-    private func groupIdForGroupKey(_ groupKey: String) -> Data? {
-        guard let groupId = Data.data(fromHex: groupKey) else { return nil }
-
-        if GroupManager.isValidGroupIdOfAnyKind(groupId) {
-            return groupId
-        } else {
-            owsFailDebug("Parsed group id has unexpected length: \(groupId.hexadecimalString) (\(groupId.count))")
+    private func groupIdForGroupKey(_ groupKey: String) -> AnyGroupIdentifier? {
+        guard let groupId = Data.data(fromHex: groupKey) else {
+            return nil
+        }
+        do {
+            return try AnyGroupIdentifier.parseFrom(groupId)
+        } catch {
+            owsFailDebug("couldn't parse group id: \(error)")
             return nil
         }
     }

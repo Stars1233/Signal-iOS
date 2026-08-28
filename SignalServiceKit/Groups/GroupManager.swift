@@ -37,39 +37,6 @@ public class GroupManager: NSObject {
 
     public static let maxEmbeddedChangeProtoLength: UInt = UInt(OWSMediaUtils.kOversizeTextMessageSizeThresholdBytes)
 
-    // MARK: - Group IDs
-
-    static func groupIdLength(for groupsVersion: GroupsVersion) -> UInt {
-        switch groupsVersion {
-        case .V1:
-            return kGroupIdLengthV1
-        case .V2:
-            return kGroupIdLengthV2
-        }
-    }
-
-    public static func isV1GroupId(_ groupId: Data) -> Bool {
-        groupId.count == groupIdLength(for: .V1)
-    }
-
-    public static func isV2GroupId(_ groupId: Data) -> Bool {
-        groupId.count == groupIdLength(for: .V2)
-    }
-
-    @objc
-    public static func isValidGroupId(_ groupId: Data, groupsVersion: GroupsVersion) -> Bool {
-        let expectedLength = groupIdLength(for: groupsVersion)
-        guard groupId.count == expectedLength else {
-            owsFailDebug("Invalid groupId: \(groupId.count) != \(expectedLength)")
-            return false
-        }
-        return true
-    }
-
-    public static func isValidGroupIdOfAnyKind(_ groupId: Data) -> Bool {
-        return isV1GroupId(groupId) || isV2GroupId(groupId)
-    }
-
     // MARK: - Group Models
 
     /// Confirms that a given address supports V2 groups.
