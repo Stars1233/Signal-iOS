@@ -550,13 +550,14 @@ class PlayerProgressView: UIView {
     init() {
         super.init(frame: .zero)
 
-        semanticContentAttribute = .forceLeftToRight
+        semanticContentAttribute = .playback
 
         let selfOrVisualEffectContentView: UIView
         if #available(iOS 26, *) {
             let glassEffectView = UIVisualEffectView(effect: interactiveGlassEffect())
             glassEffectView.translatesAutoresizingMaskIntoConstraints = false
             glassEffectView.clipsToBounds = true
+            glassEffectView.contentView.semanticContentAttribute = .playback
             glassEffectView.cornerConfiguration = .capsule()
             addSubview(glassEffectView)
             NSLayoutConstraint.activate([
