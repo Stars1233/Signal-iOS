@@ -128,7 +128,7 @@ public class ThreadFinder {
     public func visibleThreadCount(
         isArchived: Bool,
         transaction: DBReadTransaction,
-    ) throws -> UInt {
+    ) -> UInt {
         let sql = """
         SELECT COUNT(*)
         FROM \(TSThread.databaseTableName)
@@ -136,17 +136,9 @@ public class ThreadFinder {
         WHERE \(threadColumn: .shouldThreadBeVisible) = 1
         """
 
-        guard
-            let count = try UInt.fetchOne(
-                transaction.database,
-                sql: sql,
-            )
-        else {
-            owsFailDebug("count was unexpectedly nil")
-            return 0
-        }
-
-        return count
+        return failIfThrows {
+            return try UInt.fetchOne(transaction.database, sql: sql)
+        }.owsFailUnwrap("must exist")
     }
 
     public func enumerateVisibleThreads(
@@ -409,7 +401,7 @@ public class ThreadFinder {
         filteredBy inboxFilter: InboxFilter? = nil,
         requiredVisibleThreadIds: Set<String> = [],
         transaction: DBReadTransaction,
-    ) throws -> [String] {
+    ) -> [String] {
         let inboxFilterClause: String = switch inboxFilter {
         case .unread:
             """
@@ -443,12 +435,14 @@ public class ThreadFinder {
             END DESC,
             \(threadColumn: .lastDraftUpdateTimestamp) DESC
         """
-        return try String.fetchAll(transaction.database, sql: sql)
+        return failIfThrows {
+            return try String.fetchAll(transaction.database, sql: sql)
+        }
     }
 
     public func visibleArchivedThreadUniqueIds(
         transaction: DBReadTransaction,
-    ) throws -> [String] {
+    ) -> [String] {
         let sql = """
         SELECT \(threadColumn: .uniqueId)
         FROM \(TSThread.databaseTableName)
@@ -461,6 +455,8 @@ public class ThreadFinder {
             \(threadColumn: .lastDraftUpdateTimestamp) DESC
         """
 
-        return try String.fetchAll(transaction.database, sql: sql)
+        return failIfThrows {
+            return try String.fetchAll(transaction.database, sql: sql)
+        }
     }
 }

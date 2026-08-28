@@ -173,51 +173,48 @@ public class InteractionFinder: NSObject {
     }
 
     public class func unreadCountInAllThreads(transaction: DBReadTransaction) -> UInt {
-        do {
-            let includeMutedThreads = DependenciesBridge.shared.notificationPreferencesManager
-                .includeMutedThreadsInBadgeCount(tx: transaction)
+        let includeMutedThreads = DependenciesBridge.shared.notificationPreferencesManager
+            .includeMutedThreadsInBadgeCount(tx: transaction)
 
-            var unreadInteractionQuery = """
-            SELECT COUNT(interaction.\(interactionColumn: .id))
-            FROM \(InteractionRecord.databaseTableName) AS interaction
-            \(DEBUG_INDEXED_BY("index_model_TSInteraction_UnreadMessages"))
-            INNER JOIN \(ThreadAssociatedData.databaseTableName) AS associatedData
-            \(DEBUG_INDEXED_BY("index_thread_associated_data_on_threadUniqueId_and_isArchived"))
-                ON associatedData.threadUniqueId = \(interactionColumn: .threadUniqueId)
-            WHERE associatedData.isArchived = "0"
-            """
+        var unreadInteractionQuery = """
+        SELECT COUNT(interaction.\(interactionColumn: .id))
+        FROM \(InteractionRecord.databaseTableName) AS interaction
+        \(DEBUG_INDEXED_BY("index_model_TSInteraction_UnreadMessages"))
+        INNER JOIN \(ThreadAssociatedData.databaseTableName) AS associatedData
+        \(DEBUG_INDEXED_BY("index_thread_associated_data_on_threadUniqueId_and_isArchived"))
+            ON associatedData.threadUniqueId = \(interactionColumn: .threadUniqueId)
+        WHERE associatedData.isArchived = "0"
+        """
 
-            if !includeMutedThreads {
-                unreadInteractionQuery += " \(sqlClauseForIgnoringInteractionsWithMutedThread(threadAssociatedDataAlias: "associatedData")) "
-            }
-
-            unreadInteractionQuery += " AND \(sqlClauseForUnreadInteractionCounts(interactionsAlias: "interaction")) "
-
-            let unreadInteractionCount = try UInt.fetchOne(transaction.database, sql: unreadInteractionQuery)
-            owsAssertDebug(unreadInteractionCount != nil, "unreadInteractionCount was unexpectedly nil")
-
-            var markedUnreadThreadQuery = """
-            SELECT COUNT(*)
-            FROM \(TSThread.databaseTableName)
-            INNER JOIN \(ThreadAssociatedData.databaseTableName) AS associatedData
-                ON associatedData.threadUniqueId = \(threadColumn: .uniqueId)
-            WHERE associatedData.isMarkedUnread = 1
-            AND associatedData.isArchived = "0"
-            AND \(threadColumn: .shouldThreadBeVisible) = 1
-            """
-
-            if !includeMutedThreads {
-                markedUnreadThreadQuery += " \(sqlClauseForIgnoringInteractionsWithMutedThread(threadAssociatedDataAlias: "associatedData")) "
-            }
-
-            let markedUnreadCount = try UInt.fetchOne(transaction.database, sql: markedUnreadThreadQuery)
-            owsAssertDebug(markedUnreadCount != nil, "markedUnreadCount was unexpectedly nil")
-
-            return (unreadInteractionCount ?? 0) + (markedUnreadCount ?? 0)
-        } catch {
-            owsFailDebug("error: \(error.grdbErrorForLogging)")
-            return 0
+        if !includeMutedThreads {
+            unreadInteractionQuery += " \(sqlClauseForIgnoringInteractionsWithMutedThread(threadAssociatedDataAlias: "associatedData")) "
         }
+
+        unreadInteractionQuery += " AND \(sqlClauseForUnreadInteractionCounts(interactionsAlias: "interaction")) "
+
+        let unreadInteractionCount = failIfThrows {
+            return try UInt.fetchOne(transaction.database, sql: unreadInteractionQuery)
+        }.owsFailUnwrap("must exist")
+
+        var markedUnreadThreadQuery = """
+        SELECT COUNT(*)
+        FROM \(TSThread.databaseTableName)
+        INNER JOIN \(ThreadAssociatedData.databaseTableName) AS associatedData
+            ON associatedData.threadUniqueId = \(threadColumn: .uniqueId)
+        WHERE associatedData.isMarkedUnread = 1
+        AND associatedData.isArchived = "0"
+        AND \(threadColumn: .shouldThreadBeVisible) = 1
+        """
+
+        if !includeMutedThreads {
+            markedUnreadThreadQuery += " \(sqlClauseForIgnoringInteractionsWithMutedThread(threadAssociatedDataAlias: "associatedData")) "
+        }
+
+        let markedUnreadCount = failIfThrows {
+            return try UInt.fetchOne(transaction.database, sql: markedUnreadThreadQuery)
+        }.owsFailUnwrap("must exist")
+
+        return unreadInteractionCount + markedUnreadCount
     }
 
     // MARK: -

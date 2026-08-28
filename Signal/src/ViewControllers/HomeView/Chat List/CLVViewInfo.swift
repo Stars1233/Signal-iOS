@@ -53,32 +53,27 @@ struct CLVViewInfo: Equatable {
         shouldLocalFileBackupRestoreProgressViewBeVisible: Bool,
         transaction: DBReadTransaction,
     ) -> CLVViewInfo {
-        do {
-            let requiredThreadIds: Set<String> = switch (inboxFilter, lastSelectedThreadId) {
-            case (.unread, .some(let lastSelectedThreadId)):
-                [lastSelectedThreadId]
-            case (.unread, nil), (.unfiltered, _):
-                []
-            }
-            let threadFinder = ThreadFinder()
-            let archiveCount = try threadFinder.visibleThreadCount(isArchived: true, transaction: transaction)
-            let inboxCount = try threadFinder.visibleThreadCount(isArchived: false, transaction: transaction)
-            return CLVViewInfo(
-                chatListMode: chatListMode,
-                archiveCount: archiveCount,
-                inboxCount: inboxCount,
-                inboxFilter: inboxFilter,
-                isMultiselectActive: isMultiselectActive,
-                hasVisibleReminders: hasVisibleReminders,
-                shouldBackupDownloadProgressViewBeVisible: shouldBackupDownloadProgressViewBeVisible,
-                shouldBackupExportProgressViewBeVisible: shouldBackupExportProgressViewBeVisible,
-                shouldLocalFileBackupRestoreProgressViewBeVisible: shouldLocalFileBackupRestoreProgressViewBeVisible,
-                lastSelectedThreadId: lastSelectedThreadId,
-                requiredVisibleThreadIds: requiredThreadIds,
-            )
-        } catch {
-            owsFailDebug("Error: \(error)")
-            return .empty
+        let requiredThreadIds: Set<String> = switch (inboxFilter, lastSelectedThreadId) {
+        case (.unread, .some(let lastSelectedThreadId)):
+            [lastSelectedThreadId]
+        case (.unread, nil), (.unfiltered, _):
+            []
         }
+        let threadFinder = ThreadFinder()
+        let archiveCount = threadFinder.visibleThreadCount(isArchived: true, transaction: transaction)
+        let inboxCount = threadFinder.visibleThreadCount(isArchived: false, transaction: transaction)
+        return CLVViewInfo(
+            chatListMode: chatListMode,
+            archiveCount: archiveCount,
+            inboxCount: inboxCount,
+            inboxFilter: inboxFilter,
+            isMultiselectActive: isMultiselectActive,
+            hasVisibleReminders: hasVisibleReminders,
+            shouldBackupDownloadProgressViewBeVisible: shouldBackupDownloadProgressViewBeVisible,
+            shouldBackupExportProgressViewBeVisible: shouldBackupExportProgressViewBeVisible,
+            shouldLocalFileBackupRestoreProgressViewBeVisible: shouldLocalFileBackupRestoreProgressViewBeVisible,
+            lastSelectedThreadId: lastSelectedThreadId,
+            requiredVisibleThreadIds: requiredThreadIds,
+        )
     }
 }

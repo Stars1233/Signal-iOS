@@ -497,15 +497,9 @@ class GetStartedBannerViewController: OWSViewController {
                 return []
             }
 
-            let visibleThreadCount: UInt
-            do {
-                let unarchivedThreadCount = try self.threadFinder.visibleThreadCount(isArchived: false, transaction: readTx)
-                let archivedThreadCount = try self.threadFinder.visibleThreadCount(isArchived: true, transaction: readTx)
-                visibleThreadCount = unarchivedThreadCount + archivedThreadCount
-            } catch {
-                owsFailDebug("Failed to fetch thread count")
-                return []
-            }
+            let unarchivedThreadCount = self.threadFinder.visibleThreadCount(isArchived: false, transaction: readTx)
+            let archivedThreadCount = self.threadFinder.visibleThreadCount(isArchived: true, transaction: readTx)
+            let visibleThreadCount = unarchivedThreadCount + archivedThreadCount
 
             // If we have five or more threads, dismiss all cards
             if visibleThreadCount >= 5 {
