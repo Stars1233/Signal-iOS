@@ -480,10 +480,9 @@ class ProvisioningCoordinatorImpl: ProvisioningCoordinator {
         }
 
         await self.db.awaitableWrite { tx in
-            self.registrationStateChangeManager.didProvisionSecondary(
-                e164: authedDevice.phoneNumber,
+            self.registrationStateChangeManager.didRegisterOrProvision(
                 aci: authedDevice.aci,
-                pni: authedDevice.pni,
+                phoneNumber: (authedDevice.phoneNumber, authedDevice.pni),
                 authToken: authedDevice.authPassword,
                 deviceId: authedDevice.deviceId,
                 tx: tx,

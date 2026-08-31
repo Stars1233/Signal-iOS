@@ -163,26 +163,25 @@ extension TSAccountManagerImpl: PhoneNumberDiscoverabilitySetter {
 extension TSAccountManagerImpl: LocalIdentifiersSetter {
 
     public func initializeLocalIdentifiers(
-        e164: E164,
         aci: Aci,
-        pni: Pni,
+        phoneNumber: (e164: E164, pni: Pni),
         deviceId: DeviceId,
         serverAuthToken: String,
         tx: DBWriteTransaction,
     ) {
         mutateWithLock(tx: tx) {
             let oldNumber = kvStore.fetchValue(String.self, forKey: Keys.localPhoneNumber, tx: tx)
-            Self.regStateLogger.info("local number \(oldNumber ?? "nil") -> \(e164)")
-            kvStore.writeValue(e164.stringValue, forKey: Keys.localPhoneNumber, tx: tx)
+            Self.regStateLogger.info("local number \(oldNumber ?? "nil") -> \(phoneNumber.e164)")
+            kvStore.writeValue(phoneNumber.e164.stringValue, forKey: Keys.localPhoneNumber, tx: tx)
 
             let oldAci = Aci.parseFrom(aciString: kvStore.fetchValue(String.self, forKey: Keys.localAci, tx: tx))
             Self.regStateLogger.info("local aci \(oldAci?.logString ?? "nil") -> \(aci)")
             kvStore.writeValue(aci.serviceIdUppercaseString, forKey: Keys.localAci, tx: tx)
 
             let oldPni = Pni.parseFrom(pniString: kvStore.fetchValue(String.self, forKey: Keys.localPni, tx: tx))
-            Self.regStateLogger.info("local pni \(oldPni?.logString ?? "nil") -> \(pni)")
+            Self.regStateLogger.info("local pni \(oldPni?.logString ?? "nil") -> \(phoneNumber.pni)")
             // Encoded without the "PNI:" prefix for backwards compatibility.
-            kvStore.writeValue(pni.rawUUID.uuidString, forKey: Keys.localPni, tx: tx)
+            kvStore.writeValue(phoneNumber.pni.rawUUID.uuidString, forKey: Keys.localPni, tx: tx)
 
             Self.regStateLogger.info("device id is primary? \(deviceId == .primary)")
             kvStore.writeValue(Int64(deviceId.uint32Value), forKey: Keys.deviceId, tx: tx)
@@ -198,24 +197,23 @@ extension TSAccountManagerImpl: LocalIdentifiersSetter {
     }
 
     public func changeLocalNumber(
-        newE164: E164,
         aci: Aci,
-        pni: Pni,
+        phoneNumber: (e164: E164, pni: Pni),
         tx: DBWriteTransaction,
     ) {
         mutateWithLock(tx: tx) {
             let oldNumber = kvStore.fetchValue(String.self, forKey: Keys.localPhoneNumber, tx: tx)
-            Self.regStateLogger.info("local number \(oldNumber ?? "nil") -> \(newE164.stringValue)")
-            kvStore.writeValue(newE164.stringValue, forKey: Keys.localPhoneNumber, tx: tx)
+            Self.regStateLogger.info("local number \(oldNumber ?? "nil") -> \(phoneNumber.e164.stringValue)")
+            kvStore.writeValue(phoneNumber.e164.stringValue, forKey: Keys.localPhoneNumber, tx: tx)
 
             let oldAci = kvStore.fetchValue(String.self, forKey: Keys.localAci, tx: tx)
             Self.regStateLogger.info("local aci \(oldAci ?? "nil") -> \(aci)")
             kvStore.writeValue(aci.serviceIdUppercaseString, forKey: Keys.localAci, tx: tx)
 
             let oldPni = kvStore.fetchValue(String.self, forKey: Keys.localPni, tx: tx)
-            Self.regStateLogger.info("local pni \(oldPni ?? "nil") -> \(pni)")
+            Self.regStateLogger.info("local pni \(oldPni ?? "nil") -> \(phoneNumber.pni)")
             // Encoded without the "PNI:" prefix for backwards compatibility.
-            kvStore.writeValue(pni.rawUUID.uuidString, forKey: Keys.localPni, tx: tx)
+            kvStore.writeValue(phoneNumber.pni.rawUUID.uuidString, forKey: Keys.localPni, tx: tx)
         }
     }
 

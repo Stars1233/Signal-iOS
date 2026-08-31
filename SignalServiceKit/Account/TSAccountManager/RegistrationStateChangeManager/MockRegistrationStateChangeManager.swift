@@ -20,37 +20,23 @@ open class MockRegistrationStateChangeManager: RegistrationStateChangeManager {
         return registrationStateMock()
     }
 
-    public lazy var didRegisterPrimaryMock: (
-        _ e164: E164,
+    public lazy var didRegisterOrProvisionMock: (
         _ aci: Aci,
-        _ pni: Pni,
+        _ phoneNumber: (e164: E164, pni: Pni),
         _ authToken: String,
+        _ deviceId: DeviceId,
     ) -> Void = { [weak self] _, _, _, _ in
         self?.registrationStateMock = { .registered }
     }
 
-    open func didRegisterPrimary(
-        e164: E164,
+    open func didRegisterOrProvision(
         aci: Aci,
-        pni: Pni,
+        phoneNumber: (e164: E164, pni: Pni),
         authToken: String,
+        deviceId: DeviceId,
         tx: DBWriteTransaction,
     ) {
-        didRegisterPrimaryMock(e164, aci, pni, authToken)
-    }
-
-    public lazy var didProvisionSecondaryMock: (
-        _ e164: E164,
-        _ aci: Aci,
-        _ pni: Pni,
-        _ authToken: String,
-        _ deviceId: DeviceId,
-    ) -> Void = { [weak self] _, _, _, _, _ in
-        self?.registrationStateMock = { .provisioned }
-    }
-
-    open func didProvisionSecondary(e164: E164, aci: Aci, pni: Pni, authToken: String, deviceId: DeviceId, tx: DBWriteTransaction) {
-        didProvisionSecondaryMock(e164, aci, pni, authToken, deviceId)
+        didRegisterOrProvisionMock(aci, phoneNumber, authToken, deviceId)
     }
 
     public lazy var didFinishProvisioningSecondayMock: () -> Void = { [weak self] in
@@ -62,13 +48,12 @@ open class MockRegistrationStateChangeManager: RegistrationStateChangeManager {
     }
 
     public var didUpdateLocalPhoneNumberMock: (
-        _ e164: E164,
         _ aci: Aci,
-        _ pni: Pni,
-    ) -> Void = { _, _, _ in }
+        _ phoneNumber: (E164, Pni),
+    ) -> Void = { _, _ in }
 
-    open func didUpdateLocalPhoneNumber(_ e164: E164, aci: Aci, pni: Pni, tx: DBWriteTransaction) {
-        didUpdateLocalPhoneNumberMock(e164, aci, pni)
+    public func didUpdateLocalPhoneNumber(aci: Aci, phoneNumber: (e164: E164, pni: Pni), tx: DBWriteTransaction) {
+        didUpdateLocalPhoneNumberMock(aci, phoneNumber)
     }
 
     public lazy var resetForReregistrationMock: (

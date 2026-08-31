@@ -161,9 +161,8 @@ public protocol LocalIdentifiersSetter {
 
     /// Initialize local identifiers state after registration, linking, reregistration, or relinking.
     func initializeLocalIdentifiers(
-        e164: E164,
         aci: Aci,
-        pni: Pni,
+        phoneNumber: (e164: E164, pni: Pni),
         deviceId: DeviceId,
         serverAuthToken: String,
         tx: DBWriteTransaction,
@@ -173,9 +172,8 @@ public protocol LocalIdentifiersSetter {
     /// ACI provided for convenience; it should be unchanged.
     /// Server auth token is also assumed to be unchanged.
     func changeLocalNumber(
-        newE164: E164,
         aci: Aci,
-        pni: Pni,
+        phoneNumber: (e164: E164, pni: Pni),
         tx: DBWriteTransaction,
     )
 

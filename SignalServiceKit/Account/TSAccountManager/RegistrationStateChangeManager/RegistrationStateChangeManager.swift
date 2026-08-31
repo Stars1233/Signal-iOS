@@ -27,39 +27,9 @@ public protocol RegistrationStateChangeManager {
 
     func registrationState(tx: DBReadTransaction) -> TSRegistrationState
 
-    /**
-     * Called once registration/reregistration is complete and the app is ready for normal operation.
-     * Not used for secondary linking or change number.
-     * This puts the state into ``TSRegistrationState.registered``.
-     *
-     * To observe changes related to this method, use ``NSNotification.Name.registrationStateDidChange``
-     * and ``NSNotification.Name.localNumberDidChange``.
-     *
-     * Note that some side effects (generally, those that must happen in the same write transaction)
-     * are triggered internally by this class and don't need separate observation.
-     */
-    func didRegisterPrimary(
-        e164: E164,
+    func didRegisterOrProvision(
         aci: Aci,
-        pni: Pni,
-        authToken: String,
-        tx: DBWriteTransaction,
-    )
-
-    /**
-     * After linking, secondary devices sync storage service records and do other
-     * setup before provisioning is finished, then this is called after its all done.
-     * This puts the state into ``TSRegistrationState.provisioned``.
-     *
-     * To observe changes related to this method, use ``NSNotification.Name.registrationStateDidChange``.
-     *
-     * Note that some side effects (generally, those that must happen in the same write transaction)
-     * are triggered internally by this class and don't need separate observation.
-     */
-    func didProvisionSecondary(
-        e164: E164,
-        aci: Aci,
-        pni: Pni,
+        phoneNumber: (e164: E164, pni: Pni),
         authToken: String,
         deviceId: DeviceId,
         tx: DBWriteTransaction,
@@ -75,9 +45,8 @@ public protocol RegistrationStateChangeManager {
      * are triggered internally by this class and don't need separate observation.
      */
     func didUpdateLocalPhoneNumber(
-        _ e164: E164,
         aci: Aci,
-        pni: Pni,
+        phoneNumber: (e164: E164, pni: Pni),
         tx: DBWriteTransaction,
     )
 

@@ -1519,11 +1519,11 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
             // may have stored something, and we want to ensure we delete or update it.
             deps.svr.invalidateBackupAttemptForEveryEnclave(tx: tx)
 
-            deps.registrationStateChangeManager.didRegisterPrimary(
-                e164: accountIdentity.e164,
+            deps.registrationStateChangeManager.didRegisterOrProvision(
                 aci: accountIdentity.aci,
-                pni: accountIdentity.pni,
+                phoneNumber: (accountIdentity.e164, accountIdentity.pni),
                 authToken: accountIdentity.authPassword,
+                deviceId: .primary,
                 tx: tx,
             )
             deps.tsAccountManager.setIsManualMessageFetchEnabled(inMemoryState.isManualMessageFetchEnabled, tx: tx)
@@ -4334,9 +4334,8 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
             // We do these here, and not in export state, so that we don't risk
             // syncing out-of-date state to storage service.
             self.deps.registrationStateChangeManager.didUpdateLocalPhoneNumber(
-                accountIdentity.e164,
                 aci: accountIdentity.aci,
-                pni: accountIdentity.pni,
+                phoneNumber: (accountIdentity.e164, accountIdentity.pni),
                 tx: tx,
             )
             // Make sure we update our local account.

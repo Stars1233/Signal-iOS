@@ -76,9 +76,8 @@ public class IncomingPniChangeNumberProcessorImpl: IncomingPniChangeNumberProces
 
         tsAccountManager.setRegistrationId(pniChangeData.registrationId, for: .pni, tx: tx)
         registrationStateChangeManager.didUpdateLocalPhoneNumber(
-            pniChangeData.e164,
             aci: localAci,
-            pni: updatedPni,
+            phoneNumber: (pniChangeData.e164, updatedPni),
             tx: tx,
         )
 
