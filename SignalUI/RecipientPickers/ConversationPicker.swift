@@ -719,7 +719,7 @@ open class ConversationPickerViewController: OWSTableViewController2 {
             container.insertSubview(secondMediaPreview, belowSubview: mediaPreviewBorder)
             secondMediaPreview.autoVCenterInSuperview()
             secondMediaPreview.autoConstrainAttribute(.vertical, to: .vertical, of: mediaPreview, withOffset: -26)
-            secondMediaPreview.autoSetDimensions(to: mediaPreviewSize.applying(.scale(0.85)))
+            secondMediaPreview.autoSetDimensions(to: Self.mediaPreviewSize.applying(.scale(0.85)))
 
             secondMediaPreview.transform = .identity.rotated(by: (CurrentAppContext().isRTL ? 15 : -15) * CGFloat.pi / 180)
         }
@@ -757,18 +757,22 @@ open class ConversationPickerViewController: OWSTableViewController2 {
         previewView.autoPinEdge(toSuperviewEdge: .top, withInset: 3)
         previewView.autoPinEdge(toSuperviewEdge: .bottom, withInset: 3)
         previewView.autoHCenterInSuperview()
-        previewView.autoSetDimensions(to: mediaPreviewSize)
+        previewView.autoSetDimensions(to: Self.mediaPreviewSize)
 
         section.customHeaderView = container
         return container
     }
 
-    private var mediaPreviewSize: CGSize {
-        if UIDevice.current.isShorterThaniPhoneX {
-            return .init(width: 90, height: 160)
-        } else {
-            return .init(width: 140, height: 248)
+    // Both sizes are 9 / 16 aspect ratio.
+    private static let smallPreviewSize = CGSize(width: 90, height: 160)
+    private static let largePreviewSize = CGSize(width: 140, height: 248)
+
+    /// Checks app window's size and returns smaller preview size of if height of the large preview would exceed 1/3 of window height.
+    private static var mediaPreviewSize: CGSize {
+        guard let appWindow = CurrentAppContext().mainWindow else {
+            return smallPreviewSize
         }
+        return appWindow.height / largePreviewSize.height > 3 ? largePreviewSize : smallPreviewSize
     }
 
     private func addExpandableConversations(

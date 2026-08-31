@@ -132,10 +132,6 @@ public extension UIDevice {
         return CurrentAppContext().frame.height <= 568
     }
 
-    var isShorterThaniPhoneX: Bool {
-        return CurrentAppContext().frame.height < 812
-    }
-
     @objc
     var isIPad: Bool {
         return userInterfaceIdiom == .pad
