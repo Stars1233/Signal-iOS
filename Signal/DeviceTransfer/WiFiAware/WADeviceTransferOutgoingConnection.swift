@@ -11,14 +11,14 @@ import WiFiAware
 @available(iOS 26.0, *)
 class WADeviceTransferOutgoingConnection: DeviceTransfer.OutgoingConnection {
     private let logger = PrefixedLogger(prefix: "[DeviceTransfer][WiFiAware][Outgoing]")
-    let selectedPeer: (any DeviceTransfer.PeerID)? = nil
+    let selectedPeer: (any DeviceTransfer.Peer)? = nil
 
-    let discoveredPeerStream: AsyncThrowingStream<[DeviceTransfer.PeerID], any Error>
-    private let discoveredPeerSink: AtomicValue<AsyncThrowingStream<[DeviceTransfer.PeerID], Error>.Continuation>
+    let discoveredPeerStream: AsyncThrowingStream<[any DeviceTransfer.Peer], any Error>
+    private let discoveredPeerSink: AtomicValue<AsyncThrowingStream<[any DeviceTransfer.Peer], Error>.Continuation>
     private var discoveredPeerTask: Task<Void, Never>?
 
     init() {
-        let sink: AsyncThrowingStream<[DeviceTransfer.PeerID], Error>.Continuation
+        let sink: AsyncThrowingStream<[any DeviceTransfer.Peer], Error>.Continuation
         (self.discoveredPeerStream, sink) = AsyncThrowingStream.makeStream()
         self.discoveredPeerSink = AtomicValue(sink, lock: .init())
 
@@ -27,7 +27,7 @@ class WADeviceTransferOutgoingConnection: DeviceTransfer.OutgoingConnection {
                 for try await updatedDeviceList in WAPairedDevice.allDevices {
                     let pairedDevices = updatedDeviceList.values.map { device in
                         self?.logger.debug("Discovered peer \(device)")
-                        return WADeviceTransferPeerId(pairedDevice: device)
+                        return WADeviceTransferPeer(pairedDevice: device)
                     }
                     if !pairedDevices.isEmpty {
                         self?.logger.info("Discovered \(pairedDevices.count) peers")
@@ -45,9 +45,9 @@ class WADeviceTransferOutgoingConnection: DeviceTransfer.OutgoingConnection {
         discoveredPeerTask.take()?.cancel()
     }
 
-    func connect(peer: any DeviceTransfer.PeerID) async throws -> any DeviceTransfer.Session {
+    func connect(peer: any DeviceTransfer.Peer) async throws -> any DeviceTransfer.Session {
         logger.info("Start connect")
-        guard let peer = peer as? WADeviceTransferPeerId else {
+        guard let peer = peer as? WADeviceTransferPeer else {
             throw OWSAssertionError("Incompatible peer type encountered")
         }
         let browser = NetworkBrowser(
@@ -73,8 +73,8 @@ class WADeviceTransferOutgoingConnection: DeviceTransfer.OutgoingConnection {
         logger.info("Waiting for endpoint")
         let endpoint = try await browser.run { [weak self] waEndpoints in
             for endpoint in waEndpoints {
-                let discoveredPeer = WADeviceTransferPeerId(pairedDevice: endpoint.device)
-                if discoveredPeer.peerID == peer.peerID {
+                let discoveredPeer = WADeviceTransferPeer(pairedDevice: endpoint.device)
+                if discoveredPeer.id == peer.id {
                     self?.logger.debug("Found endpoint to connect to: \(discoveredPeer)")
                     return .finish(endpoint)
                 } else {

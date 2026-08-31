@@ -20,7 +20,7 @@ public class DeviceTransferCoordinator: Equatable {
     public let supportsWifiAware: Bool
 
     @MainActor
-    var pairedPeerStream: AsyncThrowingStream<DeviceTransfer.PeerID, Error> {
+    var pairedPeerStream: AsyncThrowingStream<any DeviceTransfer.Peer, Error> {
         incomingDeviceTransferTask.pairedPeerStream
     }
 

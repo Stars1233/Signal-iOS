@@ -145,7 +145,7 @@ struct TransferStatusView: View {
                 {
                     if !isNewDevice {
                         LazyVStack(spacing: 8) {
-                            ForEach(viewModel.discoveredPeers) { device in
+                            ForEach(viewModel.discoveredPeers, id: \.id) { device in
                                 Button(action: {
                                     // Start the outgoing transfer
                                     viewModel.selectedPeer = device
@@ -159,7 +159,7 @@ struct TransferStatusView: View {
                             do {
                                 for try await updatedDeviceList in WAPairedDevice.allDevices {
                                     viewModel.discoveredPeers = updatedDeviceList.values.map {
-                                        TransferStatusViewModel.PeerIDWrapper(wrappedPeer: WADeviceTransferPeerId(pairedDevice: $0))
+                                        WADeviceTransferPeer(pairedDevice: $0)
                                     }
                                 }
                             } catch {
@@ -185,8 +185,7 @@ struct TransferStatusView: View {
                                 ),
                             ),
                         ) { endpoint in
-                            let wrappedEndpoint = TransferStatusViewModel.PeerIDWrapper(wrappedPeer: WADeviceTransferPeerId(pairedDevice: endpoint.device))
-                            viewModel.onPeerSelected(wrappedEndpoint)
+                            viewModel.onPeerSelected(WADeviceTransferPeer(pairedDevice: endpoint.device))
                         } label: {
                             AddDeviceButton()
                         } fallback: {

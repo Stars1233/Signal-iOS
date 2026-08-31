@@ -253,7 +253,7 @@ class OutgoingDeviceRestorePresenter: OutgoingDeviceRestoreInitialPresenter {
             case .decline:
                 await displayRestoreMessage(isBackup: false, presentingViewController: presentingViewController)
             case .deviceTransfer:
-                var continuation: CheckedContinuation<TransferStatusViewModel.PeerIDWrapper, Error>?
+                var continuation: CheckedContinuation<any DeviceTransfer.Peer, Error>?
                 let selectedPeer = viewModel.transferStatusViewModel.selectedPeer
                 if selectedPeer == nil {
                     viewModel.transferStatusViewModel.onPeerDiscovered = { [weak self] peer in
@@ -275,15 +275,15 @@ class OutgoingDeviceRestorePresenter: OutgoingDeviceRestoreInitialPresenter {
                     presentingViewController: presentingViewController,
                 )
 
-                let targetPeerID: TransferStatusViewModel.PeerIDWrapper
+                let targetPeer: any DeviceTransfer.Peer
                 if let selectedPeer {
-                    targetPeerID = selectedPeer
+                    targetPeer = selectedPeer
                 } else {
-                    targetPeerID = try await withCheckedThrowingContinuation {
+                    targetPeer = try await withCheckedThrowingContinuation {
                         continuation = $0
                     }
                 }
-                try await viewModel.waitForDeviceConnection(peer: targetPeerID.wrappedPeer)
+                try await viewModel.waitForDeviceConnection(peer: targetPeer)
                 try await viewModel.startTransfer()
                 await displayTransferComplete(presentingViewController: presentingViewController)
             }

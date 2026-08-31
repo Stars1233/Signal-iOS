@@ -136,20 +136,13 @@ class TransferStatusViewModel: ObservableObject {
     }
 
     @Published var supportsWifiAware: Bool = false
-
-    struct PeerIDWrapper: Identifiable {
-        var id: String { wrappedPeer.peerID }
-        var displayName: String { wrappedPeer.peerID }
-        let wrappedPeer: any DeviceTransfer.PeerID
-    }
-
-    @Published var selectedPeer: PeerIDWrapper?
-    @Published var discoveredPeers: [PeerIDWrapper] = []
+    @Published var selectedPeer: (any DeviceTransfer.Peer)?
+    @Published var discoveredPeers: [any DeviceTransfer.Peer] = []
 
     var confirmCancellation: (() async -> Bool) = { return true }
     var cancelTransferBlock: (() -> Void) = {}
-    var onPeerDiscovered: (@MainActor (TransferStatusViewModel.PeerIDWrapper) -> Void) = { _ in }
-    var onPeerSelected: (@MainActor (TransferStatusViewModel.PeerIDWrapper) -> Void) = { _ in }
+    var onPeerDiscovered: (@MainActor (any DeviceTransfer.Peer) -> Void) = { _ in }
+    var onPeerSelected: (@MainActor (any DeviceTransfer.Peer) -> Void) = { _ in }
     var onSuccess: (@MainActor () -> Void) = {}
     var onFailure: ((Error) -> Void) = { _ in }
 

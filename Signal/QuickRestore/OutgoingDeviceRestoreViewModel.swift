@@ -92,13 +92,12 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
                 tsAccountManager: tsAccountManager,
             )
             if let peer = outgoingDeviceTransferTask.selectedPeer {
-                transferStatusViewModel.selectedPeer = .init(wrappedPeer: peer)
+                transferStatusViewModel.selectedPeer = peer
             }
 
             self.listenForPairingTask = Task {
                 for try await peer in outgoingDeviceTransferTask.pairedPeerStream {
-                    let wrappedPeer = TransferStatusViewModel.PeerIDWrapper(wrappedPeer: peer)
-                    transferStatusViewModel.onPeerDiscovered(wrappedPeer)
+                    transferStatusViewModel.onPeerDiscovered(peer)
                 }
             }
             self.outgoingDeviceTransferTask = outgoingDeviceTransferTask
@@ -110,7 +109,7 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
     /// Take the `PeerConnectionData` returned by `waitForConnectionData` and
     /// begin listening for the connection described in `PeerConnectionData`.
     @MainActor
-    func waitForDeviceConnection(peer: any DeviceTransfer.PeerID) async throws {
+    func waitForDeviceConnection(peer: any DeviceTransfer.Peer) async throws {
         logger.info("")
         guard let outgoingDeviceTransferTask else {
             throw OWSAssertionError("Transfer started before negotiating connection")

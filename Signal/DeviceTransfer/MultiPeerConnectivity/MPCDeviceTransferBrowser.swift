@@ -12,18 +12,18 @@ class MPCDeviceTransferBrowser:
     DeviceTransfer.OutgoingConnection,
     MCNearbyServiceBrowserDelegate
 {
-    var selectedPeer: (any DeviceTransfer.PeerID)? {
+    var selectedPeer: (any DeviceTransfer.Peer)? {
         expectedConnectionData.peerId
     }
 
     private struct ConnectionData {
-        let peerId: MPCDeviceTransferPeerId
+        let peerId: MPCDeviceTransferPeer
         let certificateHash: Data
     }
 
     let identity: SecIdentity?
     let browser: MCNearbyServiceBrowser
-    let peerId: MPCDeviceTransferPeerId
+    let peerId: MPCDeviceTransferPeer
 
     private let lock = UnfairLock()
     private var session: DeviceTransfer.Session?
@@ -35,7 +35,7 @@ class MPCDeviceTransferBrowser:
 
     // This is here to satisfy the PeerDiscovery, but we don't currently notify when
     // peers are discovered, since the peer selection is handled differently in MPC
-    let discoveredPeerStream: AsyncThrowingStream<[DeviceTransfer.PeerID], Error>
+    let discoveredPeerStream: AsyncThrowingStream<[any DeviceTransfer.Peer], Error>
 
     @MainActor
     init(
@@ -48,7 +48,7 @@ class MPCDeviceTransferBrowser:
             tsAccountManager: tsAccountManager,
         )
 
-        self.peerId = MPCDeviceTransferPeerId(displayName: UUID().uuidString)
+        self.peerId = MPCDeviceTransferPeer(displayName: UUID().uuidString)
         self.identity = try? SelfSignedIdentity.create(name: "OutgoingDeviceTransfer", validForDays: 1)
         browser = MCNearbyServiceBrowser(
             peer: peerId.mcPeerID,
@@ -61,10 +61,10 @@ class MPCDeviceTransferBrowser:
 
     @MainActor
     func connect(
-        peer: any DeviceTransfer.PeerID,
+        peer: any DeviceTransfer.Peer,
     ) async throws -> DeviceTransfer.Session {
         guard
-            let targetPeer = peer as? MPCDeviceTransferPeerId,
+            let targetPeer = peer as? MPCDeviceTransferPeer,
             targetPeer == expectedConnectionData.peerId
         else {
             throw OWSAssertionError("Misconfigured")
@@ -146,7 +146,7 @@ class MPCDeviceTransferBrowser:
             let base64PeerId = queryItemsDictionary[DeviceTransfer.UrlConstants.peerIdKey],
             let uriDecodedPeerId = base64PeerId.removingPercentEncoding,
             let peerIdData = Data(base64Encoded: uriDecodedPeerId),
-            let peerId = MPCDeviceTransferPeerId(with: peerIdData)
+            let peerId = MPCDeviceTransferPeer(with: peerIdData)
         else {
             throw OWSAssertionError("failed to decode MCPeerId")
         }

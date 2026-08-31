@@ -12,7 +12,7 @@ class MPCDeviceTransferAdvertiser:
     DeviceTransfer.IncomingConnection,
     MCNearbyServiceAdvertiserDelegate
 {
-    let peerId: MPCDeviceTransferPeerId
+    let peerId: MPCDeviceTransferPeer
     let advertiser: MCNearbyServiceAdvertiser
     let tsAccountManager: TSAccountManager
 
@@ -29,12 +29,12 @@ class MPCDeviceTransferAdvertiser:
 
     // This is here to satisfy the PeerDiscovery, but we don't currently notify when
     // peers are discovered, since the peer selection is handled differently in MPC
-    let discoveredPeerStream: AsyncThrowingStream<[DeviceTransfer.PeerID], Error>
+    let discoveredPeerStream: AsyncThrowingStream<[any DeviceTransfer.Peer], Error>
 
     @MainActor
     init(tsAccountManager: TSAccountManager) {
         self.tsAccountManager = tsAccountManager
-        self.peerId = MPCDeviceTransferPeerId(displayName: UUID().uuidString)
+        self.peerId = MPCDeviceTransferPeer(displayName: UUID().uuidString)
         self.identity = try? SelfSignedIdentity.create(name: "IncomingDeviceTransfer", validForDays: 1)
         advertiser = MCNearbyServiceAdvertiser(
             peer: peerId.mcPeerID,
@@ -89,7 +89,7 @@ class MPCDeviceTransferAdvertiser:
     @MainActor
     static func urlForTransfer(
         identity: SecIdentity,
-        localPeerId: MPCDeviceTransferPeerId,
+        localPeerId: MPCDeviceTransferPeer,
         mode: DeviceTransfer.Mode,
     ) throws -> URL {
         var components = URLComponents()

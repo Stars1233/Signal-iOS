@@ -6,8 +6,9 @@
 import Foundation
 import MultipeerConnectivity
 
-struct MPCDeviceTransferPeerId: DeviceTransfer.PeerID {
-    var peerID: String { mcPeerID.displayName }
+struct MPCDeviceTransferPeer: DeviceTransfer.Peer {
+    var displayName: String { mcPeerID.displayName }
+    var id: Int { mcPeerID.hashValue }
 
     let mcPeerID: MCPeerID
     init(mcPeerID: MCPeerID) {

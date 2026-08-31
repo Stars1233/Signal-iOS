@@ -33,8 +33,8 @@ class IncomingDeviceTransferTask {
     private var messagesReceiverTask: Task<Void, Error>?
     private var transferFinishedContinuation: CheckedContinuation<Void, Error>?
 
-    let pairedPeerStream: AsyncThrowingStream<DeviceTransfer.PeerID, Error>
-    private let pairedPeerSink: AsyncThrowingStream<DeviceTransfer.PeerID, Error>.Continuation
+    let pairedPeerStream: AsyncThrowingStream<any DeviceTransfer.Peer, Error>
+    private let pairedPeerSink: AsyncThrowingStream<any DeviceTransfer.Peer, Error>.Continuation
     private var pairedPeerListenTask: Task<Void, Error>?
 
     init(
@@ -54,9 +54,9 @@ class IncomingDeviceTransferTask {
         )
         (self.pairedPeerStream, self.pairedPeerSink) = AsyncThrowingStream.makeStream()
         self.pairedPeerListenTask = Task {
-            var priorPeerList: [String: DeviceTransfer.PeerID]?
+            var priorPeerList: [Int: any DeviceTransfer.Peer]?
             for try await peers in self.newDeviceServiceAdvertiser.discoveredPeerStream {
-                let peerDictionary = Dictionary(uniqueKeysWithValues: zip(peers.map(\.peerID), peers))
+                let peerDictionary = Dictionary(uniqueKeysWithValues: zip(peers.map(\.id), peers))
                 if let priorPeerList {
                     if
                         let newPeerID = Set(peerDictionary.keys).subtracting(Set(priorPeerList.keys)).first,

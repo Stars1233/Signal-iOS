@@ -31,11 +31,11 @@ class OutgoingDeviceTransferTask {
     private let waitTask = AtomicValue<Task<Void, Error>?>(nil, lock: .init())
     private let sendTask = AtomicValue<Task<Void, Error>?>(nil, lock: .init())
 
-    let pairedPeerStream: AsyncThrowingStream<DeviceTransfer.PeerID, Error>
-    private let pairedPeerSink: AsyncThrowingStream<DeviceTransfer.PeerID, Error>.Continuation
+    let pairedPeerStream: AsyncThrowingStream<any DeviceTransfer.Peer, Error>
+    private let pairedPeerSink: AsyncThrowingStream<any DeviceTransfer.Peer, Error>.Continuation
     private var pairedPeerListenTask: Task<Void, Error>?
 
-    var selectedPeer: (any DeviceTransfer.PeerID)? {
+    var selectedPeer: (any DeviceTransfer.Peer)? {
         newDeviceServiceBrowser.selectedPeer
     }
 
@@ -56,9 +56,9 @@ class OutgoingDeviceTransferTask {
         )
         (self.pairedPeerStream, self.pairedPeerSink) = AsyncThrowingStream.makeStream()
         self.pairedPeerListenTask = Task {
-            var priorPeerList: [String: DeviceTransfer.PeerID]?
+            var priorPeerList: [Int: any DeviceTransfer.Peer]?
             for try await peers in self.newDeviceServiceBrowser.discoveredPeerStream {
-                let peerDictionary = Dictionary(uniqueKeysWithValues: zip(peers.map(\.peerID), peers))
+                let peerDictionary = Dictionary(uniqueKeysWithValues: zip(peers.map(\.id), peers))
                 if let priorPeerList {
                     if
                         let newPeerID = Set(peerDictionary.keys).subtracting(Set(priorPeerList.keys)).first,
@@ -75,7 +75,7 @@ class OutgoingDeviceTransferTask {
         }
     }
 
-    func connectToNewDevice(peer: any DeviceTransfer.PeerID) async throws {
+    func connectToNewDevice(peer: any DeviceTransfer.Peer) async throws {
         logger.info("Connecting to new device")
         stop(error: nil)
         deviceSleepManager?.addBlock(blockObject: sleepBlockObject)

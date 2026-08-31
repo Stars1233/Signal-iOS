@@ -14,9 +14,9 @@ class MPCDeviceTransferSession:
     MCSessionDelegate
 {
     let identity: SecIdentity
-    var localPeerId: any DeviceTransfer.PeerID { MPCDeviceTransferPeerId(mcPeerID: session.myPeerID) }
-    let _remotePeerId: MPCDeviceTransferPeerId
-    var remotePeerId: any DeviceTransfer.PeerID { _remotePeerId }
+    var localPeerId: any DeviceTransfer.Peer { MPCDeviceTransferPeer(mcPeerID: session.myPeerID) }
+    let _remotePeerId: MPCDeviceTransferPeer
+    var remotePeerId: any DeviceTransfer.Peer { _remotePeerId }
 
     let session: MCSession
 
@@ -40,7 +40,7 @@ class MPCDeviceTransferSession:
         tsAccountManager: TSAccountManager,
     ) {
         self.identity = identity
-        self._remotePeerId = MPCDeviceTransferPeerId(mcPeerID: remoteDevicePeerID)
+        self._remotePeerId = MPCDeviceTransferPeer(mcPeerID: remoteDevicePeerID)
         let session = MCSession(peer: peerID, securityIdentity: [identity], encryptionPreference: .required)
         self.session = session
 

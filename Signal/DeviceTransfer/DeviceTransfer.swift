@@ -159,8 +159,9 @@ enum DeviceTransfer {
         case finishResource(String, URL)
     }
 
-    protocol PeerID {
-        var peerID: String { get }
+    protocol Peer: Identifiable {
+        var id: Int { get }
+        var displayName: String { get }
     }
 
     @MainActor
@@ -183,13 +184,13 @@ enum DeviceTransfer {
 
     @MainActor
     protocol PeerDiscovery {
-        var discoveredPeerStream: AsyncThrowingStream<[PeerID], Swift.Error> { get }
+        var discoveredPeerStream: AsyncThrowingStream<[any Peer], Swift.Error> { get }
     }
 
     @MainActor
     protocol OutgoingConnection: PeerDiscovery {
-        var selectedPeer: (any PeerID)? { get }
-        func connect(peer: any PeerID) async throws -> Session
+        var selectedPeer: (any Peer)? { get }
+        func connect(peer: any Peer) async throws -> Session
         func stop(error: Swift.Error?)
     }
 
