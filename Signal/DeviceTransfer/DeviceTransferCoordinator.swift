@@ -19,6 +19,8 @@ public class DeviceTransferCoordinator: Equatable {
     private let restoreMode: DeviceTransfer.Mode
     public let supportsWifiAware: Bool
 
+    private var discoveredPeersListenerTask: Task<Void, Error>?
+
     @MainActor
     var pairedPeerStream: AsyncThrowingStream<any DeviceTransfer.Peer, Error> {
         incomingDeviceTransferTask.pairedPeerStream
@@ -117,6 +119,12 @@ public class DeviceTransferCoordinator: Equatable {
         self.cancelTransferBlock = _onCancelTransfer
         self.onSuccess = _onSuccess
         self.onFailure = _onFailure
+
+        self.discoveredPeersListenerTask = Task {
+            for try await peers in incomingDeviceTransferTask.discoveredPeerStream {
+                transferStatusViewModel.discoveredPeers = peers
+            }
+        }
     }
 
     @MainActor
@@ -166,6 +174,7 @@ public class DeviceTransferCoordinator: Equatable {
     @MainActor
     public func stopAcceptingTransfers() {
         incomingDeviceTransferTask.stopAcceptingTransfersFromOldDevices()
+        discoveredPeersListenerTask.take()?.cancel()
     }
 
     public static func ==(lhs: DeviceTransferCoordinator, rhs: DeviceTransferCoordinator) -> Bool {

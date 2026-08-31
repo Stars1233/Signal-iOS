@@ -32,7 +32,7 @@ class OutgoingDeviceTransferTask {
     private let sendTask = AtomicValue<Task<Void, Error>?>(nil, lock: .init())
 
     let pairedPeerStream: AsyncThrowingStream<any DeviceTransfer.Peer, Error>
-    private let pairedPeerSink: AsyncThrowingStream<any DeviceTransfer.Peer, Error>.Continuation
+    let discoveredPeerStream: AsyncThrowingStream<[any DeviceTransfer.Peer], Error>
     private var pairedPeerListenTask: Task<Void, Error>?
 
     var selectedPeer: (any DeviceTransfer.Peer)? {
@@ -54,25 +54,15 @@ class OutgoingDeviceTransferTask {
             tsAccountManager: tsAccountManager,
             deviceTransferURL: deviceTransferURL,
         )
-        (self.pairedPeerStream, self.pairedPeerSink) = AsyncThrowingStream.makeStream()
-        self.pairedPeerListenTask = Task {
-            var priorPeerList: [Int: any DeviceTransfer.Peer]?
-            for try await peers in self.newDeviceServiceBrowser.discoveredPeerStream {
-                let peerDictionary = Dictionary(uniqueKeysWithValues: zip(peers.map(\.id), peers))
-                if let priorPeerList {
-                    if
-                        let newPeerID = Set(peerDictionary.keys).subtracting(Set(priorPeerList.keys)).first,
-                        let newPeer = peerDictionary[newPeerID]
-                    {
-                        self.pairedPeerSink.yield(newPeer)
-                    }
-                } else {
-                    // The 'newly paired peer' is determined by recording the first list of peered devices
-                    // and checking this against any future list to find the first new device.
-                    priorPeerList = peerDictionary
-                }
-            }
-        }
+
+        (
+            self.pairedPeerStream,
+            self.discoveredPeerStream,
+            self.pairedPeerListenTask,
+        ) = DeviceTransfer.Utils.bindPeerDiscoveryStream(
+            discoveredPeerStream: self.newDeviceServiceBrowser.discoveredPeerStream,
+            logger: logger,
+        )
     }
 
     func connectToNewDevice(peer: any DeviceTransfer.Peer) async throws {

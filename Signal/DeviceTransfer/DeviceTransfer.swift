@@ -151,6 +151,39 @@ enum DeviceTransfer {
                 OWSFileSystem.ensureDirectoryExists(DeviceTransfer.Constants.pendingTransferDirectory.path)
             }
         }
+
+        static func bindPeerDiscoveryStream(
+            discoveredPeerStream: AsyncThrowingStream<[any Peer], Swift.Error>,
+            logger: PrefixedLogger,
+        ) -> (
+            pairedPeerStream: AsyncThrowingStream<any Peer, Swift.Error>,
+            updatedPeerListStream: AsyncThrowingStream<[any Peer], Swift.Error>,
+            boundListenerTask: Task<Void, Swift.Error>,
+        ) {
+            let (pairedPeerStream, pairedPeerSink) = AsyncThrowingStream<any Peer, Swift.Error>.makeStream()
+            let (updatedPeerListStream, updatedPeerListSink) = AsyncThrowingStream<[any Peer], Swift.Error>.makeStream()
+            let task = Task {
+                var knownPeerList: [Int: any Peer]?
+                for try await peers in discoveredPeerStream {
+                    let peerDictionary = Dictionary(uniqueKeysWithValues: zip(peers.map(\.id), peers))
+                    if let knownPeerList {
+                        for newPeerID in Set(peerDictionary.keys).subtracting(Set(knownPeerList.keys)) {
+                            if let newPeer = peerDictionary[newPeerID] {
+                                logger.debug("Found new peer: \(newPeer)")
+                                pairedPeerSink.yield(newPeer)
+                            }
+                        }
+                    } else {
+                        // The 'newly paired peer' is determined by recording the first list of peered devices
+                        // and checking this against any future list to find the first new device.
+                        logger.debug("Setting first known peers \(peerDictionary)")
+                        knownPeerList = peerDictionary
+                    }
+                    updatedPeerListSink.yield(Array(peerDictionary.values))
+                }
+            }
+            return (pairedPeerStream, updatedPeerListStream, task)
+        }
     }
 
     enum SessionMessage {

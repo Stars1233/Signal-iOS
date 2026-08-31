@@ -23,7 +23,8 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
     private let registrationStateChangeManager: RegistrationStateChangeManager
     private let tsAccountManager: TSAccountManager
 
-    private var listenForPairingTask: Task<Void, Error>?
+    private var pairedPeersListenerTask: Task<Void, Error>?
+    private var discoveredPeersListenerTask: Task<Void, Error>?
 
     @MainActor
     init(
@@ -95,11 +96,18 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
                 transferStatusViewModel.selectedPeer = peer
             }
 
-            self.listenForPairingTask = Task {
+            self.pairedPeersListenerTask = Task {
                 for try await peer in outgoingDeviceTransferTask.pairedPeerStream {
                     transferStatusViewModel.onPeerDiscovered(peer)
                 }
             }
+
+            self.discoveredPeersListenerTask = Task {
+                for try await peers in outgoingDeviceTransferTask.discoveredPeerStream {
+                    transferStatusViewModel.discoveredPeers = peers
+                }
+            }
+
             self.outgoingDeviceTransferTask = outgoingDeviceTransferTask
         }
 
@@ -128,7 +136,7 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
     @MainActor
     func startTransfer() async throws {
         logger.info("")
-        self.listenForPairingTask.take()?.cancel()
+        self.pairedPeersListenerTask.take()?.cancel()
         guard let outgoingDeviceTransferTask else {
             throw OWSAssertionError("Transfer started before negotiating connection")
         }
@@ -152,7 +160,8 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
 
     @MainActor
     private func cancelTransfer() {
-        self.listenForPairingTask.take()?.cancel()
+        self.pairedPeersListenerTask.take()?.cancel()
+        self.discoveredPeersListenerTask.take()?.cancel()
         stopListeningForTransfer(error: CancellationError())
         transferStatusViewModel.state = .cancelled
     }

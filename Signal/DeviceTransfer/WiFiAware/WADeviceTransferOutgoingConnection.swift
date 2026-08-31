@@ -14,34 +14,13 @@ class WADeviceTransferOutgoingConnection: DeviceTransfer.OutgoingConnection {
     let selectedPeer: (any DeviceTransfer.Peer)? = nil
 
     let discoveredPeerStream: AsyncThrowingStream<[any DeviceTransfer.Peer], any Error>
-    private let discoveredPeerSink: AtomicValue<AsyncThrowingStream<[any DeviceTransfer.Peer], Error>.Continuation>
     private var discoveredPeerTask: Task<Void, Never>?
 
     init() {
-        let sink: AsyncThrowingStream<[any DeviceTransfer.Peer], Error>.Continuation
-        (self.discoveredPeerStream, sink) = AsyncThrowingStream.makeStream()
-        self.discoveredPeerSink = AtomicValue(sink, lock: .init())
-
-        self.discoveredPeerTask = Task { [weak self] in
-            do {
-                for try await updatedDeviceList in WAPairedDevice.allDevices {
-                    let pairedDevices = updatedDeviceList.values.map { device in
-                        self?.logger.debug("Discovered peer \(device)")
-                        return WADeviceTransferPeer(pairedDevice: device)
-                    }
-                    if !pairedDevices.isEmpty {
-                        self?.logger.info("Discovered \(pairedDevices.count) peers")
-                        self?.discoveredPeerSink.get().yield(pairedDevices)
-                    }
-                }
-            } catch {
-                self?.discoveredPeerSink.get().finish(throwing: error)
-            }
-        }
+        (self.discoveredPeerStream, self.discoveredPeerTask) = WiFiAware.createPeerDiscoveryObserver(logger: logger)
     }
 
     deinit {
-        discoveredPeerSink.get().finish()
         discoveredPeerTask.take()?.cancel()
     }
 

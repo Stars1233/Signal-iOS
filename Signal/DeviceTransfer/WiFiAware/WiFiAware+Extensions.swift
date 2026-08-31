@@ -5,6 +5,7 @@
 
 import Foundation
 import Network
+import SignalServiceKit
 public import WiFiAware
 
 @available(iOS 26.0, *)
@@ -22,6 +23,42 @@ enum WiFiAware {
         case resourceBegin(file: String, size: UInt64)
         case resourceData(file: String, data: Data)
         case resourceEnd(file: String)
+    }
+
+    static func createPeerDiscoveryObserver(logger: PrefixedLogger) -> (
+        AsyncThrowingStream<[any DeviceTransfer.Peer], any Error>,
+        Task<Void, Never>,
+    ) {
+        let (stream, sink) = AsyncThrowingStream<[any DeviceTransfer.Peer], any Error>.makeStream()
+        let task = Task {
+            do {
+                for try await updatedDeviceList in WAPairedDevice.allDevices {
+                    let newDevices = updatedDeviceList.values
+                    let pairedDevices = newDevices.reduce(into: [String: WADeviceTransferPeer]()) { devices, device in
+                        let peer = WADeviceTransferPeer(pairedDevice: device)
+                        if let existingPeer = devices[peer.displayName] {
+                            logger.debug("Discovered existing peer \(device)")
+                            if peer.pairedDevice.id > existingPeer.pairedDevice.id {
+                                devices[peer.displayName] = peer
+                            }
+                        } else {
+                            logger.debug("Discovered new peer \(device)")
+                            devices[peer.displayName] = peer
+                        }
+                    }
+                    if !pairedDevices.isEmpty {
+                        logger.info("Discovered \(pairedDevices.count) peers")
+                        let sortedList = pairedDevices.values.sorted { $0.pairedDevice.id > $1.pairedDevice.id }
+                        sink.yield(sortedList)
+                    }
+                }
+            } catch is CancellationError {
+                sink.finish()
+            } catch {
+                sink.finish(throwing: error)
+            }
+        }
+        return (stream, task)
     }
 }
 

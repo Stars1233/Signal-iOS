@@ -34,7 +34,7 @@ class IncomingDeviceTransferTask {
     private var transferFinishedContinuation: CheckedContinuation<Void, Error>?
 
     let pairedPeerStream: AsyncThrowingStream<any DeviceTransfer.Peer, Error>
-    private let pairedPeerSink: AsyncThrowingStream<any DeviceTransfer.Peer, Error>.Continuation
+    let discoveredPeerStream: AsyncThrowingStream<[any DeviceTransfer.Peer], Error>
     private var pairedPeerListenTask: Task<Void, Error>?
 
     init(
@@ -52,25 +52,15 @@ class IncomingDeviceTransferTask {
         self.newDeviceServiceAdvertiser = deviceTransferConnectionFactory.buildIncomingConnection(
             tsAccountManager: tsAccountManager,
         )
-        (self.pairedPeerStream, self.pairedPeerSink) = AsyncThrowingStream.makeStream()
-        self.pairedPeerListenTask = Task {
-            var priorPeerList: [Int: any DeviceTransfer.Peer]?
-            for try await peers in self.newDeviceServiceAdvertiser.discoveredPeerStream {
-                let peerDictionary = Dictionary(uniqueKeysWithValues: zip(peers.map(\.id), peers))
-                if let priorPeerList {
-                    if
-                        let newPeerID = Set(peerDictionary.keys).subtracting(Set(priorPeerList.keys)).first,
-                        let newPeer = peerDictionary[newPeerID]
-                    {
-                        self.pairedPeerSink.yield(newPeer)
-                    }
-                } else {
-                    // The 'newly paired peer' is determined by recording the first list of peered devices
-                    // and checking this against any future list to find the first new device.
-                    priorPeerList = peerDictionary
-                }
-            }
-        }
+
+        (
+            self.pairedPeerStream,
+            self.discoveredPeerStream,
+            self.pairedPeerListenTask,
+        ) = DeviceTransfer.Utils.bindPeerDiscoveryStream(
+            discoveredPeerStream: self.newDeviceServiceAdvertiser.discoveredPeerStream,
+            logger: logger,
+        )
     }
 
     // MARK: - Public methods
