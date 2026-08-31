@@ -215,12 +215,15 @@ public class GroupV2UpdatesImpl: GroupV2Updates {
         downloadedAvatars: GroupAvatarStateMap,
         transaction: DBWriteTransaction,
     ) throws -> TSGroupThread {
-
-        guard let groupThread = TSGroupThread.fetchThread(forGroupId: groupId, tx: transaction) else {
-            throw OWSAssertionError("Missing groupThread.")
-        }
-        guard let groupRowId = GroupStore().fetchRowId(forGroupId: groupId, tx: transaction) else {
+        guard var groupRecord = GroupStore().fetchGroup(forGroupId: groupId, tx: transaction) else {
             throw OWSAssertionError("missing GroupRecord")
+        }
+        guard
+            let threadId = groupRecord.threadId,
+            let threadUniqueId = TSGroupThread.threadUniqueId(forThreadId: threadId, tx: transaction),
+            let groupThread = TSGroupThread.fetchViaCache(uniqueId: threadUniqueId, transaction: transaction)
+        else {
+            throw OWSAssertionError("missing TSGroupThread")
         }
         let tsAccountManager = DependenciesBridge.shared.tsAccountManager
         guard let localIdentifiers = tsAccountManager.localIdentifiers(tx: transaction) else {
@@ -244,6 +247,7 @@ public class GroupV2UpdatesImpl: GroupV2Updates {
             updatedLastVerifiedGroupNameHash = ThreadAssociatedData.groupNameVerificationHash(groupName: changedGroupModel.newGroupModel.groupName)
         }
         GroupManager.updateExistingGroupThreadInDatabaseAndCreateInfoMessage(
+            groupRecord: &groupRecord,
             groupThread: groupThread,
             newGroupModel: changedGroupModel.newGroupModel,
             newDisappearingMessageToken: changedGroupModel.newDisappearingMessageToken,
@@ -271,7 +275,7 @@ public class GroupV2UpdatesImpl: GroupV2Updates {
         if let groupSendEndorsementsResponse {
             SSKEnvironment.shared.groupsV2Ref.handleGroupSendEndorsementsResponse(
                 groupSendEndorsementsResponse,
-                groupRowId: groupRowId,
+                groupRowId: groupRecord.rowId,
                 secretParams: try changedGroupModel.newGroupModel.secretParams(),
                 membership: groupThread.groupMembership,
                 localAci: localIdentifiers.aci,
@@ -573,14 +577,20 @@ public extension GroupV2UpdatesImpl {
                 throw OWSAssertionError("Missing localDeviceId.")
             }
 
-            var localUserWasAddedBy: GroupUpdateSource?
+            var groupRecord = GroupStore().fetchGroupOrInsert(secretParams: secretParams, tx: transaction)
             let groupThread: TSGroupThread
-            if let existingThread = TSGroupThread.fetchThread(forGroupId: groupId, tx: transaction) {
+            var localUserWasAddedBy: GroupUpdateSource?
+            if
+                let threadId = groupRecord.threadId,
+                let threadUniqueId = TSGroupThread.threadUniqueId(forThreadId: threadId, tx: transaction),
+                let existingThread = TSGroupThread.fetchViaCache(uniqueId: threadUniqueId, transaction: transaction)
+            {
                 groupThread = existingThread
                 localUserWasAddedBy = nil
             } else {
                 (groupThread, localUserWasAddedBy) = try self.insertThreadForGroupChanges(
                     groupId: groupId,
+                    groupRecord: &groupRecord,
                     spamReportingMetadata: spamReportingMetadata,
                     groupV2Params: groupV2Params,
                     groupChanges: groupChanges,
@@ -591,15 +601,13 @@ public extension GroupV2UpdatesImpl {
                     transaction: transaction,
                 )
             }
-            guard let groupRowId = GroupStore().fetchRowId(forGroupId: groupId, tx: transaction) else {
-                throw OWSAssertionError("missing GroupRecord")
-            }
 
             var profileKeysByAci = [Aci: Data]()
             var authoritativeProfileKeysByAci = [Aci: Data]()
             for groupChange in groupChanges {
                 let applyResult = try autoreleasepool {
                     try self.tryToApplySingleChangeFromService(
+                        groupRecord: &groupRecord,
                         groupThread: groupThread,
                         groupV2Params: groupV2Params,
                         options: options,
@@ -674,7 +682,7 @@ public extension GroupV2UpdatesImpl {
             if let groupSendEndorsementsResponse {
                 SSKEnvironment.shared.groupsV2Ref.handleGroupSendEndorsementsResponse(
                     groupSendEndorsementsResponse,
-                    groupRowId: groupRowId,
+                    groupRowId: groupRecord.rowId,
                     secretParams: secretParams,
                     membership: groupThread.groupMembership,
                     localAci: localIdentifiers.aci,
@@ -694,6 +702,7 @@ public extension GroupV2UpdatesImpl {
     // actions going forward to keep the group up-to-date.
     private func insertThreadForGroupChanges(
         groupId: GroupIdentifier,
+        groupRecord: inout GroupRecord,
         spamReportingMetadata: GroupUpdateSpamReportingMetadata,
         groupV2Params: GroupV2Params,
         groupChanges: [GroupV2Change],
@@ -736,6 +745,7 @@ public extension GroupV2UpdatesImpl {
 
         let groupThread = GroupManager.tryToUpsertExistingGroupThreadInDatabaseAndCreateInfoMessage(
             secretParams: groupV2Params.groupSecretParams,
+            groupRecord: &groupRecord,
             newGroupModel: newGroupModel,
             newDisappearingMessageToken: newDisappearingMessageToken,
             newlyLearnedPniToAciAssociations: [:],
@@ -765,6 +775,7 @@ public extension GroupV2UpdatesImpl {
     }
 
     private func tryToApplySingleChangeFromService(
+        groupRecord: inout GroupRecord,
         groupThread: TSGroupThread,
         groupV2Params: GroupV2Params,
         options: TSGroupModelOptions,
@@ -838,6 +849,7 @@ public extension GroupV2UpdatesImpl {
             throw GroupsV2Error.groupChangeProtoForIncompatibleRevision
         }
         GroupManager.updateExistingGroupThreadInDatabaseAndCreateInfoMessage(
+            groupRecord: &groupRecord,
             groupThread: groupThread,
             newGroupModel: newGroupModel,
             newDisappearingMessageToken: newDisappearingMessageToken,
@@ -926,8 +938,10 @@ public extension GroupV2UpdatesImpl {
             // groupUpdateSource is unknown because we don't know the
             // author(s) of changes reflected in the snapshot.
             let groupUpdateSource: GroupUpdateSource = .unknown
+            var groupRecord = GroupStore().fetchGroupOrInsert(secretParams: secretParams, tx: transaction)
             _ = GroupManager.tryToUpsertExistingGroupThreadInDatabaseAndCreateInfoMessage(
                 secretParams: secretParams,
+                groupRecord: &groupRecord,
                 newGroupModel: newGroupModel,
                 newDisappearingMessageToken: newDisappearingMessageToken,
                 newlyLearnedPniToAciAssociations: [:], // Not available from snapshots
@@ -940,9 +954,6 @@ public extension GroupV2UpdatesImpl {
                 updatedLastVerifiedGroupNameHash: nil,
                 transaction: transaction,
             )
-            guard let groupRowId = GroupStore().fetchRowId(forGroupId: groupId, tx: transaction) else {
-                throw OWSAssertionError("missing GroupRecord")
-            }
 
             GroupManager.storeProfileKeysFromGroupProtos(
                 allProfileKeysByAci: groupV2Snapshot.profileKeys,
@@ -959,7 +970,7 @@ public extension GroupV2UpdatesImpl {
             if let groupSendEndorsementsResponse = snapshotResponse.groupSendEndorsementsResponse {
                 groupsV2.handleGroupSendEndorsementsResponse(
                     groupSendEndorsementsResponse,
-                    groupRowId: groupRowId,
+                    groupRowId: groupRecord.rowId,
                     secretParams: secretParams,
                     membership: groupV2Snapshot.groupMembership,
                     localAci: localAci,

@@ -121,8 +121,10 @@ public class GroupManager: NSObject {
 
             let groupModel = try builder.buildAsV2()
 
-            let (thread, groupRecord) = self.insertGroupThreadInDatabaseAndCreateInfoMessage(
+            var groupRecord = GroupStore().fetchGroupOrInsert(secretParams: seed.groupSecretParams, tx: tx)
+            let thread = self.insertGroupThreadInDatabaseAndCreateInfoMessage(
                 secretParams: seed.groupSecretParams,
+                groupRecord: &groupRecord,
                 groupModel: groupModel,
                 disappearingMessageToken: disappearingMessageToken,
                 groupUpdateSource: .localUser(originalSource: .aci(localIdentifiers.aci)),
@@ -212,8 +214,11 @@ public class GroupManager: NSObject {
         localDeviceId: DeviceId,
         transaction: DBWriteTransaction,
     ) -> TSGroupThread {
+        let secretParams = failIfThrows { try groupModel.secretParams() }
+        var groupRecord = GroupStore().fetchGroupOrInsert(secretParams: secretParams, tx: transaction)
         return self.tryToUpsertExistingGroupThreadInDatabaseAndCreateInfoMessage(
-            secretParams: try! groupModel.secretParams(),
+            secretParams: secretParams,
+            groupRecord: &groupRecord,
             newGroupModel: groupModel,
             newDisappearingMessageToken: disappearingMessageToken,
             newlyLearnedPniToAciAssociations: [:],
@@ -636,8 +641,16 @@ public class GroupManager: NSObject {
                 owsFailDebug("Missing localDeviceId.")
                 return
             }
-            guard let groupThread = TSGroupThread.fetchThread(forGroupId: groupId, tx: tx) else {
-                owsFailDebug("Couldn't fetch thread that's guaranteed to exist.")
+            guard var groupRecord = GroupStore().fetchGroup(forGroupId: groupId, tx: tx) else {
+                owsFailDebug("Couldn't fetch GroupRecord that should exist")
+                return
+            }
+            guard
+                let threadId = groupRecord.threadId,
+                let threadUniqueId = TSGroupThread.threadUniqueId(forThreadId: threadId, tx: tx),
+                let groupThread = TSGroupThread.fetchViaCache(uniqueId: threadUniqueId, transaction: tx)
+            else {
+                owsFailDebug("Couldn't fetch TSGroupThread that should exist")
                 return
             }
 
@@ -662,6 +675,7 @@ public class GroupManager: NSObject {
                 // state.
                 // updatedLastVerifiedGroupNameHash is nil because this is not a change-name action.
                 updateExistingGroupThreadInDatabaseAndCreateInfoMessage(
+                    groupRecord: &groupRecord,
                     groupThread: groupThread,
                     newGroupModel: newGroupModel,
                     newDisappearingMessageToken: nil,
@@ -771,6 +785,7 @@ public class GroupManager: NSObject {
     // If disappearingMessageToken is nil, don't update the disappearing messages configuration.
     private static func insertGroupThreadInDatabaseAndCreateInfoMessage(
         secretParams: GroupSecretParams,
+        groupRecord: inout GroupRecord,
         groupModel: TSGroupModelV2,
         disappearingMessageToken: DisappearingMessageToken?,
         groupUpdateSource: GroupUpdateSource,
@@ -779,10 +794,8 @@ public class GroupManager: NSObject {
         spamReportingMetadata: GroupUpdateSpamReportingMetadata,
         lastVerifiedGroupNameHash: Data?,
         transaction: DBWriteTransaction,
-    ) -> (TSGroupThread, GroupRecord) {
+    ) -> TSGroupThread {
         let threadAssociatedDataStore = DependenciesBridge.shared.threadAssociatedDataStore
-
-        var groupRecord = GroupStore().fetchGroupOrInsert(secretParams: secretParams, tx: transaction)
 
         let groupId = failIfThrows { try secretParams.getPublicParams().getGroupIdentifier() }
         if groupRecord.threadId != nil {
@@ -835,7 +848,7 @@ public class GroupManager: NSObject {
 
         notifyStorageServiceOfInsertedGroup(secretParams: secretParams, tx: transaction)
 
-        return (groupThread, groupRecord)
+        return groupThread
     }
 
     /// Update persisted group-related state for the provided models, or insert
@@ -848,6 +861,7 @@ public class GroupManager: NSObject {
     /// group update.
     public static func tryToUpsertExistingGroupThreadInDatabaseAndCreateInfoMessage(
         secretParams: GroupSecretParams,
+        groupRecord: inout GroupRecord,
         newGroupModel: TSGroupModelV2,
         newDisappearingMessageToken: DisappearingMessageToken?,
         newlyLearnedPniToAciAssociations: [Pni: Aci],
@@ -866,8 +880,13 @@ public class GroupManager: NSObject {
         }
 
         let groupId = failIfThrows { try secretParams.getPublicParams().getGroupIdentifier() }
-        if let groupThread = TSGroupThread.fetchThread(forGroupId: groupId, tx: transaction) {
+        if
+            let threadId = groupRecord.threadId,
+            let threadUniqueId = TSGroupThread.threadUniqueId(forThreadId: threadId, tx: transaction),
+            let groupThread = TSGroupThread.fetchViaCache(uniqueId: threadUniqueId, transaction: transaction)
+        {
             updateExistingGroupThreadInDatabaseAndCreateInfoMessage(
+                groupRecord: &groupRecord,
                 groupThread: groupThread,
                 newGroupModel: newGroupModel,
                 newDisappearingMessageToken: newDisappearingMessageToken,
@@ -907,8 +926,9 @@ public class GroupManager: NSObject {
                 tx: transaction,
             )
 
-            let (groupThread, _) = insertGroupThreadInDatabaseAndCreateInfoMessage(
+            let groupThread = insertGroupThreadInDatabaseAndCreateInfoMessage(
                 secretParams: secretParams,
+                groupRecord: &groupRecord,
                 groupModel: newGroupModel,
                 disappearingMessageToken: newDisappearingMessageToken,
                 groupUpdateSource: shouldAttributeAuthor ? groupUpdateSource : .unknown,
@@ -930,6 +950,7 @@ public class GroupManager: NSObject {
     /// Associations between PNIs and ACIs that were learned as a result of this
     /// group update.
     public static func updateExistingGroupThreadInDatabaseAndCreateInfoMessage(
+        groupRecord: inout GroupRecord,
         groupThread: TSGroupThread,
         newGroupModel: TSGroupModel,
         newDisappearingMessageToken: DisappearingMessageToken?,
