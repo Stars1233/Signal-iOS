@@ -175,26 +175,6 @@ open class TSContactThread: TSThread {
     }
 
     @objc
-    public static func getOrCreateLocalThreadWithSneakyTransaction() -> TSContactThread? {
-        assert(!Thread.isMainThread)
-
-        let thread: TSContactThread? = SSKEnvironment.shared.databaseStorageRef.read { tx in
-            guard let localAddress = DependenciesBridge.shared.tsAccountManager.localIdentifiers(tx: tx)?.aciAddress else {
-                owsFailDebug("Missing localAddress.")
-                return nil
-            }
-            return TSContactThread.getWithContactAddress(localAddress, transaction: tx)
-        }
-        if let thread {
-            return thread
-        }
-
-        return SSKEnvironment.shared.databaseStorageRef.write { transaction in
-            return getOrCreateLocalThread(transaction: transaction)
-        }
-    }
-
-    @objc
     public static func getOrCreateThread(
         withContactAddress contactAddress: SignalServiceAddress,
         transaction: DBWriteTransaction,
