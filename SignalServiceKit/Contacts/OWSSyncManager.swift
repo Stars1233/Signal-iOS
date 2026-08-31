@@ -359,6 +359,12 @@ extension OWSSyncManager: SyncManagerProtocol, SyncManagerProtocolSwift {
                     transaction: transaction,
                 )
             }
+            if shouldBlock {
+                blockingManager.addBlockedThread(thread, blockMode: .remote, transaction: transaction)
+            }
+            if shouldSpam {
+                TSInfoMessage(thread: thread, messageType: .reportedSpam).anyInsert(transaction: transaction)
+            }
             if shouldDelete {
                 threadDeletionManager.deleteThreads(
                     [thread],
@@ -367,12 +373,6 @@ extension OWSSyncManager: SyncManagerProtocol, SyncManagerProtocolSwift {
                     localIdentifiers: localIdentifiers,
                     tx: transaction,
                 )
-            }
-            if shouldBlock {
-                blockingManager.addBlockedThread(thread, blockMode: .remote, transaction: transaction)
-            }
-            if shouldSpam {
-                TSInfoMessage(thread: thread, messageType: .reportedSpam).anyInsert(transaction: transaction)
             }
         case .contactThread(let thread):
             let recipient = recipientFetcher.fetchOrCreate(address: thread.contactAddress, tx: transaction)
@@ -390,6 +390,12 @@ extension OWSSyncManager: SyncManagerProtocol, SyncManagerProtocolSwift {
                 hidingManager.removeHiddenRecipient(&recipient, wasLocallyInitiated: false, tx: transaction)
                 profileManager.addRecipientToProfileWhitelist(&recipient, userProfileWriter: .syncMessage, tx: transaction)
             }
+            if shouldBlock {
+                blockingManager.addBlockedThread(thread, blockMode: .remote, transaction: transaction)
+            }
+            if shouldSpam {
+                TSInfoMessage(thread: thread, messageType: .reportedSpam).anyInsert(transaction: transaction)
+            }
             if shouldDelete {
                 threadDeletionManager.deleteThreads(
                     [thread],
@@ -398,12 +404,6 @@ extension OWSSyncManager: SyncManagerProtocol, SyncManagerProtocolSwift {
                     localIdentifiers: localIdentifiers,
                     tx: transaction,
                 )
-            }
-            if shouldBlock {
-                blockingManager.addBlockedThread(thread, blockMode: .remote, transaction: transaction)
-            }
-            if shouldSpam {
-                TSInfoMessage(thread: thread, messageType: .reportedSpam).anyInsert(transaction: transaction)
             }
         }
     }
