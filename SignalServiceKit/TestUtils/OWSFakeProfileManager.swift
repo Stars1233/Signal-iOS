@@ -176,7 +176,6 @@ extension OWSFakeProfileManager: ProfileManager {
     ) {
     }
 
-    func allWhitelistedAddresses(tx: DBReadTransaction) -> [SignalServiceAddress] { [] }
     func allWhitelistedRegisteredAddresses(tx: DBReadTransaction) -> [SignalServiceAddress] { [] }
 }
 

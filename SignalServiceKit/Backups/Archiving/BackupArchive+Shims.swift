@@ -273,8 +273,6 @@ public protocol _MessageBackup_ProfileManagerShim {
 
     func getUserProfileForLocalUser(tx: DBReadTransaction) -> OWSUserProfile?
 
-    func allWhitelistedAddresses(tx: DBReadTransaction) -> [SignalServiceAddress]
-
     func isGroupId(inProfileWhitelist groupId: Data, tx: DBReadTransaction) -> Bool
 
     func addRecipientToProfileWhitelist(_ recipient: inout SignalRecipient, tx: DBWriteTransaction)
@@ -324,10 +322,6 @@ public class _MessageBackup_ProfileManagerWrapper: _MessageBackup_ProfileManager
 
     public func getUserProfileForLocalUser(tx: DBReadTransaction) -> OWSUserProfile? {
         return OWSUserProfile.getUserProfileForLocalUser(tx: tx)
-    }
-
-    public func allWhitelistedAddresses(tx: DBReadTransaction) -> [SignalServiceAddress] {
-        profileManager.allWhitelistedAddresses(tx: tx)
     }
 
     public func isGroupId(inProfileWhitelist groupId: Data, tx: DBReadTransaction) -> Bool {

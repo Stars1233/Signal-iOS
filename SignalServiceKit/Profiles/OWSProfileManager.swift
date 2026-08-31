@@ -462,11 +462,6 @@ extension OWSProfileManager: ProfileManager {
 
     // MARK: -
 
-    public func allWhitelistedAddresses(tx: DBReadTransaction) -> [SignalServiceAddress] {
-        let recipientStore = DependenciesBridge.shared.recipientDatabaseTable
-        return recipientStore.fetchWhitelistedRecipients(tx: tx).map(\.address)
-    }
-
     public func allWhitelistedRegisteredAddresses(tx: DBReadTransaction) -> [SignalServiceAddress] {
         let recipientStore = DependenciesBridge.shared.recipientDatabaseTable
         return recipientStore.fetchWhitelistedRecipients(tx: tx).lazy.filter(\.isRegistered).map(\.address)
