@@ -516,13 +516,8 @@ extension TSAccountManagerImpl {
             kvStore: NewKeyValueStore,
             tx: DBReadTransaction,
         ) -> TSRegistrationState {
-            let reregistrationPhoneNumber = kvStore.fetchValue(String.self, forKey: Keys.reregistrationPhoneNumber, tx: tx)
-            // TODO: Eventually require reregistrationAci during re-registration.
-            let reregistrationAci = Aci.parseFrom(aciString: kvStore.fetchValue(String.self, forKey: Keys.reregistrationAci, tx: tx))
-            let isDeregisteredOrDelinked = kvStore.fetchValue(Bool.self, forKey: Keys.isDeregisteredOrDelinked, tx: tx) ?? false
-            let wasTransferred = kvStore.fetchValue(Bool.self, forKey: Keys.wasTransferred, tx: tx) ?? false
-
             // Go in semi-reverse order; with higher priority stuff going first.
+            let wasTransferred = kvStore.fetchValue(Bool.self, forKey: Keys.wasTransferred, tx: tx) ?? false
             if wasTransferred {
                 // If we transferred, we are transferred regardless of what else
                 // may be going on. Other state might be a mess; doesn't matter.
@@ -542,10 +537,10 @@ extension TSAccountManagerImpl {
                     return .transferringIncoming
                 }
             }
+            let reregistrationPhoneNumber = kvStore.fetchValue(String.self, forKey: Keys.reregistrationPhoneNumber, tx: tx)
             if let reregistrationPhoneNumber {
-                // If a "reregistrationPhoneNumber" is present, we are reregistering.
-                // reregistrationAci is optional (for now, see above TODO).
-                // isDeregistered is probably also true; this takes precedence.
+                // (Note: isDeregistered is probably also true; this takes precedence.)
+                let reregistrationAci = Aci.parseFrom(aciString: kvStore.fetchValue(String.self, forKey: Keys.reregistrationAci, tx: tx))
 
                 let shouldDefaultToPrimaryDevice = UIDevice.current.userInterfaceIdiom == .phone
                 if kvStore.fetchValue(Bool.self, forKey: Keys.reregistrationWasPrimaryDevice, tx: tx) ?? shouldDefaultToPrimaryDevice {
@@ -560,6 +555,7 @@ extension TSAccountManagerImpl {
                     )
                 }
             }
+            let isDeregisteredOrDelinked = kvStore.fetchValue(Bool.self, forKey: Keys.isDeregisteredOrDelinked, tx: tx) ?? false
             if isDeregisteredOrDelinked {
                 // if isDeregistered is true, we may have been registered
                 // or not. But its being true means we should be deregistered
