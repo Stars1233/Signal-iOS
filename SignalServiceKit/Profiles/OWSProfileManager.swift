@@ -36,7 +36,9 @@ public class OWSProfileManager: ProfileManagerProtocol {
         self.appReadiness = appReadiness
 
         appReadiness.runNowOrWhenAppDidBecomeReadyAsync {
-            self.rotateLocalProfileKeyIfNecessary()
+            Task {
+                await self.rotateProfileKeyIfNecessary()
+            }
             self.updateProfileOnServiceIfNecessary(authedAccount: .implicit())
             Self.updateStorageServiceIfNecessary()
         }
@@ -257,7 +259,9 @@ public class OWSProfileManager: ProfileManagerProtocol {
     private func blockListDidChange(_ notification: NSNotification) {
         AssertIsOnMainThread()
         appReadiness.runNowOrWhenAppDidBecomeReadyAsync {
-            self.rotateLocalProfileKeyIfNecessary()
+            Task {
+                await self.rotateProfileKeyIfNecessary()
+            }
         }
     }
 
@@ -469,57 +473,47 @@ extension OWSProfileManager: ProfileManager {
 
     // MARK: -
 
-    func rotateLocalProfileKeyIfNecessary() {
-        DispatchQueue.global().async {
-            let tsAccountManager = DependenciesBridge.shared.tsAccountManager
-            guard tsAccountManager.registrationStateWithMaybeSneakyTransaction.isRegisteredPrimaryDevice else {
-                return
-            }
-            SSKEnvironment.shared.databaseStorageRef.write { tx in
-                self.rotateProfileKeyIfNecessary(tx: tx)
-            }
-        }
-    }
+    private func rotateProfileKeyIfNecessary() async {
+        let databaseStorage = SSKEnvironment.shared.databaseStorageRef
+        let groupsV2 = SSKEnvironment.shared.groupsV2Ref
+        let tsAccountManager = DependenciesBridge.shared.tsAccountManager
 
-    private func rotateProfileKeyIfNecessary(tx: DBWriteTransaction) {
-        if CurrentAppContext().isNSE || !appReadiness.isAppReady {
+        if CurrentAppContext().isNSE {
             return
         }
 
-        let tsRegistrationState = DependenciesBridge.shared.tsAccountManager.registrationState(tx: tx)
-        guard
-            tsRegistrationState.isRegisteredPrimaryDevice
-        else {
-            owsFailDebug("Not rotating profile key on unregistered and/or non-primary device")
+        let registeredState = try? tsAccountManager.registeredStateWithMaybeSneakyTransaction()
+        guard let registeredState else {
+            return
+        }
+        guard registeredState.isPrimary else {
             return
         }
 
-        let lastGroupProfileKeyCheckTimestamp = self.lastGroupProfileKeyCheckTimestamp(tx: tx)
-        let triggers = [
-            self.blocklistRotationTriggerIfNeeded(tx: tx),
-            self.tokenTriggerIfNeeded(tx: tx),
-        ].compacted()
+        let triggers = databaseStorage.read { tx in
+            return [
+                self.blocklistRotationTriggerIfNeeded(tx: tx),
+                self.tokenTriggerIfNeeded(tx: tx),
+            ].compacted()
+        }
 
-        guard !triggers.isEmpty else {
+        if triggers.isEmpty {
             // No need to rotate the profile key.
-            if tsRegistrationState.isPrimaryDevice ?? true {
-                // But if it's been more than a week since we checked that our groups are up to date, schedule that.
-                if -(lastGroupProfileKeyCheckTimestamp?.timeIntervalSinceNow ?? 0) > .week {
-                    SSKEnvironment.shared.groupsV2Ref.scheduleAllGroupsV2ForProfileKeyUpdate(transaction: tx)
+            let lastGroupProfileKeyCheckTimestamp = databaseStorage.read { tx in
+                return self.lastGroupProfileKeyCheckTimestamp(tx: tx) ?? .distantPast
+            }
+            // But if it's been more than a week since we checked that our groups are up to date, schedule that.
+            if -lastGroupProfileKeyCheckTimestamp.timeIntervalSinceNow > .week {
+                await databaseStorage.awaitableWrite { tx in
+                    groupsV2.scheduleAllGroupsV2ForProfileKeyUpdate(transaction: tx)
                     self.setLastGroupProfileKeyCheckTimestamp(tx: tx)
-                    tx.addSyncCompletion {
-                        SSKEnvironment.shared.groupsV2Ref.processProfileKeyUpdates()
-                    }
                 }
+                groupsV2.processProfileKeyUpdates()
             }
             return
         }
 
-        tx.addSyncCompletion {
-            Task {
-                await self.rotateProfileKey(triggers: triggers, authedAccount: AuthedAccount.implicit())
-            }
-        }
+        await self.rotateProfileKey(triggers: triggers, authedAccount: AuthedAccount.implicit())
     }
 
     private enum RotateProfileKeyTrigger {
@@ -580,7 +574,7 @@ extension OWSProfileManager: ProfileManager {
             needsAnotherRotation = (try? await _rotateProfileKey(triggers: triggers, authedAccount: authedAccount)) ?? false
         }
         if needsAnotherRotation {
-            self.rotateLocalProfileKeyIfNecessary()
+            await self.rotateProfileKeyIfNecessary()
         }
     }
 
@@ -588,7 +582,9 @@ extension OWSProfileManager: ProfileManager {
         triggers: [RotateProfileKeyTrigger],
         authedAccount: AuthedAccount,
     ) async throws -> Bool {
+        let databaseStorage = SSKEnvironment.shared.databaseStorageRef
         let tsAccountManager = DependenciesBridge.shared.tsAccountManager
+
         let registeredState = try tsAccountManager.registeredStateWithMaybeSneakyTransaction()
         guard registeredState.isPrimary else {
             throw OWSAssertionError("not a primary device")
@@ -611,7 +607,7 @@ extension OWSProfileManager: ProfileManager {
         // change and continue to use the old profile key.
 
         let newProfileKey = Aes256Key.generateRandom()
-        let uploadPromise = await SSKEnvironment.shared.databaseStorageRef.awaitableWrite { tx in
+        let uploadPromise = await databaseStorage.awaitableWrite { tx in
             self.reuploadLocalProfile(
                 unsavedRotatedProfileKey: newProfileKey,
                 mustReuploadAvatar: true,
@@ -625,7 +621,6 @@ extension OWSProfileManager: ProfileManager {
 
         Logger.info("Persisting rotated profile key and kicking off subsequent operations.")
 
-        let databaseStorage = SSKEnvironment.shared.databaseStorageRef
         let (needsAnotherRotation, attributesUpdateTask) = await databaseStorage.awaitableWrite { tx -> (Bool, Task<Void, any Error>) in
             self.setLocalProfileKey(
                 newProfileKey,
@@ -1329,7 +1324,9 @@ extension OWSProfileManager: ProfileManager {
         // We schedule in the NSE by writing state; the actual rotation
         // will bail early, though.
         self.setTriggerToken(Randomness.generateRandomBytes(16), tx: tx)
-        self.rotateProfileKeyIfNecessary(tx: tx)
+        tx.addSyncCompletion {
+            Task { await self.rotateProfileKeyIfNecessary() }
+        }
     }
 
     fileprivate func _forceRotateLocalProfileKeyForGroupDeparture(tx: DBWriteTransaction) {
@@ -1343,7 +1340,9 @@ extension OWSProfileManager: ProfileManager {
         // We schedule in the NSE by writing state; the actual rotation
         // will bail early, though.
         self.setTriggerToken(Randomness.generateRandomBytes(16), tx: tx)
-        self.rotateProfileKeyIfNecessary(tx: tx)
+        tx.addSyncCompletion {
+            Task { await self.rotateProfileKeyIfNecessary() }
+        }
     }
 
     // MARK: - Profile Key Rotation Metadata
