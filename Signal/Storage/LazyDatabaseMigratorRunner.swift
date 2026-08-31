@@ -69,7 +69,6 @@ private struct LazyIndexMigrator {
                 return Set(try String.fetchAll(db, sql: "SELECT name FROM sqlite_master WHERE type = 'index'"))
             }
             let lazilyRemovedIndexes = [
-                "index_model_TSInteraction_on_uniqueThreadId_and_eraId_and_recordType",
                 "index_model_TSInteraction_on_StoryContext",
                 "index_model_TSInteraction_ConversationLoadInteractionCount",
                 "index_model_TSInteraction_ConversationLoadInteractionDistance",
@@ -79,7 +78,6 @@ private struct LazyIndexMigrator {
             }
 
             let lazilyInsertedIndexes = [
-                "Interaction_groupCallEraId_partial",
                 "Interaction_storyReply_partial",
             ]
             if !indexes.isSuperset(of: lazilyInsertedIndexes) {
@@ -95,12 +93,6 @@ private struct LazyIndexMigrator {
 
     func run() async throws {
         // Must be idempotent.
-
-        try Task.checkCancellation()
-        await databaseStorage.awaitableWrite { tx in
-            logger.info("Rebuilding groupCall/eraId index.")
-            try! GRDBSchemaMigrator.rebuildInteractionGroupCallEraIdIndex(tx: tx)
-        }
 
         try Task.checkCancellation()
         await databaseStorage.awaitableWrite { tx in

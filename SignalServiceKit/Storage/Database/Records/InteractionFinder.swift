@@ -949,7 +949,7 @@ public class InteractionFinder: NSObject {
         let sql = """
         SELECT 1
         FROM \(InteractionRecord.databaseTableName)
-        \(DEBUG_INDEXED_BY("index_model_TSInteraction_on_uniqueThreadId_recordType_messageType", or: "index_model_TSInteraction_on_uniqueThreadId_and_eraId_and_recordType"))
+        \(DEBUG_INDEXED_BY("index_model_TSInteraction_on_uniqueThreadId_recordType_messageType"))
         WHERE \(interactionColumn: .threadUniqueId) = ?
         AND (
             (
