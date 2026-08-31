@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
-public import GRDB
+import GRDB
 
 public class BackupAttachmentDownloadProgressObserver {
     fileprivate let id: UUID = UUID()
