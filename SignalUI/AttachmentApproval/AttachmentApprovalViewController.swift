@@ -260,7 +260,7 @@ public final class AttachmentApprovalViewController: OWSViewController, UIPageVi
 
     lazy var contentDimmerView: UIView = {
         let dimmerView = UIView()
-        dimmerView.backgroundColor = .Signal.mediaBackground.withAlphaComponent(0.4)
+        dimmerView.backgroundColor = .ows_blackAlpha40
         return dimmerView
     }()
 
