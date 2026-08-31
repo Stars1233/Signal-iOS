@@ -527,7 +527,8 @@ extension TSAccountManagerImpl {
                 // If we transferred, we are transferred regardless of what else
                 // may be going on. Other state might be a mess; doesn't matter.
                 return .transferred
-            } else if isTransferInProgress {
+            }
+            if isTransferInProgress {
                 // Ditto for a transfer in progress; regardless of whatever
                 // else is going on (except being transferred) this takes precedence.
                 switch isPrimaryDevice {
@@ -540,7 +541,8 @@ extension TSAccountManagerImpl {
                     // incoming transfer, where we started from a blank state.
                     return .transferringIncoming
                 }
-            } else if let reregistrationPhoneNumber {
+            }
+            if let reregistrationPhoneNumber {
                 // If a "reregistrationPhoneNumber" is present, we are reregistering.
                 // reregistrationAci is optional (for now, see above TODO).
                 // isDeregistered is probably also true; this takes precedence.
@@ -557,7 +559,8 @@ extension TSAccountManagerImpl {
                         aci: reregistrationAci,
                     )
                 }
-            } else if isDeregisteredOrDelinked {
+            }
+            if isDeregisteredOrDelinked {
                 // if isDeregistered is true, we may have been registered
                 // or not. But its being true means we should be deregistered
                 // (or delinked, based on whether this is a primary).
@@ -572,7 +575,8 @@ extension TSAccountManagerImpl {
                     owsFailDebug("deregistered or delinked && isPrimaryDevice == nil")
                     return .delinked
                 }
-            } else if let localIdentifiers {
+            }
+            if let localIdentifiers {
                 // We have local identifiers, so we are registered/provisioned.
                 switch isPrimaryDevice {
                 case true:
@@ -583,14 +587,13 @@ extension TSAccountManagerImpl {
                     owsFailDebug("registered or provisioned && isPrimaryDevice == nil")
                     return .provisioned(localIdentifiers)
                 }
-            } else {
-                // Setting localIdentifiers is what marks us as registered
-                // in primary registration. (As long as above conditions don't
-                // override that state)
-                // For provisioning, we set them before finishing, but the fact
-                // that we set them means we linked (but didn't finish yet).
-                return .unregistered
             }
+            // Setting localIdentifiers is what marks us as registered
+            // in primary registration. (As long as above conditions don't
+            // override that state)
+            // For provisioning, we set them before finishing, but the fact
+            // that we set them means we linked (but didn't finish yet).
+            return .unregistered
         }
 
         func log(_ logger: PrefixedLogger) {
