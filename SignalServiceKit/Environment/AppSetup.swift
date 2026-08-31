@@ -1456,6 +1456,7 @@ extension AppSetup.GlobalsContinuation {
             backupAttachmentDownloadScheduler: backupAttachmentDownloadScheduler,
             chatColorSettingStore: chatColorSettingStore,
             wallpaperStore: wallpaperStore,
+            localFileBackupStore: localFileBackupStore,
         )
 
         let backupInteractionStore = BackupArchiveInteractionStore(interactionStore: interactionStore)
@@ -1503,6 +1504,7 @@ extension AppSetup.GlobalsContinuation {
             attachmentManager: attachmentManager,
             attachmentStore: attachmentStore,
             backupAttachmentDownloadScheduler: backupAttachmentDownloadScheduler,
+            localFileBackupStore: localFileBackupStore,
         )
         let backupsOversizeTextArchiver = BackupArchiveInlinedOversizeTextArchiver(
             attachmentsArchiver: backupAttachmentsArchiver,

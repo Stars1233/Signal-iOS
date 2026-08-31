@@ -1354,13 +1354,6 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
                 }
 
                 Task {
-                    do {
-                        // Kick off attachment downloads enqueued during restore.
-                        try await backupAttachmentCoordinator.restoreAttachmentsIfNeeded()
-                    } catch {
-                        logger.error("Unable to restore remote backup attachments: \(error)")
-                    }
-
                     if BuildFlags.LocalFileBackups.restore {
                         do {
                             try await localFileBackupManager.restoreLocalFileBackupAttachments()
@@ -1378,6 +1371,13 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
                         } catch {
                             Logger.error("Error restoring attachments from local file backup: \(error)")
                         }
+                    }
+
+                    do {
+                        // Kick off attachment downloads enqueued during restore.
+                        try await backupAttachmentCoordinator.restoreAttachmentsIfNeeded()
+                    } catch {
+                        logger.error("Unable to restore remote backup attachments: \(error)")
                     }
                 }
 

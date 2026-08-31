@@ -126,6 +126,7 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
     // MARK: - Restoring
 
     func restoreLocalFileBackupAttachments() async throws {
+        Logger.info("")
         let resolvedURL: URL?
         do {
             resolvedURL = try getSavedSecurityScopedBookmark(type: .restore)
@@ -167,6 +168,7 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
     }
 
     func _restoreLocalFileBackupAttachments(resolvedURL: URL) async throws {
+        Logger.info("")
         let totalByteCount = db.read { tx in
             localFileBackupStore.totalUnencryptedByteCountOfQueuedImports(tx: tx)
         }
