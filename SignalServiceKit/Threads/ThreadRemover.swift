@@ -19,6 +19,7 @@ class ThreadRemoverImpl: ThreadRemover {
     private let databaseStorage: Shims.DatabaseStorage
     private let deletedCallRecordStore: any DeletedCallRecordStore
     private let disappearingMessagesConfigurationStore: DisappearingMessagesConfigurationStore
+    private let groupMemberUpdater: any GroupMemberUpdater
     private let lastVisibleInteractionStore: LastVisibleInteractionStore
     private let threadAssociatedDataStore: ThreadAssociatedDataStore
     private let threadReadCache: Shims.ThreadReadCache
@@ -31,6 +32,7 @@ class ThreadRemoverImpl: ThreadRemover {
         databaseStorage: Shims.DatabaseStorage,
         deletedCallRecordStore: any DeletedCallRecordStore,
         disappearingMessagesConfigurationStore: DisappearingMessagesConfigurationStore,
+        groupMemberUpdater: any GroupMemberUpdater,
         lastVisibleInteractionStore: LastVisibleInteractionStore,
         threadAssociatedDataStore: ThreadAssociatedDataStore,
         threadReadCache: Shims.ThreadReadCache,
@@ -42,6 +44,7 @@ class ThreadRemoverImpl: ThreadRemover {
         self.databaseStorage = databaseStorage
         self.deletedCallRecordStore = deletedCallRecordStore
         self.disappearingMessagesConfigurationStore = disappearingMessagesConfigurationStore
+        self.groupMemberUpdater = groupMemberUpdater
         self.lastVisibleInteractionStore = lastVisibleInteractionStore
         self.threadAssociatedDataStore = threadAssociatedDataStore
         self.threadReadCache = threadReadCache
@@ -58,6 +61,13 @@ class ThreadRemoverImpl: ThreadRemover {
         disappearingMessagesConfigurationStore.remove(for: thread, tx: tx)
         threadAssociatedDataStore.remove(for: thread.uniqueId, tx: tx)
         threadReplyInfoStore.remove(for: thread.uniqueId, tx: tx)
+        if thread is TSGroupThread {
+            groupMemberUpdater.updateRecords(
+                groupThreadUniqueId: thread.uniqueId,
+                groupMembership: .empty,
+                transaction: tx,
+            )
+        }
         threadStore.removeThread(thread, tx: tx)
         threadReadCache.didRemove(thread: thread, tx: tx)
         wallpaperStore.reset(for: thread, tx: tx)

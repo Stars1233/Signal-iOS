@@ -355,6 +355,7 @@ public class GRDBSchemaMigrator {
         case rebuildInteractionUnendedGroupCallIndex
         case migrateNotificationPreferences
         case addGroupsPendingRestore
+        case deleteObsoleteGroupMembers
 
         // NOTE: Every time we add a migration id, consider
         // incrementing grdbSchemaVersionLatest.
@@ -5503,6 +5504,13 @@ public class GRDBSchemaMigrator {
 
         migrator.registerMigration(.addGroupsPendingRestore) { tx in
             try addGroupsPendingRestore(tx: tx)
+            return .success(())
+        }
+
+        migrator.registerMigration(.deleteObsoleteGroupMembers) { tx in
+            try tx.database.execute(sql: """
+            DELETE FROM "model_TSGroupMember" WHERE "groupThreadId" NOT IN (SELECT "uniqueId" FROM model_TSThread)
+            """)
             return .success(())
         }
 

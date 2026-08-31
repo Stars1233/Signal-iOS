@@ -946,6 +946,7 @@ extension AppSetup.GlobalsContinuation {
             databaseStorage: ThreadRemoverImpl.Wrappers.DatabaseStorage(databaseStorage),
             deletedCallRecordStore: deletedCallRecordStore,
             disappearingMessagesConfigurationStore: disappearingMessagesConfigurationStore,
+            groupMemberUpdater: groupMemberUpdater,
             lastVisibleInteractionStore: lastVisibleInteractionStore,
             threadAssociatedDataStore: threadAssociatedDataStore,
             threadReadCache: ThreadRemoverImpl.Wrappers.ThreadReadCache(modelReadCaches.threadReadCache),

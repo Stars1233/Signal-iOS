@@ -304,9 +304,6 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         SSKEnvironment.shared.modelReadCachesRef.threadReadCache.didInsertOrUpdate(thread: self, transaction: transaction)
     }
 
-    public func anyWillRemove(transaction: DBWriteTransaction) {
-    }
-
     public var isNoteToSelf: Bool { false }
 
     public final var recipientAddressesWithSneakyTransaction: [SignalServiceAddress] {

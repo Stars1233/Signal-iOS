@@ -58,6 +58,7 @@ final class ThreadMergerTest: XCTestCase {
             databaseStorage: ThreadRemover_MockDatabaseStorage(),
             deletedCallRecordStore: DeletedCallRecordStoreImpl(),
             disappearingMessagesConfigurationStore: disappearingMessagesConfigurationStore,
+            groupMemberUpdater: MockGroupMemberUpdater(),
             lastVisibleInteractionStore: LastVisibleInteractionStore(),
             threadAssociatedDataStore: threadAssociatedDataStore,
             threadReadCache: ThreadRemover_MockThreadReadCache(),

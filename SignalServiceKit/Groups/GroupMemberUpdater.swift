@@ -156,3 +156,13 @@ class GroupMemberUpdaterTemporaryShimsImpl: GroupMemberUpdaterTemporaryShims {
         }
     }
 }
+
+#if TESTABLE_BUILD
+
+class MockGroupMemberUpdater: GroupMemberUpdater {
+    func updateRecords(groupThreadUniqueId: String, groupMembership: GroupMembership, transaction: DBWriteTransaction) {
+        owsFail("not implemented")
+    }
+}
+
+#endif

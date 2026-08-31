@@ -215,11 +215,6 @@ open class TSGroupThread: TSThread {
         }
     }
 
-    override public func anyWillRemove(transaction: DBWriteTransaction) {
-        super.anyWillRemove(transaction: transaction)
-        removeGroupMemberRecords(transaction: transaction)
-    }
-
     // MARK: -
 
     public var groupIdentifier: GroupIdentifier {
