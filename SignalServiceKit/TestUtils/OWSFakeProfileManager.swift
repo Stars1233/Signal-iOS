@@ -57,10 +57,7 @@ extension OWSFakeProfileManager: ProfileManagerProtocol {
         localProfileKey = key
     }
 
-    func rotateProfileKeyUponRecipientHide(withTx tx: DBWriteTransaction) {
-    }
-
-    func forceRotateLocalProfileKeyForGroupDeparture(with transaction: DBWriteTransaction) {
+    func setNeedsProfileKeyRotation(tx: DBWriteTransaction) {
     }
 }
 

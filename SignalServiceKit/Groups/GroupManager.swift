@@ -1024,7 +1024,6 @@ public class GroupManager: NSObject {
             }
 
             if
-                DependenciesBridge.shared.tsAccountManager.registrationState(tx: transaction).isPrimaryDevice ?? true,
                 oldGroupModel.membership.hasProfileKeyInGroup(serviceId: localIdentifiers.aci),
                 !newGroupModel.membership.hasProfileKeyInGroup(serviceId: localIdentifiers.aci)
             {
@@ -1064,7 +1063,8 @@ public class GroupManager: NSObject {
                 }
 
                 if shouldRotateProfileKey {
-                    SSKEnvironment.shared.profileManagerRef.forceRotateLocalProfileKeyForGroupDeparture(with: transaction)
+                    let profileManager = SSKEnvironment.shared.profileManagerRef
+                    profileManager.setNeedsProfileKeyRotation(tx: transaction)
                 }
             }
         }

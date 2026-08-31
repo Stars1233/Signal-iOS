@@ -236,10 +236,6 @@ public class OWSProfileManager: ProfileManagerProtocol {
         _getUserProfile(for: addressParam, tx: tx)
     }
 
-    public func rotateProfileKeyUponRecipientHide(withTx tx: DBWriteTransaction) {
-        rotateProfileKeyUponRecipientHideObjC(tx: tx)
-    }
-
     // MARK: - Notifications
 
     @objc
@@ -272,10 +268,6 @@ public class OWSProfileManager: ProfileManagerProtocol {
     }
 
     // MARK: - Profile Key Rotation
-
-    public func forceRotateLocalProfileKeyForGroupDeparture(with transaction: DBWriteTransaction) {
-        _forceRotateLocalProfileKeyForGroupDeparture(tx: transaction)
-    }
 
     public func groupKey(groupId: Data) -> String {
         groupId.hexadecimalString
@@ -487,6 +479,7 @@ extension OWSProfileManager: ProfileManager {
             return
         }
         guard registeredState.isPrimary else {
+            await clearTriggerTokenIfNeeded()
             return
         }
 
@@ -686,7 +679,7 @@ extension OWSProfileManager: ProfileManager {
 
     // Returns true if the trigger was cleared.
     private func clearTriggerToken(_ tokenData: Data, tx: DBWriteTransaction) -> Bool {
-        // Fetch the latest trigger date, it might have changed if we triggered
+        // Fetch the latest trigger date; it might have changed if we triggered
         // a rotation again.
         guard tokenData == self.triggerToken(tx: tx) else {
             return false
@@ -1309,36 +1302,8 @@ extension OWSProfileManager: ProfileManager {
         settingsStore.removeValue(forKey: Self.kPendingProfileUpdateKey, transaction: tx)
     }
 
-    /// Rotates the local profile key. Intended specifically
-    /// for the use case of recipient hiding.
-    ///
-    /// - Parameter tx: The transaction to use for this operation.
-    func rotateProfileKeyUponRecipientHideObjC(tx: DBWriteTransaction) {
-        let tsAccountManager = DependenciesBridge.shared.tsAccountManager
-        guard let registeredState = try? tsAccountManager.registeredState(tx: tx) else {
-            return
-        }
-        guard registeredState.isPrimary else {
-            return
-        }
-        // We schedule in the NSE by writing state; the actual rotation
-        // will bail early, though.
-        self.setTriggerToken(Randomness.generateRandomBytes(16), tx: tx)
-        tx.addSyncCompletion {
-            Task { await self.rotateProfileKeyIfNecessary() }
-        }
-    }
-
-    fileprivate func _forceRotateLocalProfileKeyForGroupDeparture(tx: DBWriteTransaction) {
-        let tsAccountManager = DependenciesBridge.shared.tsAccountManager
-        guard let registeredState = try? tsAccountManager.registeredState(tx: tx) else {
-            return
-        }
-        guard registeredState.isPrimary else {
-            return
-        }
-        // We schedule in the NSE by writing state; the actual rotation
-        // will bail early, though.
+    /// Schedules (and initiates) a profile key rotation.
+    public func setNeedsProfileKeyRotation(tx: DBWriteTransaction) {
         self.setTriggerToken(Randomness.generateRandomBytes(16), tx: tx)
         tx.addSyncCompletion {
             Task { await self.rotateProfileKeyIfNecessary() }
@@ -1364,7 +1329,6 @@ extension OWSProfileManager: ProfileManager {
         return
             self.metadataStore.getData(Self.leaveGroupTriggerTokenKey, transaction: tx)
                 ?? self.metadataStore.getData(Self.deprecated_recipientHidingTriggerTokenKey, transaction: tx)
-
     }
 
     private func setTriggerToken(_ tokenData: Data?, tx: DBWriteTransaction) {
@@ -1374,6 +1338,17 @@ extension OWSProfileManager: ProfileManager {
             self.metadataStore.removeValue(forKey: Self.leaveGroupTriggerTokenKey, transaction: tx)
         }
         self.metadataStore.removeValue(forKey: Self.deprecated_recipientHidingTriggerTokenKey, transaction: tx)
+    }
+
+    private func clearTriggerTokenIfNeeded() async {
+        let databaseStorage = SSKEnvironment.shared.databaseStorageRef
+        let tokenData = databaseStorage.read { tx in self.triggerToken(tx: tx) }
+        guard let tokenData else {
+            return
+        }
+        await databaseStorage.awaitableWrite { tx in
+            _ = self.clearTriggerToken(tokenData, tx: tx)
+        }
     }
 
     // MARK: - Last Messaging Date
