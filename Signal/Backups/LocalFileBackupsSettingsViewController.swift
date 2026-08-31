@@ -16,6 +16,7 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
     private let localFileBackupManager: LocalFileBackupManager
     private let localFileBackupExportJobStore: LocalFileBackupExportJobStore
     private let backupFailureStateManager: BackupFailureStateManager
+    private var presentWelcomeSheet: Bool
 
     // Archive progress
     private var latestArchiveProgressUpdate: OWSSequentialProgress<LocalFileBackupExportJobStage>?
@@ -40,6 +41,7 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
         localFileBackupExportJobStore: LocalFileBackupExportJobStore,
         backupFailureStateManager: BackupFailureStateManager,
         localFileBackupAttachmentRestoreProgress: LocalFileBackupAttachmentRestoreProgress,
+        presentWelcomeSheet: Bool,
     ) {
         self.localFileBackupExportJobRunner = localFileBackupExportJobRunner
         self.localFileBackupStore = localFileBackupStore
@@ -49,10 +51,19 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
         self.localFileBackupExportJobStore = localFileBackupExportJobStore
         self.backupFailureStateManager = backupFailureStateManager
         self.localFileBackupAttachmentRestoreProgress = localFileBackupAttachmentRestoreProgress
+        self.presentWelcomeSheet = presentWelcomeSheet
     }
 
     deinit {
         progressUpdatesTask?.cancel()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if presentWelcomeSheet {
+            presentWelcomeToBackupsSheet()
+            presentWelcomeSheet = false
+        }
     }
 
     override func viewDidLoad() {
@@ -119,6 +130,26 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
                 } else if hasRow {
                     self.updateArchiveProgressCellInPlace()
                 }
+            }
+        }
+    }
+
+    private func performManualLocalBackup() {
+        let task = localFileBackupExportJobRunner.startIfNecessary(mode: .manual)
+        Task { @MainActor [weak self] in
+            do {
+                try await task.value
+            } catch BackupExportLockError.remoteBackupInProgress {
+                let actionSheet = ActionSheetController(
+                    message: OWSLocalizedString(
+                        "SETTINGS_LOCAL_FILE_BACKUPS_REMOTE_BACKUP_IN_PROGRESS_MESSAGE",
+                        comment: "Message for an action sheet when a user cannot perform a local backup because a remote backup is in progress",
+                    ),
+                )
+                actionSheet.addAction(.ok)
+                self?.presentActionSheet(actionSheet)
+            } catch {
+                Logger.error("Unexpected error encountered: \(error)")
             }
         }
     }
@@ -492,23 +523,7 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
             },
             actionBlock: { [weak self] in
                 guard let self else { return }
-                let task = localFileBackupExportJobRunner.startIfNecessary(mode: .manual)
-                Task { @MainActor [weak self] in
-                    do {
-                        try await task.value
-                    } catch BackupExportLockError.remoteBackupInProgress {
-                        let actionSheet = ActionSheetController(
-                            message: OWSLocalizedString(
-                                "SETTINGS_LOCAL_FILE_BACKUPS_REMOTE_BACKUP_IN_PROGRESS_MESSAGE",
-                                comment: "Message for an action sheet when a user cannot perform a local backup because a remote backup is in progress",
-                            ),
-                        )
-                        actionSheet.addAction(.ok)
-                        self?.presentActionSheet(actionSheet)
-                    } catch {
-                        Logger.error("Unexpected error encountered: \(error)")
-                    }
-                }
+                performManualLocalBackup()
             },
         ))
 
@@ -817,4 +832,45 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
         presentActionSheet(actionSheet)
     }
 
+    private func presentWelcomeToBackupsSheet() {
+        final class WelcomeToLocalBackupsSheet: HeroSheetViewController {
+            override var canBeDismissed: Bool { false }
+
+            init(
+                onConfirm: @escaping (HeroSheetViewController) -> Void,
+            ) {
+                let bodyElements: [HeroSheetViewController.Body.Element] = [
+                    .text(.plain(OWSLocalizedString(
+                        "BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_MESSAGE",
+                        comment: "Message for a sheet shown after the user enables backups.",
+                    ))),
+                ]
+                super.init(
+                    hero: .image(.backupsSubscribed),
+                    title: OWSLocalizedString(
+                        "BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_TITLE",
+                        comment: "Title for a sheet shown after the user enables backups.",
+                    ),
+                    body: HeroSheetViewController.Body(bodyElements),
+                    primary: .button(HeroSheetViewController.Button(
+                        title: OWSLocalizedString(
+                            "BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_BUTTON_TITLE",
+                            comment: "Title for a button in a sheet shown after the user enables backups.",
+                        ),
+                        action: { onConfirm($0) },
+                    )),
+                    secondary: nil,
+                )
+            }
+        }
+
+        let welcomeToLocalBackupsSheet = WelcomeToLocalBackupsSheet(
+            onConfirm: { sheet in
+                sheet.dismiss(animated: true) { [self] in
+                    performManualLocalBackup()
+                }
+            },
+        )
+        present(welcomeToLocalBackupsSheet, animated: true)
+    }
 }

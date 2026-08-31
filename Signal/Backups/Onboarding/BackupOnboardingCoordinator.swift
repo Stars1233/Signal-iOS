@@ -94,6 +94,7 @@ class BackupOnboardingCoordinator {
                     localFileBackupExportJobStore: localFileBackupExportJobStore,
                     backupFailureStateManager: backupFailureStateManager,
                     localFileBackupAttachmentRestoreProgress: DependenciesBridge.shared.localFileBackupAttachmentRestoreProgress,
+                    presentWelcomeSheet: false,
                 )
             }
         } else {
@@ -267,6 +268,7 @@ class BackupOnboardingCoordinator {
                                     localFileBackupExportJobStore: LocalFileBackupExportJobStore(),
                                     backupFailureStateManager: DependenciesBridge.shared.backupFailureStateManager,
                                     localFileBackupAttachmentRestoreProgress: DependenciesBridge.shared.localFileBackupAttachmentRestoreProgress,
+                                    presentWelcomeSheet: true,
                                 ),
                             ],
                             animated: true,
