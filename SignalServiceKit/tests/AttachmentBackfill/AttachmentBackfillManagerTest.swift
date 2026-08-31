@@ -71,7 +71,7 @@ class AttachmentBackfillManagerTest: SSKBaseTest {
 
     func testEnqueue_dropsRequestIfNotPrimary() {
         let registeredState = try! RegisteredState(
-            registrationState: .provisioned,
+            registrationState: .provisioned(localIdentifiers),
             localIdentifiers: localIdentifiers,
         )
 
@@ -97,7 +97,7 @@ class AttachmentBackfillManagerTest: SSKBaseTest {
 
     func testEnqueue_sendsMessageNotFoundWhenTargetMissing() {
         let registeredState = try! RegisteredState(
-            registrationState: .registered,
+            registrationState: .registered(localIdentifiers),
             localIdentifiers: localIdentifiers,
         )
 

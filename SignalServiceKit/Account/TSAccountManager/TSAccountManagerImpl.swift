@@ -572,24 +572,24 @@ extension TSAccountManagerImpl {
                     owsFailDebug("deregistered or delinked && isPrimaryDevice == nil")
                     return .delinked
                 }
-            } else if localIdentifiers == nil {
+            } else if let localIdentifiers {
+                // We have local identifiers, so we are registered/provisioned.
+                switch isPrimaryDevice {
+                case true:
+                    return .registered(localIdentifiers)
+                case false:
+                    return .provisioned(localIdentifiers)
+                default:
+                    owsFailDebug("registered or provisioned && isPrimaryDevice == nil")
+                    return .provisioned(localIdentifiers)
+                }
+            } else {
                 // Setting localIdentifiers is what marks us as registered
                 // in primary registration. (As long as above conditions don't
                 // override that state)
                 // For provisioning, we set them before finishing, but the fact
                 // that we set them means we linked (but didn't finish yet).
                 return .unregistered
-            } else {
-                // We have local identifiers, so we are registered/provisioned.
-                switch isPrimaryDevice {
-                case true:
-                    return .registered
-                case false:
-                    return .provisioned
-                default:
-                    owsFailDebug("registered or provisioned && isPrimaryDevice == nil")
-                    return .provisioned
-                }
             }
         }
 

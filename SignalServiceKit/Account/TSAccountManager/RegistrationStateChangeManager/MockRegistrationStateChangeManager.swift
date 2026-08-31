@@ -13,7 +13,7 @@ open class MockRegistrationStateChangeManager: RegistrationStateChangeManager {
     public init() {}
 
     public var registrationStateMock: (() -> TSRegistrationState) = {
-        return .registered
+        owsFail("not implemented")
     }
 
     open func registrationState(tx: DBReadTransaction) -> TSRegistrationState {
@@ -25,8 +25,8 @@ open class MockRegistrationStateChangeManager: RegistrationStateChangeManager {
         _ phoneNumber: (e164: E164, pni: Pni),
         _ authToken: String,
         _ deviceId: DeviceId,
-    ) -> Void = { [weak self] _, _, _, _ in
-        self?.registrationStateMock = { .registered }
+    ) -> Void = { [weak self] aci, phoneNumber, _, _ in
+        self?.registrationStateMock = { .registered(LocalIdentifiers(aci: aci, pni: phoneNumber.pni, phoneNumber: phoneNumber.e164.stringValue)) }
     }
 
     open func didRegisterOrProvision(
@@ -37,14 +37,6 @@ open class MockRegistrationStateChangeManager: RegistrationStateChangeManager {
         tx: DBWriteTransaction,
     ) {
         didRegisterOrProvisionMock(aci, phoneNumber, authToken, deviceId)
-    }
-
-    public lazy var didFinishProvisioningSecondayMock: () -> Void = { [weak self] in
-        self?.registrationStateMock = { .provisioned }
-    }
-
-    open func didFinishProvisioningSecondary(tx: DBWriteTransaction) {
-        didFinishProvisioningSecondayMock()
     }
 
     public var didUpdateLocalPhoneNumberMock: (
@@ -82,7 +74,7 @@ open class MockRegistrationStateChangeManager: RegistrationStateChangeManager {
     }
 
     public lazy var setIsTransferCompleteMock: () -> Void = { [weak self] in
-        self?.registrationStateMock = { .registered }
+        owsFail("not implemented")
     }
 
     open func setIsTransferComplete(sendStateUpdateNotification: Bool, tx: DBWriteTransaction) {
@@ -110,7 +102,7 @@ open class MockRegistrationStateChangeManager: RegistrationStateChangeManager {
         if isDeregisteredOrDelinked {
             self?.registrationStateMock = wasPrimary ? { .deregistered } : { .delinked }
         } else {
-            self?.registrationStateMock = wasPrimary ? { .registered } : { .provisioned }
+            owsFail("not implemented")
         }
     }
 

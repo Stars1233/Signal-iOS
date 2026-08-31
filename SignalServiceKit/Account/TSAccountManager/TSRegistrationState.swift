@@ -20,9 +20,9 @@ public enum TSRegistrationState {
     case relinking(phoneNumber: String, aci: Aci?)
 
     /// Registered as a primary device. "Normal" state.
-    case registered
+    case registered(LocalIdentifiers)
     /// Provisioned as a linked device. "Normal" state.
-    case provisioned
+    case provisioned(LocalIdentifiers)
 
     /// Deregistered after having been registered, typically due
     /// to an error in a server response informing us we've been
