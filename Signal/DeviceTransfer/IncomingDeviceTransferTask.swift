@@ -74,9 +74,12 @@ class IncomingDeviceTransferTask {
         newDeviceServiceAdvertiser.stop(error: nil)
     }
 
-    func waitForTransferFromOldDevice(initializeProgressBlock: ((Progress) -> Void)? = nil) async throws {
+    func waitForTransferFromOldDevice(
+        peer: (any DeviceTransfer.Peer)?,
+        initializeProgressBlock: ((Progress) -> Void)? = nil,
+    ) async throws {
         logger.info("Waiting for connection")
-        let session = try await newDeviceServiceAdvertiser.waitForConnection()
+        let session = try await newDeviceServiceAdvertiser.waitForConnection(peer: peer)
         self.session = session
         self.initializeProgressBlock = initializeProgressBlock
 

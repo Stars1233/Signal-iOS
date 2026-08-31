@@ -24,6 +24,17 @@ class DeviceTransferStatusViewController: HostingController<TransferStatusView> 
             viewModel: coordinator.transferStatusViewModel,
             isNewDevice: true,
         )
+        coordinator.transferStatusViewModel.onPeerSelected = { [weak coordinator] peer in
+            Task { [weak coordinator] in
+                guard let coordinator else { return }
+                do {
+                    try await coordinator.waitForTransferFromPeer(peer: peer)
+                } catch {
+                    coordinator.onFailure(error)
+                }
+            }
+        }
+
         super.init(wrappedView: transferStatusView)
 
         coordinator.confirmCancellation = { [weak self] in
@@ -101,7 +112,15 @@ class DeviceTransferStatusViewController: HostingController<TransferStatusView> 
         super.viewDidAppear(animated)
         Task {
             do {
-                try await coordinator.start()
+                try await coordinator.reportTransferMethodChoice()
+                if
+                    #available(iOS 26.0, *),
+                    coordinator.transferStatusViewModel.supportsWifiAware
+                {
+                    // no-op
+                } else {
+                    try await coordinator.waitForTransferFromPeer(peer: nil)
+                }
             } catch {
                 coordinator.onFailure(error)
             }
@@ -143,38 +162,13 @@ struct TransferStatusView: View {
                     case .starting = indefinite,
                     viewModel.selectedPeer == nil
                 {
-                    if !isNewDevice {
-                        LazyVStack(spacing: 8) {
-                            ForEach(viewModel.discoveredPeers, id: \.id) { device in
-                                Button(action: {
-                                    // Start the outgoing transfer
-                                    viewModel.selectedPeer = device
-                                    viewModel.onPeerSelected(device)
-                                }) { Text(device.displayName) }
-                                    .buttonStyle(Registration.UI.MediumSecondaryButtonStyle())
-                            }
-                        }
-                        .padding(.top, 24)
-                        .task {
-                            do {
-                                for try await updatedDeviceList in WAPairedDevice.allDevices {
-                                    viewModel.discoveredPeers = updatedDeviceList.values.map {
-                                        WADeviceTransferPeer(pairedDevice: $0)
-                                    }
-                                }
-                            } catch {
-                                Logger.info("Error listing endpoints: \(error)")
-                            }
-                        }
+                    List(viewModel.discoveredPeers, id: \.id) { device in
+                        Button(action: {
+                            // Start the outgoing transfer
+                            viewModel.selectedPeer = device
+                            viewModel.onPeerSelected(device)
+                        }) { Text(device.displayName) }
                     }
-
-                    Text(OWSLocalizedString(
-                        "DEVICE_TRANSFER_STATUS_NEW_DEVICE_PAIR_DEVICE",
-                        comment: "Title for paring an old device to transfer to.",
-                    ))
-                    .font(.body)
-                    .foregroundStyle(Color.Signal.secondaryLabel)
-                    .padding(.top, 24)
 
                     if !isNewDevice {
                         DevicePicker(
@@ -314,7 +308,15 @@ struct AddDeviceButton: View {
                 Image(systemName: "xmark.circle")
                 Text("Unavailable")
             } else {
-                Image(systemName: "plus.circle")
+                Text(OWSLocalizedString(
+                    "DEVICE_TRANSFER_STATUS_NEW_DEVICE_PAIR_DEVICE",
+                    comment: "Title for paring an old device to transfer to.",
+                ))
+                .font(.body)
+                .foregroundStyle(Color.Signal.secondaryLabel)
+                .padding(.vertical, 12)
+                .padding(.horizontal, 24)
+                .overlay(RoundedRectangle(cornerRadius: 10).stroke(.tint, lineWidth: 1.5))
             }
         }
     }

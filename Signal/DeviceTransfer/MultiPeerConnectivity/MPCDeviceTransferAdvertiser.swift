@@ -56,7 +56,7 @@ class MPCDeviceTransferAdvertiser:
     }
 
     @MainActor
-    func waitForConnection() async throws -> DeviceTransfer.Session {
+    func waitForConnection(peer: (any DeviceTransfer.Peer)?) async throws -> DeviceTransfer.Session {
         if let session {
             return session
         }

@@ -37,8 +37,12 @@ class WADeviceTransferIncomingConnection: DeviceTransfer.IncomingConnection {
         return components.url!
     }
 
-    func waitForConnection() async throws -> any DeviceTransfer.Session {
+    func waitForConnection(peer: (any DeviceTransfer.Peer)?) async throws -> any DeviceTransfer.Session {
         logger.info("Wait for connection")
+        guard let waPeer = peer as? WADeviceTransferPeer else {
+            throw OWSAssertionError("Invalid peer type")
+        }
+
         return try await withCheckedThrowingContinuation { continuation in
             self.connectionContinuation = continuation
             connectionTask = Task { [weak self] in
@@ -48,7 +52,7 @@ class WADeviceTransferIncomingConnection: DeviceTransfer.IncomingConnection {
                         try Task.checkCancellation()
                         do {
                             try await NetworkListener(
-                                for: .wifiAware(.connecting(to: .deviceTransferService, from: .allPairedDevices)),
+                                for: .wifiAware(.connecting(to: .deviceTransferService, from: .selected([waPeer.pairedDevice]))),
                                 using: .parameters {
                                     Coder(
                                         receiving: WiFiAware.NetworkEvent.self,
@@ -71,7 +75,7 @@ class WADeviceTransferIncomingConnection: DeviceTransfer.IncomingConnection {
                                 case .cancelled:
                                     self?.logger.info("Connection: cancelled")
                                 case .waiting(let error):
-                                    self?.logger.info("Connection: failed: \(error)")
+                                    self?.logger.info("Connection: waiting: \(error)")
                                 @unknown default:
                                     self?.logger.info("Connection: unknown")
                                 }

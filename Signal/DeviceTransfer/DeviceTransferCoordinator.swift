@@ -128,7 +128,7 @@ public class DeviceTransferCoordinator: Equatable {
     }
 
     @MainActor
-    public func start() async throws {
+    public func reportTransferMethodChoice() async throws {
         transferStatusViewModel.state = .starting
 
         let url = try await incomingDeviceTransferTask.start(mode: restoreMode)
@@ -136,9 +136,16 @@ public class DeviceTransferCoordinator: Equatable {
             method: .deviceTransfer(url),
             restoreMethodToken: restoreMethodToken,
         )
+    }
 
+    /// Start listening for the old device to connect and begin the transfer.
+    ///
+    /// - Parameter peer: An optional peer that the new device prefers to connect to.  This allows connection layers like WiFiAware to listen
+    /// specifically for this peer and ignore any others.
+    @MainActor
+    func waitForTransferFromPeer(peer: (any DeviceTransfer.Peer)?) async throws {
         do {
-            try await incomingDeviceTransferTask.waitForTransferFromOldDevice { [weak self] progress in
+            try await incomingDeviceTransferTask.waitForTransferFromOldDevice(peer: peer) { [weak self] progress in
                 self?.initializeProgressTracking(progress: progress)
             }
             logger.error("Transfer complete")

@@ -230,7 +230,7 @@ enum DeviceTransfer {
     @MainActor
     protocol IncomingConnection: PeerDiscovery {
         func start(mode: DeviceTransfer.Mode) throws -> URL
-        func waitForConnection() async throws -> Session
+        func waitForConnection(peer: (any Peer)?) async throws -> Session
         func stop(error: Swift.Error?)
     }
 }
