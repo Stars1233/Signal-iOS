@@ -12,19 +12,11 @@ protocol RegistrationTransferStatusPresenter: AnyObject {
 
 class RegistrationDeviceTransferStatusViewController: DeviceTransferStatusViewController {
 
-    private var pairedPeerListenTask: Task<Void, Error>?
-
     init(
         coordinator: DeviceTransferCoordinator,
         presenter: RegistrationTransferStatusPresenter? = nil,
     ) {
         super.init(coordinator: coordinator)
-
-        self.pairedPeerListenTask = Task {
-            for try await _ in coordinator.pairedPeerStream {
-                self.presentedViewController?.dismiss(animated: true)
-            }
-        }
 
         coordinator.cancelTransferBlock = {
             presenter?.cancelTransfer()
@@ -33,9 +25,5 @@ class RegistrationDeviceTransferStatusViewController: DeviceTransferStatusViewCo
         coordinator.onFailure = { error in
             presenter?.transferFailed(error: error)
         }
-    }
-
-    deinit {
-        self.pairedPeerListenTask.take()?.cancel()
     }
 }

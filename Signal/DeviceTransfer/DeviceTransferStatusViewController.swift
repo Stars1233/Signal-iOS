@@ -16,6 +16,7 @@ class DeviceTransferStatusViewController: HostingController<TransferStatusView> 
     override var prefersNavigationBarHidden: Bool { true }
 
     private let coordinator: DeviceTransferCoordinator
+    private var pairedPeerListenTask: Task<Void, Error>?
 
     init(coordinator: DeviceTransferCoordinator) {
         self.coordinator = coordinator
@@ -36,6 +37,12 @@ class DeviceTransferStatusViewController: HostingController<TransferStatusView> 
         }
 
         super.init(wrappedView: transferStatusView)
+
+        self.pairedPeerListenTask = Task { [weak self] in
+            for try await _ in coordinator.pairedPeerStream {
+                self?.presentedViewController?.dismiss(animated: true)
+            }
+        }
 
         coordinator.confirmCancellation = { [weak self] in
             guard let self else { return true }

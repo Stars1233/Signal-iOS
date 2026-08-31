@@ -25,6 +25,7 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
 
     private var pairedPeersListenerTask: Task<Void, Error>?
     private var discoveredPeersListenerTask: Task<Void, Error>?
+    let waitForPeerContinuation = AtomicValue<CheckedContinuation<any DeviceTransfer.Peer, Error>?>(nil, lock: .init())
 
     @MainActor
     init(
@@ -162,6 +163,7 @@ class OutgoingDeviceRestoreViewModel: ObservableObject {
     private func cancelTransfer() {
         self.pairedPeersListenerTask.take()?.cancel()
         self.discoveredPeersListenerTask.take()?.cancel()
+        self.waitForPeerContinuation.swap(nil)?.resume(throwing: CancellationError())
         stopListeningForTransfer(error: CancellationError())
         transferStatusViewModel.state = .cancelled
     }

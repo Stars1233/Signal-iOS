@@ -29,33 +29,59 @@ enum WiFiAware {
         AsyncThrowingStream<[any DeviceTransfer.Peer], any Error>,
         Task<Void, Never>,
     ) {
-        let (stream, sink) = AsyncThrowingStream<[any DeviceTransfer.Peer], any Error>.makeStream()
-        let task = Task {
-            do {
-                for try await updatedDeviceList in WAPairedDevice.allDevices {
-                    let newDevices = updatedDeviceList.values
-                    let pairedDevices = newDevices.reduce(into: [String: WADeviceTransferPeer]()) { devices, device in
-                        let peer = WADeviceTransferPeer(pairedDevice: device)
-                        if let existingPeer = devices[peer.displayName] {
-                            logger.debug("Discovered existing peer \(device)")
-                            if peer.pairedDevice.id > existingPeer.pairedDevice.id {
-                                devices[peer.displayName] = peer
-                            }
-                        } else {
-                            logger.debug("Discovered new peer \(device)")
-                            devices[peer.displayName] = peer
-                        }
+        struct State {
+            let sink: AsyncThrowingStream<[any DeviceTransfer.Peer], any Error>.Continuation
+        }
+        let (stream, _sink) = AsyncThrowingStream<[any DeviceTransfer.Peer], any Error>.makeStream()
+        let state = SeriallyAccessedState(State(sink: _sink))
+
+        func reduceDevicesList(_ updatedDeviceList: Dictionary<UInt64, WAPairedDevice>) -> [WADeviceTransferPeer] {
+            let newDevices = updatedDeviceList.values
+            let pairedDevices = newDevices.reduce(into: [String: WADeviceTransferPeer]()) { devices, device in
+                let peer = WADeviceTransferPeer(pairedDevice: device)
+                if let existingPeer = devices[peer.displayName] {
+                    logger.debug("Discovered existing peer \(device)")
+                    if peer.pairedDevice.id > existingPeer.pairedDevice.id {
+                        devices[peer.displayName] = peer
                     }
+                } else {
+                    logger.debug("Discovered new peer \(device)")
+                    devices[peer.displayName] = peer
+                }
+            }
+            logger.info("Discovered \(pairedDevices.count) peers")
+            return pairedDevices.values.sorted { $0.pairedDevice.id > $1.pairedDevice.id }
+        }
+
+        let notification = NotificationCenter.default.addObserver(name: .OWSApplicationWillEnterForeground) { _ in
+            Task {
+                guard let updatedDevices = try? await WAPairedDevice.allDevices.current() else { return }
+                let deviceList = reduceDevicesList(updatedDevices)
+                state.enqueueUpdate { $0.sink.yield(deviceList) }
+            }
+        }
+
+        let task = Task {
+            defer {
+                NotificationCenter.default.removeObserver(notification)
+            }
+            do {
+                let currentDeviceSnapshot = try await WAPairedDevice.allDevices.current()
+                if (currentDeviceSnapshot ?? [:]).isEmpty {
+                    // If the current device snapshot is empty, send an initial value since the
+                    // loop below won't initially fire.
+                    state.enqueueUpdate { $0.sink.yield([]) }
+                }
+                for try await updatedDeviceList in WAPairedDevice.allDevices {
+                    let pairedDevices = reduceDevicesList(updatedDeviceList)
                     if !pairedDevices.isEmpty {
-                        logger.info("Discovered \(pairedDevices.count) peers")
-                        let sortedList = pairedDevices.values.sorted { $0.pairedDevice.id > $1.pairedDevice.id }
-                        sink.yield(sortedList)
+                        state.enqueueUpdate { $0.sink.yield(pairedDevices) }
                     }
                 }
             } catch is CancellationError {
-                sink.finish()
+                state.enqueueUpdate { $0.sink.finish() }
             } catch {
-                sink.finish(throwing: error)
+                state.enqueueUpdate { $0.sink.finish(throwing: error) }
             }
         }
         return (stream, task)
@@ -95,7 +121,6 @@ extension WAAccessCategory {
 @available(iOS 26.0, *)
 extension WAPairedDevice {
     var displayName: String {
-        let displayName = self.name ?? self.pairingInfo?.pairingName ?? ""
-        return "\(displayName) (\(self.pairingInfo?.vendorName ?? ""))"
+        return self.name ?? self.pairingInfo?.pairingName ?? ""
     }
 }
