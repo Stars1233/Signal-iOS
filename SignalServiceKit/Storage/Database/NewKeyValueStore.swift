@@ -412,12 +412,13 @@ public struct KeyValueStoreDeleter {
     ]
 
     public func cleanUpDeprecatedCollections() async {
+        struct KeyValueTable: TableRecord {
+            static let databaseTableName: String = NewKeyValueStore.tableName
+        }
         let collections = db.read { tx in
             return failIfThrows {
-                return try String.fetchAll(
-                    tx.database,
-                    sql: "SELECT DISTINCT \(NewKeyValueStore.collectionColumnName) FROM \(NewKeyValueStore.TableMetadata.tableName)",
-                )
+                let collection = Column(NewKeyValueStore.collectionColumnName)
+                return try KeyValueTable.selectDistinct(collection, as: String.self, tx: tx)
             }
         }
         let obsoleteCollections = Set(collections).intersection(Self.deprecatedCollections)

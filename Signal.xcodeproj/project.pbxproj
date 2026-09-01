@@ -738,6 +738,8 @@
 		5042EAA3287F96FB00C9B19F /* VisibleBadgeResolverTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5042EAA2287F96FB00C9B19F /* VisibleBadgeResolverTest.swift */; };
 		50438A8E2ECBBDF600FCB28F /* BackupRefreshManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B975452E43A4AA00E20364 /* BackupRefreshManager.swift */; };
 		50438A8F2ECBBE1D00FCB28F /* BackupRefreshManagerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B975472E43BFE000E20364 /* BackupRefreshManagerTest.swift */; };
+		504474CF304601D80058016E /* TableRecord+SSK.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504474CE304601D80058016E /* TableRecord+SSK.swift */; };
+		504474D13046021B0058016E /* TableRecord+SSKTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504474D03046021B0058016E /* TableRecord+SSKTest.swift */; };
 		5045F44229E0DB7100058E5F /* LaunchJobs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 349C3636233D198300D52012 /* LaunchJobs.swift */; };
 		50468F2529EDD46500948E02 /* ParamParserTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C3EF7FC2107DDEE0007EBF7 /* ParamParserTest.swift */; };
 		50468F2929EE130A00948E02 /* InteractionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50468F2829EE130A00948E02 /* InteractionStore.swift */; };
@@ -5097,6 +5099,8 @@
 		504271B52BB4C54500E33C01 /* SystemContact.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemContact.swift; sourceTree = "<group>"; };
 		50428EA42F2BD81700B0C969 /* StickerPackItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StickerPackItem.swift; sourceTree = "<group>"; };
 		5042EAA2287F96FB00C9B19F /* VisibleBadgeResolverTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisibleBadgeResolverTest.swift; sourceTree = "<group>"; };
+		504474CE304601D80058016E /* TableRecord+SSK.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TableRecord+SSK.swift"; sourceTree = "<group>"; };
+		504474D03046021B0058016E /* TableRecord+SSKTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TableRecord+SSKTest.swift"; sourceTree = "<group>"; };
 		50468F2829EE130A00948E02 /* InteractionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractionStore.swift; sourceTree = "<group>"; };
 		50468F2A29EE19C300948E02 /* PhoneNumberChangedMessageInserterTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneNumberChangedMessageInserterTest.swift; sourceTree = "<group>"; };
 		5049246E2F209DA8006469B3 /* OutgoingMessageRequestResponseSyncMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutgoingMessageRequestResponseSyncMessage.swift; sourceTree = "<group>"; };
@@ -14899,6 +14903,7 @@
 				D9FF515D2F03A6CD0011982F /* DBUInt64Test.swift */,
 				F908179528EF107800D31AD5 /* GRDBDatabaseStorageAdapterTest.swift */,
 				F97217FD28DCBC5100113D9F /* GRDBSchemaMigratorTest.swift */,
+				504474D03046021B0058016E /* TableRecord+SSKTest.swift */,
 				D9B95A9C29E894A600D7CB95 /* ValidatableModel.swift */,
 			);
 			path = Database;
@@ -15592,6 +15597,7 @@
 				F9C5CA4F289453B100548EEE /* SDSSerializable.swift */,
 				F9C5CA39289453B100548EEE /* SDSTableMetadata.swift */,
 				F9C5CA4D289453B100548EEE /* SSKAccessors+SDS.h */,
+				504474CE304601D80058016E /* TableRecord+SSK.swift */,
 			);
 			path = Database;
 			sourceTree = "<group>";
@@ -20361,6 +20367,7 @@
 				669E900028B42B7A00043D28 /* SystemStoryManager.swift in Sources */,
 				669E901028B57D6300043D28 /* SystemStoryManagerMock.swift in Sources */,
 				669E900728B43F5B00043D28 /* SystemStoryManagerProtocol.swift in Sources */,
+				504474CF304601D80058016E /* TableRecord+SSK.swift in Sources */,
 				663B9CAE2C9DEECC0055DC7D /* TaskQueueLoader.swift in Sources */,
 				72B994DB2BE950DB000CBBFD /* TestAppContext.swift in Sources */,
 				F9C5CE5C289453B400548EEE /* TestProtocolRunner.swift in Sources */,
@@ -20757,6 +20764,7 @@
 				6618D5EF2A20065F0059BA93 /* SVR2ConcurrencyTests.swift in Sources */,
 				50ED46CA2FDB4D3000F62B18 /* SVRAuthCredentialManagerTest.swift in Sources */,
 				884BF73D28D37D5F00D94636 /* SystemStoryManagerTest.swift in Sources */,
+				504474D13046021B0058016E /* TableRecord+SSKTest.swift in Sources */,
 				663B9CB12C9DF55D0055DC7D /* TaskQueueLoaderTest.swift in Sources */,
 				F9426288289B1B5600460798 /* TestProtocolRunnerTest.swift in Sources */,
 				043CC30E2E1EF79C00D9002E /* ThreadFinderTests.swift in Sources */,
