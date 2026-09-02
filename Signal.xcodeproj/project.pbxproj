@@ -106,6 +106,7 @@
 		0486D4A12FF6A44D004FC6E8 /* LocalBackup.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0486D4A02FF6A44D004FC6E8 /* LocalBackup.pb.swift */; };
 		048D58362ED4FABB00F26237 /* PinDisappearingMessageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048D58352ED4FA8500F26237 /* PinDisappearingMessageViewController.swift */; };
 		048D58382EDDD57E00F26237 /* OutgoingPinMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048D58372EDDD56D00F26237 /* OutgoingPinMessage.swift */; };
+		049653F6304721DB000F6674 /* ChatListViewController+LocalFileBackupExportProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 049653F5304721D0000F6674 /* ChatListViewController+LocalFileBackupExportProgressView.swift */; };
 		04A19B432EEC815200CCB105 /* PinnedMessageExpirationJob.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A19B422EEC814900CCB105 /* PinnedMessageExpirationJob.swift */; };
 		04A23EB22FD85A1F00C42B42 /* TSReleaseNotesMessage.h in Headers */ = {isa = PBXBuildFile; fileRef = 04A23EB02FD85A1F00C42B42 /* TSReleaseNotesMessage.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		04A23EB32FD85A1F00C42B42 /* TSReleaseNotesMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = 04A23EB12FD85A1F00C42B42 /* TSReleaseNotesMessage.m */; };
@@ -4343,6 +4344,7 @@
 		0486D4A02FF6A44D004FC6E8 /* LocalBackup.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalBackup.pb.swift; sourceTree = "<group>"; };
 		048D58352ED4FA8500F26237 /* PinDisappearingMessageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinDisappearingMessageViewController.swift; sourceTree = "<group>"; };
 		048D58372EDDD56D00F26237 /* OutgoingPinMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutgoingPinMessage.swift; sourceTree = "<group>"; };
+		049653F5304721D0000F6674 /* ChatListViewController+LocalFileBackupExportProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatListViewController+LocalFileBackupExportProgressView.swift"; sourceTree = "<group>"; };
 		04A19B422EEC814900CCB105 /* PinnedMessageExpirationJob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinnedMessageExpirationJob.swift; sourceTree = "<group>"; };
 		04A23EB02FD85A1F00C42B42 /* TSReleaseNotesMessage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TSReleaseNotesMessage.h; sourceTree = "<group>"; };
 		04A23EB12FD85A1F00C42B42 /* TSReleaseNotesMessage.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TSReleaseNotesMessage.m; sourceTree = "<group>"; };
@@ -11509,6 +11511,7 @@
 				76847C932A13416A008E2EAB /* ChatListViewController+Camera.swift */,
 				34E95C28269F6109004807EC /* ChatListViewController+Helpers.swift */,
 				34E95C2C26A0673F004807EC /* ChatListViewController+Loading.swift */,
+				049653F5304721D0000F6674 /* ChatListViewController+LocalFileBackupExportProgressView.swift */,
 				040277FD303DE4F2009C1468 /* ChatListViewController+LocalFileBackupRestoreProgressView.swift */,
 				1404D8B2276A353A0068E2F6 /* ChatListViewController+Multiselect.swift */,
 				34882C512694A9260013E289 /* ChatListViewController+Notifications.swift */,
@@ -18572,6 +18575,7 @@
 				76847C942A13416A008E2EAB /* ChatListViewController+Camera.swift in Sources */,
 				34E95C29269F6109004807EC /* ChatListViewController+Helpers.swift in Sources */,
 				34E95C2D26A06740004807EC /* ChatListViewController+Loading.swift in Sources */,
+				049653F6304721DB000F6674 /* ChatListViewController+LocalFileBackupExportProgressView.swift in Sources */,
 				040277FE303DE4F2009C1468 /* ChatListViewController+LocalFileBackupRestoreProgressView.swift in Sources */,
 				1404D8B3276A353B0068E2F6 /* ChatListViewController+Multiselect.swift in Sources */,
 				34882C522694A9260013E289 /* ChatListViewController+Notifications.swift in Sources */,

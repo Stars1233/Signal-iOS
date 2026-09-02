@@ -78,6 +78,7 @@ struct CLVRenderState {
              .backupDownloadProgressView where shouldBackupDownloadProgressViewBeVisible,
              .backupExportProgressView where shouldBackupExportProgressViewBeVisible,
              .localFileBackupRestoreProgressView where shouldLocalFileBackupRestoreProgressViewBeVisible,
+             .localFileBackupExportProgressView where shouldLocalFileBackupExportProgressViewBeVisible,
              .archiveButton where hasArchivedThreadsRow:
             return Section(type: sectionType)
 
@@ -85,6 +86,7 @@ struct CLVRenderState {
              .backupDownloadProgressView,
              .backupExportProgressView,
              .localFileBackupRestoreProgressView,
+             .localFileBackupExportProgressView,
              .archiveButton:
             return nil
 
@@ -122,6 +124,10 @@ struct CLVRenderState {
         viewInfo.shouldLocalFileBackupRestoreProgressViewBeVisible
     }
 
+    var shouldLocalFileBackupExportProgressViewBeVisible: Bool {
+        viewInfo.shouldLocalFileBackupExportProgressViewBeVisible
+    }
+
     // MARK: UITableViewDataSource
 
     func numberOfRows(in section: Section) -> Int {
@@ -130,6 +136,7 @@ struct CLVRenderState {
              .backupDownloadProgressView,
              .backupExportProgressView,
              .localFileBackupRestoreProgressView,
+             .localFileBackupExportProgressView,
              .archiveButton,
              .inboxFilterFooter:
             return 1
@@ -155,6 +162,7 @@ struct CLVRenderState {
              .backupDownloadProgressView,
              .backupExportProgressView,
              .localFileBackupRestoreProgressView,
+             .localFileBackupExportProgressView,
              .archiveButton:
             return nil
         }
@@ -175,6 +183,7 @@ struct CLVRenderState {
              .backupDownloadProgressView,
              .backupExportProgressView,
              .localFileBackupRestoreProgressView,
+             .localFileBackupExportProgressView,
              .archiveButton:
             owsFailDebug("Section diffing not yet supported in section '\(section.type)'")
             return nil

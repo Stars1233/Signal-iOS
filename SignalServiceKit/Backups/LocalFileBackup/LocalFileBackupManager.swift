@@ -69,6 +69,11 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
 
     public static let attachmentBatchSize = 50
 
+    public enum ProgressLabel {
+        public static let writeQueuedAttachment = "writeQueuedAttachment"
+        public static let ensureAttachmentMetadataExists = "ensureAttachmentMetadataExists"
+    }
+
     init(
         appReadiness: AppReadiness,
         db: DB,
@@ -295,8 +300,10 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
 
         let existingFiles = try existingFilesInBackupDirectory(backupsRootDirectory: backupsRootDirectory)
 
-        let totalAttachmentCount = db.read { tx in localFileBackupStore.exportRecordsCount(tx: tx) }
-        let source = progressSink?.addSource(withLabel: "writeQueuedAttachment", unitCount: UInt64(totalAttachmentCount))
+        let totalByteCount = db.read { tx in
+            localFileBackupStore.totalUnencryptedByteCountOfQueuedExports(tx: tx)
+        }
+        let source = progressSink?.addSource(withLabel: ProgressLabel.writeQueuedAttachment, unitCount: totalByteCount)
 
         while true {
             try Task.checkCancellation()
@@ -332,8 +339,9 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
             )
 
             for attachmentWithMetadata in attachmentsWithMetadata {
+                let attachmentByteCount = UInt64(safeCast: attachmentWithMetadata.metadata.unencryptedByteCount)
                 guard let attachmentStream = attachmentWithMetadata.attachment.asStream() else {
-                    source?.incrementCompletedUnitCount(by: 1)
+                    source?.incrementCompletedUnitCount(by: attachmentByteCount)
                     continue
                 }
 
@@ -350,7 +358,7 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
                     var fileProto = LocalBackupProto_FilesFrame()
                     fileProto.item = .mediaName(localFileBackupMediaName)
                     try manifestStream.write(data: fileProto.serializedData())
-                    source?.incrementCompletedUnitCount(by: 1)
+                    source?.incrementCompletedUnitCount(by: attachmentByteCount)
                     continue
                 }
 
@@ -387,7 +395,7 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
                     fileProto.item = .mediaName(localFileBackupMediaName)
                     try manifestStream.write(data: fileProto.serializedData())
 
-                    source?.incrementCompletedUnitCount(by: 1)
+                    source?.incrementCompletedUnitCount(by: attachmentByteCount)
                 }
                 await Task.yield()
             }
@@ -458,7 +466,7 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
         let totalRemainingAttachmentCount = db.read { tx in
             localFileBackupStore.attachmentCountSinceLastFetched(tx: tx)
         }
-        let source = progressSink?.addSource(withLabel: "ensureAttachmentMetadataExists", unitCount: UInt64(totalRemainingAttachmentCount))
+        let source = progressSink?.addSource(withLabel: ProgressLabel.ensureAttachmentMetadataExists, unitCount: UInt64(totalRemainingAttachmentCount))
 
         await TimeGatedBatch.processAll(
             db: db,

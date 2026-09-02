@@ -289,6 +289,7 @@ public class CLVLoadCoordinator {
             shouldBackupDownloadProgressViewBeVisible: Bool,
             shouldBackupExportProgressViewBeVisible: Bool,
             shouldLocalFileBackupRestoreProgressViewBeVisible: Bool,
+            shouldLocalFileBackupExportProgressViewBeVisible: Bool,
             lastViewInfo: CLVViewInfo,
             transaction: DBReadTransaction,
         ) -> CLVLoadInfo {
@@ -303,6 +304,7 @@ public class CLVLoadCoordinator {
                 shouldBackupDownloadProgressViewBeVisible: shouldBackupDownloadProgressViewBeVisible,
                 shouldBackupExportProgressViewBeVisible: shouldBackupExportProgressViewBeVisible,
                 shouldLocalFileBackupRestoreProgressViewBeVisible: shouldLocalFileBackupRestoreProgressViewBeVisible,
+                shouldLocalFileBackupExportProgressViewBeVisible: shouldLocalFileBackupExportProgressViewBeVisible,
                 transaction: transaction,
             )
 
@@ -405,6 +407,7 @@ public class CLVLoadCoordinator {
                 shouldBackupDownloadProgressViewBeVisible: viewController.viewState.backupDownloadProgressView.shouldBeVisible,
                 shouldBackupExportProgressViewBeVisible: viewController.viewState.backupExportProgressView.shouldBeVisible,
                 shouldLocalFileBackupRestoreProgressViewBeVisible: viewController.viewState.localFileBackupRestoreProgressView.shouldBeVisible,
+                shouldLocalFileBackupExportProgressViewBeVisible: viewController.viewState.localFileBackupExportProgressView.shouldBeVisible,
                 lastViewInfo: viewController.renderState.viewInfo,
                 transaction: transaction,
             )

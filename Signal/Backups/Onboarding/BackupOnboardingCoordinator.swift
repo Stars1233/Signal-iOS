@@ -95,6 +95,7 @@ class BackupOnboardingCoordinator {
                     backupFailureStateManager: backupFailureStateManager,
                     localFileBackupAttachmentRestoreProgress: DependenciesBridge.shared.localFileBackupAttachmentRestoreProgress,
                     presentWelcomeSheet: false,
+                    clvLocalFileBackupExportProgressViewStore: CLVLocalFileBackupExportProgressView.Store(),
                 )
             }
         } else {
@@ -269,6 +270,7 @@ class BackupOnboardingCoordinator {
                                     backupFailureStateManager: DependenciesBridge.shared.backupFailureStateManager,
                                     localFileBackupAttachmentRestoreProgress: DependenciesBridge.shared.localFileBackupAttachmentRestoreProgress,
                                     presentWelcomeSheet: true,
+                                    clvLocalFileBackupExportProgressViewStore: CLVLocalFileBackupExportProgressView.Store(),
                                 ),
                             ],
                             animated: true,

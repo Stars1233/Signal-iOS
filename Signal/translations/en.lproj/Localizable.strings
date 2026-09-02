@@ -2131,6 +2131,18 @@
 /* Title shown on the chat list banner while restoring attachments from an on-device backup. */
 "CHAT_LIST_LOCAL_FILE_BACKUP_RESTORE_PROGRESS_VIEW_TITLE" = "Restoring Attachments";
 
+/* Progress label showing the amount uploaded out of the total. Embeds {{ %1$@ bytes uploaded, %2$@ total bytes to upload }}. */
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS_FORMAT" = "%1$@ of %2$@";
+
+/* Title label shown in the chat list backup progress view while backup attachments are being uploaded. */
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS_TITLE" = "Copying attachments";
+
+/* Title label shown in the chat list local file backup progress view while the attachments are being prepared */
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_ATTACHMENTS" = "Preparing attachments";
+
+/* Title label shown in the chat list local file backup progress view while the backup file is being prepared. */
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_BACKUP" = "Preparing backup";
+
 /* Message shown in the chat list when the chat list is empty. */
 "CHAT_LIST_NO_CHATS_SUBTITLE" = "Recent chats will appear here.";
 
@@ -8950,8 +8962,8 @@
 /* Message for an action sheet when a user cannot perform a remote backup because a local backup is in progress */
 "SETTINGS_LOCAL_FILE_BACKUPS_LOCAL_BACKUP_IN_PROGRESS_MESSAGE" = "Unable to perform a Signal Secure Backup because an on-device backup is in progress. Try again later.";
 
-/* Label for a progress bar while attachments are being copied for an on-device backup. Embeds 1:{{ percentage complete }}. */
-"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS" = "Copying attachments (%1$@)";
+/* Label for a progress bar while attachments are being copied for an on-device backup. Embeds 1:{{%1$@ completed bytes copied, %2$@ total bytes to copy, %3$@ percentage complete }}. */
+"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS" = "Copying attachments %1$@ of %2$@ (%3$@)";
 
 /* Label for a progress bar while the attachments are being prepared for an on-device backup. Embeds 1:{{ percentage complete }}. */
 "SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_ATTACHMENTS" = "Preparing attachments (%1$@)";

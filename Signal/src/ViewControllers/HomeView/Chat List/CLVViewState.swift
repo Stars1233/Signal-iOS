@@ -27,6 +27,7 @@ class CLVViewState {
     let backupDownloadProgressView: CLVBackupDownloadProgressView
     let backupExportProgressView: CLVBackupExportProgressView
     let localFileBackupRestoreProgressView: CLVLocalFileBackupRestoreProgressView
+    let localFileBackupExportProgressView: CLVLocalFileBackupExportProgressView
     let settingsButtonCreator: ChatListSettingsButtonState
     let proxyButtonCreator: ChatListProxyButtonCreator
 
@@ -135,6 +136,7 @@ class CLVViewState {
         self.backupDownloadProgressView = CLVBackupDownloadProgressView()
         self.backupExportProgressView = CLVBackupExportProgressView()
         self.localFileBackupRestoreProgressView = CLVLocalFileBackupRestoreProgressView()
+        self.localFileBackupExportProgressView = CLVLocalFileBackupExportProgressView()
         self.settingsButtonCreator = ChatListSettingsButtonState()
         self.proxyButtonCreator = ChatListProxyButtonCreator(chatConnectionManager: DependenciesBridge.shared.chatConnectionManager)
     }

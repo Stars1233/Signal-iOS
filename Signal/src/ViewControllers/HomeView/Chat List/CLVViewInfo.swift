@@ -16,6 +16,7 @@ struct CLVViewInfo: Equatable {
     let shouldBackupDownloadProgressViewBeVisible: Bool
     let shouldBackupExportProgressViewBeVisible: Bool
     let shouldLocalFileBackupRestoreProgressViewBeVisible: Bool
+    let shouldLocalFileBackupExportProgressViewBeVisible: Bool
     let lastSelectedThreadId: String?
     let requiredVisibleThreadIds: Set<String>
 
@@ -37,6 +38,7 @@ struct CLVViewInfo: Equatable {
             shouldBackupDownloadProgressViewBeVisible: false,
             shouldBackupExportProgressViewBeVisible: false,
             shouldLocalFileBackupRestoreProgressViewBeVisible: false,
+            shouldLocalFileBackupExportProgressViewBeVisible: false,
             lastSelectedThreadId: nil,
             requiredVisibleThreadIds: [],
         )
@@ -51,6 +53,7 @@ struct CLVViewInfo: Equatable {
         shouldBackupDownloadProgressViewBeVisible: Bool,
         shouldBackupExportProgressViewBeVisible: Bool,
         shouldLocalFileBackupRestoreProgressViewBeVisible: Bool,
+        shouldLocalFileBackupExportProgressViewBeVisible: Bool,
         transaction: DBReadTransaction,
     ) -> CLVViewInfo {
         let requiredThreadIds: Set<String> = switch (inboxFilter, lastSelectedThreadId) {
@@ -72,6 +75,7 @@ struct CLVViewInfo: Equatable {
             shouldBackupDownloadProgressViewBeVisible: shouldBackupDownloadProgressViewBeVisible,
             shouldBackupExportProgressViewBeVisible: shouldBackupExportProgressViewBeVisible,
             shouldLocalFileBackupRestoreProgressViewBeVisible: shouldLocalFileBackupRestoreProgressViewBeVisible,
+            shouldLocalFileBackupExportProgressViewBeVisible: shouldLocalFileBackupExportProgressViewBeVisible,
             lastSelectedThreadId: lastSelectedThreadId,
             requiredVisibleThreadIds: requiredThreadIds,
         )

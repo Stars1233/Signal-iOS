@@ -17,6 +17,7 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
     private let localFileBackupExportJobStore: LocalFileBackupExportJobStore
     private let backupFailureStateManager: BackupFailureStateManager
     private var presentWelcomeSheet: Bool
+    private let clvLocalFileBackupExportProgressViewStore: CLVLocalFileBackupExportProgressView.Store
 
     // Archive progress
     private var latestArchiveProgressUpdate: OWSSequentialProgress<LocalFileBackupExportJobStage>?
@@ -42,6 +43,7 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
         backupFailureStateManager: BackupFailureStateManager,
         localFileBackupAttachmentRestoreProgress: LocalFileBackupAttachmentRestoreProgress,
         presentWelcomeSheet: Bool,
+        clvLocalFileBackupExportProgressViewStore: CLVLocalFileBackupExportProgressView.Store,
     ) {
         self.localFileBackupExportJobRunner = localFileBackupExportJobRunner
         self.localFileBackupStore = localFileBackupStore
@@ -52,6 +54,7 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
         self.backupFailureStateManager = backupFailureStateManager
         self.localFileBackupAttachmentRestoreProgress = localFileBackupAttachmentRestoreProgress
         self.presentWelcomeSheet = presentWelcomeSheet
+        self.clvLocalFileBackupExportProgressViewStore = clvLocalFileBackupExportProgressViewStore
     }
 
     deinit {
@@ -422,12 +425,17 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
             )
             return (percent, label)
         case .attachmentCopy:
+            let source = update.descendantProgresses(withLabel: LocalFileBackupManager.ProgressLabel.writeQueuedAttachment).first
+            let completedBytes = source?.completedUnitCount ?? 0
+            let totalBytes = source?.totalUnitCount ?? 0
             let percent = update.progress(for: .attachmentCopy)?.percentComplete ?? 0
             let label = String.nonPluralLocalizedStringWithFormat(
                 OWSLocalizedString(
                     "SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS",
-                    comment: "Label for a progress bar while attachments are being copied for an on-device backup. Embeds 1:{{ percentage complete }}.",
+                    comment: "Label for a progress bar while attachments are being copied for an on-device backup. Embeds 1:{{%1$@ completed bytes copied, %2$@ total bytes to copy, %3$@ percentage complete }}.",
                 ),
+                completedBytes.formatted(.owsByteCount()),
+                totalBytes.formatted(.owsByteCount()),
                 percent.formatted(.owsPercent()),
             )
             return (percent, label)
@@ -673,7 +681,7 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
 
                 let cleanUpState: () -> Void = { [weak self] in
                     guard let self else { return }
-                    db.write { [localFileBackupStore, localFileBackupExportJobStore] tx in
+                    db.write { [localFileBackupStore, localFileBackupExportJobStore, clvLocalFileBackupExportProgressViewStore] tx in
                         localFileBackupStore.setLocalBackupsEnabled(value: false, tx: tx)
 
                         // Clear any reminders or details associated with the local backup.
@@ -686,6 +694,8 @@ class LocalFileBackupsSettingsViewController: OWSTableViewController2 {
                         localFileBackupStore.clearLastBackupEnabledDetails(tx: tx)
                         localFileBackupStore.clearErrorStateStore(tx: tx)
                         localFileBackupExportJobStore.wipe(tx: tx)
+                        // Reset the Backups progress bars, in case we later reenable Backups.
+                        clvLocalFileBackupExportProgressViewStore.setIsHidden(false, tx: tx)
                     }
                 }
 
