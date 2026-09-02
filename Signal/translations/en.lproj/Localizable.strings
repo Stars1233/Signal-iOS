@@ -8077,6 +8077,12 @@
 /* Error shown if an SMS/call service provider is temporarily unable to send a verification code to the provided number. */
 "REGISTRATION_PROVIDER_FAILURE_MESSAGE_TRANSIENT" = "We are unable to send an SMS to your number. Please try again in a few minutes.";
 
+/* Message for a button in the registration flow that allows restoring from a local backup */
+"REGISTRATION_RESTORE_FROM_LOCAL_BACKUP_BUTTON_MESSAGE" = "Restore your account and messages from a folder saved on your device";
+
+/* Title for a button in the registration flow that allows restoring from a local backup */
+"REGISTRATION_RESTORE_FROM_LOCAL_BACKUP_BUTTON_TITLE" = "Restore On-Device Backup";
+
 /* Third step in directions for how to make a backup */
 "REGISTRATION_RESTORE_METHOD_MAKE_BACKUP_TUTORIAL_ENABLE_BACKUPS" = "Enable backups and wait until your backup is complete";
 

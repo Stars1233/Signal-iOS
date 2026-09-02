@@ -43,9 +43,9 @@ class RegistrationChooseRestoreMethodViewController: OWSViewController, UIDocume
 
     private func localFileBackupRestoreButton() -> UIButton {
         return UIButton.registrationChoiceButton(
-            title: "(INTERNAL ONLY) Restore from local backup",
-            subtitle: "(INTERNAL ONLY) restore from local backup",
-            iconName: "signal-backups-48",
+            title: OWSLocalizedString("REGISTRATION_RESTORE_FROM_LOCAL_BACKUP_BUTTON_TITLE", comment: "Title for a button in the registration flow that allows restoring from a local backup"),
+            subtitle: OWSLocalizedString("REGISTRATION_RESTORE_FROM_LOCAL_BACKUP_BUTTON_MESSAGE", comment: "Message for a button in the registration flow that allows restoring from a local backup"),
+            iconName: "folder-37",
             primaryAction: UIAction { [weak self] _ in
                 self?.didSelectRestoreFromLocalBackup()
             },
@@ -150,6 +150,11 @@ class RegistrationChooseRestoreMethodViewController: OWSViewController, UIDocume
                 stackView.addArrangedSubviews([
                     prominentTransferButton(),
                     prominentRestoreButton(),
+                ])
+                if BuildFlags.LocalFileBackups.restore {
+                    stackView.addArrangedSubview(localFileBackupRestoreButton())
+                }
+                stackView.addArrangedSubviews([
                     .vStretchingSpacer(),
                     bottomButton.enclosedInVerticalStackView(isFullWidthButton: false),
                 ])
@@ -159,6 +164,11 @@ class RegistrationChooseRestoreMethodViewController: OWSViewController, UIDocume
                 stackView.addArrangedSubviews([
                     prominentRestoreButton(),
                     prominentTransferButton(),
+                ])
+                if BuildFlags.LocalFileBackups.restore {
+                    stackView.addArrangedSubview(localFileBackupRestoreButton())
+                }
+                stackView.addArrangedSubviews([
                     .vStretchingSpacer(),
                     bottomButton.enclosedInVerticalStackView(isFullWidthButton: false),
                 ])
@@ -167,11 +177,11 @@ class RegistrationChooseRestoreMethodViewController: OWSViewController, UIDocume
                 stackView.addArrangedSubviews([
                     prominentTransferButton(),
                     prominentSkipRestoreButton(),
-                    .vStretchingSpacer(),
                 ])
-            }
-            if BuildFlags.LocalFileBackups.restore {
-                stackView.addArrangedSubview(localFileBackupRestoreButton())
+                if BuildFlags.LocalFileBackups.restore {
+                    stackView.addArrangedSubview(localFileBackupRestoreButton())
+                }
+                stackView.addArrangedSubview(.vStretchingSpacer())
             }
         case .manualRestore:
             addDefaultTitle(to: stackView)
@@ -184,25 +194,25 @@ class RegistrationChooseRestoreMethodViewController: OWSViewController, UIDocume
             stackView.addArrangedSubviews([
                 prominentRestoreButton(),
                 prominentSkipRestoreButton(),
-                .vStretchingSpacer(),
-                bottomButton.enclosedInVerticalStackView(isFullWidthButton: false),
             ])
-
             if BuildFlags.LocalFileBackups.restore {
                 stackView.addArrangedSubview(localFileBackupRestoreButton())
             }
+            stackView.addArrangedSubviews([
+                .vStretchingSpacer(),
+                bottomButton.enclosedInVerticalStackView(isFullWidthButton: false),
+            ])
         case .unspecified:
             addDefaultTitle(to: stackView)
             stackView.addArrangedSubviews([
                 prominentTransferButton(),
                 prominentRestoreButton(),
                 prominentSkipRestoreButton(),
-                .vStretchingSpacer(),
             ])
-
             if BuildFlags.LocalFileBackups.restore {
                 stackView.addArrangedSubview(localFileBackupRestoreButton())
             }
+            stackView.addArrangedSubview(.vStretchingSpacer())
         }
     }
 
