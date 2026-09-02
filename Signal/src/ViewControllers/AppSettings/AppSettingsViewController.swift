@@ -18,10 +18,14 @@ class AppSettingsViewController: OWSTableViewController2 {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        SSKEnvironment.shared.databaseStorageRef.read { tx in
+        let databaseStorage = SSKEnvironment.shared.databaseStorageRef
+        let localUsernameManager = DependenciesBridge.shared.localUsernameManager
+        let profileFetcher = SSKEnvironment.shared.profileFetcherRef
+        let tsAccountManager = DependenciesBridge.shared.tsAccountManager
+
+        databaseStorage.read { tx in
             updateLocalUserProfile(tx: tx)
-            localUsernameState = DependenciesBridge.shared.localUsernameManager
-                .usernameState(tx: tx)
+            localUsernameState = localUsernameManager.usernameState(tx: tx)
         }
 
         title = OWSLocalizedString("SETTINGS_NAV_BAR_TITLE", comment: "Title for settings activity")
@@ -32,11 +36,12 @@ class AppSettingsViewController: OWSTableViewController2 {
         updateHasExpiredGiftBadge()
         updateTableContents()
 
-        let tsAccountManager = DependenciesBridge.shared.tsAccountManager
-        if let localAci = tsAccountManager.localIdentifiersWithMaybeSneakyTransaction?.aci {
+        if let registeredState = try? tsAccountManager.registeredStateWithMaybeSneakyTransaction() {
             Task {
-                let profileFetcher = SSKEnvironment.shared.profileFetcherRef
-                _ = try? await profileFetcher.fetchProfile(for: localAci, context: .init(isOpportunistic: true))
+                _ = try? await profileFetcher.fetchProfile(
+                    for: registeredState.localIdentifiers.aci,
+                    context: .init(isOpportunistic: true),
+                )
             }
         }
 
