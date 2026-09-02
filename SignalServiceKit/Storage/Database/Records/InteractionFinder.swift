@@ -634,6 +634,8 @@ public class InteractionFinder: NSObject {
         }
     }
 
+    // MARK: -
+
     public func unreadCount(transaction: DBReadTransaction) -> UInt {
         do {
             let sql = """
@@ -693,6 +695,15 @@ public class InteractionFinder: NSObject {
         }
     }
 
+    /// Whether ``fetchUnreadMessages(beforeSortId:tx:)`` will return any values.
+    public func hasUnreadMessage(
+        beforeSortId: UInt64,
+        tx: DBReadTransaction,
+    ) -> Bool {
+        var unreadCursor = fetchUnreadMessages(beforeSortId: beforeSortId, tx: tx)
+        return unreadCursor.next() != nil
+    }
+
     /// Enumerates all the unread interactions in this thread before a given sort id,
     /// sorted by sort id.
     public func fetchUnreadMessages(
@@ -716,6 +727,15 @@ public class InteractionFinder: NSObject {
                 arguments: [threadUniqueId, beforeSortId],
             )
         }
+    }
+
+    /// Whether ``fetchMessagesWithUnreadReactions(beforeSortId:tx:)`` will return any values.
+    public func hasMessageWithUnreadReactions(
+        beforeSortId: UInt64,
+        tx: DBReadTransaction,
+    ) -> Bool {
+        var unreadCursor = fetchMessagesWithUnreadReactions(beforeSortId: beforeSortId, tx: tx)
+        return unreadCursor.next() != nil
     }
 
     /// Returns all the messages with unread reactions in this thread before a given sort id,
@@ -763,6 +783,8 @@ public class InteractionFinder: NSObject {
         )
         return try cursor.next()
     }
+
+    // MARK: -
 
     @objc
     public func firstInteraction(
