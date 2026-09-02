@@ -1,1 +1,3 @@
-• 我們新增了一個方便的捷徑，讓你在 Signal 群組通話中開始發言後，可以快速放下你的手。這是此發行版本中我們最喜歡的功能。
+• Just in time for your next upgrade, the revamped device-to-device migration experience makes it easier than ever to securely transfer your Signal information from an old phone to a new phone over a local end-to-end encrypted wireless link. Connections now utilize Wi-Fi Aware networking for dramatically improved speed and reliability too.
+
+• We also added an alphabetized list (with a search bar!) when you tap on someone’s avatar to add them to another group, so you can help a new friend feel included even faster.

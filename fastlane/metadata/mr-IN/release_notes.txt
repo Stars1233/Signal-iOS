@@ -1,1 +1,3 @@
-• तुम्ही Signal गट कॉलवर बोलायला सुरुवात केल्यावर तुम्हाला हात लगेच खाली घेता यावा यासाठी आम्ही एक सोयीचा शॉर्टकट जोडला आहे. हे आमचे या प्रकाशनातील सगळ्यांत आवडते वैशिष्ट्य आहे.
+• Just in time for your next upgrade, the revamped device-to-device migration experience makes it easier than ever to securely transfer your Signal information from an old phone to a new phone over a local end-to-end encrypted wireless link. Connections now utilize Wi-Fi Aware networking for dramatically improved speed and reliability too.
+
+• We also added an alphabetized list (with a search bar!) when you tap on someone’s avatar to add them to another group, so you can help a new friend feel included even faster.
