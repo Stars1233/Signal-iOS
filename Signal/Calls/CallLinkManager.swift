@@ -103,7 +103,7 @@ class CallLinkManagerImpl: CallLinkManager {
     private func fetchCreateCredential(for roomId: Data, localAci: Aci) async throws -> CreateCallLinkCredential {
         let credentialRequestContext = CreateCallLinkCredentialRequestContext.forRoomId(roomId)
         let httpRequest = TSRequest(
-            url: URL(string: "v1/call-link/create-auth")!,
+            url: URL(string: "v1/call-link/create-auth?v101=true")!,
             method: "POST",
             parameters: [
                 "createCallLinkCredentialRequest": credentialRequestContext.getRequest().serialize().base64EncodedString(),

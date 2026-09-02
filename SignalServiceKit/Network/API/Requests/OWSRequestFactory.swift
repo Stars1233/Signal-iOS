@@ -43,7 +43,7 @@ public enum OWSRequestFactory {
         owsAssertDebug(fromRedemptionSeconds > 0)
         owsAssertDebug(toRedemptionSeconds > 0)
 
-        let path = "v1/certificate/auth/group?redemptionStartSeconds=\(fromRedemptionSeconds)&redemptionEndSeconds=\(toRedemptionSeconds)"
+        let path = "v1/certificate/auth/group?redemptionStartSeconds=\(fromRedemptionSeconds)&redemptionEndSeconds=\(toRedemptionSeconds)&v101=true"
         return TSRequest(url: URL(string: path)!, method: "GET", parameters: [:])
     }
 
