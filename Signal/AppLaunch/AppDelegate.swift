@@ -1854,11 +1854,12 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                 return
             }
 
-            guard tsAccountManager.registrationStateWithMaybeSneakyTransaction.isRegistered else {
+            guard let registeredState = try? tsAccountManager.registeredStateWithMaybeSneakyTransaction() else {
                 Logger.warn("Ignoring user activity; not registered.")
                 return
             }
-            guard let callTarget = CallKitCallManager.callTargetForHandleWithSneakyTransaction(handle) else {
+            let callTarget = CallKitCallManager.callTargetForHandleWithSneakyTransaction(handle, registeredState: registeredState)
+            guard let callTarget else {
                 Logger.warn("Ignoring user activity; unknown user.")
                 return
             }
