@@ -253,9 +253,6 @@ class GroupsV2ProfileKeyUpdater {
     /// Each Promise represents sending a message to one or more recipients.
     private func tryToUpdate(groupId: GroupIdentifier) async throws -> [Promise<Void>] {
         let tsAccountManager = DependenciesBridge.shared.tsAccountManager
-        guard let localAci = tsAccountManager.localIdentifiersWithMaybeSneakyTransaction?.aci else {
-            throw OWSGenericError("missing local address")
-        }
 
         try await SSKEnvironment.shared.messageProcessorRef.waitForFetchingAndProcessing()
 
@@ -274,6 +271,8 @@ class GroupsV2ProfileKeyUpdater {
             secretParams: secretParams,
             justUploadedAvatars: GroupAvatarStateMap.from(groupModel: groupModel),
         )
+        let registeredState = try tsAccountManager.registeredStateWithMaybeSneakyTransaction()
+        let localAci = registeredState.localIdentifiers.aci
         guard snapshotResponse.groupSnapshot.groupMembership.isFullMember(localAci) else {
             // We're not a full member, no need to update profile key.
             return []
