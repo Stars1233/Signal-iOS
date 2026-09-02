@@ -94,28 +94,25 @@ public class TSAccountManagerImpl: TSAccountManager {
 
     // MARK: - Registration IDs
 
-    private static var aciRegistrationIdKey: String = "TSStorageLocalRegistrationId"
-    private static var pniRegistrationIdKey: String = "TSStorageLocalPniRegistrationId"
-
     public func getRegistrationId(for identity: OWSIdentity, tx: DBReadTransaction) -> UInt32? {
         let key = switch identity {
-        case .aci: Self.aciRegistrationIdKey
-        case .pni: Self.pniRegistrationIdKey
+        case .aci: Keys.aciRegistrationIdKey
+        case .pni: Keys.pniRegistrationIdKey
         }
         return kvStore.fetchValue(Int64.self, forKey: key, tx: tx).map(UInt32.init(truncatingIfNeeded:))
     }
 
     public func setRegistrationId(_ newRegistrationId: UInt32, for identity: OWSIdentity, tx: DBWriteTransaction) {
         let key = switch identity {
-        case .aci: Self.aciRegistrationIdKey
-        case .pni: Self.pniRegistrationIdKey
+        case .aci: Keys.aciRegistrationIdKey
+        case .pni: Keys.pniRegistrationIdKey
         }
         kvStore.writeValue(Int64(newRegistrationId), forKey: key, tx: tx)
     }
 
     public func clearRegistrationIds(tx: DBWriteTransaction) {
-        kvStore.removeValue(forKey: Self.aciRegistrationIdKey, tx: tx)
-        kvStore.removeValue(forKey: Self.pniRegistrationIdKey, tx: tx)
+        kvStore.removeValue(forKey: Keys.aciRegistrationIdKey, tx: tx)
+        kvStore.removeValue(forKey: Keys.pniRegistrationIdKey, tx: tx)
     }
 
     // MARK: - Manual Message Fetch
@@ -265,6 +262,8 @@ extension TSAccountManagerImpl: LocalIdentifiersSetter {
                 Keys.localAci,
                 Keys.localPhoneNumber,
                 Keys.localPni,
+                Keys.aciRegistrationIdKey,
+                Keys.pniRegistrationIdKey,
                 Keys.registrationDate,
                 Keys.serverAuthToken,
                 Keys.wasTransferred,
@@ -603,6 +602,9 @@ extension TSAccountManagerImpl {
             static let localPhoneNumber = "TSStorageRegisteredNumberKey"
             static let localAci = "TSStorageRegisteredUUIDKey"
             static let localPni = "TSAccountManager_RegisteredPNIKey"
+
+            static let aciRegistrationIdKey = "TSStorageLocalRegistrationId"
+            static let pniRegistrationIdKey = "TSStorageLocalPniRegistrationId"
 
             static let registrationDate = "TSAccountManager_RegistrationDateKey"
             static let isDeregisteredOrDelinked = "TSAccountManager_IsDeregisteredKey"
