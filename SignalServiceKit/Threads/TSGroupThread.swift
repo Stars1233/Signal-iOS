@@ -152,7 +152,7 @@ open class TSGroupThread: TSThread {
                 return false
             }
         }
-        return BuildFlags.hardDeleteGroupThreads
+        return true
     }
 
     override open func anyWillInsert(transaction: DBWriteTransaction) {

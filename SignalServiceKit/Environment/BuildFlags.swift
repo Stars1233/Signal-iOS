@@ -83,7 +83,6 @@ public enum BuildFlags {
         public static let settingsUI = build <= .internal
     }
 
-    static let hardDeleteGroupThreads = true
     static let hardDeleteGroupThreadsDuringRefresh = true
 
     /// New notification settings. Don't enable until Storage Service is integrated
