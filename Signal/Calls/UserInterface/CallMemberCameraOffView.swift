@@ -214,23 +214,9 @@ class CallMemberCameraOffView: UIView, CallMemberComposableView {
         label.textColor = Theme.darkThemePrimaryColor
 
         let container = UIStackView(arrangedSubviews: [icon, label])
-        if UIDevice.current.isIPhone5OrShorter {
-            // Use a horizontal layout to save on vertical space.
-            // Allow the icon to shrink below its natural size of 28pt...
-            icon.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
-            container.axis = .horizontal
-            container.spacing = 4
-            // ...by always matching the label's height.
-            container.alignment = .fill
-        } else {
-            // Use a simple vertical layout.
-            icon.autoSetDimensions(to: CGSize(square: 28))
-            container.axis = .vertical
-            container.spacing = 10
-            container.alignment = .center
-            label.autoPinWidthToSuperview()
-        }
-
+        container.axis = .vertical
+        container.spacing = 10
+        container.alignment = .center
         return container
     }
 
