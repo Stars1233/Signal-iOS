@@ -28,8 +28,19 @@ enum ScreenshotBlocking {
         // toggle isSecureTextEntry. That causes the UITextField to apply the
         // "redact content" flag to the input view's layer, at which point we're
         // all set.
+        let canvasLayer = screenshotBlockingView.layer
+        let layerDelegate = view.layer.delegate as AnyObject?
+
         screenshotBlockingView.setValue(view.layer, forKey: "layer")
         textField.isSecureTextEntry = false
         textField.isSecureTextEntry = true
+
+        // Hand the canvas view its own layer back before it deallocs, since
+        // otherwise it'll tear down a layer it doesn't own.
+        screenshotBlockingView.setValue(canvasLayer, forKey: "layer")
+
+        // If the text field repointed the layer's delegate at the canvas view,
+        // the given view will stop drawing and laying out once we're done here.
+        owsAssertDebug(view.layer.delegate as AnyObject? === layerDelegate)
     }
 }
