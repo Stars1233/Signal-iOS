@@ -21,11 +21,12 @@ public class GroupV2UpdatesImpl: GroupV2Updates {
         let databaseStorage = SSKEnvironment.shared.databaseStorageRef
         let messageProcessor = SSKEnvironment.shared.messageProcessorRef
         let tsAccountManager = DependenciesBridge.shared.tsAccountManager
-        let localIdentifiers = tsAccountManager.localIdentifiersWithMaybeSneakyTransaction.owsFailUnwrap("must be registered")
 
         var refreshedGroupCount = 0
         while true {
             try await messageProcessor.waitForFetchingAndProcessing()
+            let registeredState = try tsAccountManager.registeredStateWithMaybeSneakyTransaction()
+            let localIdentifiers = registeredState.localIdentifiers
 
             let groupToRefresh = databaseStorage.read(block: { tx in GroupStore().fetchMostStaleGroup(tx: tx) })
             guard let groupToRefresh else {

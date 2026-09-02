@@ -728,10 +728,11 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
             mustBeRegistered: true,
             mustBeConnected: true,
             operation: {
-                guard let localIdentifiers = tsAccountManager.localIdentifiersWithMaybeSneakyTransaction else {
-                    throw OWSAssertionError("never registered")
-                }
-                try await backupRefreshManager.refreshBackup(localIdentifiers: localIdentifiers, logger: PrefixedLogger(prefix: "[Backups][Refresh]"))
+                let registeredState = try tsAccountManager.registeredStateWithMaybeSneakyTransaction()
+                try await backupRefreshManager.refreshBackup(
+                    localIdentifiers: registeredState.localIdentifiers,
+                    logger: PrefixedLogger(prefix: "[Backups][Refresh]"),
+                )
             },
         )
 
