@@ -940,8 +940,11 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
             // We're already registered.
             return .chatList
 
-        case .reregistering(let reregNumber, let reregAci):
-            if let reregE164 = E164(reregNumber), let reregAci {
+        case .reregistering(let localIdentifiers):
+            if
+                let reregE164 = E164(localIdentifiers.phoneNumber),
+                let reregAci = localIdentifiers.aci
+            {
                 Logger.info("Found legacy re-registration; continuing in new registration")
                 // A user who started re-registration before the new
                 // registration flow shipped; kick them to new re-reg.

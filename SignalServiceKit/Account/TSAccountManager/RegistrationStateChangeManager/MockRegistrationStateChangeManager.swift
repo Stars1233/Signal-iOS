@@ -53,7 +53,7 @@ open class MockRegistrationStateChangeManager: RegistrationStateChangeManager {
         _ localAci: Aci,
         _ wasPrimaryDevice: Bool,
     ) -> Void = { [weak self] phoneNumber, aci, _ in
-        self?.registrationStateMock = { .reregistering(phoneNumber: phoneNumber.stringValue, aci: aci) }
+        self?.registrationStateMock = { .reregistering(ReregisteringLocalIdentifiers(phoneNumber: phoneNumber.stringValue, aci: aci)) }
     }
 
     open func resetForReregistration(

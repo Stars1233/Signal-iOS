@@ -82,21 +82,26 @@ class ProvisioningCoordinatorImpl: ProvisioningCoordinator {
         // * Primary devices that are re-registering can provision instead as long as either
         // the phone number or aci matches.
         // * Secondary devices _cannot_ be re-linked to primaries with a different aci.
+        let oldLocalIdentifiers: ReregisteringLocalIdentifiers?
         switch self.tsAccountManager.registrationStateWithMaybeSneakyTransaction {
-        case .reregistering(let reregistrationPhoneNumber, let reregistrationAci):
-            let acisMatch = reregistrationAci != nil && reregistrationAci == provisionMessage.aci
-            let phoneNumbersMatch = reregistrationPhoneNumber == provisionMessage.phoneNumber
-            guard acisMatch || phoneNumbersMatch else {
-                Logger.warn("Cannot re-link primary a different aci and phone number")
+        case .reregistering(let localIdentifiers):
+            oldLocalIdentifiers = localIdentifiers
+            let oldPhoneNumber = localIdentifiers.phoneNumber
+            guard oldPhoneNumber == provisionMessage.phoneNumber else {
+                Logger.warn("can't re-link primary a different phone number")
                 throw .previouslyLinkedWithDifferentAccount
             }
-        case .relinking(_, let relinkingAci):
-            if let oldAci = relinkingAci, oldAci != provisionMessage.aci {
-                Logger.warn("Cannot re-link with a different aci")
-                throw .previouslyLinkedWithDifferentAccount
-            }
+        case .relinking(let localIdentifiers):
+            oldLocalIdentifiers = localIdentifiers
         default:
-            break
+            oldLocalIdentifiers = nil
+        }
+
+        if let oldAci = oldLocalIdentifiers?.aci {
+            guard oldAci == provisionMessage.aci else {
+                Logger.warn("can't re-link with a different aci")
+                throw .previouslyLinkedWithDifferentAccount
+            }
         }
 
         guard let phoneNumber = E164(provisionMessage.phoneNumber) else {

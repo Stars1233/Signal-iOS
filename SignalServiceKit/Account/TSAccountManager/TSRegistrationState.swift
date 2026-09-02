@@ -4,7 +4,7 @@
 //
 
 import Foundation
-public import LibSignalClient
+import LibSignalClient
 
 public enum TSRegistrationState {
     /// We are unregistered and never have been.
@@ -15,9 +15,9 @@ public enum TSRegistrationState {
     case unregistered
 
     /// Re-registering after becoming deregistered.
-    case reregistering(phoneNumber: String, aci: Aci?)
+    case reregistering(ReregisteringLocalIdentifiers)
     /// Re-linking after becoming delinked.
-    case relinking(phoneNumber: String, aci: Aci?)
+    case relinking(ReregisteringLocalIdentifiers)
 
     /// Registered as a primary device. "Normal" state.
     case registered(LocalIdentifiers)

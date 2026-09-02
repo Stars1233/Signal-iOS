@@ -741,6 +741,7 @@
 		50438A8F2ECBBE1D00FCB28F /* BackupRefreshManagerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B975472E43BFE000E20364 /* BackupRefreshManagerTest.swift */; };
 		504474CF304601D80058016E /* TableRecord+SSK.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504474CE304601D80058016E /* TableRecord+SSK.swift */; };
 		504474D13046021B0058016E /* TableRecord+SSKTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504474D03046021B0058016E /* TableRecord+SSKTest.swift */; };
+		504474D330461B210058016E /* ReregisteringLocalIdentifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504474D230461B210058016E /* ReregisteringLocalIdentifiers.swift */; };
 		5045F44229E0DB7100058E5F /* LaunchJobs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 349C3636233D198300D52012 /* LaunchJobs.swift */; };
 		50468F2529EDD46500948E02 /* ParamParserTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C3EF7FC2107DDEE0007EBF7 /* ParamParserTest.swift */; };
 		50468F2929EE130A00948E02 /* InteractionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50468F2829EE130A00948E02 /* InteractionStore.swift */; };
@@ -5103,6 +5104,7 @@
 		5042EAA2287F96FB00C9B19F /* VisibleBadgeResolverTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisibleBadgeResolverTest.swift; sourceTree = "<group>"; };
 		504474CE304601D80058016E /* TableRecord+SSK.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TableRecord+SSK.swift"; sourceTree = "<group>"; };
 		504474D03046021B0058016E /* TableRecord+SSKTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TableRecord+SSKTest.swift"; sourceTree = "<group>"; };
+		504474D230461B210058016E /* ReregisteringLocalIdentifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReregisteringLocalIdentifiers.swift; sourceTree = "<group>"; };
 		50468F2829EE130A00948E02 /* InteractionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractionStore.swift; sourceTree = "<group>"; };
 		50468F2A29EE19C300948E02 /* PhoneNumberChangedMessageInserterTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneNumberChangedMessageInserterTest.swift; sourceTree = "<group>"; };
 		5049246E2F209DA8006469B3 /* OutgoingMessageRequestResponseSyncMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutgoingMessageRequestResponseSyncMessage.swift; sourceTree = "<group>"; };
@@ -15433,6 +15435,7 @@
 				50D146CC2D1F4E5800D628DE /* ProfileKey.swift */,
 				507C6AF42ED10BD900A7C74C /* RegisteredState.swift */,
 				C1C2185C2E70BA27008567A1 /* RegistrationIdMismatchManager.swift */,
+				504474D230461B210058016E /* ReregisteringLocalIdentifiers.swift */,
 				507CD5E429660D5100E47DAC /* ServiceId.swift */,
 			);
 			path = Account;
@@ -20214,6 +20217,7 @@
 				F9C5CE17289453B400548EEE /* RemoteConfigManager.swift in Sources */,
 				D98DD86028EE53B00089333E /* RemoteMegaphoneModel.swift in Sources */,
 				040507012F804C240078B769 /* RemoteReleaseNotesService.swift in Sources */,
+				504474D330461B210058016E /* ReregisteringLocalIdentifiers.swift in Sources */,
 				5063B41E2C5432A30041CA51 /* ResolvableValue.swift in Sources */,
 				502C69742B06F0A400012867 /* Result.swift in Sources */,
 				50C0203E2CA4A7A500BDC4EF /* Retry.swift in Sources */,

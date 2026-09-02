@@ -543,15 +543,9 @@ extension TSAccountManagerImpl {
 
                 let shouldDefaultToPrimaryDevice = UIDevice.current.userInterfaceIdiom == .phone
                 if kvStore.fetchValue(Bool.self, forKey: Keys.reregistrationWasPrimaryDevice, tx: tx) ?? shouldDefaultToPrimaryDevice {
-                    return .reregistering(
-                        phoneNumber: reregistrationPhoneNumber,
-                        aci: reregistrationAci,
-                    )
+                    return .reregistering(ReregisteringLocalIdentifiers(phoneNumber: reregistrationPhoneNumber, aci: reregistrationAci))
                 } else {
-                    return .relinking(
-                        phoneNumber: reregistrationPhoneNumber,
-                        aci: reregistrationAci,
-                    )
+                    return .relinking(ReregisteringLocalIdentifiers(phoneNumber: reregistrationPhoneNumber, aci: reregistrationAci))
                 }
             }
             let isDeregisteredOrDelinked = kvStore.fetchValue(Bool.self, forKey: Keys.isDeregisteredOrDelinked, tx: tx) ?? false
