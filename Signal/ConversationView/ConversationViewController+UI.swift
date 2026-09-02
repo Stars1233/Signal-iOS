@@ -135,8 +135,9 @@ extension ConversationViewController {
                             videoCallButton.style = .prominent
                         }
                     } else {
-                        videoCallButton.image = Theme.iconImage(.buttonVideoCall)
-                        videoCallButton.primaryAction = UIAction { [weak self] _ in self?.showGroupLobbyOrActiveCall() }
+                        videoCallButton.primaryAction = UIAction(
+                            image: Theme.iconImage(.buttonVideoCall),
+                        ) { [weak self] _ in self?.showGroupLobbyOrActiveCall() }
                     }
 
                     videoCallButton.isEnabled = (
