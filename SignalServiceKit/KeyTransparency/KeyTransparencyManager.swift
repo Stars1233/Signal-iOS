@@ -284,12 +284,9 @@ public final class KeyTransparencyManager {
     /// Perform a one-off self-check on demand, e.g. when triggered manually
     /// from Internal Settings rather than by the scheduled `Cron` job.
     public func performSelfCheckOnDemand() async throws {
-        guard let localIdentifiers = tsAccountManager.localIdentifiersWithMaybeSneakyTransaction else {
-            throw OWSAssertionError("Missing local identifiers!")
-        }
-
+        let registeredState = try tsAccountManager.registeredStateWithMaybeSneakyTransaction()
         logger.info("Running KT self-check on-demand!")
-        try await prepareAndPerformSelfCheck(localIdentifiers: localIdentifiers)
+        try await prepareAndPerformSelfCheck(localIdentifiers: registeredState.localIdentifiers)
     }
 
     private enum PrepareSelfCheckResult {
