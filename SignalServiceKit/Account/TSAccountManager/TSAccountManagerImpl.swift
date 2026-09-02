@@ -443,11 +443,17 @@ extension TSAccountManagerImpl {
             // WARNING: AccountState is loaded before data migrations have run (as well as after).
             // Do not use data migrations to update AccountState data; do it through schema migrations
             // or through normal write transactions. TSAccountManager should be the only code accessing this state anyway.
-            let localIdentifiers = Self.loadLocalIdentifiers(
+            let (aci, phoneNumber, pni) = Self.loadLocalIdentifiers(
                 kvStore: kvStore,
                 tx: tx,
             )
-            self.localIdentifiers = localIdentifiers
+            self.localIdentifiers = { () -> LocalIdentifiers? in
+                guard let phoneNumber, let aci else {
+                    owsAssertDebug((phoneNumber == nil) == (aci == nil), "ACI/phone number presence must match")
+                    return nil
+                }
+                return LocalIdentifiers(aci: aci, pni: pni, phoneNumber: phoneNumber)
+            }()
 
             let persistedDeviceId = kvStore.fetchValue(Int64.self, forKey: Keys.deviceId, tx: tx).map(UInt32.init(truncatingIfNeeded:))
 
@@ -475,7 +481,9 @@ extension TSAccountManagerImpl {
             self.isTransferInProgress = isTransferInProgress
 
             self.registrationState = Self.loadRegistrationState(
-                localIdentifiers: localIdentifiers,
+                aci: aci,
+                phoneNumber: phoneNumber,
+                pni: pni,
                 isPrimaryDevice: isPrimaryDevice,
                 isTransferInProgress: isTransferInProgress,
                 kvStore: kvStore,
@@ -497,19 +505,17 @@ extension TSAccountManagerImpl {
         private static func loadLocalIdentifiers(
             kvStore: NewKeyValueStore,
             tx: DBReadTransaction,
-        ) -> LocalIdentifiers? {
+        ) -> (aci: Aci?, phoneNumber: String?, pni: Pni?) {
             let localNumber = kvStore.fetchValue(String.self, forKey: Keys.localPhoneNumber, tx: tx)
             let localAci = Aci.parseFrom(aciString: kvStore.fetchValue(String.self, forKey: Keys.localAci, tx: tx))
             let localPni = Pni.parseFrom(pniString: kvStore.fetchValue(String.self, forKey: Keys.localPni, tx: tx))
-            guard let localNumber, let localAci else {
-                owsAssertDebug((localNumber == nil) == (localAci == nil), "ACI/phone number presence must match")
-                return nil
-            }
-            return LocalIdentifiers(aci: localAci, pni: localPni, phoneNumber: localNumber)
+            return (localAci, localNumber, localPni)
         }
 
         private static func loadRegistrationState(
-            localIdentifiers: LocalIdentifiers?,
+            aci: Aci?,
+            phoneNumber: String?,
+            pni: Pni?,
             isPrimaryDevice: Bool?,
             isTransferInProgress: Bool,
             kvStore: NewKeyValueStore,
@@ -555,17 +561,19 @@ extension TSAccountManagerImpl {
                 // (or delinked, based on whether this is a primary).
                 // isPrimaryDevice should have some value; if we've explicitly
                 // set isDeregistered that means we _were_ registered before.
+                let localIdentifiers = DeregisteredLocalIdentifiers(aci: aci, phoneNumber: phoneNumber, pni: pni)
                 switch isPrimaryDevice {
                 case true:
-                    return .deregistered
+                    return .deregistered(localIdentifiers)
                 case false:
-                    return .delinked
+                    return .delinked(localIdentifiers)
                 default:
                     owsFailDebug("deregistered or delinked && isPrimaryDevice == nil")
-                    return .delinked
+                    return .delinked(localIdentifiers)
                 }
             }
-            if let localIdentifiers {
+            if let aci, let phoneNumber {
+                let localIdentifiers = LocalIdentifiers(aci: aci, pni: pni, phoneNumber: phoneNumber)
                 // We have local identifiers, so we are registered/provisioned.
                 switch isPrimaryDevice {
                 case true:

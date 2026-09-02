@@ -742,6 +742,7 @@
 		504474CF304601D80058016E /* TableRecord+SSK.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504474CE304601D80058016E /* TableRecord+SSK.swift */; };
 		504474D13046021B0058016E /* TableRecord+SSKTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504474D03046021B0058016E /* TableRecord+SSKTest.swift */; };
 		504474D330461B210058016E /* ReregisteringLocalIdentifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504474D230461B210058016E /* ReregisteringLocalIdentifiers.swift */; };
+		504474D5304621060058016E /* DeregisteredLocalIdentifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504474D4304621050058016E /* DeregisteredLocalIdentifiers.swift */; };
 		5045F44229E0DB7100058E5F /* LaunchJobs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 349C3636233D198300D52012 /* LaunchJobs.swift */; };
 		50468F2529EDD46500948E02 /* ParamParserTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C3EF7FC2107DDEE0007EBF7 /* ParamParserTest.swift */; };
 		50468F2929EE130A00948E02 /* InteractionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50468F2829EE130A00948E02 /* InteractionStore.swift */; };
@@ -5105,6 +5106,7 @@
 		504474CE304601D80058016E /* TableRecord+SSK.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TableRecord+SSK.swift"; sourceTree = "<group>"; };
 		504474D03046021B0058016E /* TableRecord+SSKTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TableRecord+SSKTest.swift"; sourceTree = "<group>"; };
 		504474D230461B210058016E /* ReregisteringLocalIdentifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReregisteringLocalIdentifiers.swift; sourceTree = "<group>"; };
+		504474D4304621050058016E /* DeregisteredLocalIdentifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeregisteredLocalIdentifiers.swift; sourceTree = "<group>"; };
 		50468F2829EE130A00948E02 /* InteractionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractionStore.swift; sourceTree = "<group>"; };
 		50468F2A29EE19C300948E02 /* PhoneNumberChangedMessageInserterTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneNumberChangedMessageInserterTest.swift; sourceTree = "<group>"; };
 		5049246E2F209DA8006469B3 /* OutgoingMessageRequestResponseSyncMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutgoingMessageRequestResponseSyncMessage.swift; sourceTree = "<group>"; };
@@ -15423,6 +15425,7 @@
 				C18D6FDF2D4D8FB40085E3B9 /* AccountEntropyPool.swift */,
 				D9EDF2772E4D2A1E001D4BEC /* AccountEntropyPoolManager.swift */,
 				C14D49CD2D667F830033BA69 /* AccountKeyStore.swift */,
+				504474D4304621050058016E /* DeregisteredLocalIdentifiers.swift */,
 				50F401CB2D483BF40094CA56 /* DeviceId.swift */,
 				50D6BDEE2ED6724600CC012E /* DeviceType.swift */,
 				D9F399AC2A95798A001599EC /* IdentityKeyChecker.swift */,
@@ -19644,6 +19647,7 @@
 				D9247EA82BFD28E800DFEF6F /* DeleteForMeSyncMessageReceiver.swift in Sources */,
 				F9C5CC34289453B300548EEE /* DeliveryReceiptContext.swift in Sources */,
 				6698FC1A2980AB45004EFC30 /* DependenciesBridge.swift in Sources */,
+				504474D5304621060058016E /* DeregisteredLocalIdentifiers.swift in Sources */,
 				66F98DE02DB710F8009F1A86 /* DeviceBatteryLevelManager.swift in Sources */,
 				50F401CC2D483BF40094CA56 /* DeviceId.swift in Sources */,
 				505C2ED629971D4E00C23FB2 /* DeviceLimitExceededError.swift in Sources */,

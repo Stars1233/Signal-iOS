@@ -97,13 +97,8 @@ open class MockRegistrationStateChangeManager: RegistrationStateChangeManager {
 
     public lazy var setIsDeregisteredOrDelinkedMock: (
         _ isDeregisteredOrDelinked: Bool,
-    ) -> Void = { [weak self] isDeregisteredOrDelinked in
-        let wasPrimary = self?.registrationStateMock().isPrimaryDevice ?? true
-        if isDeregisteredOrDelinked {
-            self?.registrationStateMock = wasPrimary ? { .deregistered } : { .delinked }
-        } else {
-            owsFail("not implemented")
-        }
+    ) -> Void = { _ in
+        owsFail("not implemented")
     }
 
     open func setIsDeregisteredOrDelinked(_ isDeregisteredOrDelinked: Bool, tx: DBWriteTransaction) {

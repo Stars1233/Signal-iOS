@@ -27,11 +27,11 @@ public enum TSRegistrationState {
     /// Deregistered after having been registered, typically due
     /// to an error in a server response informing us we've been
     /// deregistered. Applies to primary devices only.
-    case deregistered
+    case deregistered(DeregisteredLocalIdentifiers)
     /// Delinked after having been provisioned, typically due
     /// to an error in a server response informing us we've been
     /// delinked. Applies to linked devices only.
-    case delinked
+    case delinked(DeregisteredLocalIdentifiers)
 
     /// The user has initiated an incoming device transfer.
     /// isPrimary state will be determined based on the final transferred database.
