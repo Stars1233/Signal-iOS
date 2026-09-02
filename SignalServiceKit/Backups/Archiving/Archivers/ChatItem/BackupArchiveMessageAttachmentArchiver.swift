@@ -428,7 +428,12 @@ extension ReferencedAttachment {
 
         proto.locatorInfo = self.asBackupFilePointerLocatorInfo(context: context, localFileBackupStore: localFileBackupStore)
 
-        if
+        if proto.locatorInfo.hasLocalKey {
+            context.attachmentByteCounter.addToByteCount(
+                attachmentID: attachment.id,
+                byteCount: Cryptography.localBackupEncryptedSize(unencryptedSize: UInt64(safeCast: proto.locatorInfo.size)) ?? .max,
+            )
+        } else if
             let mediaTierInfo = attachment.mediaTierInfo,
             mediaTierInfo.isUploaded(currentUploadEra: context.currentUploadEra)
         {
