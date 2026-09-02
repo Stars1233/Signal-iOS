@@ -35,6 +35,7 @@ final class CallService: CallServiceStateObserver, CallServiceStateDelegate {
     private var groupCallManager: GroupCallManager { SSKEnvironment.shared.groupCallManagerRef }
     private var messageSenderJobQueue: MessageSenderJobQueue { SSKEnvironment.shared.messageSenderJobQueueRef }
     private var reachabilityManager: SSKReachabilityManager { SSKEnvironment.shared.reachabilityManagerRef }
+    private let tsAccountManager: any TSAccountManager
 
     var callUIAdapter: CallUIAdapter
 
@@ -146,6 +147,7 @@ final class CallService: CallServiceStateObserver, CallServiceStateDelegate {
         )
         self.db = db
         self.deviceSleepManager = deviceSleepManager
+        self.tsAccountManager = tsAccountManager
         self.callManager.delegate = self
         self.callServiceState.addObserver(self)
 
@@ -172,8 +174,8 @@ final class CallService: CallServiceStateObserver, CallServiceStateDelegate {
         }
 
         appReadiness.runNowOrWhenAppWillBecomeReady { [self] in
-            if let localAci = DependenciesBridge.shared.tsAccountManager.localIdentifiersWithMaybeSneakyTransaction?.aci {
-                self.callManager.setSelfUuid(localAci.rawUUID)
+            if let registeredState = try? tsAccountManager.registeredStateWithMaybeSneakyTransaction() {
+                self.callManager.setSelfUuid(registeredState.localIdentifiers.aci.rawUUID)
             }
             self.notificationObservers.append(NotificationCenter.default.addObserver(forName: .registrationStateDidChange, object: nil, queue: .main) { [weak self] _ in
                 MainActor.assumeIsolated { self?.registrationChanged() }
@@ -675,7 +677,8 @@ final class CallService: CallServiceStateObserver, CallServiceStateDelegate {
         case .fetch:
             state = try await callLinkStateUpdater.readCallLink(rootKey: callLink.rootKey).get()
         }
-        let localIdentifiers = DependenciesBridge.shared.tsAccountManager.localIdentifiersWithMaybeSneakyTransaction!
+        let registeredState = try tsAccountManager.registeredStateWithMaybeSneakyTransaction()
+        let localIdentifiers = registeredState.localIdentifiers
         let authCredential = try await authCredentialManager.fetchCallLinkAuthCredential(localIdentifiers: localIdentifiers)
         let (adminPasskey, isDeleted) = databaseStorage.read { tx -> (Data?, Bool) in
             let callLinkRecord = callLinkStore.fetch(roomId: callLink.rootKey.deriveRoomId(), tx: tx)
@@ -876,8 +879,8 @@ final class CallService: CallServiceStateObserver, CallServiceStateDelegate {
     }
 
     private func registrationChanged() {
-        if let localAci = DependenciesBridge.shared.tsAccountManager.localIdentifiersWithMaybeSneakyTransaction?.aci {
-            callManager.setSelfUuid(localAci.rawUUID)
+        if let registeredState = try? tsAccountManager.registeredStateWithMaybeSneakyTransaction() {
+            callManager.setSelfUuid(registeredState.localIdentifiers.aci.rawUUID)
         }
     }
 
