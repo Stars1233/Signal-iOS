@@ -107,41 +107,6 @@ class BackupSettingsLandingPageViewController: OWSTableViewController2 {
     // MARK: - Table items
 
     private func buildSignalBackupsCardItem() -> OWSTableItem {
-        return OWSTableItem(customCellBlock: { [weak self] in
-            guard let self else { return OWSTableItem.newCell() }
-            return self.buildSignalBackupsCardCell()
-        })
-    }
-
-    private func buildSignalBackupsCardCell() -> UITableViewCell {
-        let cell = OWSTableItem.newCell()
-        cell.selectionStyle = .none
-
-        let titleLabel = UILabel()
-        titleLabel.text = OWSLocalizedString(
-            "BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_TITLE",
-            comment: "Title for the Signal Secure Backups cell on the Backups settings landing page.",
-        )
-        titleLabel.font = .dynamicTypeHeadlineClamped
-        titleLabel.textColor = .Signal.label
-        titleLabel.numberOfLines = 0
-
-        let bodyLabel = UILabel()
-        bodyLabel.text = OWSLocalizedString(
-            "BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_BODY",
-            comment: "Description of Signal Secure Backups on the Backups settings landing page.",
-        )
-        bodyLabel.font = .dynamicTypeSubheadlineClamped
-        bodyLabel.textColor = .Signal.secondaryLabel
-        bodyLabel.numberOfLines = 0
-
-        var buttonConfig = UIButton.Configuration.gray()
-        buttonConfig.cornerStyle = .capsule
-        buttonConfig.baseBackgroundColor = .Signal.tertiaryFill
-        buttonConfig.baseForegroundColor = .Signal.label
-        buttonConfig.titleTextAttributesTransformer = .defaultFont(.dynamicTypeSubheadlineClamped.medium())
-        buttonConfig.contentInsets = .init(top: 6, leading: 16, bottom: 6, trailing: 16)
-
         let shouldSkipBackupsOnboarding = db.read { tx in
             if backupSettingsStore.shouldOverrideShowBackupsOnboarding(tx: tx) {
                 return false
@@ -150,36 +115,69 @@ class BackupSettingsLandingPageViewController: OWSTableViewController2 {
             return backupSettingsStore.haveBackupsEverBeenEnabled(tx: tx)
         }
 
-        let title: String
-        if shouldSkipBackupsOnboarding {
-            title = OWSLocalizedString(
+        return OWSTableItem(
+            customCellBlock: { [weak self] in
+                guard let self else { return OWSTableItem.newCell() }
+                return self.buildSignalBackupsCardCell(
+                    shouldSkipBackupsOnboarding: shouldSkipBackupsOnboarding,
+                )
+            },
+            actionBlock: { [weak self] in
+                self?.showRemoteBackups(shouldSkipOnboarding: shouldSkipBackupsOnboarding)
+            },
+        )
+    }
+
+    private func buildSignalBackupsCardCell(
+        shouldSkipBackupsOnboarding: Bool,
+    ) -> UITableViewCell {
+        let cell = OWSTableItem.newCell()
+
+        let titleText = OWSLocalizedString(
+            "BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_TITLE",
+            comment: "Title for the Signal Secure Backups cell on the Backups settings landing page.",
+        )
+
+        let bodyText = OWSLocalizedString(
+            "BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_BODY",
+            comment: "Description of Signal Secure Backups on the Backups settings landing page.",
+        )
+
+        let actionText: String = if shouldSkipBackupsOnboarding {
+            OWSLocalizedString(
                 "BACKUP_SETTINGS_LANDING_VIEW_SETTINGS_BUTTON",
                 comment: "Button to view settings for remote backups on the Backups settings landing page.",
             )
         } else {
-            title = OWSLocalizedString(
+            OWSLocalizedString(
                 "BACKUP_SETTINGS_LANDING_SET_UP_BUTTON",
                 comment: "Button to begin setting up Signal Secure Backups on the Backups settings landing page.",
             )
         }
 
-        let remoteBackupsButton = UIButton(
-            configuration: buttonConfig,
-            primaryAction: UIAction(
-                title: title,
-            ) { [weak self] _ in
-                guard let navigationController = self?.navigationController else { return }
-                navigationController.pushViewController(
-                    BackupOnboardingCoordinator(
-                        backupType: .remote,
-                    ).prepareForPresentation(
-                        inNavController: navigationController,
-                        shouldSkipOnboarding: shouldSkipBackupsOnboarding,
-                    ),
-                    animated: true,
-                )
-            },
-        )
+        let titleLabel = UILabel()
+        titleLabel.text = titleText
+        titleLabel.font = .dynamicTypeHeadlineClamped
+        titleLabel.textColor = .Signal.label
+        titleLabel.numberOfLines = 0
+
+        let bodyLabel = UILabel()
+        bodyLabel.text = bodyText
+        bodyLabel.font = .dynamicTypeSubheadlineClamped
+        bodyLabel.textColor = .Signal.secondaryLabel
+        bodyLabel.numberOfLines = 0
+
+        var buttonConfig = UIButton.Configuration.gray()
+        buttonConfig.title = actionText
+        buttonConfig.cornerStyle = .capsule
+        buttonConfig.baseBackgroundColor = .Signal.tertiaryFill
+        buttonConfig.baseForegroundColor = .Signal.label
+        buttonConfig.titleTextAttributesTransformer = .defaultFont(.dynamicTypeSubheadlineClamped.medium())
+        buttonConfig.contentInsets = .init(top: 6, leading: 16, bottom: 6, trailing: 16)
+
+        let remoteBackupsButton = UIButton(configuration: buttonConfig)
+        remoteBackupsButton.isUserInteractionEnabled = false // Button is decorative. Tapping anywhere on row performs the action.
+        remoteBackupsButton.isAccessibilityElement = false
         remoteBackupsButton.setContentHuggingHorizontalHigh()
 
         let textStack = UIStackView(arrangedSubviews: [titleLabel, bodyLabel, remoteBackupsButton])
@@ -202,6 +200,10 @@ class BackupSettingsLandingPageViewController: OWSTableViewController2 {
 
         cell.contentView.addSubview(contentStack)
         contentStack.autoPinEdgesToSuperviewEdges(with: UIEdgeInsets(hMargin: 20, vMargin: 20))
+
+        cell.isAccessibilityElement = true
+        cell.accessibilityTraits = .button
+        cell.accessibilityLabel = "\(titleText), \(bodyText), \(actionText)"
 
         return cell
     }
@@ -242,6 +244,22 @@ class BackupSettingsLandingPageViewController: OWSTableViewController2 {
                     animated: true,
                 )
             },
+        )
+    }
+
+    // MARK: - Actions
+
+    private func showRemoteBackups(shouldSkipOnboarding: Bool) {
+        guard let navigationController else { return }
+
+        navigationController.pushViewController(
+            BackupOnboardingCoordinator(
+                backupType: .remote,
+            ).prepareForPresentation(
+                inNavController: navigationController,
+                shouldSkipOnboarding: shouldSkipOnboarding,
+            ),
+            animated: true,
         )
     }
 }
