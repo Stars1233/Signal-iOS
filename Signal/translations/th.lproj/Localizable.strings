@@ -124,6 +124,12 @@
 /* Message shown in conversation view that offers to share your profile with a user. */
 "ADD_USER_TO_PROFILE_WHITELIST_OFFER" = "คุณต้องการแบ่งปันโปรไฟล์ของคุณให้กับผู้ใช้คนนี้หรือไม่";
 
+/* Message shown in an action sheet when attempting to rotate AEP, but local backups is enabled. */
+"AEP_MANAGER_LOCAL_BACKUPS_DISABLE_REQUIRED" = "You must disable On-Device Backups before proceeding.";
+
+/* Button in an action sheet that takes the user to On-Device Backup settings. */
+"AEP_MANAGER_ON_DEVICE_BACKUP_SETTINGS_BUTTON" = "On-Device Backup Settings";
+
 /* generic button text to acknowledge that the corresponding text was read. */
 "ALERT_ACTION_ACKNOWLEDGE" = "เข้าใจแล้ว";
 
@@ -239,7 +245,7 @@
 "APP_LAUNCH_FAILURE_DATABASE_RECOVERY_ACTION_TITLE" = "ซ่อมแซม";
 
 /* Action in an action sheet offering to exit the app. */
-"APP_LAUNCH_FAILURE_EXIT_APP_ACTION_TITLE" = "Exit Signal";
+"APP_LAUNCH_FAILURE_EXIT_APP_ACTION_TITLE" = "ปิด Signal";
 
 /* Error indicating that the app could not launch without reverting unknown database migrations. */
 "APP_LAUNCH_FAILURE_INVALID_DATABASE_VERSION_MESSAGE" = "กรุณาปรับรุ่นไปใช้ Signal รุ่นล่าสุด";
@@ -254,10 +260,10 @@
 "APP_LAUNCH_FAILURE_LAST_LAUNCH_CRASHED_TITLE" = "เปิด Signal ไม่ได้";
 
 /* Message for an error sheet shown when the app cannot launch because the device is out of storage space. Embeds 1:{{ the localized name of the user's device model, e.g. iPhone }}; 2:{{ an amount of storage space as a file size, e.g. 1 GB }}. */
-"APP_LAUNCH_FAILURE_NOT_ENOUGH_STORAGE_SPACE_MESSAGE_FORMAT" = "Signal can’t open because your %1$@ is out of storage space. Free up at least %2$@, then reopen Signal.\n\nGo to iOS Settings > General > Storage and remove apps you don't use, delete large videos from your Photos app or other apps, and delete downloaded music and media.";
+"APP_LAUNCH_FAILURE_NOT_ENOUGH_STORAGE_SPACE_MESSAGE_FORMAT" = "ไม่สามารถเปิด Signal ได้เนื่องจาก %1$@ ของคุณมีพื้นที่จัดเก็บไม่เพียงพอ โปรดเพิ่มพื้นที่จัดเก็บอย่างน้อย %2$@ แล้วลองเปิด Signal อีกครั้ง\n\nไปที่การตั้งค่า iOS > ทั่วไป > พื้นที่จัดเก็บข้อมูล แล้วลบแอปที่คุณไม่ได้ใช้งาน ลบวิดีโอที่มีขนาดใหญ่ออกจากแอปรูปภาพหรือแอปอื่นๆ รวมถึงลบไฟล์สื่อหรือเพลงที่ดาวน์โหลดเก็บไว้บนเครื่อง";
 
 /* Title for an error sheet shown when the app cannot launch because the device is out of storage space. */
-"APP_LAUNCH_FAILURE_NOT_ENOUGH_STORAGE_SPACE_TITLE" = "Not Enough Storage Space";
+"APP_LAUNCH_FAILURE_NOT_ENOUGH_STORAGE_SPACE_TITLE" = "พื้นที่จัดเก็บไม่เพียงพอ";
 
 /* Error indicating that the app could not restore transferred data. */
 "APP_LAUNCH_FAILURE_RESTORE_FAILED_MESSAGE" = "ข้อมูลที่ถูกถ่ายโอนจากอุปกรณ์เครื่องเก่าของคุณจะไม่สามารถกู้คืนได้ กรุณาส่งบันทึกการดีบักไปที่ support@signal.org เพื่อให้เราแก้ไขปัญหานี้ หากคุณติดตั้ง Signal ใหม่อีกครั้ง ประวัติการส่งข้อความของคุณอาจจะหายไป";
@@ -720,9 +726,6 @@
 
 /* Title for a view allowing users to save their newly-created 'Recovery Key', emphasizing that the key is new. */
 "BACKUP_RECORD_KEY_NEW_TITLE" = "บันทึกกุญแจกู้คืนใหม่ของคุณ";
-
-/* Name used as both the username and title for the user's 'Recovery Key' credential when saving it to a password manager. */
-"BACKUP_RECORD_KEY_PASSWORD_MANAGER_CREDENTIAL_NAME" = "กุญแจกู้คืนของ Signal";
 
 /* Subtitle for a view allowing users to save their 'Recovery Key'. */
 "BACKUP_RECORD_KEY_SUBTITLE" = "คุณจำเป็นต้องใช้กุญแจนี้ในการกู้คืนบัญชีและข้อมูล โปรดเก็บกุญแจนี้ไว้ในที่ปลอดภัย คุณจะไม่สามารถกู้คืนบัญชีได้หากทำกุญแจหาย";
@@ -2126,13 +2129,25 @@
 "CHAT_LIST_FILTERED_BY_UNREAD_CLEAR_BUTTON" = "กรองตามแชทที่ยังไม่ได้อ่าน";
 
 /* Title shown on chat list banner for restoring media from a backup is finished */
-"CHAT_LIST_LOCAL_FILE_BACKUP_RESTORE_FINISHED_TITLE" = "Attachment Restore Complete";
+"CHAT_LIST_LOCAL_FILE_BACKUP_RESTORE_FINISHED_TITLE" = "กู้คืนไฟล์แนบเสร็จสิ้นแล้ว";
 
 /* Progress label showing bytes restored from an on-device backup. Embeds {{ %1$@ formatted bytes restored, %2$@ formatted total bytes to restore }}. */
-"CHAT_LIST_LOCAL_FILE_BACKUP_RESTORE_PROGRESS_VIEW_PROGRESS_FORMAT" = "%1$@ of %2$@";
+"CHAT_LIST_LOCAL_FILE_BACKUP_RESTORE_PROGRESS_VIEW_PROGRESS_FORMAT" = "%1$@ จาก %2$@";
 
 /* Title shown on the chat list banner while restoring attachments from an on-device backup. */
-"CHAT_LIST_LOCAL_FILE_BACKUP_RESTORE_PROGRESS_VIEW_TITLE" = "Restoring Attachments";
+"CHAT_LIST_LOCAL_FILE_BACKUP_RESTORE_PROGRESS_VIEW_TITLE" = "กำลังกู้คืนไฟล์แนบ";
+
+/* Progress label showing the amount uploaded out of the total. Embeds {{ %1$@ bytes uploaded, %2$@ total bytes to upload }}. */
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS_FORMAT" = "%1$@ of %2$@";
+
+/* Title label shown in the chat list backup progress view while backup attachments are being uploaded. */
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS_TITLE" = "Copying attachments";
+
+/* Title label shown in the chat list local file backup progress view while the attachments are being prepared */
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_ATTACHMENTS" = "Preparing attachments";
+
+/* Title label shown in the chat list local file backup progress view while the backup file is being prepared. */
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_BACKUP" = "Preparing backup";
 
 /* Message shown in the chat list when the chat list is empty. */
 "CHAT_LIST_NO_CHATS_SUBTITLE" = "แชทล่าสุดจะปรากฏที่นี่";
@@ -2552,7 +2567,7 @@
 "CONVERSATION_PICKER_BLOCKED_BY_ANNOUNCEMENT_ONLY" = "เฉพาะผู้ดูแลเท่านั้นที่ส่งข้อความไปยังกลุ่มนี้ได้";
 
 /* Displayed at the bottom of chat picker in gray if no chats are selected. */
-"CONVERSATION_PICKER_CHOOSE_RECIPIENT" = "Choose a recipient";
+"CONVERSATION_PICKER_CHOOSE_RECIPIENT" = "เลือกผู้รับ";
 
 /* table section header for section containing groups */
 "CONVERSATION_PICKER_SECTION_GROUPS" = "กลุ่ม";
@@ -3164,10 +3179,10 @@
 "DEVICE_TRANSFER_STATUS_NEW_DEVICE_CONNECTING_MESSAGE" = "นำอุปกรณ์เครื่องเก่าของคุณมาวางไว้ใกล้ๆ พร้อมตรวจสอบว่ามีการเปิดใช้งาน Wi-Fi และบลูทูธ";
 
 /* Description message on new device displayed during device transfer when using WiFiAware. */
-"DEVICE_TRANSFER_STATUS_NEW_DEVICE_CONNECTING_WIFI_AWARE_MESSAGE" = "Bring your old device nearby, and make sure Wi-Fi and Bluetooth are enabled. Select this device from the list of devices on the old device.  If device is not visible on old device, select 'Pair New Device' below.";
+"DEVICE_TRANSFER_STATUS_NEW_DEVICE_CONNECTING_WIFI_AWARE_MESSAGE" = "นำอุปกรณ์เครื่องเก่าของคุณมาวางไว้ใกล้ๆ พร้อมตรวจสอบว่ามีการเปิดใช้งาน Wi-Fi และบลูทูธ จากนั้นแตะเลือกอุปกรณ์นี้จากรายการที่แสดงบนอุปกรณ์เครื่องเก่า  หากคุณไม่เห็นอุปกรณ์นี้ในรายการบนอุปกรณ์เครื่องเก่า โปรดเลือก 'จับคู่อุปกรณ์เครื่องใหม่' ด้านล่าง";
 
 /* Title for paring an old device to transfer to. */
-"DEVICE_TRANSFER_STATUS_NEW_DEVICE_PAIR_DEVICE" = "Pair a new device";
+"DEVICE_TRANSFER_STATUS_NEW_DEVICE_PAIR_DEVICE" = "จับคู่อุปกรณ์เครื่องใหม่";
 
 /* Status message on new device when transfer is starting. */
 "DEVICE_TRANSFER_STATUS_NEW_DEVICE_STARTING" = "กำลังรอเชื่อมต่อกับอุปกรณ์เครื่องเก่า…";
@@ -3194,16 +3209,16 @@
 "DEVICE_TRANSFER_STATUS_OLD_DEVICE_CONNECTING_MESSAGE" = "นำอุปกรณ์เครื่องใหม่ของคุณมาวางไว้ใกล้ๆ พร้อมตรวจสอบว่ามีการเปิดใช้งาน Wi-Fi และบลูทูธ";
 
 /* Description message on old device displayed during device connection when using WiFiAware. */
-"DEVICE_TRANSFER_STATUS_OLD_DEVICE_CONNECTING_WIFI_AWARE_MESSAGE" = "Bring your new device nearby, and make sure Wi-Fi and Bluetooth are enabled.";
+"DEVICE_TRANSFER_STATUS_OLD_DEVICE_CONNECTING_WIFI_AWARE_MESSAGE" = "นำอุปกรณ์เครื่องใหม่ของคุณมาวางไว้ใกล้ๆ พร้อมตรวจสอบว่ามีการเปิดใช้งาน Wi-Fi และบลูทูธ";
 
 /* Status message on old device when transfer is starting. */
 "DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING" = "กำลังรอเชื่อมต่อกับอุปกรณ์เครื่องใหม่…";
 
 /* Status message on old device when WiFiAware transfer is starting. */
-"DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING_WIFI_AWARE" = "Select new device to connect to…";
+"DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING_WIFI_AWARE" = "เลือกอุปกรณ์เครื่องใหม่ที่คุณต้องการเชื่อมต่อ…";
 
 /* Description message on old device displayed during device discovery when using WiFiAware. */
-"DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING_WIFI_AWARE_MESSAGE" = "Select the new device from the list of paired devices below. If the new device is not visible, select 'Pair a new device' to begin the process.";
+"DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING_WIFI_AWARE_MESSAGE" = "เลือกอุปกรณ์เครื่องใหม่จากรายการอุปกรณ์ที่จับคู่ไว้ด้านล่าง หากคุณไม่เห็นอุปกรณ์นั้นในรายการ โปรดเลือก 'จับคู่อุปกรณ์เครื่องใหม่' เพื่อเริ่มต้น";
 
 /* table cell label in conversation settings */
 "DISAPPEARING_MESSAGES" = "ข้อความที่ลบตัวเองได้";
@@ -4958,7 +4973,7 @@
 "HOME_VIEW_TITLE_SELECT_CHATS" = "เลือกแชท";
 
 /* Title for the mute duration menu in the toolbar of the chat list if multi-select is active. */
-"HOME_VIEW_TOOLBAR_MUTE_MENU_TITLE" = "Mute selected chats for…";
+"HOME_VIEW_TOOLBAR_MUTE_MENU_TITLE" = "ปิดการแจ้งเตือนแชทที่เลือกเป็นเวลา…";
 
 /* Title 'Read All' button in the toolbar of the ChatList if multi-section is active. */
 "HOME_VIEW_TOOLBAR_READ_ALL" = "อ่านทั้งหมด";
@@ -5456,10 +5471,10 @@
 "LOCAL_BACKUPS_SELECT_HERO_SHEET_TITLE" = "เลือกโฟลเดอร์ข้อมูลสำรองของคุณ";
 
 /* Message for an action sheet informing the user we were unable to save their local backup location */
-"LOCAL_FILE_BACKUP_CHOOSE_FOLDER_ERROR_MESSAGE" = "Something went wrong and the folder location you selected couldn’t be saved. Try again. If this problem persists, please contact support.";
+"LOCAL_FILE_BACKUP_CHOOSE_FOLDER_ERROR_MESSAGE" = "เกิดข้อผิดพลาดบางอย่างที่ทำให้ไม่สามารถบันทึกที่ตั้งโฟลเดอร์ที่คุณเลือกได้ โปรดลองอีกครั้ง และโปรดติดต่อฝ่ายสนับสนุนหากคุณยังพบปัญหาอยู่";
 
 /* Title for an action sheet informing the user we were unable to save their local backup location */
-"LOCAL_FILE_BACKUP_CHOOSE_FOLDER_ERROR_TITLE" = "Couldn’t Save Folder Location";
+"LOCAL_FILE_BACKUP_CHOOSE_FOLDER_ERROR_TITLE" = "ไม่สามารถบันทึกที่ตั้งโฟลเดอร์ได้";
 
 /* Button for a sheet asking the user to choose a new local file backup folder */
 "LOCAL_FILE_BACKUP_CHOOSE_NEW_FOLDER_SHEET_BUTTON" = "เลือกโฟลเดอร์";
@@ -5528,16 +5543,16 @@
 "LONG_TEXT_VIEW_TITLE" = "ข้อความ";
 
 /* Message for a sheet warning the user that their device is low on storage space. Embeds 1:{{ the localized name of the user's device model, e.g. iPhone }}; 2:{{ an amount of storage space as a file size, e.g. 1 GB }}. */
-"LOW_DISK_SPACE_WARNING_SHEET_MESSAGE_FORMAT" = "Your %1$@ is running low on storage space. If it fills up, Signal will stop working and you could lose data. Free up at least %2$@ of space.";
+"LOW_DISK_SPACE_WARNING_SHEET_MESSAGE_FORMAT" = "พื้นที่จัดเก็บบน %1$@ ของคุณใกล้เต็มแล้ว หากพื้นที่เต็ม Signal จะหยุดทำงานและคุณอาจสูญเสียข้อมูล โปรดเพิ่มพื้นที่จัดเก็บอย่างน้อย %2$@";
 
 /* A suggestion for freeing up storage space, on a sheet warning the user that their device is low on storage space. */
-"LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_DELETE_CAMERA_ROLL_MEDIA" = "Delete large videos from your Photos app, Signal, or other messaging apps";
+"LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_DELETE_CAMERA_ROLL_MEDIA" = "ลบวิดีโอที่มีขนาดใหญ่ออกจากแอปรูปภาพหรือ Signal และแอปส่งข้อความอื่นๆ";
 
 /* A suggestion for freeing up storage space, on a sheet warning the user that their device is low on storage space. */
-"LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_DELETE_DOWNLOADED_MEDIA" = "Delete downloaded music or other media";
+"LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_DELETE_DOWNLOADED_MEDIA" = "ลบไฟล์สื่อหรือเพลงที่ดาวน์โหลดเก็บไว้บนเครื่อง";
 
 /* A suggestion for freeing up storage space, on a sheet warning the user that their device is low on storage space. */
-"LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_REMOVE_APPS" = "Go to iOS Settings > General > Storage. Review the recommendations and remove apps you don't use";
+"LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_REMOVE_APPS" = "ไปที่การตั้งค่า iOS > ทั่วไป > พื้นที่จัดเก็บข้อมูล ดูคำแนะนำแล้วลบแอปที่คุณไม่ได้ใช้งาน";
 
 /* Title for a sheet warning the user that their device is low on storage space. */
 "LOW_DISK_SPACE_WARNING_SHEET_TITLE" = "พื้นที่จัดเก็บน้อยมาก";
@@ -6762,6 +6777,9 @@
 
 /* Title for sheet shown when tapping oversized text that has expired and is unavailable for download */
 "OVERSIZE_TEXT_UNAVAILABLE_SHEET_TITLE" = "ไม่พบข้อความที่ครบถ้วน";
+
+/* The name of the Signal app, used as the title for an entry in a user's password manager for their Signal Recovery Key. Should be localized with the same value as the app's name in the iOS App Store. */
+"PASSWORD_MANAGER_SIGNAL_APP_NAME" = "Signal Private Messenger";
 
 /* Header title for bank payment details screen */
 "PAYMENT_DETAILS_BANK_TITLE" = "โอนเงินผ่านระบบธนาคาร";
@@ -8059,6 +8077,12 @@
 /* Error shown if an SMS/call service provider is temporarily unable to send a verification code to the provided number. */
 "REGISTRATION_PROVIDER_FAILURE_MESSAGE_TRANSIENT" = "เราไม่สามารถส่ง SMS ไปยังหมายเลขโทรศัพท์ของคุณได้ โปรดรอสักครู่แล้วลองใหม่อีกครั้ง";
 
+/* Message for a button in the registration flow that allows restoring from a local backup */
+"REGISTRATION_RESTORE_FROM_LOCAL_BACKUP_BUTTON_MESSAGE" = "Restore your account and messages from a folder saved on your device";
+
+/* Title for a button in the registration flow that allows restoring from a local backup */
+"REGISTRATION_RESTORE_FROM_LOCAL_BACKUP_BUTTON_TITLE" = "Restore On-Device Backup";
+
 /* Third step in directions for how to make a backup */
 "REGISTRATION_RESTORE_METHOD_MAKE_BACKUP_TUTORIAL_ENABLE_BACKUPS" = "เปิดใช้งานการสำรองข้อมูล แล้วรอจนการสำรองข้อมูลของคุณเสร็จสมบูรณ์";
 
@@ -8950,17 +8974,17 @@
 /* Message for an action sheet when a user cannot perform a remote backup because a local backup is in progress */
 "SETTINGS_LOCAL_FILE_BACKUPS_LOCAL_BACKUP_IN_PROGRESS_MESSAGE" = "ไม่สามารถใช้งานการสำรองข้อมูลที่ปลอดภัยของ Signal ได้เนื่องจากกำลังดำเนินการสำรองข้อมูลไว้บนอุปกรณ์ โปรดลองอีกครั้งในภายหลัง";
 
-/* Label for a progress bar while attachments are being copied for an on-device backup. Embeds 1:{{ percentage complete }}. */
-"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS" = "Copying attachments (%1$@)";
+/* Label for a progress bar while attachments are being copied for an on-device backup. Embeds 1:{{%1$@ completed bytes copied, %2$@ total bytes to copy, %3$@ percentage complete }}. */
+"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS" = "Copying attachments %1$@ of %2$@ (%3$@)";
 
 /* Label for a progress bar while the attachments are being prepared for an on-device backup. Embeds 1:{{ percentage complete }}. */
-"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_ATTACHMENTS" = "Preparing attachments (%1$@)";
+"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_ATTACHMENTS" = "กำลังเตรียมไฟล์แนบ (%1$@)";
 
 /* Label for a progress bar while the on-device backup is being prepared. Embeds 1:{{ percentage complete }}. */
-"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_BACKUP" = "Preparing backup (%1$@)";
+"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_BACKUP" = "กำลังเตรียมการสำรองข้อมูล (%1$@)";
 
 /* Label for a progress bar while attachments are being restored for an on-device backup. Embeds {{%1$@ completed bytes restored, %2$@ total bytes to restore  }}. */
-"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_RESTORING_ATTACHMENTS" = "Restoring attachments (%1$@ of %2$@)";
+"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_RESTORING_ATTACHMENTS" = "กำลังกู้คืนไฟล์แนบ (%1$@ จาก %2$@)";
 
 /* Message for an action sheet when a user cannot perform a local backup because a remote backup is in progress */
 "SETTINGS_LOCAL_FILE_BACKUPS_REMOTE_BACKUP_IN_PROGRESS_MESSAGE" = "ไม่สามารถใช้งานการสำรองข้อมูลไว้บนอุปกรณ์ได้เนื่องจากกำลังดำเนินการสำรองข้อมูลที่ปลอดภัยของ Signal โปรดลองอีกครั้งในภายหลัง";
@@ -8970,6 +8994,15 @@
 
 /* Label for the button that turns off on-device backups. */
 "SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF" = "ปิดใช้งานและลบข้อมูลสำรอง";
+
+/* Button for an action sheet asking the user to confirm they would like to turn off local backups */
+"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_BUTTON" = "Turn Off and Delete";
+
+/* Message for an action sheet asking the user to confirm they would like to turn off local backups */
+"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_MESSAGE" = "Your backup will be deleted and no new backups will be made.";
+
+/* Title for an action sheet asking the user to confirm they would like to turn off local backups */
+"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_TITLE" = "Turn Off and Delete Backup?";
 
 /* Message shown on an action sheet when a user's backup fails to delete. Embeds {{ local file backup location }} */
 "SETTINGS_LOCAL_FILE_BACKUPS_TURNING_OFF_ERROR_MESSAGE_FORMAT" = "ไม่สามารถลบข้อมูลสำรองของคุณได้เนื่องจากมีข้อผิดพลาดเกิดขึ้น โปรดลบโฟลเดอร์ดังกล่าวด้วยตัวเอง โดยเปิดแอปไฟล์แล้วไปที่ “%1$@” จากนั้นให้ลบโฟลเดอร์และไฟล์ทั้งหมด ซึ่งระบบจะไม่สำรองข้อมูลใหม่ขึ้นอีก";
@@ -9032,22 +9065,22 @@
 "SETTINGS_NOTIFICATIONS_CONTACT_JOINED_SIGNAL_FOOTER" = "แจ้งเตือนเมื่อผู้ติดต่อบนโทรศัพท์เริ่มใช้ Signal";
 
 /* Label for a switch controlling whether reactions to your messages generate notifications. */
-"SETTINGS_NOTIFICATIONS_REACTIONS" = "Reaction Notifications";
+"SETTINGS_NOTIFICATIONS_REACTIONS" = "การแจ้งเตือนการแสดงความรู้สึก";
 
 /* Explanation for the switch controlling whether reactions to your messages generate notifications. */
-"SETTINGS_NOTIFICATIONS_REACTIONS_FOOTER" = "Show notifications for reactions to messages you send.";
+"SETTINGS_NOTIFICATIONS_REACTIONS_FOOTER" = "แจ้งเตือนเมื่อมีการแสดงความรู้สึกต่อข้อความที่คุณส่ง";
 
 /* Label for a button that resets all notification settings to their defaults. */
-"SETTINGS_NOTIFICATIONS_RESET" = "Reset Notification Settings";
+"SETTINGS_NOTIFICATIONS_RESET" = "รีเซ็ตการตั้งค่าการแจ้งเตือน";
 
 /* Label for the button that confirms notification settings should be reset. */
-"SETTINGS_NOTIFICATIONS_RESET_CONFIRMATION_ACTION" = "Reset";
+"SETTINGS_NOTIFICATIONS_RESET_CONFIRMATION_ACTION" = "รีเซ็ต";
 
 /* Question confirming that notification settings should be reset. */
-"SETTINGS_NOTIFICATIONS_RESET_CONFIRMATION_MESSAGE" = "Reset all notification settings to default for all chats?";
+"SETTINGS_NOTIFICATIONS_RESET_CONFIRMATION_MESSAGE" = "รีเซ็ตการตั้งค่าการแจ้งเตือนทั้งหมดของแชททุกแชทกลับเป็นค่าเริ่มต้นใช่หรือไม่";
 
 /* Explanation for the button that resets all notification settings. */
-"SETTINGS_NOTIFICATIONS_RESET_FOOTER" = "Reset notification settings to default, including custom settings for your chats.";
+"SETTINGS_NOTIFICATIONS_RESET_FOOTER" = "รีเซ็ตการตั้งค่าการแจ้งเตือนกลับเป็นค่าเริ่มต้น (รวมถึงการตั้งค่าต่างๆ ที่คุณกำหนดเองในแชท)";
 
 /* Label for the 'agree to payments terms' button in the 'activate payments confirmation' UI in the payment settings. */
 "SETTINGS_PAYMENTS_ACTIVATE_PAYMENTS_CONFIRM_AGREE" = "เปิดใช้";
@@ -10406,7 +10439,7 @@
 "TRANSFER_RELAUNCH_NOTIFICATION" = "เปิด Signal เพื่อเริ่มส่งข้อความ";
 
 /* Label for a button that says 'Try Again'. */
-"TRY_AGAIN_BUTTON_TITLE" = "Try Again";
+"TRY_AGAIN_BUTTON_TITLE" = "ลองอีกครั้ง";
 
 /* Label for the cancel button in an alert or action sheet. */
 "TXT_CANCEL_TITLE" = "ยกเลิก";

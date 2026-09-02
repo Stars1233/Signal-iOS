@@ -124,6 +124,12 @@
 /* Message shown in conversation view that offers to share your profile with a user. */
 "ADD_USER_TO_PROFILE_WHITELIST_OFFER" = "آیا مایل هستید پروفایل خود را با این کاربر به اشتراک بگذارید؟";
 
+/* Message shown in an action sheet when attempting to rotate AEP, but local backups is enabled. */
+"AEP_MANAGER_LOCAL_BACKUPS_DISABLE_REQUIRED" = "You must disable On-Device Backups before proceeding.";
+
+/* Button in an action sheet that takes the user to On-Device Backup settings. */
+"AEP_MANAGER_ON_DEVICE_BACKUP_SETTINGS_BUTTON" = "On-Device Backup Settings";
+
 /* generic button text to acknowledge that the corresponding text was read. */
 "ALERT_ACTION_ACKNOWLEDGE" = "فهمیدم";
 
@@ -239,7 +245,7 @@
 "APP_LAUNCH_FAILURE_DATABASE_RECOVERY_ACTION_TITLE" = "تعمیر";
 
 /* Action in an action sheet offering to exit the app. */
-"APP_LAUNCH_FAILURE_EXIT_APP_ACTION_TITLE" = "Exit Signal";
+"APP_LAUNCH_FAILURE_EXIT_APP_ACTION_TITLE" = "خروج از سیگنال";
 
 /* Error indicating that the app could not launch without reverting unknown database migrations. */
 "APP_LAUNCH_FAILURE_INVALID_DATABASE_VERSION_MESSAGE" = "لطفاً سیگنال را به آخرین نسخه ارتقا دهید.";
@@ -254,10 +260,10 @@
 "APP_LAUNCH_FAILURE_LAST_LAUNCH_CRASHED_TITLE" = "سیگنال باز نشد";
 
 /* Message for an error sheet shown when the app cannot launch because the device is out of storage space. Embeds 1:{{ the localized name of the user's device model, e.g. iPhone }}; 2:{{ an amount of storage space as a file size, e.g. 1 GB }}. */
-"APP_LAUNCH_FAILURE_NOT_ENOUGH_STORAGE_SPACE_MESSAGE_FORMAT" = "Signal can’t open because your %1$@ is out of storage space. Free up at least %2$@, then reopen Signal.\n\nGo to iOS Settings > General > Storage and remove apps you don't use, delete large videos from your Photos app or other apps, and delete downloaded music and media.";
+"APP_LAUNCH_FAILURE_NOT_ENOUGH_STORAGE_SPACE_MESSAGE_FORMAT" = "سیگنال باز نمی‌شود زیرا فضای ذخیره‌سازی %1$@ شما تمام شده است. حداقل %2$@ فضا آزاد کنید، سپس سیگنال را دوباره باز کنید.\n\nبه «تنظیمات iOS > عمومی > فضای ذخیره‌سازی» بروید و برنامه‌هایی را که استفاده نمی‌کنید حذف کنید، ویدیوهای حجیم را از برنامه Photos یا سایر برنامه‌ها حذف کنید و موسیقی و فایل‌های رسانه دانلود‌شده را نیز حذف کنید.";
 
 /* Title for an error sheet shown when the app cannot launch because the device is out of storage space. */
-"APP_LAUNCH_FAILURE_NOT_ENOUGH_STORAGE_SPACE_TITLE" = "Not Enough Storage Space";
+"APP_LAUNCH_FAILURE_NOT_ENOUGH_STORAGE_SPACE_TITLE" = "فضای ذخیره‌سازی کافی نیست";
 
 /* Error indicating that the app could not restore transferred data. */
 "APP_LAUNCH_FAILURE_RESTORE_FAILED_MESSAGE" = "داده‌هایی که از دستگاه قدیمی شما انتقال یافته است امکان بازیابی ندارند. لطفاً یک گزارش عیب‌یابی به support@signal.org ارسال کنید تا ما بتوانیم این مشکل را رفع کنیم. اگر سیگنال را دوباره نصب کنید، ممکن است تاریخچهٔ پیام‌های شما از دست برود.";
@@ -720,9 +726,6 @@
 
 /* Title for a view allowing users to save their newly-created 'Recovery Key', emphasizing that the key is new. */
 "BACKUP_RECORD_KEY_NEW_TITLE" = "رمز بازیابی جدیدتان را ذخیره کنید";
-
-/* Name used as both the username and title for the user's 'Recovery Key' credential when saving it to a password manager. */
-"BACKUP_RECORD_KEY_PASSWORD_MANAGER_CREDENTIAL_NAME" = "رمز بازیابی سیگنال";
 
 /* Subtitle for a view allowing users to save their 'Recovery Key'. */
 "BACKUP_RECORD_KEY_SUBTITLE" = "این کلید برای بازیابی حساب و اطلاعات شما ضروری است. این کلید را در مکانی امن نگهداری کنید. اگر آن را گم کنید، نمی‌توانید حساب خود را بازیابی کنید.";
@@ -2126,13 +2129,25 @@
 "CHAT_LIST_FILTERED_BY_UNREAD_CLEAR_BUTTON" = "فیلترشده بر اساس خوانده‌نشده‌ها";
 
 /* Title shown on chat list banner for restoring media from a backup is finished */
-"CHAT_LIST_LOCAL_FILE_BACKUP_RESTORE_FINISHED_TITLE" = "Attachment Restore Complete";
+"CHAT_LIST_LOCAL_FILE_BACKUP_RESTORE_FINISHED_TITLE" = "بازیابی پیوست کامل شد";
 
 /* Progress label showing bytes restored from an on-device backup. Embeds {{ %1$@ formatted bytes restored, %2$@ formatted total bytes to restore }}. */
-"CHAT_LIST_LOCAL_FILE_BACKUP_RESTORE_PROGRESS_VIEW_PROGRESS_FORMAT" = "%1$@ of %2$@";
+"CHAT_LIST_LOCAL_FILE_BACKUP_RESTORE_PROGRESS_VIEW_PROGRESS_FORMAT" = "%1$@ از %2$@";
 
 /* Title shown on the chat list banner while restoring attachments from an on-device backup. */
-"CHAT_LIST_LOCAL_FILE_BACKUP_RESTORE_PROGRESS_VIEW_TITLE" = "Restoring Attachments";
+"CHAT_LIST_LOCAL_FILE_BACKUP_RESTORE_PROGRESS_VIEW_TITLE" = "در حال بازیابی پیوست‌ها";
+
+/* Progress label showing the amount uploaded out of the total. Embeds {{ %1$@ bytes uploaded, %2$@ total bytes to upload }}. */
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS_FORMAT" = "%1$@ of %2$@";
+
+/* Title label shown in the chat list backup progress view while backup attachments are being uploaded. */
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS_TITLE" = "Copying attachments";
+
+/* Title label shown in the chat list local file backup progress view while the attachments are being prepared */
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_ATTACHMENTS" = "Preparing attachments";
+
+/* Title label shown in the chat list local file backup progress view while the backup file is being prepared. */
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_BACKUP" = "Preparing backup";
 
 /* Message shown in the chat list when the chat list is empty. */
 "CHAT_LIST_NO_CHATS_SUBTITLE" = "گفتگوهای اخیر در اینجا ظاهر می‌شود.";
@@ -2552,7 +2567,7 @@
 "CONVERSATION_PICKER_BLOCKED_BY_ANNOUNCEMENT_ONLY" = "فقط مدیران می‌توانند در این گروه پیام ارسال کنند.";
 
 /* Displayed at the bottom of chat picker in gray if no chats are selected. */
-"CONVERSATION_PICKER_CHOOSE_RECIPIENT" = "Choose a recipient";
+"CONVERSATION_PICKER_CHOOSE_RECIPIENT" = "انتخاب گیرنده";
 
 /* table section header for section containing groups */
 "CONVERSATION_PICKER_SECTION_GROUPS" = "گروه‌ها‌";
@@ -3164,10 +3179,10 @@
 "DEVICE_TRANSFER_STATUS_NEW_DEVICE_CONNECTING_MESSAGE" = "دستگاه قدیمی‌تان را نزدیک بیاورید و مطمئن شوید که Wi-Fi و بلوتوث فعال باشند.";
 
 /* Description message on new device displayed during device transfer when using WiFiAware. */
-"DEVICE_TRANSFER_STATUS_NEW_DEVICE_CONNECTING_WIFI_AWARE_MESSAGE" = "Bring your old device nearby, and make sure Wi-Fi and Bluetooth are enabled. Select this device from the list of devices on the old device.  If device is not visible on old device, select 'Pair New Device' below.";
+"DEVICE_TRANSFER_STATUS_NEW_DEVICE_CONNECTING_WIFI_AWARE_MESSAGE" = "دستگاه قدیمی‌تان را نزدیک بیاورید و مطمئن شوید که Wi-Fi و بلوتوث فعال باشند. این دستگاه را از فهرست دستگاه‌های موجود در دستگاه قدیمی انتخاب کنید.  اگر دستگاه موردنظر در دستگاه قدیمی قابل مشاهده نیست، گزینه «جفت‌سازی دستگاه جدید» را در زیر انتخاب کنید.";
 
 /* Title for paring an old device to transfer to. */
-"DEVICE_TRANSFER_STATUS_NEW_DEVICE_PAIR_DEVICE" = "Pair a new device";
+"DEVICE_TRANSFER_STATUS_NEW_DEVICE_PAIR_DEVICE" = "جفت‌سازی دستگاه جدید";
 
 /* Status message on new device when transfer is starting. */
 "DEVICE_TRANSFER_STATUS_NEW_DEVICE_STARTING" = "در انتظار اتصال به دستگاه قدیمی…";
@@ -3194,16 +3209,16 @@
 "DEVICE_TRANSFER_STATUS_OLD_DEVICE_CONNECTING_MESSAGE" = "دستگاه جدیدتان را نزدیک بیاورید و مطمئن شوید که Wi-Fi و بلوتوث فعال باشند.";
 
 /* Description message on old device displayed during device connection when using WiFiAware. */
-"DEVICE_TRANSFER_STATUS_OLD_DEVICE_CONNECTING_WIFI_AWARE_MESSAGE" = "Bring your new device nearby, and make sure Wi-Fi and Bluetooth are enabled.";
+"DEVICE_TRANSFER_STATUS_OLD_DEVICE_CONNECTING_WIFI_AWARE_MESSAGE" = "دستگاه جدیدتان را نزدیک بیاورید و مطمئن شوید که Wi-Fi و بلوتوث فعال باشند.";
 
 /* Status message on old device when transfer is starting. */
 "DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING" = "در انتظار اتصال به دستگاه جدید…";
 
 /* Status message on old device when WiFiAware transfer is starting. */
-"DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING_WIFI_AWARE" = "Select new device to connect to…";
+"DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING_WIFI_AWARE" = "انتخاب دستگاه جدید برای اتصال به…";
 
 /* Description message on old device displayed during device discovery when using WiFiAware. */
-"DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING_WIFI_AWARE_MESSAGE" = "Select the new device from the list of paired devices below. If the new device is not visible, select 'Pair a new device' to begin the process.";
+"DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING_WIFI_AWARE_MESSAGE" = "دستگاه جدید را از فهرست دستگاه‌های جفت‌سازی‌شده زیر انتخاب کنید. اگر دستگاه جدید قابل مشاهده نیست، برای شروع فرایند، «جفت‌سازی دستگاه جدید» را انتخاب کنید.";
 
 /* table cell label in conversation settings */
 "DISAPPEARING_MESSAGES" = "پیام‌های ناپدید شونده";
@@ -4958,7 +4973,7 @@
 "HOME_VIEW_TITLE_SELECT_CHATS" = "انتخاب گفتگوها";
 
 /* Title for the mute duration menu in the toolbar of the chat list if multi-select is active. */
-"HOME_VIEW_TOOLBAR_MUTE_MENU_TITLE" = "Mute selected chats for…";
+"HOME_VIEW_TOOLBAR_MUTE_MENU_TITLE" = "بی‌صدا کردن گفتگوهای انتخاب‌شده به مدت…";
 
 /* Title 'Read All' button in the toolbar of the ChatList if multi-section is active. */
 "HOME_VIEW_TOOLBAR_READ_ALL" = "خواندن همه";
@@ -5456,10 +5471,10 @@
 "LOCAL_BACKUPS_SELECT_HERO_SHEET_TITLE" = "پوشه پشتیبان خود را انتخاب کنید";
 
 /* Message for an action sheet informing the user we were unable to save their local backup location */
-"LOCAL_FILE_BACKUP_CHOOSE_FOLDER_ERROR_MESSAGE" = "Something went wrong and the folder location you selected couldn’t be saved. Try again. If this problem persists, please contact support.";
+"LOCAL_FILE_BACKUP_CHOOSE_FOLDER_ERROR_MESSAGE" = "مشکلی پیش آمد و مکان پوشه‌ای که انتخاب کرده‌اید ذخیره نشد. دوباره امتحان کنید. اگر مشکل همچنان ادامه یافت، لطفاً با پشتیبانی تماس بگیرید.";
 
 /* Title for an action sheet informing the user we were unable to save their local backup location */
-"LOCAL_FILE_BACKUP_CHOOSE_FOLDER_ERROR_TITLE" = "Couldn’t Save Folder Location";
+"LOCAL_FILE_BACKUP_CHOOSE_FOLDER_ERROR_TITLE" = "مکان پوشه ذخیره نشد";
 
 /* Button for a sheet asking the user to choose a new local file backup folder */
 "LOCAL_FILE_BACKUP_CHOOSE_NEW_FOLDER_SHEET_BUTTON" = "انتخاب پوشه";
@@ -5528,16 +5543,16 @@
 "LONG_TEXT_VIEW_TITLE" = "پیام";
 
 /* Message for a sheet warning the user that their device is low on storage space. Embeds 1:{{ the localized name of the user's device model, e.g. iPhone }}; 2:{{ an amount of storage space as a file size, e.g. 1 GB }}. */
-"LOW_DISK_SPACE_WARNING_SHEET_MESSAGE_FORMAT" = "Your %1$@ is running low on storage space. If it fills up, Signal will stop working and you could lose data. Free up at least %2$@ of space.";
+"LOW_DISK_SPACE_WARNING_SHEET_MESSAGE_FORMAT" = "فضای ذخیره‌سازی %1$@ شما رو به اتمام است. اگر پر شود، سیگنال از کار می‌افتد و ممکن است داده‌ها را از دست بدهید. حداقل %2$@ فضا آزاد کنید.";
 
 /* A suggestion for freeing up storage space, on a sheet warning the user that their device is low on storage space. */
-"LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_DELETE_CAMERA_ROLL_MEDIA" = "Delete large videos from your Photos app, Signal, or other messaging apps";
+"LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_DELETE_CAMERA_ROLL_MEDIA" = "ویدیوهای حجیم را از برنامه Photos، سیگنال یا سایر برنامه‌های پیام‌رسان حذف کنید";
 
 /* A suggestion for freeing up storage space, on a sheet warning the user that their device is low on storage space. */
-"LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_DELETE_DOWNLOADED_MEDIA" = "Delete downloaded music or other media";
+"LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_DELETE_DOWNLOADED_MEDIA" = "موسیقی یا سایر فایل‌های رسانه دانلود‌شده را حذف کنید";
 
 /* A suggestion for freeing up storage space, on a sheet warning the user that their device is low on storage space. */
-"LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_REMOVE_APPS" = "Go to iOS Settings > General > Storage. Review the recommendations and remove apps you don't use";
+"LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_REMOVE_APPS" = "به «تنظیمات iOS > عمومی > فضای ذخیره‌سازی» بروید. توصیه‌ها را بررسی کنید و برنامه‌هایی را که استفاده نمی‌کنید حذف کنید";
 
 /* Title for a sheet warning the user that their device is low on storage space. */
 "LOW_DISK_SPACE_WARNING_SHEET_TITLE" = "فضای حافظه کم است";
@@ -6762,6 +6777,9 @@
 
 /* Title for sheet shown when tapping oversized text that has expired and is unavailable for download */
 "OVERSIZE_TEXT_UNAVAILABLE_SHEET_TITLE" = "پیام کامل در دسترس نیست";
+
+/* The name of the Signal app, used as the title for an entry in a user's password manager for their Signal Recovery Key. Should be localized with the same value as the app's name in the iOS App Store. */
+"PASSWORD_MANAGER_SIGNAL_APP_NAME" = "Signal Private Messenger";
 
 /* Header title for bank payment details screen */
 "PAYMENT_DETAILS_BANK_TITLE" = "انتقال بانکی";
@@ -8059,6 +8077,12 @@
 /* Error shown if an SMS/call service provider is temporarily unable to send a verification code to the provided number. */
 "REGISTRATION_PROVIDER_FAILURE_MESSAGE_TRANSIENT" = "نتوانستیم پیامک به شماره‌تان ارسال کنیم. لطفاً چند دقیقه بعد دوباره امتحان کنید.";
 
+/* Message for a button in the registration flow that allows restoring from a local backup */
+"REGISTRATION_RESTORE_FROM_LOCAL_BACKUP_BUTTON_MESSAGE" = "Restore your account and messages from a folder saved on your device";
+
+/* Title for a button in the registration flow that allows restoring from a local backup */
+"REGISTRATION_RESTORE_FROM_LOCAL_BACKUP_BUTTON_TITLE" = "Restore On-Device Backup";
+
 /* Third step in directions for how to make a backup */
 "REGISTRATION_RESTORE_METHOD_MAKE_BACKUP_TUTORIAL_ENABLE_BACKUPS" = "نسخه‌های پشتیبان را فعال کنید و صبر کنید تا پشتیبان‌گیری تکمیل شود";
 
@@ -8950,17 +8974,17 @@
 /* Message for an action sheet when a user cannot perform a remote backup because a local backup is in progress */
 "SETTINGS_LOCAL_FILE_BACKUPS_LOCAL_BACKUP_IN_PROGRESS_MESSAGE" = "انجام پشتیبان‌گیری امن سیگنال امکان‌پذیر نیست زیرا پشتیبان‌گیری روی دستگاه در حال انجام است. بعداً دوباره امتحان کنید.";
 
-/* Label for a progress bar while attachments are being copied for an on-device backup. Embeds 1:{{ percentage complete }}. */
-"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS" = "Copying attachments (%1$@)";
+/* Label for a progress bar while attachments are being copied for an on-device backup. Embeds 1:{{%1$@ completed bytes copied, %2$@ total bytes to copy, %3$@ percentage complete }}. */
+"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS" = "Copying attachments %1$@ of %2$@ (%3$@)";
 
 /* Label for a progress bar while the attachments are being prepared for an on-device backup. Embeds 1:{{ percentage complete }}. */
-"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_ATTACHMENTS" = "Preparing attachments (%1$@)";
+"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_ATTACHMENTS" = "در حال آماده‌سازی پیوست‌ها (%1$@)";
 
 /* Label for a progress bar while the on-device backup is being prepared. Embeds 1:{{ percentage complete }}. */
-"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_BACKUP" = "Preparing backup (%1$@)";
+"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_BACKUP" = "در حال آماده‌سازی نسخه پشتیبان (%1$@)";
 
 /* Label for a progress bar while attachments are being restored for an on-device backup. Embeds {{%1$@ completed bytes restored, %2$@ total bytes to restore  }}. */
-"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_RESTORING_ATTACHMENTS" = "Restoring attachments (%1$@ of %2$@)";
+"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_RESTORING_ATTACHMENTS" = "در حال بازیابی پیوست‌ها (%1$@ از %2$@)";
 
 /* Message for an action sheet when a user cannot perform a local backup because a remote backup is in progress */
 "SETTINGS_LOCAL_FILE_BACKUPS_REMOTE_BACKUP_IN_PROGRESS_MESSAGE" = "انجام پشتیبان‌گیری روی دستگاه امکان‌پذیر نیست زیرا پشتیبان‌گیری امن سیگنال در حال انجام است. بعداً دوباره امتحان کنید.";
@@ -8970,6 +8994,15 @@
 
 /* Label for the button that turns off on-device backups. */
 "SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF" = "خاموش کردن و حذف نسخه پشتیبان";
+
+/* Button for an action sheet asking the user to confirm they would like to turn off local backups */
+"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_BUTTON" = "Turn Off and Delete";
+
+/* Message for an action sheet asking the user to confirm they would like to turn off local backups */
+"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_MESSAGE" = "Your backup will be deleted and no new backups will be made.";
+
+/* Title for an action sheet asking the user to confirm they would like to turn off local backups */
+"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_TITLE" = "Turn Off and Delete Backup?";
 
 /* Message shown on an action sheet when a user's backup fails to delete. Embeds {{ local file backup location }} */
 "SETTINGS_LOCAL_FILE_BACKUPS_TURNING_OFF_ERROR_MESSAGE_FORMAT" = "به‌دلیل بروز خطا، نسخه پشتیبان حذف نشد. باید پوشه را به‌صورت دستی حذف کنید. در برنامه فایل‌ها، به «‎%1$@» بروید و پوشه و محتویات آن را به صورت دستی حذف کنید. هیچ نسخه پشتیبان جدیدی ایجاد نخواهد شد.";
@@ -9032,22 +9065,22 @@
 "SETTINGS_NOTIFICATIONS_CONTACT_JOINED_SIGNAL_FOOTER" = "نمایش اعلان هنگام پیوستن مخاطبان تلفن به سیگنال.";
 
 /* Label for a switch controlling whether reactions to your messages generate notifications. */
-"SETTINGS_NOTIFICATIONS_REACTIONS" = "Reaction Notifications";
+"SETTINGS_NOTIFICATIONS_REACTIONS" = "اعلان‌های واکنش";
 
 /* Explanation for the switch controlling whether reactions to your messages generate notifications. */
-"SETTINGS_NOTIFICATIONS_REACTIONS_FOOTER" = "Show notifications for reactions to messages you send.";
+"SETTINGS_NOTIFICATIONS_REACTIONS_FOOTER" = "نمایش اعلان برای واکنش‌ها به پیام‌هایی که ارسال می‌کنید.";
 
 /* Label for a button that resets all notification settings to their defaults. */
-"SETTINGS_NOTIFICATIONS_RESET" = "Reset Notification Settings";
+"SETTINGS_NOTIFICATIONS_RESET" = "بازنشانی تنظیمات اعلان";
 
 /* Label for the button that confirms notification settings should be reset. */
-"SETTINGS_NOTIFICATIONS_RESET_CONFIRMATION_ACTION" = "Reset";
+"SETTINGS_NOTIFICATIONS_RESET_CONFIRMATION_ACTION" = "بازنشانی";
 
 /* Question confirming that notification settings should be reset. */
-"SETTINGS_NOTIFICATIONS_RESET_CONFIRMATION_MESSAGE" = "Reset all notification settings to default for all chats?";
+"SETTINGS_NOTIFICATIONS_RESET_CONFIRMATION_MESSAGE" = "تمام تنظیمات اعلان برای همه گفتگوها به حالت پیش‌فرض بازنشانی شود؟";
 
 /* Explanation for the button that resets all notification settings. */
-"SETTINGS_NOTIFICATIONS_RESET_FOOTER" = "Reset notification settings to default, including custom settings for your chats.";
+"SETTINGS_NOTIFICATIONS_RESET_FOOTER" = "تنظیمات اعلان را به حالت پیش‌فرض بازنشانی کنید، از‌جمله تنظیمات سفارشی برای گفتگوها.";
 
 /* Label for the 'agree to payments terms' button in the 'activate payments confirmation' UI in the payment settings. */
 "SETTINGS_PAYMENTS_ACTIVATE_PAYMENTS_CONFIRM_AGREE" = "فعال کردن";
@@ -10406,7 +10439,7 @@
 "TRANSFER_RELAUNCH_NOTIFICATION" = "برای شروع ارسال پیام، سیگنال را باز کنید";
 
 /* Label for a button that says 'Try Again'. */
-"TRY_AGAIN_BUTTON_TITLE" = "Try Again";
+"TRY_AGAIN_BUTTON_TITLE" = "دوباره تلاش کنید";
 
 /* Label for the cancel button in an alert or action sheet. */
 "TXT_CANCEL_TITLE" = "لغو";
