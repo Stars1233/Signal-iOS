@@ -5015,9 +5015,6 @@ public class GRDBSchemaMigrator {
 
         migrator.registerMigration(.addSession) { tx in
             try createSession(tx: tx)
-            if BuildFlags.migrateDeprecatedSessions {
-                try migrateSessions(tx: tx)
-            }
             return .success(())
         }
 
@@ -7762,76 +7759,6 @@ public class GRDBSchemaMigrator {
             columns: ["recipientId", "localIdentity", "deviceId"],
             options: [.unique],
         )
-    }
-
-    static func migrateSessions(tx: DBWriteTransaction) throws {
-        // If these ever change, you'll need to add a new migration to update the
-        // Session table and replace the old constants with the new constants.
-        assert(OWSIdentity.aci.rawValue == 0)
-        assert(OWSIdentity.pni.rawValue == 1)
-
-        try migrateSessions(in: "TSStorageManagerSessionStoreCollection", identity: 0, tx: tx)
-        try migrateSessions(in: "TSStorageManagerPNISessionStoreCollection", identity: 1, tx: tx)
-    }
-
-    static func migrateSessions(
-        in collection: String,
-        identity: Int64,
-        tx: DBWriteTransaction,
-    ) throws {
-        let keys = try String.fetchAll(
-            tx.database,
-            sql: "SELECT key FROM keyvalue WHERE collection = ?",
-            arguments: [collection],
-        )
-        for key in keys { try autoreleasepool {
-            let dataValue = try Data.fetchOne(
-                tx.database,
-                sql: "SELECT value FROM keyvalue WHERE collection = ? AND key = ?",
-                arguments: [collection, key],
-            )!
-            let sessionDictionary: [Int32: Data?]
-            let decodedValue = try? NSKeyedUnarchiver.unarchivedObject(
-                ofClasses: [NSDictionary.self, NSNumber.self, NSData.self],
-                from: dataValue,
-            ) as? [Int32: Data]
-            if let decodedValue {
-                sessionDictionary = decodedValue
-            } else {
-                // We expect some failures (for legacy data), and if there are failures, we
-                // want to remember that there was a session, even though we can't do
-                // anything with that session. (See also `hasSessionRecords`).
-                Logger.warn("Storing nil for \(key) in \(collection) that couldn't be decoded")
-                sessionDictionary = [1: nil]
-            }
-            let recipientId = try Int64.fetchOne(
-                tx.database,
-                sql: "SELECT id FROM model_SignalRecipient WHERE uniqueId = ?",
-                arguments: [key],
-            )
-            guard let recipientId else {
-                // If we can't find the SignalRecipient, these sessions aren't reachable,
-                // so we don't need to keep them. (Foreign key constraints will enforce
-                // this moving forward.)
-                Logger.warn("Skipping \(key) in \(collection) that's been orphaned")
-                return
-            }
-            for (deviceId, serializedRecord) in sessionDictionary {
-                guard deviceId >= 1, deviceId <= 127 else {
-                    Logger.warn("Skipping \(deviceId) for \(key) in \(collection) that's not valid")
-                    continue
-                }
-                try tx.database.execute(
-                    sql: "INSERT INTO Session (recipientId, localIdentity, deviceId, serializedRecord) VALUES (?, ?, ?, ?)",
-                    arguments: [
-                        recipientId,
-                        identity,
-                        deviceId,
-                        serializedRecord,
-                    ],
-                )
-            }
-        }}
     }
 
     static func addRecipientStatus(tx: DBWriteTransaction) throws {
