@@ -9,7 +9,7 @@ public struct RegisteredState {
     public let isPrimary: Bool
     public let localIdentifiers: LocalIdentifiers
 
-    init(registrationState: TSRegistrationState, localIdentifiers: LocalIdentifiers?) throws(NotRegisteredError) {
+    init(registrationState: TSRegistrationState) throws(NotRegisteredError) {
         switch registrationState {
         case .registered(let localIdentifiers):
             self.isPrimary = true
