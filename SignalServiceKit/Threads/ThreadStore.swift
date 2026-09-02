@@ -39,6 +39,7 @@ public protocol ThreadStore {
     func hasPendingMessageRequest(thread: TSThread, tx: DBReadTransaction) -> Bool
 
     func getOrCreateLocalThread(tx: DBWriteTransaction) -> TSContactThread?
+    func getOrCreateLocalThread(localIdentifiers: LocalIdentifiers, tx: DBWriteTransaction) -> TSContactThread
     func getOrCreateContactThread(with address: SignalServiceAddress, tx: DBWriteTransaction) -> TSContactThread
 
     func removeThread(_ thread: TSThread, tx: DBWriteTransaction)
@@ -183,6 +184,10 @@ public class ThreadStoreImpl: ThreadStore {
 
     public func getOrCreateLocalThread(tx: DBWriteTransaction) -> TSContactThread? {
         return TSContactThread.getOrCreateLocalThread(transaction: tx)
+    }
+
+    public func getOrCreateLocalThread(localIdentifiers: LocalIdentifiers, tx: DBWriteTransaction) -> TSContactThread {
+        return TSContactThread.getOrCreateLocalThread(localIdentifiers: localIdentifiers, tx: tx)
     }
 
     public func getOrCreateContactThread(with address: SignalServiceAddress, tx: DBWriteTransaction) -> TSContactThread {
@@ -356,6 +361,10 @@ public class MockThreadStore: ThreadStore {
     }
 
     public func getOrCreateLocalThread(tx: DBWriteTransaction) -> TSContactThread? {
+        return TSContactThread(contactAddress: .isolatedRandomForTesting())
+    }
+
+    public func getOrCreateLocalThread(localIdentifiers: LocalIdentifiers, tx: DBWriteTransaction) -> TSContactThread {
         return TSContactThread(contactAddress: .isolatedRandomForTesting())
     }
 

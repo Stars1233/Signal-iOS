@@ -200,15 +200,15 @@ extension OWSSyncManager: SyncManagerProtocol, SyncManagerProtocolSwift {
     }
 
     public func sendKeysSyncMessage(tx: DBWriteTransaction) {
+        let tsAccountManager = DependenciesBridge.shared.tsAccountManager
         Logger.info("")
 
-        guard DependenciesBridge.shared.tsAccountManager.registrationState(tx: tx).isRegisteredPrimaryDevice else {
-            return owsFailDebug("Keys sync should only be initiated from the registered primary device")
+        guard let registeredState = try? tsAccountManager.registeredState(tx: tx), registeredState.isPrimary else {
+            owsFailDebug("can't sync keys from unregistered or non-primary device")
+            return
         }
 
-        guard let thread = TSContactThread.getOrCreateLocalThread(transaction: tx) else {
-            return owsFailDebug("Missing thread")
-        }
+        let thread = TSContactThread.getOrCreateLocalThread(localIdentifiers: registeredState.localIdentifiers, tx: tx)
 
         let accountKeyStore = DependenciesBridge.shared.accountKeyStore
         guard let accountEntropyPool = accountKeyStore.getAccountEntropyPool(tx: tx) else {

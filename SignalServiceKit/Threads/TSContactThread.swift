@@ -165,13 +165,17 @@ open class TSContactThread: TSThread {
         )
     }
 
-    @objc
+    public static func getOrCreateLocalThread(localIdentifiers: LocalIdentifiers, tx: DBWriteTransaction) -> TSContactThread {
+        return TSContactThread.getOrCreateThread(withContactAddress: localIdentifiers.aciAddress, transaction: tx)
+    }
+
     public static func getOrCreateLocalThread(transaction: DBWriteTransaction) -> TSContactThread? {
-        guard let localAddress = DependenciesBridge.shared.tsAccountManager.localIdentifiers(tx: transaction)?.aciAddress else {
-            owsFailDebug("Missing localAddress.")
+        let tsAccountManager = DependenciesBridge.shared.tsAccountManager
+        guard let localIdentifiers = tsAccountManager.localIdentifiers(tx: transaction) else {
+            owsFailDebug("missing localIdentifiers")
             return nil
         }
-        return TSContactThread.getOrCreateThread(withContactAddress: localAddress, transaction: transaction)
+        return TSContactThread.getOrCreateLocalThread(localIdentifiers: localIdentifiers, tx: transaction)
     }
 
     @objc
