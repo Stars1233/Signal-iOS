@@ -125,7 +125,8 @@ class CallLinkManagerImpl: CallLinkManager {
 
     func createCallLink(rootKey: CallLinkRootKey) async throws -> CreateResult {
         let roomId = rootKey.deriveRoomId()
-        let localIdentifiers = self.tsAccountManager.localIdentifiersWithMaybeSneakyTransaction!
+        let registeredState = try self.tsAccountManager.registeredStateWithMaybeSneakyTransaction()
+        let localIdentifiers = registeredState.localIdentifiers
         let sfuUrl = DebugFlags.callingUseTestSFU.get() ? TSConstants.sfuTestURL : TSConstants.sfuURL
         let secretParams = CallLinkSecretParams.deriveFromRootKey(rootKey.bytes)
         let createCredential = try await fetchCreateCredential(for: roomId, localAci: localIdentifiers.aci)
