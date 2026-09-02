@@ -3,13 +3,20 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
+public enum CanRotateAEPResult {
+    case localFileBackupsEnabled
+    case success
+}
+
 public protocol AccountEntropyPoolManager {
     func generateIfMissing() async
 
     func setAccountEntropyPool(
         newAccountEntropyPool: AccountEntropyPool,
         tx: DBWriteTransaction,
-    )
+    ) throws
+
+    func verifyRequirementsForSettingAccountEntropyPool(tx: DBReadTransaction) -> CanRotateAEPResult
 }
 
 // MARK: -
@@ -25,6 +32,7 @@ class AccountEntropyPoolManagerImpl: AccountEntropyPoolManager {
     private let svr: SecureValueRecovery
     private let syncManager: SyncManagerProtocol
     private let tsAccountManager: TSAccountManager
+    private let localFileBackupStore: LocalFileBackupStore
 
     init(
         accountAttributesUpdater: AccountAttributesUpdater,
@@ -36,6 +44,7 @@ class AccountEntropyPoolManagerImpl: AccountEntropyPoolManager {
         svr: SecureValueRecovery,
         syncManager: SyncManagerProtocol,
         tsAccountManager: TSAccountManager,
+        localFileBackupStore: LocalFileBackupStore,
     ) {
         self.accountAttributesUpdater = accountAttributesUpdater
         self.accountKeyStore = accountKeyStore
@@ -47,6 +56,7 @@ class AccountEntropyPoolManagerImpl: AccountEntropyPoolManager {
         self.svr = svr
         self.syncManager = syncManager
         self.tsAccountManager = tsAccountManager
+        self.localFileBackupStore = localFileBackupStore
     }
 
     // MARK: -
@@ -72,10 +82,21 @@ class AccountEntropyPoolManagerImpl: AccountEntropyPoolManager {
 
         logger.info("Generating new AEP for registered primary missing one.")
 
-        setAccountEntropyPool(
-            newAccountEntropyPool: AccountEntropyPool(),
-            tx: tx,
-        )
+        do {
+            try setAccountEntropyPool(
+                newAccountEntropyPool: AccountEntropyPool(),
+                tx: tx,
+            )
+        } catch {
+            owsFailDebug("Should never fail to set AEP if it's missing!")
+        }
+    }
+
+    func verifyRequirementsForSettingAccountEntropyPool(tx: DBReadTransaction) -> CanRotateAEPResult {
+        guard localFileBackupStore.localBackupsEnabled(tx: tx) == false else {
+            return .localFileBackupsEnabled
+        }
+        return .success
     }
 
     // MARK: -
@@ -83,7 +104,12 @@ class AccountEntropyPoolManagerImpl: AccountEntropyPoolManager {
     func setAccountEntropyPool(
         newAccountEntropyPool: AccountEntropyPool,
         tx: DBWriteTransaction,
-    ) {
+    ) throws {
+        let canRotateAEPResult = verifyRequirementsForSettingAccountEntropyPool(tx: tx)
+        guard canRotateAEPResult == .success else {
+            throw OWSAssertionError("Failing to rotate AEP because some requirement was not met: \(canRotateAEPResult)")
+        }
+
         logger.warn("Setting new AEP!")
 
         // Eventually, we may support rotating the AEP without rotating related-
@@ -168,6 +194,10 @@ class AccountEntropyPoolManagerImpl: AccountEntropyPoolManager {
 #if TESTABLE_BUILD
 
 class MockAccountEntropyPoolManager: AccountEntropyPoolManager {
+    func verifyRequirementsForSettingAccountEntropyPool(tx: DBReadTransaction) -> CanRotateAEPResult {
+        return .success
+    }
+
     func generateIfMissing() async {}
 
     var setAccountEntropyPoolMock: (() -> Void)?

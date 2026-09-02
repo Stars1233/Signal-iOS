@@ -223,10 +223,15 @@ final class BackupDisablingManager {
             if let aepBeingRotatedString = kvStore.getString(StoreKeys.aepBeingRotated, transaction: tx) {
                 logger.warn("Rotating AEP after disabling Backups!")
 
-                accountEntropyPoolManager.setAccountEntropyPool(
-                    newAccountEntropyPool: try! AccountEntropyPool(key: aepBeingRotatedString),
-                    tx: tx,
-                )
+                do {
+                    try accountEntropyPoolManager.setAccountEntropyPool(
+                        newAccountEntropyPool: try! AccountEntropyPool(key: aepBeingRotatedString),
+                        tx: tx,
+                    )
+                } catch {
+                    owsFailDebug("Failed to set AEP after disabling Backups: \(error)")
+                    return
+                }
             }
         }
 

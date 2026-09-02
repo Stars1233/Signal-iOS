@@ -80,8 +80,18 @@ class AdvancedPinSettingsTableViewController: OWSTableViewController2 {
         isReglockV2Enabled: Bool,
         isBackupsEnabled: Bool,
     ) {
+        let accountEntropyPoolManager = DependenciesBridge.shared.accountEntropyPoolManager
+
         if isPinEnabled {
-            if
+            let canRotateAEPResult = context.db.read { tx in
+                accountEntropyPoolManager.verifyRequirementsForSettingAccountEntropyPool(tx: tx)
+            }
+
+            if canRotateAEPResult != .success {
+                if let sheet = CannotRotateAEPActionSheet(reason: canRotateAEPResult, fromViewController: self) {
+                    presentActionSheet(sheet)
+                }
+            } else if
                 SSKEnvironment.shared.paymentsHelperRef.arePaymentsEnabled,
                 !PaymentsSettingsViewController.hasReviewedPassphraseWithSneakyTransaction()
             {
@@ -145,12 +155,18 @@ class AdvancedPinSettingsTableViewController: OWSTableViewController2 {
                 db.write { tx in
                     Logger.warn("Rotating AEP: disabling PIN!")
 
+                    do {
+                        try accountEntropyPoolManager.setAccountEntropyPool(
+                            newAccountEntropyPool: AccountEntropyPool(),
+                            tx: tx,
+                        )
+                    } catch {
+                        owsFailDebug("Failed to set account entropy pool: \(error), aborting pin disable")
+                        return
+                    }
+
                     ows2FAManager.markDisabled(transaction: tx)
 
-                    accountEntropyPoolManager.setAccountEntropyPool(
-                        newAccountEntropyPool: AccountEntropyPool(),
-                        tx: tx,
-                    )
                 }
 
                 self.updateTableContents()

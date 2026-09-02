@@ -1499,10 +1499,12 @@ class BackupSettingsViewController:
         let (
             currentBackupPlan,
             isRegisteredPrimaryDevice,
+            canRotateAEPResult,
         ) = db.read { tx in
             return (
                 backupSettingsStore.backupPlan(tx: tx),
                 tsAccountManager.registrationState(tx: tx).isRegisteredPrimaryDevice,
+                accountEntropyPoolManager.verifyRequirementsForSettingAccountEntropyPool(tx: tx),
             )
         }
 
@@ -1514,6 +1516,13 @@ class BackupSettingsViewController:
                 ),
                 fromViewController: self,
             )
+            return
+        }
+
+        guard canRotateAEPResult == .success else {
+            if let sheet = CannotRotateAEPActionSheet(reason: canRotateAEPResult, fromViewController: fromViewController) {
+                fromViewController.presentActionSheet(sheet)
+            }
             return
         }
 
@@ -1667,10 +1676,15 @@ class BackupSettingsViewController:
             case .disabled:
                 Logger.warn("Rotating AEP.")
 
-                accountEntropyPoolManager.setAccountEntropyPool(
-                    newAccountEntropyPool: newCandidateAEP,
-                    tx: tx,
-                )
+                do {
+                    try accountEntropyPoolManager.setAccountEntropyPool(
+                        newAccountEntropyPool: newCandidateAEP,
+                        tx: tx,
+                    )
+                } catch {
+                    owsFailDebug("Failed to set AEP: \(error)")
+                    return
+                }
             case .disabling, .free, .paid, .paidExpiringSoon, .paidAsTester:
                 Logger.warn("Disabling Backups, then rotating AEP.")
 

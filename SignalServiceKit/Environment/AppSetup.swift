@@ -1057,6 +1057,7 @@ extension AppSetup.GlobalsContinuation {
             svr: svr,
             syncManager: syncManager,
             tsAccountManager: tsAccountManager,
+            localFileBackupStore: localFileBackupStore,
         )
 
         let keyTransparencyStore = KeyTransparencyStore()

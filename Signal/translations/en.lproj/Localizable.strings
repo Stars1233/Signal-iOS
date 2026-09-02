@@ -124,6 +124,12 @@
 /* Message shown in conversation view that offers to share your profile with a user. */
 "ADD_USER_TO_PROFILE_WHITELIST_OFFER" = "Would you like to share your profile with this user?";
 
+/* Message shown in an action sheet when attempting to rotate AEP, but local backups is enabled. */
+"AEP_MANAGER_LOCAL_BACKUPS_DISABLE_REQUIRED" = "You must disable On-Device Backups before proceeding.";
+
+/* Button in an action sheet that takes the user to On-Device Backup settings. */
+"AEP_MANAGER_ON_DEVICE_BACKUP_SETTINGS_BUTTON" = "On-Device Backup Settings";
+
 /* generic button text to acknowledge that the corresponding text was read. */
 "ALERT_ACTION_ACKNOWLEDGE" = "Got it";
 
