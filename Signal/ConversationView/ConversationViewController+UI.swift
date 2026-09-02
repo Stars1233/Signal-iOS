@@ -118,8 +118,10 @@ extension ConversationViewController {
                     if conversationViewModel.groupCallInProgress {
                         let pill = JoinGroupCallPill()
                         pill.addAction(
-                            UIAction { [weak self] _ in self?.showGroupLobbyOrActiveCall() },
-                            for: .primaryActionTriggered,
+                            UIAction { [weak self] _ in
+                                self?.showGroupLobbyOrActiveCall()
+                            },
+                            for: .touchUpInside,
                         )
                         let returnString = OWSLocalizedString(
                             "RETURN_CALL_PILL_BUTTON",
