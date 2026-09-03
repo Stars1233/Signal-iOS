@@ -304,9 +304,10 @@ class RegistrationProfileViewController: OWSViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        if !UIDevice.current.isIPhone5OrShorter {
-            // Small devices may obscure parts of the UI behind the keyboard, especially with larger
-            // font sizes.
+        // Small devices may obscure parts of the UI behind the keyboard, especially with larger font sizes.
+        // Check against iPhone SE 1st Gen's screen height as it is the smallest device that supports iOS 15.
+        let isTallEnoughScreen = if #available(iOS 16, *) { true } else { view.frame.height > 568 }
+        if isTallEnoughScreen {
             firstTextField.becomeFirstResponder()
         }
     }

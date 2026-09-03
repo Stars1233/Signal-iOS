@@ -330,24 +330,10 @@ class RegistrationPinViewController: OWSViewController {
         configureUI()
     }
 
-    private var isViewAppeared = false
-
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        if !UIDevice.current.isIPhone5OrShorter {
-            // Small devices may obscure parts of the UI behind the keyboard, especially with larger
-            // font sizes.
-            pinTextField.becomeFirstResponder()
-        }
-
-        isViewAppeared = true
-    }
-
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-
-        isViewAppeared = false
+        pinTextField.becomeFirstResponder()
     }
 
     private func configureUI() {
@@ -421,7 +407,7 @@ class RegistrationPinViewController: OWSViewController {
 
         replaceViewsAfterTextField(with: [
             pinValidationLabel,
-            UIView.vStretchingSpacer(minHeight: 24),
+            UIView.vStretchingSpacer(),
             togglePinCharacterSetButtonContainer,
         ])
     }
@@ -516,7 +502,7 @@ class RegistrationPinViewController: OWSViewController {
         canSkip: Bool,
     ) {
         guard
-            isViewAppeared,
+            lifecycle == .appeared,
             let remainingAttempts,
             warnAt.contains(remainingAttempts),
             remainingAttempts < (previouslyWarnedAboutAttemptCount ?? UInt.max)

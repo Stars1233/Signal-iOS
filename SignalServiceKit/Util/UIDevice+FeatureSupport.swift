@@ -128,10 +128,6 @@ public extension UIDevice {
         return CurrentAppContext().frame.width < 375
     }
 
-    var isIPhone5OrShorter: Bool {
-        return CurrentAppContext().frame.height <= 568
-    }
-
     @objc
     var isIPad: Bool {
         return userInterfaceIdiom == .pad
