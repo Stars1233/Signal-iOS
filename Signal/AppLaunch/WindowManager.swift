@@ -117,7 +117,8 @@ class WindowManager {
         window.windowLevel = ._callView
         window.isHidden = true
         window.isOpaque = true
-        window.backgroundColor = Theme.launchScreenBackgroundColor
+        window.backgroundColor = .Signal.background
+        window.overrideUserInterfaceStyle = .dark
         window.rootViewController = nil
 
         return window
