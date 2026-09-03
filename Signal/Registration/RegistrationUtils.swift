@@ -33,15 +33,11 @@ enum RegistrationUtils {
         viewController.presentActionSheet(actionSheet)
     }
 
-    private static func fetchIdentifiers(localIdentifiers: DeregisteredLocalIdentifiers) -> (Aci, E164)? {
-        // TODO: We might be reregistering before we ever learned our ACI.
-        guard
-            let aci = localIdentifiers.aci,
-            let phoneNumber = E164(localIdentifiers.phoneNumber)
-        else {
+    private static func fetchIdentifiers(localIdentifiers: DeregisteredLocalIdentifiers) -> (Aci?, E164)? {
+        guard let phoneNumber = E164(localIdentifiers.phoneNumber) else {
             return nil
         }
-        return (aci, phoneNumber)
+        return (localIdentifiers.aci, phoneNumber)
     }
 
     static func showReLinking(deregisteredState: DeregisteredState) {
@@ -60,9 +56,9 @@ enum RegistrationUtils {
 
         databaseStorage.write { tx in
             registrationStateChangeManager.resetForReregistration(
-                localPhoneNumber: localPhoneNumber,
-                localAci: localAci,
-                wasPrimaryDevice: false,
+                aci: localAci,
+                phoneNumber: localPhoneNumber,
+                isPrimaryDevice: false,
                 tx: tx,
             )
         }
@@ -85,8 +81,8 @@ enum RegistrationUtils {
         }
         let dependencies = RegistrationCoordinatorDependencies.from(NSObject())
         let desiredMode = RegistrationMode.reRegistering(RegistrationMode.ReregistrationParams(
-            e164: localPhoneNumber,
             aci: localAci,
+            e164: localPhoneNumber,
         ))
         let loader = RegistrationCoordinatorLoaderImpl(dependencies: dependencies)
         let coordinator = databaseStorage.write {

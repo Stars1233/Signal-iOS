@@ -942,19 +942,16 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
             return .chatList
 
         case .reregistering(let localIdentifiers):
-            if
-                let reregE164 = E164(localIdentifiers.phoneNumber),
-                let reregAci = localIdentifiers.aci
-            {
+            if let reregE164 = E164(localIdentifiers.phoneNumber) {
                 Logger.info("Found legacy re-registration; continuing in new registration")
                 // A user who started re-registration before the new
                 // registration flow shipped; kick them to new re-reg.
                 return .registration(regLoader, .reRegistering(RegistrationMode.ReregistrationParams(
+                    aci: localIdentifiers.aci,
                     e164: reregE164,
-                    aci: reregAci,
                 )))
             } else {
-                // If we're missing the e164 or aci, drop into normal reg.
+                // If we're missing the e164, drop into normal reg.
                 Logger.info("Found legacy initial registration; continuing in new registration")
                 return .registration(regLoader, .registering)
             }

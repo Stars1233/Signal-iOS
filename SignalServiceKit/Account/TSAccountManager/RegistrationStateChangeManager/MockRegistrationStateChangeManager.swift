@@ -49,20 +49,20 @@ open class MockRegistrationStateChangeManager: RegistrationStateChangeManager {
     }
 
     public lazy var resetForReregistrationMock: (
-        _ localPhoneNumber: E164,
-        _ localAci: Aci,
-        _ wasPrimaryDevice: Bool,
-    ) -> Void = { [weak self] phoneNumber, aci, _ in
+        _ aci: Aci?,
+        _ phoneNumber: E164,
+        _ isPrimaryDevice: Bool,
+    ) -> Void = { [weak self] aci, phoneNumber, _ in
         self?.registrationStateMock = { .reregistering(ReregisteringLocalIdentifiers(phoneNumber: phoneNumber.stringValue, aci: aci)) }
     }
 
     open func resetForReregistration(
-        localPhoneNumber: E164,
-        localAci: Aci,
-        wasPrimaryDevice: Bool,
+        aci: Aci?,
+        phoneNumber: E164,
+        isPrimaryDevice: Bool,
         tx: DBWriteTransaction,
     ) {
-        return resetForReregistrationMock(localPhoneNumber, localAci, wasPrimaryDevice)
+        return resetForReregistrationMock(aci, phoneNumber, isPrimaryDevice)
     }
 
     public lazy var setIsTransferInProgressMock: () -> Void = { [weak self] in

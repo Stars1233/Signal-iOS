@@ -4380,9 +4380,9 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
                 db.write { tx in
                     let isPrimaryDevice = deps.tsAccountManager.registrationState(tx: tx).isPrimaryDevice ?? true
                     deps.registrationStateChangeManager.resetForReregistration(
-                        localPhoneNumber: state.e164,
-                        localAci: state.aci,
-                        wasPrimaryDevice: isPrimaryDevice,
+                        aci: state.aci,
+                        phoneNumber: state.e164,
+                        isPrimaryDevice: isPrimaryDevice,
                         tx: tx,
                     )
                     updatePersistedState(tx) {
@@ -4744,8 +4744,8 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         inMemoryState.hasOpenedConnection = false
 
         return .showErrorSheet(.becameDeregistered(reregParams: .init(
-            e164: accountIdentity.e164,
             aci: accountIdentity.aci,
+            e164: accountIdentity.e164,
         )))
     }
 

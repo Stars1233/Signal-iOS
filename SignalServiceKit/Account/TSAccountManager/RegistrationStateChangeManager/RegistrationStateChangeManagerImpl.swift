@@ -202,15 +202,15 @@ public class RegistrationStateChangeManagerImpl: RegistrationStateChangeManager 
     }
 
     public func resetForReregistration(
-        localPhoneNumber: E164,
-        localAci: Aci,
-        wasPrimaryDevice: Bool,
+        aci: Aci?,
+        phoneNumber: E164,
+        isPrimaryDevice: Bool,
         tx: DBWriteTransaction,
     ) {
         tsAccountManager.resetForReregistration(
-            localNumber: localPhoneNumber,
-            localAci: localAci,
-            wasPrimaryDevice: wasPrimaryDevice,
+            aci: aci,
+            phoneNumber: phoneNumber,
+            isPrimaryDevice: isPrimaryDevice,
             tx: tx,
         )
 
@@ -221,7 +221,7 @@ public class RegistrationStateChangeManagerImpl: RegistrationStateChangeManager 
         authCredentialStore.removeAllGroupAuthCredentials(tx: tx)
         authCredentialStore.removeAllCallLinkAuthCredentials(tx: tx)
 
-        if wasPrimaryDevice {
+        if isPrimaryDevice {
             // Don't reset payments state at this time.
         } else {
             // PaymentsEvents will dispatch this event to the appropriate singletons.

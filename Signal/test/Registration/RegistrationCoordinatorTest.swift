@@ -189,7 +189,7 @@ public class RegistrationCoordinatorTest {
 
     static let testModes: [RegistrationMode] = [
         RegistrationMode.registering,
-        RegistrationMode.reRegistering(RegistrationMode.ReregistrationParams(e164: Stubs.e164, aci: Stubs.aci)),
+        RegistrationMode.reRegistering(RegistrationMode.ReregistrationParams(aci: Stubs.aci, e164: Stubs.e164)),
     ]
 
     struct TestCase {
@@ -198,7 +198,7 @@ public class RegistrationCoordinatorTest {
 
     static func onlyReRegisteringTestCases() -> [TestCase] {
         return buildTestCases(for: [
-            RegistrationMode.reRegistering(RegistrationMode.ReregistrationParams(e164: Stubs.e164, aci: Stubs.aci)),
+            RegistrationMode.reRegistering(RegistrationMode.ReregistrationParams(aci: Stubs.aci, e164: Stubs.e164)),
         ])
     }
 
