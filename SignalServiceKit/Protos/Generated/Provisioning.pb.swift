@@ -27,12 +27,12 @@ import SwiftProtobuf
 // incompatible with the version of SwiftProtobuf to which you are linking.
 // Please ensure that you are building against the same version of the API
 // that was used to generate this file.
-fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPIVersionCheck {
+fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPIVersionCheck {
   struct _2: SwiftProtobuf.ProtobufAPIVersion_2 {}
   typealias Version = _2
 }
 
-struct ProvisioningProtos_ProvisionEnvelope: Sendable {
+nonisolated struct ProvisioningProtos_ProvisionEnvelope: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -65,7 +65,7 @@ struct ProvisioningProtos_ProvisionEnvelope: Sendable {
   fileprivate var _body: Data? = nil
 }
 
-struct ProvisioningProtos_ProvisionMessage: @unchecked Sendable {
+nonisolated struct ProvisioningProtos_ProvisionMessage: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -241,9 +241,9 @@ struct ProvisioningProtos_ProvisionMessage: @unchecked Sendable {
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
-fileprivate let _protobuf_package = "ProvisioningProtos"
+fileprivate nonisolated let _protobuf_package = "ProvisioningProtos"
 
-extension ProvisioningProtos_ProvisionEnvelope: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension ProvisioningProtos_ProvisionEnvelope: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".ProvisionEnvelope"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}publicKey\0\u{1}body\0")
 
@@ -282,7 +282,7 @@ extension ProvisioningProtos_ProvisionEnvelope: SwiftProtobuf.Message, SwiftProt
   }
 }
 
-extension ProvisioningProtos_ProvisionMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension ProvisioningProtos_ProvisionMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".ProvisionMessage"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}aciIdentityKeyPublic\0\u{1}aciIdentityKeyPrivate\0\u{1}number\0\u{1}provisioningCode\0\u{1}userAgent\0\u{1}profileKey\0\u{1}readReceipts\0\u{1}aci\0\u{1}provisioningVersion\0\u{1}pni\0\u{1}pniIdentityKeyPublic\0\u{1}pniIdentityKeyPrivate\0\u{2}\u{2}ephemeralBackupKey\0\u{1}accountEntropyPool\0\u{1}mediaRootBackupKey\0\u{1}aciBinary\0\u{1}pniBinary\0\u{c}\u{d}\u{1}")
 

@@ -24,12 +24,12 @@ import SwiftProtobuf
 // incompatible with the version of SwiftProtobuf to which you are linking.
 // Please ensure that you are building against the same version of the API
 // that was used to generate this file.
-fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPIVersionCheck {
+fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPIVersionCheck {
   struct _2: SwiftProtobuf.ProtobufAPIVersion_2 {}
   typealias Version = _2
 }
 
-struct RegistrationProtos_RegistrationProvisionEnvelope: Sendable {
+nonisolated struct RegistrationProtos_RegistrationProvisionEnvelope: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -44,7 +44,7 @@ struct RegistrationProtos_RegistrationProvisionEnvelope: Sendable {
   init() {}
 }
 
-struct RegistrationProtos_RegistrationProvisionMessage: @unchecked Sendable {
+nonisolated struct RegistrationProtos_RegistrationProvisionMessage: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -140,7 +140,7 @@ struct RegistrationProtos_RegistrationProvisionMessage: @unchecked Sendable {
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  enum Platform: SwiftProtobuf.Enum, Swift.CaseIterable {
+  nonisolated enum Platform: SwiftProtobuf.Enum, Swift.CaseIterable {
     typealias RawValue = Int
     case android // = 0
     case ios // = 1
@@ -174,7 +174,7 @@ struct RegistrationProtos_RegistrationProvisionMessage: @unchecked Sendable {
 
   }
 
-  enum Tier: SwiftProtobuf.Enum, Swift.CaseIterable {
+  nonisolated enum Tier: SwiftProtobuf.Enum, Swift.CaseIterable {
     typealias RawValue = Int
     case free // = 0
     case paid // = 1
@@ -215,9 +215,9 @@ struct RegistrationProtos_RegistrationProvisionMessage: @unchecked Sendable {
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
-fileprivate let _protobuf_package = "RegistrationProtos"
+fileprivate nonisolated let _protobuf_package = "RegistrationProtos"
 
-extension RegistrationProtos_RegistrationProvisionEnvelope: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension RegistrationProtos_RegistrationProvisionEnvelope: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".RegistrationProvisionEnvelope"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}publicKey\0\u{1}body\0")
 
@@ -252,7 +252,7 @@ extension RegistrationProtos_RegistrationProvisionEnvelope: SwiftProtobuf.Messag
   }
 }
 
-extension RegistrationProtos_RegistrationProvisionMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension RegistrationProtos_RegistrationProvisionMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".RegistrationProvisionMessage"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}e164\0\u{1}aci\0\u{1}accountEntropyPool\0\u{1}pin\0\u{1}platform\0\u{1}backupTimestampMs\0\u{1}tier\0\u{1}backupSizeBytes\0\u{1}restoreMethodToken\0\u{1}aciIdentityKeyPublic\0\u{1}aciIdentityKeyPrivate\0\u{1}pniIdentityKeyPublic\0\u{1}pniIdentityKeyPrivate\0\u{1}backupVersion\0\u{1}lastBackupForwardSecrecyToken\0\u{1}nextBackupSecretData\0\u{1}capabilities\0")
 
@@ -434,10 +434,10 @@ extension RegistrationProtos_RegistrationProvisionMessage: SwiftProtobuf.Message
   }
 }
 
-extension RegistrationProtos_RegistrationProvisionMessage.Platform: SwiftProtobuf._ProtoNameProviding {
+nonisolated extension RegistrationProtos_RegistrationProvisionMessage.Platform: SwiftProtobuf._ProtoNameProviding {
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0ANDROID\0\u{1}IOS\0")
 }
 
-extension RegistrationProtos_RegistrationProvisionMessage.Tier: SwiftProtobuf._ProtoNameProviding {
+nonisolated extension RegistrationProtos_RegistrationProvisionMessage.Tier: SwiftProtobuf._ProtoNameProviding {
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0FREE\0\u{1}PAID\0")
 }
