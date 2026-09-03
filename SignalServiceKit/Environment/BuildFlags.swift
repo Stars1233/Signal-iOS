@@ -66,7 +66,7 @@ public enum BuildFlags {
         public static let conservativeSelfCheck = build <= .internal
     }
 
-    public static let wifiAwareDeviceTransfer = true
+    public static let wifiAwareDeviceTransfer = build <= .internal
 
     public enum ReleaseNotesChannel {
         public static let ignoreFetchDelay = build <= .internal
