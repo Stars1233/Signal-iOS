@@ -385,15 +385,17 @@ public class NotificationActionHandler {
             }
         }
         let tsAccountManager = DependenciesBridge.shared.tsAccountManager
-        switch tsAccountManager.registrationStateWithMaybeSneakyTransaction.deregistrationState {
-        case .deregistered:
-            Logger.info("re-registering from logged out notification")
-            RegistrationUtils.showReRegistration()
-        case .delinked:
-            Logger.info("re-linking from logged out notification")
-            RegistrationUtils.showReLinking()
-        case nil:
+        let registrationState = tsAccountManager.registrationStateWithMaybeSneakyTransaction
+        guard let deregisteredState = registrationState.deregisteredState else {
             Logger.warn("ignoring request from logged out notification")
+            return
+        }
+        if deregisteredState.isPrimary {
+            Logger.info("re-registering from logged out notification")
+            RegistrationUtils.showReRegistration(deregisteredState: deregisteredState)
+        } else {
+            Logger.info("re-linking from logged out notification")
+            RegistrationUtils.showReLinking(deregisteredState: deregisteredState)
         }
     }
 

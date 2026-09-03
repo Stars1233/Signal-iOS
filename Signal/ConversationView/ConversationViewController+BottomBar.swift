@@ -103,13 +103,12 @@ public extension ConversationViewController {
             if appExpiry.isExpired(now: Date()) {
                 return .appExpired
             }
-            switch tsAccountManager.registrationStateWithMaybeSneakyTransaction.deregistrationState {
-            case .deregistered:
-                return .notRegistered
-            case .delinked:
-                return .notLinked
-            case nil:
-                break
+            if let deregisteredState = tsAccountManager.registrationStateWithMaybeSneakyTransaction.deregisteredState {
+                if deregisteredState.isPrimary {
+                    return .notRegistered
+                } else {
+                    return .notLinked
+                }
             }
             if
                 let groupModel = thread.groupModelIfGroupThread as? TSGroupModelV2,
@@ -196,7 +195,10 @@ public extension ConversationViewController {
             let notRegisteredView = BlockingErrorBottomPanelView(
                 text: notRegisteredErrorText(),
                 onTap: { [unowned self] in
-                    RegistrationUtils.showReRegistrationPrompt(fromViewController: self)
+                    let tsAccountManager = DependenciesBridge.shared.tsAccountManager
+                    let registrationState = tsAccountManager.registrationStateWithMaybeSneakyTransaction
+                    let deregisteredState = registrationState.deregisteredState.owsFailUnwrap("must be deregistered")
+                    RegistrationUtils.showReRegistrationPrompt(fromViewController: self, deregisteredState: deregisteredState)
                 },
             )
             requestView = notRegisteredView
@@ -205,7 +207,10 @@ public extension ConversationViewController {
             let notRegisteredView = BlockingErrorBottomPanelView(
                 text: notLinkedErrorText(),
                 onTap: {
-                    RegistrationUtils.showReLinking()
+                    let tsAccountManager = DependenciesBridge.shared.tsAccountManager
+                    let registrationState = tsAccountManager.registrationStateWithMaybeSneakyTransaction
+                    let deregisteredState = registrationState.deregisteredState.owsFailUnwrap("must be deregistered")
+                    RegistrationUtils.showReLinking(deregisteredState: deregisteredState)
                 },
             )
             requestView = notRegisteredView

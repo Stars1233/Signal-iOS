@@ -9,7 +9,7 @@ import SignalUI
 
 enum RegistrationUtils {
 
-    static func showReRegistrationPrompt(fromViewController viewController: UIViewController) {
+    static func showReRegistrationPrompt(fromViewController viewController: UIViewController, deregisteredState: DeregisteredState) {
         let tsAccountManager = DependenciesBridge.shared.tsAccountManager
         owsPrecondition(tsAccountManager.registrationStateWithMaybeSneakyTransaction.isPrimaryDevice == true)
 
@@ -26,35 +26,34 @@ enum RegistrationUtils {
             ),
             style: .default,
             handler: { _ in
-                showReRegistration()
+                showReRegistration(deregisteredState: deregisteredState)
             },
         ))
         actionSheet.addAction(OWSActionSheets.cancelAction)
         viewController.presentActionSheet(actionSheet)
     }
 
-    private static func fetchIdentifiers() -> (Aci, E164)? {
-        let tsAccountManager = DependenciesBridge.shared.tsAccountManager
+    private static func fetchIdentifiers(localIdentifiers: DeregisteredLocalIdentifiers) -> (Aci, E164)? {
+        // TODO: We might be reregistering before we ever learned our ACI.
         guard
-            let localIdentifiers = tsAccountManager.localIdentifiersWithMaybeSneakyTransaction,
+            let aci = localIdentifiers.aci,
             let phoneNumber = E164(localIdentifiers.phoneNumber)
         else {
             return nil
         }
-        return (localIdentifiers.aci, phoneNumber)
+        return (aci, phoneNumber)
     }
 
-    static func showReLinking() {
+    static func showReLinking(deregisteredState: DeregisteredState) {
         Logger.info("showReLinking")
 
         let databaseStorage = SSKEnvironment.shared.databaseStorageRef
         let preferences = SSKEnvironment.shared.preferencesRef
         let registrationStateChangeManager = DependenciesBridge.shared.registrationStateChangeManager
-        let tsAccountManager = DependenciesBridge.shared.tsAccountManager
 
-        owsPrecondition(tsAccountManager.registrationStateWithMaybeSneakyTransaction.isPrimaryDevice == false)
+        owsPrecondition(!deregisteredState.isPrimary)
 
-        guard let (localAci, localPhoneNumber) = fetchIdentifiers() else {
+        guard let (localAci, localPhoneNumber) = fetchIdentifiers(localIdentifiers: deregisteredState.localIdentifiers) else {
             owsFailDebug("couldn't fetch identifiers for re-linking")
             return
         }
@@ -71,17 +70,16 @@ enum RegistrationUtils {
         ProvisioningController.presentRelinkingFlow()
     }
 
-    static func showReRegistration() {
+    static func showReRegistration(deregisteredState: DeregisteredState) {
         let logger = PrefixedLogger(prefix: "[ReReg]")
         logger.info("showReRegistration")
 
         let databaseStorage = SSKEnvironment.shared.databaseStorageRef
         let preferences = SSKEnvironment.shared.preferencesRef
-        let tsAccountManager = DependenciesBridge.shared.tsAccountManager
 
-        owsPrecondition(tsAccountManager.registrationStateWithMaybeSneakyTransaction.isPrimaryDevice == true)
+        owsPrecondition(deregisteredState.isPrimary)
 
-        guard let (localAci, localPhoneNumber) = fetchIdentifiers() else {
+        guard let (localAci, localPhoneNumber) = fetchIdentifiers(localIdentifiers: deregisteredState.localIdentifiers) else {
             owsFailDebug("couldn't fetch identifiers for re-registration")
             return
         }

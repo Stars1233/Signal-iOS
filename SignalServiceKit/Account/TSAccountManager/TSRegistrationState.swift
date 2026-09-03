@@ -52,11 +52,6 @@ public enum TSRegistrationState {
     case transferred
 }
 
-public enum DeregistrationState {
-    case deregistered
-    case delinked
-}
-
 extension TSRegistrationState {
 
     public var isRegistered: Bool {
@@ -129,23 +124,11 @@ extension TSRegistrationState {
     }
 
     public var isDeregistered: Bool {
-        return self.deregistrationState != nil
+        return self.deregisteredState != nil
     }
 
-    public var deregistrationState: DeregistrationState? {
-        switch self {
-        case
-            .unregistered, .reregistering, .relinking,
-            .registered, .provisioned,
-            .transferringPrimaryOutgoing, .transferringLinkedOutgoing,
-            .transferringIncoming,
-            .transferred:
-            return nil
-        case .deregistered:
-            return .deregistered
-        case .delinked:
-            return .delinked
-        }
+    public var deregisteredState: DeregisteredState? {
+        return DeregisteredState(registrationState: self)
     }
 
     public var logString: String {

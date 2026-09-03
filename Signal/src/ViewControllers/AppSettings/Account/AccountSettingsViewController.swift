@@ -124,27 +124,25 @@ class AccountSettingsViewController: OWSTableViewController2 {
             contents.add(advancedSection)
         }
 
-        let tsRegistrationState = DependenciesBridge.shared.tsAccountManager.registrationStateWithMaybeSneakyTransaction
-
-        if let deregistrationState = tsRegistrationState.deregistrationState {
+        let tsAccountManager = DependenciesBridge.shared.tsAccountManager
+        let tsRegistrationState = tsAccountManager.registrationStateWithMaybeSneakyTransaction
+        if let deregisteredState = tsRegistrationState.deregisteredState {
             let accountSection = OWSTableSection()
             accountSection.headerTitle = accountSettingsTitle
             accountSection.add(.actionItem(
                 withText: { () -> String in
-                    switch deregistrationState {
-                    case .deregistered:
+                    if deregisteredState.isPrimary {
                         return OWSLocalizedString("SETTINGS_REREGISTER_BUTTON", comment: "Label for re-registration button.")
-                    case .delinked:
+                    } else {
                         return OWSLocalizedString("SETTINGS_RELINK_BUTTON", comment: "Label for re-link button.")
                     }
                 }(),
                 textColor: .Signal.accent,
                 actionBlock: { [unowned self] in
-                    switch deregistrationState {
-                    case .deregistered:
-                        RegistrationUtils.showReRegistrationPrompt(fromViewController: self)
-                    case .delinked:
-                        RegistrationUtils.showReLinking()
+                    if deregisteredState.isPrimary {
+                        RegistrationUtils.showReRegistrationPrompt(fromViewController: self, deregisteredState: deregisteredState)
+                    } else {
+                        RegistrationUtils.showReLinking(deregisteredState: deregisteredState)
                     }
                 },
             ))
