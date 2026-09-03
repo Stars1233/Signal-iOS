@@ -171,7 +171,9 @@ class DeleteAccountConfirmationViewController: OWSTableViewController2 {
     }()
 
     private func didTapDelete() {
-        guard hasEnteredLocalNumber else {
+        let tsAccountManager = DependenciesBridge.shared.tsAccountManager
+        let registeredState = tsAccountManager.mustBeRegisteredStateWithMaybeSneakyTransaction()
+        guard hasEnteredLocalNumber(localIdentifiers: registeredState.localIdentifiers) else {
             OWSActionSheets.showActionSheet(
                 title: OWSLocalizedString(
                     "DELETE_ACCOUNT_CONFIRMATION_WRONG_NUMBER",
@@ -448,21 +450,20 @@ class DeleteAccountConfirmationViewController: OWSTableViewController2 {
 
     // MARK: -
 
-    private var hasEnteredLocalNumber: Bool {
-        let tsAccountManager = DependenciesBridge.shared.tsAccountManager
-        guard let localNumber = tsAccountManager.localIdentifiersWithMaybeSneakyTransaction?.phoneNumber else {
-            owsFailDebug("local number unexpectedly nil")
-            return false
-        }
-
+    private func hasEnteredLocalNumber(localIdentifiers: LocalIdentifiers) -> Bool {
         guard let nationalNumber = nationalNumberTextField.text else {
             return false
         }
 
         let phoneNumberUtil = SSKEnvironment.shared.phoneNumberUtilRef
-        let parsedNumber = phoneNumberUtil.parsePhoneNumber(countryCode: country.countryCode, nationalNumber: nationalNumber)
-
-        return localNumber == parsedNumber?.e164
+        let parsedNumber = phoneNumberUtil.parsePhoneNumber(
+            countryCode: country.countryCode,
+            nationalNumber: nationalNumber,
+        )
+        guard let parsedNumber else {
+            return false
+        }
+        return localIdentifiers.phoneNumber == parsedNumber.e164
     }
 }
 
@@ -476,11 +477,12 @@ extension DeleteAccountConfirmationViewController: CountryCodeViewControllerDele
     private func populateDefaultCountryCode() {
         let tsAccountManager = DependenciesBridge.shared.tsAccountManager
         let phoneNumberUtil = SSKEnvironment.shared.phoneNumberUtilRef
+        let registeredState = tsAccountManager.mustBeRegisteredStateWithMaybeSneakyTransaction()
         let defaultCountry: PhoneNumberCountry
-        if
-            let localNumber = tsAccountManager.localIdentifiersWithMaybeSneakyTransaction?.phoneNumber,
-            let localCountry = PhoneNumberCountry.buildCountry(forCountryCode: phoneNumberUtil.preferredCountryCode(forLocalNumber: localNumber))
-        {
+        let localCountry = PhoneNumberCountry.buildCountry(
+            forCountryCode: phoneNumberUtil.preferredCountryCode(forLocalNumber: registeredState.localIdentifiers.phoneNumber),
+        )
+        if let localCountry {
             defaultCountry = localCountry
         } else {
             owsFailDebug("Couldn't determine local country.")
