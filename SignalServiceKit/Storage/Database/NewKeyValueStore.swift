@@ -358,6 +358,7 @@ public struct KeyValueStoreDeleter {
     private static let deprecatedCollections: [String] = [
         "AvatarDefaultColorStorageServiceMigrator",
         "BackupArchiveErrorPresenterImpl",
+        "CallLinkAuthCredential",
         "ChangePhoneNumber",
         "ContactsManagerCache.allContacts",
         "ContactsManagerCache.phoneNumberStore",
