@@ -4378,11 +4378,10 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         case .reRegistering(let state):
             if !persistedState.hasResetForReRegistration {
                 db.write { tx in
-                    let isPrimaryDevice = deps.tsAccountManager.registrationState(tx: tx).isPrimaryDevice ?? true
                     deps.registrationStateChangeManager.resetForReregistration(
                         aci: state.aci,
                         phoneNumber: state.e164,
-                        isPrimaryDevice: isPrimaryDevice,
+                        isPrimaryDevice: true,
                         tx: tx,
                     )
                     updatePersistedState(tx) {
