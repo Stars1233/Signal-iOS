@@ -168,18 +168,13 @@ final class BackupDisablingManager {
 
         let successfullyDisabledRemotely: Bool
         do {
-            let (localIdentifiers, isRegisteredPrimaryDevice) = db.read { tx in
-                return (
-                    tsAccountManager.localIdentifiers(tx: tx),
-                    tsAccountManager.registrationState(tx: tx).isRegisteredPrimaryDevice,
-                )
-            }
+            let registeredState = try? tsAccountManager.registeredStateWithMaybeSneakyTransaction()
 
-            if let localIdentifiers, isRegisteredPrimaryDevice {
+            if let registeredState, registeredState.isPrimary {
                 logger.info("Disabling Backups remotely...")
                 try await Retry.performWithIndefiniteNetworkRetries {
                     try await backupKeyService.deleteBackupKey(
-                        localIdentifiers: localIdentifiers,
+                        localIdentifiers: registeredState.localIdentifiers,
                         auth: .implicit(),
                         logger: logger,
                     )
