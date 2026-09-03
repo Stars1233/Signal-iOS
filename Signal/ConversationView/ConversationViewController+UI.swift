@@ -73,6 +73,19 @@ extension ConversationViewController {
 
     public var unreadCountViewDiameter: CGFloat { 16 }
 
+    private func joinGroupCallButtonConfiguration(title: String) -> UIButton.Configuration {
+        var config = UIButton.Configuration.borderedProminent()
+        config.title = title
+        config.attributedTitle?.font = .dynamicTypeSubheadlineClamped.semibold()
+        config.image = if #available(iOS 26, *) { .videoFill } else { .videoFill20 }
+        config.imagePlacement = .leading
+        config.imagePadding = 4
+        config.baseForegroundColor = .white
+        config.baseBackgroundColor = .Signal.green
+        config.cornerStyle = .capsule
+        return config
+    }
+
     public func updateBarButtonItems() {
         AssertIsOnMainThread()
 
@@ -116,19 +129,18 @@ extension ConversationViewController {
                     let videoCallButton = UIBarButtonItem()
 
                     if conversationViewModel.groupCallInProgress {
-                        let pill = JoinGroupCallPill()
-                        pill.addAction(
-                            UIAction { [weak self] _ in
+                        let buttonTitle = isCurrentCallForThread
+                            ? OWSLocalizedString(
+                                "RETURN_CALL_PILL_BUTTON",
+                                comment: "Button to return to current group call",
+                            )
+                            : CallStrings.joinCallPillButtonTitle
+                        videoCallButton.customView = UIButton(
+                            configuration: joinGroupCallButtonConfiguration(title: buttonTitle),
+                            primaryAction: UIAction { [weak self] _ in
                                 self?.showGroupLobbyOrActiveCall()
                             },
-                            for: .touchUpInside,
                         )
-                        let returnString = OWSLocalizedString(
-                            "RETURN_CALL_PILL_BUTTON",
-                            comment: "Button to return to current group call",
-                        )
-                        pill.buttonText = self.isCurrentCallForThread ? returnString : CallStrings.joinCallPillButtonTitle
-                        videoCallButton.customView = pill
 
                         if #available(iOS 26, *) {
                             videoCallButton.tintColor = UIColor.Signal.green
