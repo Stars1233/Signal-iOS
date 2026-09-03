@@ -707,13 +707,7 @@ class BackupListMediaManagerImpl: BackupListMediaManager {
             localCdnNumber = attachment.mediaTierInfo?.cdnNumber
         }
 
-        let mediaId: Data
-        do {
-            mediaId = try backupKey.deriveMediaId(mediaName)
-        } catch {
-            owsFailDebug("Failed to derive mediaID for mediaName!")
-            return
-        }
+        let mediaId = backupKey.deriveMediaId(mediaName)
 
         let matchedListedMediasQuery = ListedBackupMediaObject
             .filter(Column(ListedBackupMediaObject.CodingKeys.mediaId) == mediaId)
@@ -1559,7 +1553,7 @@ private class ListMediaIntegrityCheckerImpl: ListMediaIntegrityChecker {
         // Now check mediaNames we have pending delete, map them to mediaId, and try to match.
         var foundMatch = false
         orphanedBackupAttachmentStore.enumerateMediaNamesPendingDelete(tx: tx) { mediaName, stop in
-            let foundMediaId = try? backupKey.deriveMediaId(mediaName)
+            let foundMediaId = backupKey.deriveMediaId(mediaName)
             if foundMediaId == mediaId {
                 foundMatch = true
                 stop = true

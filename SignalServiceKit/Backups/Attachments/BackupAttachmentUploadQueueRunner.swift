@@ -396,34 +396,30 @@ class BackupAttachmentUploadQueueRunnerImpl: BackupAttachmentUploadQueueRunner {
             // We're about to upload; ensure we aren't also enqueuing a media tier delete.
             // This is only defensive as we should be cancelling any deletes any time we
             // create an attachment stream and enqueue an upload to begin with.
-            do {
-                try await db.awaitableWrite { tx in
-                    if record.record.isFullsize {
-                        let mediaId = try backupKey.mediaEncryptionMetadata(
-                            mediaName: mediaName,
-                            // Doesn't matter what we use, we just want the mediaId
-                            type: .outerLayerFullsizeOrThumbnail,
-                        ).mediaId
-                        orphanedBackupAttachmentStore.removeFullsize(
-                            mediaName: mediaName,
-                            fullsizeMediaId: mediaId,
-                            tx: tx,
-                        )
-                    } else {
-                        let mediaId = try backupKey.mediaEncryptionMetadata(
-                            mediaName: AttachmentBackupThumbnail.thumbnailMediaName(fullsizeMediaName: mediaName),
-                            // Doesn't matter what we use, we just want the mediaId
-                            type: .outerLayerFullsizeOrThumbnail,
-                        ).mediaId
-                        orphanedBackupAttachmentStore.removeThumbnail(
-                            fullsizeMediaName: mediaName,
-                            thumbnailMediaId: mediaId,
-                            tx: tx,
-                        )
-                    }
+            await db.awaitableWrite { tx in
+                if record.record.isFullsize {
+                    let mediaId = backupKey.mediaEncryptionMetadata(
+                        mediaName: mediaName,
+                        // Doesn't matter what we use, we just want the mediaId
+                        type: .outerLayerFullsizeOrThumbnail,
+                    ).mediaId
+                    orphanedBackupAttachmentStore.removeFullsize(
+                        mediaName: mediaName,
+                        fullsizeMediaId: mediaId,
+                        tx: tx,
+                    )
+                } else {
+                    let mediaId = backupKey.mediaEncryptionMetadata(
+                        mediaName: AttachmentBackupThumbnail.thumbnailMediaName(fullsizeMediaName: mediaName),
+                        // Doesn't matter what we use, we just want the mediaId
+                        type: .outerLayerFullsizeOrThumbnail,
+                    ).mediaId
+                    orphanedBackupAttachmentStore.removeThumbnail(
+                        fullsizeMediaName: mediaName,
+                        thumbnailMediaId: mediaId,
+                        tx: tx,
+                    )
                 }
-            } catch {
-                owsFailDebug("Unable to delete orphan row. Proceeding anyway.")
             }
 
             struct IsFreeTierError: Error {}

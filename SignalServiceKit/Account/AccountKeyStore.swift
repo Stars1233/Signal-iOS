@@ -80,9 +80,9 @@ public class AccountKeyStore {
     public func getMessageRootBackupKey(
         aci: Aci,
         tx: DBReadTransaction,
-    ) throws -> MessageRootBackupKey? {
+    ) -> MessageRootBackupKey? {
         guard let aep = getAccountEntropyPool(tx: tx) else { return nil }
-        return try MessageRootBackupKey(accountEntropyPool: aep, aci: aci)
+        return MessageRootBackupKey(accountEntropyPool: aep, aci: aci)
     }
 
     // MARK: -

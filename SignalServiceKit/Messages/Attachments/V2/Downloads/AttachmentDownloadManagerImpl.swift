@@ -971,12 +971,10 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
                 else {
                     return .unretryableError(OWSAssertionError("missing media tier info"))
                 }
-                guard
-                    let backupKey = db.read(block: { accountKeyStore.getMediaRootBackupKey(tx: $0) }),
-                    let outerEncryptionMetadata = buildCdnEncryptionMetadata(mediaName: mediaName, backupKey: backupKey, type: .outerLayerFullsizeOrThumbnail)
-                else {
+                guard let backupKey = db.read(block: { accountKeyStore.getMediaRootBackupKey(tx: $0) }) else {
                     return .unretryableError(OWSAssertionError("missing or invalid MRBK"))
                 }
+                let outerEncryptionMetadata = buildCdnEncryptionMetadata(mediaName: mediaName, backupKey: backupKey, type: .outerLayerFullsizeOrThumbnail)
                 guard let outerAttachmentKey = try? outerEncryptionMetadata.attachmentKey() else {
                     return .unretryableError(OWSAssertionError("can't download media file with malformed media key"))
                 }
@@ -1026,23 +1024,21 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
                 else {
                     return .unretryableError(OWSAssertionError("missing cdn info"))
                 }
-                guard
-                    let backupKey = db.read(block: { accountKeyStore.getMediaRootBackupKey(tx: $0) }),
-                    // This is the outer encryption
-                    let outerEncryptionMetadata = buildCdnEncryptionMetadata(
-                        mediaName: AttachmentBackupThumbnail.thumbnailMediaName(fullsizeMediaName: mediaName),
-                        backupKey: backupKey,
-                        type: .outerLayerFullsizeOrThumbnail,
-                    ),
-                    // inner encryption
-                    let innerEncryptionMetadata = buildCdnEncryptionMetadata(
-                        mediaName: AttachmentBackupThumbnail.thumbnailMediaName(fullsizeMediaName: mediaName),
-                        backupKey: backupKey,
-                        type: .transitTierThumbnail,
-                    )
-                else {
+                guard let backupKey = db.read(block: { accountKeyStore.getMediaRootBackupKey(tx: $0) }) else {
                     return .unretryableError(OWSAssertionError("missing or invalid MRBK"))
                 }
+                // This is the outer encryption
+                let outerEncryptionMetadata = buildCdnEncryptionMetadata(
+                    mediaName: AttachmentBackupThumbnail.thumbnailMediaName(fullsizeMediaName: mediaName),
+                    backupKey: backupKey,
+                    type: .outerLayerFullsizeOrThumbnail,
+                )
+                // inner encryption
+                let innerEncryptionMetadata = buildCdnEncryptionMetadata(
+                    mediaName: AttachmentBackupThumbnail.thumbnailMediaName(fullsizeMediaName: mediaName),
+                    backupKey: backupKey,
+                    type: .transitTierThumbnail,
+                )
                 guard let outerAttachmentKey = try? outerEncryptionMetadata.attachmentKey() else {
                     return .unretryableError(OWSAssertionError("can't download thumbnail with malformed outer media key"))
                 }
@@ -1281,16 +1277,11 @@ public class AttachmentDownloadManagerImpl: AttachmentDownloadManager {
             mediaName: String,
             backupKey: MediaRootBackupKey,
             type: MediaTierEncryptionType,
-        ) -> MediaTierEncryptionMetadata? {
-            do {
-                return try backupKey.mediaEncryptionMetadata(
-                    mediaName: mediaName,
-                    type: type,
-                )
-            } catch {
-                owsFailDebug("Failed to build backup media metadata")
-                return nil
-            }
+        ) -> MediaTierEncryptionMetadata {
+            return backupKey.mediaEncryptionMetadata(
+                mediaName: mediaName,
+                type: type,
+            )
         }
 
         private func fetchBackupCdnReadCredential(

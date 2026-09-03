@@ -51,9 +51,6 @@ public class RegistrationCoordinatorBackupErrorPresenterImpl:
             return .rateLimited
         case _ where error.isNetworkFailureOrTimeout || error.is5xxServiceResponse:
             return .networkError
-        case _ where error is BackupKeyMaterialError:
-            // Missing recovery key
-            return .incorrectRecoveryKey
         case BackupAuthCredentialFetchError.noExistingBackupId:
             // Usually because backups haven't been set up yet.
             return .backupNotFound

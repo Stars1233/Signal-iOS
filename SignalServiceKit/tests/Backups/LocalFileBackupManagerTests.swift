@@ -115,7 +115,7 @@ struct LocalFileBackupManagerTests {
         let localIdentifiers = LocalIdentifiers.forUnitTests
         let aep = AccountEntropyPool()
 
-        let backupKey = try MessageRootBackupKey(accountEntropyPool: aep, aci: localIdentifiers.aci)
+        let backupKey = MessageRootBackupKey(accountEntropyPool: aep, aci: localIdentifiers.aci)
 
         let backupFile = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString)
         try Data("test".utf8).write(to: backupFile)

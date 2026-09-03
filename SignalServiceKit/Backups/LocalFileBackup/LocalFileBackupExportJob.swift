@@ -95,7 +95,7 @@ class LocalFileBackupExportJob {
                 throw NotRegisteredError()
             }
 
-            let backupKey = try MessageRootBackupKey(
+            let backupKey = MessageRootBackupKey(
                 accountEntropyPool: aep,
                 aci: localIdentifiers.aci,
             )

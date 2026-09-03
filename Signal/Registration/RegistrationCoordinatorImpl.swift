@@ -599,7 +599,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
                 unitCount: 100,
             )
 
-            let backupKey = try MessageRootBackupKey(accountEntropyPool: accountEntropyPool, aci: identity.aci)
+            let backupKey = MessageRootBackupKey(accountEntropyPool: accountEntropyPool, aci: identity.aci)
             let fileUrl: URL
             switch type {
             case .local:
@@ -1599,7 +1599,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
                 availableBackups = dates.suffix(2).map { .local($0) }
             } else {
                 // For manual restore, fetch the backup info
-                let backupKey = try MessageRootBackupKey(accountEntropyPool: accountEntropyPool, aci: accountIdentity.aci)
+                let backupKey = MessageRootBackupKey(accountEntropyPool: accountEntropyPool, aci: accountIdentity.aci)
                 let backupServiceAuth = try await self.fetchBackupServiceAuth(
                     accountEntropyPool: accountEntropyPool,
                     accountIdentity: accountIdentity,
@@ -1653,7 +1653,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         accountEntropyPool: SignalServiceKit.AccountEntropyPool,
         accountIdentity: AccountIdentity,
     ) async throws -> BackupServiceAuth {
-        let backupKey = try MessageRootBackupKey(accountEntropyPool: accountEntropyPool, aci: accountIdentity.aci)
+        let backupKey = MessageRootBackupKey(accountEntropyPool: accountEntropyPool, aci: accountIdentity.aci)
         logger.info("Fetching backup auth [\(accountEntropyPool.getLoggingKey())]")
 
         func fetchBackupServiceAuth() async throws -> BackupServiceAuth {

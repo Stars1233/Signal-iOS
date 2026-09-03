@@ -939,7 +939,7 @@ public class AttachmentUploadManagerImpl: AttachmentUploadManager {
                 throw OWSGenericError("Media tier upload missing root key.")
             }
 
-            let encryptionKey = try mrbk.mediaEncryptionMetadata(
+            let encryptionKey = mrbk.mediaEncryptionMetadata(
                 mediaName: AttachmentBackupThumbnail.thumbnailMediaName(fullsizeMediaName: mediaName),
                 type: .transitTierThumbnail,
             )
@@ -1095,7 +1095,7 @@ public class AttachmentUploadManagerImpl: AttachmentUploadManager {
         result: Upload.AttachmentResult,
         logger: PrefixedLogger,
     ) async throws -> UInt32 {
-        let mediaEncryptionMetadata = try backupKey.mediaEncryptionMetadata(
+        let mediaEncryptionMetadata = backupKey.mediaEncryptionMetadata(
             mediaName: mediaName,
             type: .outerLayerFullsizeOrThumbnail,
         )

@@ -346,8 +346,8 @@ final class LinkedDeviceBackupSettingsViewController: OWSTableViewController2 {
         do {
             guard
                 let localAci = tsAccountManager.localIdentifiersWithMaybeSneakyTransaction?.aci,
-                let backupKey = try db.read(block: { tx in
-                    try accountKeyStore.getMessageRootBackupKey(aci: localAci, tx: tx)
+                let backupKey = db.read(block: { tx in
+                    return accountKeyStore.getMessageRootBackupKey(aci: localAci, tx: tx)
                 })
             else {
                 return nil

@@ -97,7 +97,7 @@ public class QuickRestoreManager {
                 lastBackupSizeBytes = nil
             }
 
-            let backupKey = try MessageRootBackupKey(
+            let backupKey = MessageRootBackupKey(
                 accountEntropyPool: accountEntropyPool,
                 aci: localIdentifiers.aci,
             )

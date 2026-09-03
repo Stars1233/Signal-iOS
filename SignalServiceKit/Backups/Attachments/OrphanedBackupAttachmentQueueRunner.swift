@@ -181,16 +181,11 @@ public class OrphanedBackupAttachmentQueueRunnerImpl: OrphanedBackupAttachmentQu
                     mediaNameToUse = AttachmentBackupThumbnail.thumbnailMediaName(fullsizeMediaName: mediaName)
                 }
 
-                do {
-                    mediaId = try mediaRootBackupKey.mediaEncryptionMetadata(
-                        mediaName: mediaNameToUse,
-                        // Doesn't matter what we use, we just want the mediaId.
-                        type: .outerLayerFullsizeOrThumbnail,
-                    ).mediaId
-                } catch let error {
-                    Logger.error("Failed to generate media IDs")
-                    return .unretryableError(error)
-                }
+                mediaId = mediaRootBackupKey.mediaEncryptionMetadata(
+                    mediaName: mediaNameToUse,
+                    // Doesn't matter what we use, we just want the mediaId.
+                    type: .outerLayerFullsizeOrThumbnail,
+                ).mediaId
             } else {
                 return .unretryableError(OWSAssertionError("Invalid record"))
             }
