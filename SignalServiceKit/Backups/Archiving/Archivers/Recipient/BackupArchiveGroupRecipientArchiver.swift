@@ -501,6 +501,12 @@ public class BackupArchiveGroupRecipientArchiver: BackupArchiveProtoStreamWriter
             }
 
             context[groupId2] = groupThread
+        } else {
+            // The backup carried the group but its snapshot is missing required state.
+            // Discard the group so any chat frame referencing it can be
+            // skipped cleanly instead of failing the whole restore with
+            // `referencedGroupThreadNotFound`.
+            context.markGroupDiscardedDueToInvalidSnapshot(groupId2)
         }
 
         if groupProto.blocked {

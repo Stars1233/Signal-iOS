@@ -670,6 +670,9 @@ extension BackupArchive {
                 case invalidGV2MasterKey
                 /// A `BackupProto_Group` was missing its group snapshot.
                 case missingGV2GroupSnapshot
+                /// A `BackupProto_Group`'s snapshot was present but functionally considered missing
+                /// (version 0 with no members), indicating the exporting client had no state for the group.
+                case invalidGroupSnapshot
                 /// A ``BackupProtoGroup/BackupProtoMemberPendingProfileKey`` was
                 /// missing its member details.
                 case invitedGV2MemberMissingMemberDetails
@@ -928,6 +931,7 @@ extension BackupArchive {
                     .contactAttachmentEmptyAddress,
                     .invalidGV2MasterKey,
                     .missingGV2GroupSnapshot,
+                    .invalidGroupSnapshot,
                     .invitedGV2MemberMissingMemberDetails,
                     .failedToBuildGV2GroupModel,
                     .groupUpdateMessageInNonGroupChat,
@@ -1043,6 +1047,7 @@ extension BackupArchive {
                     .contactAttachmentEmptyAddress,
                     .invalidGV2MasterKey,
                     .missingGV2GroupSnapshot,
+                    .invalidGroupSnapshot,
                     .invitedGV2MemberMissingMemberDetails,
                     .failedToBuildGV2GroupModel,
                     .groupUpdateMessageInNonGroupChat,

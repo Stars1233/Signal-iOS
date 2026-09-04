@@ -340,6 +340,12 @@ public class BackupArchiveChatArchiver: BackupArchiveProtoStreamWriter {
                 let groupThread = context.recipientContext[groupId],
                 groupThread.isGroupV2Thread
             else {
+                if context.recipientContext.isGroupDiscardedDueToInvalidSnapshot(groupId) {
+                    // The Group Recipient was discarded because its snapshot
+                    // was invalid. Drop this chat and log a partial error rather than aborting
+                    // the entire restore.
+                    return .partialRestore([.restoreFrameError(.invalidProtoData(.invalidGroupSnapshot))])
+                }
                 return .failure([.restoreFrameError(.referencedGroupThreadNotFound(groupId))])
             }
             guard let groupThreadRowId = groupThread.sqliteRowId else {
