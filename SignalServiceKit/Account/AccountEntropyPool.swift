@@ -6,11 +6,20 @@
 import Foundation
 public import LibSignalClient
 
-public struct AccountEntropyPool: Codable, Equatable {
+/// Old values were encoded in a redundant {"rawData": ...} structure.
+public struct DeprecatedAccountEntropyPool: Codable, Equatable {
+    public let wrappedValue: AccountEntropyPool
+
     private enum CodingKeys: String, CodingKey {
-        case rawString = "rawData"
+        case wrappedValue = "rawData"
     }
 
+    public init(wrappedValue: AccountEntropyPool) {
+        self.wrappedValue = wrappedValue
+    }
+}
+
+public struct AccountEntropyPool: Codable, Equatable {
     public enum Constants {
         public static let byteLength: Int = 64 /* bytes */
     }
@@ -36,6 +45,16 @@ public struct AccountEntropyPool: Codable, Equatable {
         }
 
         self.rawString = normalizedKey
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(self.rawString)
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        try self.init(key: container.decode(String.self))
     }
 
     // MARK: - Derived Keys

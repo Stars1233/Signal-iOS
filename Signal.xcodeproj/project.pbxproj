@@ -860,6 +860,7 @@
 		50B6BCB42AEC58250010FB3B /* AuthorMergeHelperBuilderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50B6BCB32AEC58250010FB3B /* AuthorMergeHelperBuilderTest.swift */; };
 		50B6BCB62AEC68940010FB3B /* AuthorMergeHelperTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50B6BCB52AEC68940010FB3B /* AuthorMergeHelperTest.swift */; };
 		50B74C752F1716F500F59813 /* OutgoingDeleteMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50B74C742F1716F500F59813 /* OutgoingDeleteMessage.swift */; };
+		50BA9B2A3049DDF9006DB636 /* AccountEntropyPoolTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50BA9B293049DDF9006DB636 /* AccountEntropyPoolTest.swift */; };
 		50BCD53E2F213EAF0032BF02 /* LinkedDeviceViewedReceipt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50BCD53D2F213EAF0032BF02 /* LinkedDeviceViewedReceipt.swift */; };
 		50BCD5402F21447B0032BF02 /* OutgoingViewedReceiptsSyncMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50BCD53F2F21447B0032BF02 /* OutgoingViewedReceiptsSyncMessage.swift */; };
 		50BCD5522F2182430032BF02 /* OutgoingNullMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50BCD5512F2182430032BF02 /* OutgoingNullMessage.swift */; };
@@ -5225,6 +5226,7 @@
 		50B6BCB32AEC58250010FB3B /* AuthorMergeHelperBuilderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthorMergeHelperBuilderTest.swift; sourceTree = "<group>"; };
 		50B6BCB52AEC68940010FB3B /* AuthorMergeHelperTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthorMergeHelperTest.swift; sourceTree = "<group>"; };
 		50B74C742F1716F500F59813 /* OutgoingDeleteMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutgoingDeleteMessage.swift; sourceTree = "<group>"; };
+		50BA9B293049DDF9006DB636 /* AccountEntropyPoolTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountEntropyPoolTest.swift; sourceTree = "<group>"; };
 		50BCD53D2F213EAF0032BF02 /* LinkedDeviceViewedReceipt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkedDeviceViewedReceipt.swift; sourceTree = "<group>"; };
 		50BCD53F2F21447B0032BF02 /* OutgoingViewedReceiptsSyncMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutgoingViewedReceiptsSyncMessage.swift; sourceTree = "<group>"; };
 		50BCD5512F2182430032BF02 /* OutgoingNullMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutgoingNullMessage.swift; sourceTree = "<group>"; };
@@ -14731,6 +14733,7 @@
 			children = (
 				6659A02D2A7C171900066AB7 /* PreKeys */,
 				661170C22ABA464000A1B16D /* TSAccountManager */,
+				50BA9B293049DDF9006DB636 /* AccountEntropyPoolTest.swift */,
 				D9F399AE2A96764A001599EC /* IdentityKeyCheckerTest.swift */,
 				D9F399B32A96E54C001599EC /* IdentityKeyMismatchManagerTest.swift */,
 				50D88CA12FDA2B9400C06350 /* MasterKeyTest.swift */,
@@ -20551,6 +20554,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F915A77229CB6F6F00EB6F68 /* AccountDataReportTest.swift in Sources */,
+				50BA9B2A3049DDF9006DB636 /* AccountEntropyPoolTest.swift in Sources */,
 				502E586D3040BED600D30164 /* AnyGroupIdentifierTest.swift in Sources */,
 				F908C67B29F08E4E00C3EFC4 /* AppExpiryTest.swift in Sources */,
 				66B1E2702CB48C53005F43AC /* Array+SSKTest.swift in Sources */,

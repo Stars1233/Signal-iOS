@@ -1106,7 +1106,12 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         /// operations.  This key persisted in case the app quits in between a successful backup restore and the
         /// finalization of the restore (and registration).  The goal here is to prevent the possibility of a different
         /// AEP being entered by the user after a backup restore has already succeeded.
-        var backupKeyAccountEntropyPool: SignalServiceKit.AccountEntropyPool?
+        var backupKeyAccountEntropyPool: SignalServiceKit.AccountEntropyPool? {
+            set { deprecatedBackupKeyAccountEntropyPool = newValue.map(DeprecatedAccountEntropyPool.init(wrappedValue:)) }
+            get { deprecatedBackupKeyAccountEntropyPool?.wrappedValue }
+        }
+
+        var deprecatedBackupKeyAccountEntropyPool: DeprecatedAccountEntropyPool?
 
         struct SessionState: Codable {
             let sessionId: String
@@ -1277,7 +1282,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
             case restoreMethod
             case restoreMode
             case deprecatedRecoveredSVRMasterKey = "recoveredSVRMasterKey"
-            case backupKeyAccountEntropyPool
+            case deprecatedBackupKeyAccountEntropyPool = "backupKeyAccountEntropyPool"
             case localFileBackupURLBookmarkData
         }
     }
