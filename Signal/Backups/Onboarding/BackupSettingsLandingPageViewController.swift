@@ -8,26 +8,87 @@ import SignalUI
 import UIKit
 
 class BackupSettingsLandingPageViewController: OWSTableViewController2 {
+    private let backupPlanManager: BackupPlanManager
     private let backupSettingsStore: BackupSettingsStore
+    private let backupSubscriptionIssueStore: BackupSubscriptionIssueStore
+    private let backupSubscriptionManager: BackupSubscriptionManager
     private let localFileBackupsStore: LocalFileBackupStore
     private let db: DB
 
+    private var subscriptionLoadingState: BackupSubscriptionLoadingState = .loading
+
     override convenience init() {
         self.init(
+            backupPlanManager: DependenciesBridge.shared.backupPlanManager,
             backupSettingsStore: BackupSettingsStore(),
+            backupSubscriptionIssueStore: BackupSubscriptionIssueStore(),
+            backupSubscriptionManager: DependenciesBridge.shared.backupSubscriptionManager,
             localFileBackupsStore: LocalFileBackupStore(),
             db: DependenciesBridge.shared.db,
         )
     }
 
     init(
+        backupPlanManager: BackupPlanManager,
         backupSettingsStore: BackupSettingsStore,
+        backupSubscriptionIssueStore: BackupSubscriptionIssueStore,
+        backupSubscriptionManager: BackupSubscriptionManager,
         localFileBackupsStore: LocalFileBackupStore,
         db: DB,
     ) {
+        self.backupPlanManager = backupPlanManager
         self.backupSettingsStore = backupSettingsStore
+        self.backupSubscriptionIssueStore = backupSubscriptionIssueStore
+        self.backupSubscriptionManager = backupSubscriptionManager
         self.localFileBackupsStore = localFileBackupsStore
         self.db = db
+    }
+
+    // MARK: -
+
+    private let loadBackupSubscriptionTaskQueue = SerialTaskQueue()
+
+    fileprivate func loadBackupSubscription() {
+        loadBackupSubscriptionTaskQueue.enqueueCancellingPrevious { @MainActor [self] in
+            if Task.isCancelled {
+                return
+            }
+
+            switch subscriptionLoadingState {
+            case .loading, .loaded:
+                break
+            case .networkError, .notRegisteredError, .genericError:
+                subscriptionLoadingState = .loading
+            }
+
+            let newLoadingState: BackupSubscriptionLoadingState
+            do {
+                let backupSubscription = try await _loadBackupSubscription()
+                newLoadingState = .loaded(backupSubscription)
+            } catch is CancellationError {
+                // We were cancelled: leave it loading. Whoever cancelled us
+                // should be trying again.
+                return
+            } catch let error where error.isNetworkFailureOrTimeout {
+                newLoadingState = .networkError
+            } catch is NotRegisteredError {
+                newLoadingState = .notRegisteredError
+            } catch {
+                newLoadingState = .genericError
+            }
+
+            subscriptionLoadingState = newLoadingState
+            self.updateContents()
+        }
+    }
+
+    private func _loadBackupSubscription() async throws -> BackupSubscriptionLoadingState.LoadedBackupSubscription {
+        return try await BackupSubscriptionLoader(
+            backupPlanManager: backupPlanManager,
+            backupSubscriptionManager: backupSubscriptionManager,
+            backupSubscriptionIssueStore: backupSubscriptionIssueStore,
+            db: db,
+        ).load()
     }
 
     override func viewDidLoad() {
@@ -42,6 +103,7 @@ class BackupSettingsLandingPageViewController: OWSTableViewController2 {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateContents()
+        loadBackupSubscription()
     }
 
     private func updateContents() {
@@ -107,12 +169,14 @@ class BackupSettingsLandingPageViewController: OWSTableViewController2 {
     // MARK: - Table items
 
     private func buildSignalBackupsCardItem() -> OWSTableItem {
-        let shouldSkipBackupsOnboarding = db.read { tx in
+        let (shouldSkipBackupsOnboarding, lastBackupDetails) = db.read { tx in
+            let lastBackupDetails = backupSettingsStore.lastBackupDetails(tx: tx)
+
             if backupSettingsStore.shouldOverrideShowBackupsOnboarding(tx: tx) {
-                return false
+                return (false, lastBackupDetails)
             }
 
-            return backupSettingsStore.haveBackupsEverBeenEnabled(tx: tx)
+            return (backupSettingsStore.haveBackupsEverBeenEnabled(tx: tx), lastBackupDetails)
         }
 
         return OWSTableItem(
@@ -120,6 +184,7 @@ class BackupSettingsLandingPageViewController: OWSTableViewController2 {
                 guard let self else { return OWSTableItem.newCell() }
                 return self.buildSignalBackupsCardCell(
                     shouldSkipBackupsOnboarding: shouldSkipBackupsOnboarding,
+                    lastBackupDetails: lastBackupDetails,
                 )
             },
             actionBlock: { [weak self] in
@@ -128,8 +193,47 @@ class BackupSettingsLandingPageViewController: OWSTableViewController2 {
         )
     }
 
+    private func _bodyText(
+        for backupSubscription: BackupSubscriptionLoadingState.LoadedBackupSubscription,
+        lastBackupDetails: BackupSettingsStore.LastBackupDetails?,
+    ) -> String {
+        switch backupSubscription {
+        case .paid(let price, let renewalDate):
+            let priceText = BackupSettingsView.Strings.paidPlanPriceText(price)
+            let renewalDateText = BackupSettingsView.Strings.paidPlanRenewalText(renewalDate)
+            if let lastBackupDetails {
+                let lastBackupDateString = BackupSettingsView.Strings.prefixedLastBackupString(date: lastBackupDetails.date)
+                return [priceText, renewalDateText, lastBackupDateString].joined(separator: "\n")
+            } else {
+                return [priceText, renewalDateText].joined(separator: "\n")
+            }
+        case .freeAndEnabled, .paidButFreeForTesters:
+            let freePlanDescription = BackupSettingsView.Strings.freePlanDescription
+            if let lastBackupDetails {
+                let lastBackupDateString = BackupSettingsView.Strings.prefixedLastBackupString(date: lastBackupDetails.date)
+                return [freePlanDescription, lastBackupDateString].joined(separator: "\n")
+            } else {
+                return freePlanDescription
+            }
+        case .paidButExpiring(let expirationDate):
+            let canceledText = BackupSettingsView.Strings.paidPlanCanceledText
+            let expiredText = BackupSettingsView.Strings.paidPlanExpirationText(expirationDate)
+            return [canceledText, expiredText].joined(separator: "\n")
+        case
+            .freeAndDisabled,
+            .paidButExpired,
+            .paidButFailedToRenew,
+            .paidButIAPNotFoundLocally:
+            return OWSLocalizedString(
+                "BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_BODY",
+                comment: "Description of Signal Secure Backups on the Backups settings landing page.",
+            )
+        }
+    }
+
     private func buildSignalBackupsCardCell(
         shouldSkipBackupsOnboarding: Bool,
+        lastBackupDetails: BackupSettingsStore.LastBackupDetails?,
     ) -> UITableViewCell {
         let cell = OWSTableItem.newCell()
 
@@ -138,10 +242,17 @@ class BackupSettingsLandingPageViewController: OWSTableViewController2 {
             comment: "Title for the Signal Secure Backups cell on the Backups settings landing page.",
         )
 
-        let bodyText = OWSLocalizedString(
-            "BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_BODY",
-            comment: "Description of Signal Secure Backups on the Backups settings landing page.",
-        )
+        let bodyText: String
+        switch subscriptionLoadingState {
+        case .loaded(let loadedBackupSubscription):
+            bodyText = _bodyText(for: loadedBackupSubscription, lastBackupDetails: lastBackupDetails)
+        case .loading, .networkError, .notRegisteredError, .genericError:
+            // Show generic backups text if we can't load the subscription state.
+            bodyText = OWSLocalizedString(
+                "BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_BODY",
+                comment: "Description of Signal Secure Backups on the Backups settings landing page.",
+            )
+        }
 
         let actionText: String = if shouldSkipBackupsOnboarding {
             OWSLocalizedString(

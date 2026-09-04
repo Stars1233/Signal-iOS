@@ -906,7 +906,7 @@ class BackupSettingsViewController:
                 }
             }
 
-            let newLoadingState: BackupSettingsViewModel.BackupSubscriptionLoadingState
+            let newLoadingState: BackupSubscriptionLoadingState
             do {
                 let backupSubscription = try await _loadBackupSubscription()
                 newLoadingState = .loaded(backupSubscription)
@@ -928,83 +928,13 @@ class BackupSettingsViewController:
         }
     }
 
-    private func _loadBackupSubscription() async throws -> BackupSettingsViewModel.BackupSubscriptionLoadingState.LoadedBackupSubscription {
-        var currentBackupPlan = db.read { backupPlanManager.backupPlan(tx: $0) }
-
-        switch currentBackupPlan {
-        case .free:
-            return .freeAndEnabled
-        case .paidAsTester:
-            return .paidButFreeForTesters
-        case .disabling, .disabled:
-            // Our IAP subscription may be active even if Backups are disabled,
-            // and if so we want to load the state of said subscription.
-            break
-        case .paid, .paidExpiringSoon:
-            break
-        }
-
-        let fetchedBackupSubscription: Subscription? = try await backupSubscriptionManager
-            .fetchAndMaybeDowngradeSubscription()
-
-        // Now that we've fetched a subscription, refetch state that may have
-        // changed as a result.
-        var backupIAPNotFoundLocally: Bool!
-        db.read { tx in
-            currentBackupPlan = backupPlanManager.backupPlan(tx: tx)
-            backupIAPNotFoundLocally = backupSubscriptionIssueStore.shouldShowIAPSubscriptionNotFoundLocallyWarning(tx: tx)
-        }
-
-        if backupIAPNotFoundLocally {
-            return .paidButIAPNotFoundLocally
-        }
-
-        let backupSubscription: Subscription
-        switch currentBackupPlan {
-        case .free:
-            return .freeAndEnabled
-        case .paidAsTester:
-            return .paidButFreeForTesters
-        case .disabling, .disabled:
-            if let fetchedBackupSubscription {
-                backupSubscription = fetchedBackupSubscription
-            } else {
-                return .freeAndDisabled
-            }
-        case .paid, .paidExpiringSoon:
-            if let fetchedBackupSubscription {
-                backupSubscription = fetchedBackupSubscription
-            } else {
-                owsFailDebug("Missing Backups subscription after fetch, but still on paid plan!")
-                return .freeAndEnabled
-            }
-        }
-
-        switch backupSubscription.status {
-        case .canceled, .unrecognized:
-            fallthrough
-        case .active:
-            let endOfCurrentPeriod = backupSubscription.endOfCurrentPeriod
-            if backupSubscription.cancelAtEndOfPeriod {
-                if endOfCurrentPeriod.isAfterNow {
-                    return .paidButExpiring(expirationDate: endOfCurrentPeriod)
-                } else {
-                    return .paidButExpired(expirationDate: endOfCurrentPeriod)
-                }
-            } else {
-                return .paid(
-                    price: backupSubscription.amount,
-                    renewalDate: endOfCurrentPeriod,
-                )
-            }
-        case .pastDue:
-            // The .pastDue status is returned if we're in the IAP "billing
-            // retry", period, which indicates something has gone wrong with a
-            // subscription renewal.
-            //
-            // SeeAlso: BackupSubscriptionManager
-            return .paidButFailedToRenew
-        }
+    private func _loadBackupSubscription() async throws -> BackupSubscriptionLoadingState.LoadedBackupSubscription {
+        return try await BackupSubscriptionLoader(
+            backupPlanManager: backupPlanManager,
+            backupSubscriptionManager: backupSubscriptionManager,
+            backupSubscriptionIssueStore: backupSubscriptionIssueStore,
+            db: db,
+        ).load()
     }
 
     // MARK: -
@@ -1787,25 +1717,6 @@ private class BackupSettingsViewModel: ObservableObject {
         func showBackgroundAppRefreshDisabledWarningSheet()
     }
 
-    enum BackupSubscriptionLoadingState: Equatable {
-        enum LoadedBackupSubscription: Equatable {
-            case freeAndEnabled
-            case freeAndDisabled
-            case paidButFreeForTesters
-            case paid(price: FiatMoney, renewalDate: Date)
-            case paidButExpiring(expirationDate: Date)
-            case paidButExpired(expirationDate: Date)
-            case paidButFailedToRenew
-            case paidButIAPNotFoundLocally
-        }
-
-        case loading
-        case loaded(LoadedBackupSubscription)
-        case networkError
-        case notRegisteredError
-        case genericError
-    }
-
     @Published var backupSubscriptionConfiguration: BackupSubscriptionConfiguration
 
     @Published var backupSubscriptionLoadingState: BackupSubscriptionLoadingState
@@ -2358,7 +2269,7 @@ private struct YellowBadgeView: View {
 }
 
 private struct ReenableBackupsButton: View {
-    let backupSubscriptionLoadingState: BackupSettingsViewModel.BackupSubscriptionLoadingState
+    let backupSubscriptionLoadingState: BackupSubscriptionLoadingState
     let viewModel: BackupSettingsViewModel
 
     private var enableBackupsPlanSelectionOption: BackupSettingsViewModel.EnableBackupsPlanSelectionOption? {
@@ -2789,7 +2700,7 @@ private struct BackupAttachmentUploadProgressView: View {
 
 private struct BackupSubscriptionView: View {
     let backupSubscriptionConfiguration: BackupSubscriptionConfiguration
-    let loadingState: BackupSettingsViewModel.BackupSubscriptionLoadingState
+    let loadingState: BackupSubscriptionLoadingState
     let viewModel: BackupSettingsViewModel
 
     var body: some View {
@@ -2895,7 +2806,7 @@ private struct BackupSubscriptionView: View {
 
 private struct BackupSubscriptionLoadedView: View {
     let backupSubscriptionConfiguration: BackupSubscriptionConfiguration
-    let loadedBackupSubscription: BackupSettingsViewModel.BackupSubscriptionLoadingState.LoadedBackupSubscription
+    let loadedBackupSubscription: BackupSubscriptionLoadingState.LoadedBackupSubscription
     let viewModel: BackupSettingsViewModel
 
     private var headerLabels: some View {
@@ -3270,6 +3181,14 @@ extension BackupSettingsView {
                 "BACKUP_SETTINGS_ENABLED_LAST_BACKUP_LABEL",
                 comment: "Label for a menu item explaining when the user's last backup occurred.",
             )
+        }
+
+        static func prefixedLastBackupString(date: Date) -> String {
+            let prefix = OWSLocalizedString(
+                "BACKUP_SETTINGS_ENABLED_LAST_BACKUP_LABEL_LANDING_PAGE",
+                comment: "Label for a cell on the backups landing page explaining when the user's last backup occurred.",
+            )
+            return [prefix, lastBackupString(date: date)].joined(separator: " ")
         }
 
         static func lastBackupString(date: Date) -> String {

@@ -94,6 +94,7 @@
 		045B40952ECF98C1002D3F9A /* PinnedMessagesDetailsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045B40942ECF98BB002D3F9A /* PinnedMessagesDetailsViewController.swift */; };
 		046092262FBCD2DA00A8765F /* SafetyTipsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046092232FBCC7E700A8765F /* SafetyTipsManager.swift */; };
 		046266D93048943B00E36EE4 /* CannotRotateAEPActionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046266D83048943B00E36EE4 /* CannotRotateAEPActionSheet.swift */; };
+		046266DD304B122000E36EE4 /* BackupSubscriptionLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046266DC304B121B00E36EE4 /* BackupSubscriptionLoader.swift */; };
 		046926092E8EBAAE00B1FC74 /* TSInfoMessage+Polls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046926082E8EBAA800B1FC74 /* TSInfoMessage+Polls.swift */; };
 		0477BE322FA4FC41002F9B47 /* TSReleaseNotesThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0477BE312FA4FC38002F9B47 /* TSReleaseNotesThread.swift */; };
 		047DBEE42FFD491E009F457F /* LocalFileBackupManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047DBEE32FFD4918009F457F /* LocalFileBackupManagerTests.swift */; };
@@ -4332,6 +4333,7 @@
 		045B40942ECF98BB002D3F9A /* PinnedMessagesDetailsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinnedMessagesDetailsViewController.swift; sourceTree = "<group>"; };
 		046092232FBCC7E700A8765F /* SafetyTipsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyTipsManager.swift; sourceTree = "<group>"; };
 		046266D83048943B00E36EE4 /* CannotRotateAEPActionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CannotRotateAEPActionSheet.swift; sourceTree = "<group>"; };
+		046266DC304B121B00E36EE4 /* BackupSubscriptionLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupSubscriptionLoader.swift; sourceTree = "<group>"; };
 		046926082E8EBAA800B1FC74 /* TSInfoMessage+Polls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TSInfoMessage+Polls.swift"; sourceTree = "<group>"; };
 		0477BE312FA4FC38002F9B47 /* TSReleaseNotesThread.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TSReleaseNotesThread.swift; sourceTree = "<group>"; };
 		047DBEE32FFD4918009F457F /* LocalFileBackupManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalFileBackupManagerTests.swift; sourceTree = "<group>"; };
@@ -13811,6 +13813,7 @@
 				04B975452E43A4AA00E20364 /* BackupRefreshManager.swift */,
 				D951F5302D9B236100C5EBF3 /* BackupSettingsViewController.swift */,
 				D92CB5552F030F7A00537EBE /* BackupSubscriptionAlreadyRedeemedSheet.swift */,
+				046266DC304B121B00E36EE4 /* BackupSubscriptionLoader.swift */,
 				046266D83048943B00E36EE4 /* CannotRotateAEPActionSheet.swift */,
 				D9680CF22DBB0B28005DD5BE /* ChooseBackupPlanViewController.swift */,
 				B99FFDF430003EDC00EC4E45 /* LinkedDeviceBackupSettingsViewController.swift */,
@@ -18481,6 +18484,7 @@
 				D92B55E72FCF90880083B070 /* BackupsNeverLoseAMessageMegaphone.swift in Sources */,
 				D92B55ED2FD00A510083B070 /* BackupsSaveSpaceMegaphone.swift in Sources */,
 				D92CB5562F030F8300537EBE /* BackupSubscriptionAlreadyRedeemedSheet.swift in Sources */,
+				046266DD304B122000E36EE4 /* BackupSubscriptionLoader.swift in Sources */,
 				32E035242739059C0081EE11 /* BadgeCollectionView.swift in Sources */,
 				32E03522273901710081EE11 /* BadgeConfigurationViewController.swift in Sources */,
 				881BB28A2743531D00B609B8 /* BadgeDetailsSheet.swift in Sources */,

@@ -1027,6 +1027,9 @@
 /* Label for a menu item explaining when the user's last backup occurred. */
 "BACKUP_SETTINGS_ENABLED_LAST_BACKUP_LABEL" = "Last Backup";
 
+/* Label for a cell on the backups landing page explaining when the user's last backup occurred. */
+"BACKUP_SETTINGS_ENABLED_LAST_BACKUP_LABEL_LANDING_PAGE" = "Last backup";
+
 /* Text explaining that the user's last backup was in the past. Embeds 1:{{ the date of the backup }} and 2:{{ the time of the backup }}. */
 "BACKUP_SETTINGS_ENABLED_LAST_BACKUP_PAST_FORMAT" = "%1$@ at %2$@";
 
