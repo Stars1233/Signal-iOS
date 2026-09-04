@@ -1537,7 +1537,6 @@
 		76387BF028F4ED73002C7BA5 /* CaseIterable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76387BEF28F4ED73002C7BA5 /* CaseIterable.swift */; };
 		763A16002AEC3A490081D7E5 /* OWSContact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763A15FF2AEC3A490081D7E5 /* OWSContact.swift */; };
 		763A29B72F33F4AE0038E6A5 /* BubbleConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763A29B62F33F4A80038E6A5 /* BubbleConfiguration.swift */; };
-		763D7DDB27E155ED002EA7E6 /* RoundMediaButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763D7DDA27E155ED002EA7E6 /* RoundMediaButton.swift */; };
 		763D7DDD27E25DC8002EA7E6 /* AttachmentApprovalTopBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763D7DDC27E25DC8002EA7E6 /* AttachmentApprovalTopBar.swift */; };
 		7647A33C2A270348002EAC93 /* FingerprintScanViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7647A33B2A270348002EAC93 /* FingerprintScanViewController.swift */; };
 		764981452A23194F00EC1287 /* CVItemViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764981442A23194F00EC1287 /* CVItemViewModel.swift */; };
@@ -5827,7 +5826,6 @@
 		76387BEF28F4ED73002C7BA5 /* CaseIterable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaseIterable.swift; sourceTree = "<group>"; };
 		763A15FF2AEC3A490081D7E5 /* OWSContact.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OWSContact.swift; sourceTree = "<group>"; };
 		763A29B62F33F4A80038E6A5 /* BubbleConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BubbleConfiguration.swift; sourceTree = "<group>"; };
-		763D7DDA27E155ED002EA7E6 /* RoundMediaButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundMediaButton.swift; sourceTree = "<group>"; };
 		763D7DDC27E25DC8002EA7E6 /* AttachmentApprovalTopBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentApprovalTopBar.swift; sourceTree = "<group>"; };
 		7647A33B2A270348002EAC93 /* FingerprintScanViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FingerprintScanViewController.swift; sourceTree = "<group>"; };
 		764981442A23194F00EC1287 /* CVItemViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CVItemViewModel.swift; sourceTree = "<group>"; };
@@ -9373,7 +9371,6 @@
 				32FAB9292727A57100FB76A6 /* PrimaryImageView.swift */,
 				B92E76AA2B6871520095C4DF /* ProfileDetailLabel.swift */,
 				45A6DAD51EBBF85500893231 /* ReminderView.swift */,
-				763D7DDA27E155ED002EA7E6 /* RoundMediaButton.swift */,
 				766BCA7C29FB049400046016 /* RTLEnabledCollectionViewFlowLayout.swift */,
 				76964AFA2FB4034C007130BE /* SelectionIndicatorView.swift */,
 				885275BF27E26775003F2F9B /* TextAttachmentView.swift */,
@@ -18281,7 +18278,6 @@
 				34ACA7F62733183000E47AD4 /* RegistrationValues.swift in Sources */,
 				88B986FA28807EEA00F8C74D /* ReminderView.swift in Sources */,
 				7628DDBF2807505D009AA53D /* RotationControl.swift in Sources */,
-				763D7DDB27E155ED002EA7E6 /* RoundMediaButton.swift in Sources */,
 				766BCA7D29FB049400046016 /* RTLEnabledCollectionViewFlowLayout.swift in Sources */,
 				88B987022880890800F8C74D /* SafetyNumberConfirmationSheet.swift in Sources */,
 				88B9870928808A8A00F8C74D /* ScanQRCodeViewController.swift in Sources */,

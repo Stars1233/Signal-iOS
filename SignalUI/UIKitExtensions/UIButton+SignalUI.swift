@@ -255,6 +255,89 @@ public extension UIButton.Configuration {
         configuration.cornerStyle = .capsule
         return configuration
     }
+
+    static func roundMedia(
+        image: UIImage,
+        size: CGFloat,
+        withBackground: Bool = true,
+    ) -> Self {
+        var configuration: UIButton.Configuration
+        if #available(iOS 26, *), withBackground {
+            configuration = .glass()
+        } else {
+            configuration = .plain()
+            if withBackground {
+                var background = UIBackgroundConfiguration.clear()
+                background.customView = UIVisualEffectView(effect: UIBlurEffect(style: .regular))
+                configuration.background = background
+            }
+        }
+        configuration.image = image
+        configuration.baseForegroundColor = .Signal.label
+        configuration.cornerStyle = .capsule
+        configuration.contentInsets = .init(
+            hMargin: 0.5 * (size - image.size.width),
+            vMargin: 0.5 * (size - image.size.height),
+        )
+
+        return configuration
+    }
+
+    static func tintedRoundMedia(
+        image: UIImage,
+        tintColor: UIColor = .Signal.accent,
+        foregroundColor: UIColor = .white,
+        size: CGFloat? = nil,
+    ) -> Self {
+        var configuration: UIButton.Configuration
+        if #available(iOS 26, *) {
+            configuration = .prominentGlass()
+        } else {
+            configuration = .bordered()
+        }
+        configuration.image = image
+        configuration.baseForegroundColor = foregroundColor
+        configuration.baseBackgroundColor = tintColor
+        configuration.cornerStyle = .capsule
+        if let size {
+            configuration.contentInsets = .init(
+                hMargin: 0.5 * (size - image.size.width),
+                vMargin: 0.5 * (size - image.size.height),
+            )
+        }
+        return configuration
+    }
+
+    static func capsuleMedia(
+        title: String,
+        buttonHeight: CGFloat,
+        withBackground: Bool = true,
+    ) -> Self {
+        var configuration: UIButton.Configuration
+        if #available(iOS 26, *), withBackground {
+            configuration = .glass()
+        } else {
+            configuration = .plain()
+            if withBackground {
+                var background = UIBackgroundConfiguration.clear()
+                background.customView = UIVisualEffectView(effect: UIBlurEffect(style: .regular))
+                configuration.background = background
+            }
+        }
+        configuration.title = title
+        configuration.baseForegroundColor = .Signal.label
+        configuration.cornerStyle = .capsule
+
+        // Adjustable vertical content insets to ensure fixed button height.
+        let font = UIFont.dynamicTypeFont(ofStandardSize: 17, weight: .medium)
+        configuration.attributedTitle?.font = font
+        configuration.contentInsets = .init(
+            hMargin: 13,
+            vMargin: 0.5 * (buttonHeight - font.lineHeight).rounded(.up),
+        )
+
+        return configuration
+    }
 }
 
 // MARK: - UIBarButtonItem
