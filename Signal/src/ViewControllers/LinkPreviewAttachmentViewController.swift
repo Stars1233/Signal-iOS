@@ -40,16 +40,16 @@ class LinkPreviewAttachmentViewController: InteractiveSheetViewController {
         textField.autocapitalizationType = .none
         textField.autocorrectionType = .no
         textField.font = .dynamicTypeBodyClamped
-        textField.keyboardAppearance = .dark
+        textField.adjustsFontForContentSizeCategory = true
         textField.keyboardType = .URL
-        textField.textColor = .ows_gray05
+        textField.textColor = .Signal.label
         textField.textContentType = .URL
         textField.attributedPlaceholder = NSAttributedString(
             string: OWSLocalizedString(
                 "STORY_COMPOSER_URL_FIELD_PLACEHOLDER",
                 comment: "Placeholder text for URL input field in Text Story composer UI.",
             ),
-            attributes: [.foregroundColor: UIColor.ows_gray25],
+            attributes: [.foregroundColor: UIColor.Signal.secondaryLabel],
         )
         textField.setContentCompressionResistancePriority(.defaultHigh, for: .vertical)
         return textField
@@ -57,7 +57,7 @@ class LinkPreviewAttachmentViewController: InteractiveSheetViewController {
 
     private lazy var textFieldContainer: UIView = {
         let view = PillView()
-        view.backgroundColor = .ows_gray80
+        view.backgroundColor = .Signal.tertiaryFill
         view.addSubview(textField)
         textField.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -96,6 +96,8 @@ class LinkPreviewAttachmentViewController: InteractiveSheetViewController {
         super.viewDidLoad()
 
         super.allowsExpansion = false
+
+        overrideUserInterfaceStyle = .dark
 
         contentView.preservesSuperviewLayoutMargins = true
         contentView.superview?.preservesSuperviewLayoutMargins = true
@@ -150,8 +152,6 @@ class LinkPreviewAttachmentViewController: InteractiveSheetViewController {
     }
 
     override var canBecomeFirstResponder: Bool { true }
-
-    override var sheetBackgroundColor: UIColor { Theme.darkThemeTableView2PresentedBackgroundColor }
 
     private var _sheetHeight: CGFloat = 0
     private func updateSheetHeight() {
@@ -331,15 +331,16 @@ class LinkPreviewAttachmentViewController: InteractiveSheetViewController {
 
         private lazy var placeholderView: UIView = {
             let icon = UIImageView(image: UIImage(imageLiteralResourceName: "link"))
-            icon.tintColor = .ows_gray45
+            icon.tintColor = .Signal.secondaryLabel
             icon.setContentHuggingHigh()
 
             let label = UILabel()
             label.font = .dynamicTypeSubheadlineClamped
+            label.adjustsFontForContentSizeCategory = true
             label.lineBreakMode = .byWordWrapping
             label.numberOfLines = 0
             label.textAlignment = .center
-            label.textColor = .ows_gray45
+            label.textColor = .Signal.secondaryLabel
             label.text = OWSLocalizedString(
                 "STORY_COMPOSER_LINK_PREVIEW_PLACEHOLDER",
                 comment: "Displayed in text story composer when user is about to attach a link with preview",
@@ -357,6 +358,7 @@ class LinkPreviewAttachmentViewController: InteractiveSheetViewController {
             let view = UIView()
             view.addSubview(activityIndicatorView)
             activityIndicatorView.autoCenterInSuperview()
+            activityIndicatorView.tintColor = .Signal.label
             return view
         }()
 
@@ -364,15 +366,16 @@ class LinkPreviewAttachmentViewController: InteractiveSheetViewController {
 
         private lazy var errorView: UIView = {
             let exclamationMark = UIImageView(image: UIImage(imageLiteralResourceName: "error-circle"))
-            exclamationMark.tintColor = .ows_gray15
+            exclamationMark.tintColor = .Signal.warningLabel
             exclamationMark.setContentHuggingHigh()
 
             let label = UILabel()
             label.font = .dynamicTypeSubheadlineClamped
+            label.adjustsFontForContentSizeCategory = true
             label.lineBreakMode = .byWordWrapping
             label.numberOfLines = 0
             label.textAlignment = .center
-            label.textColor = .ows_gray05
+            label.textColor = .Signal.warningLabel
             label.text = OWSLocalizedString(
                 "STORY_COMPOSER_LINK_PREVIEW_ERROR",
                 comment: "Displayed when failed to fetch link preview in Text Story composer.",
