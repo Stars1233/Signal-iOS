@@ -37,7 +37,6 @@ private class TestDependencies {
     let recipientFetcher: RecipientFetcher
     let recipientIdFinder: RecipientIdFinder
     let sessionStore: SignalServiceKit.SessionStore
-    let threadAssociatedDataStore: MockThreadAssociatedDataStore
     let threadStore: MockThreadStore
     let threadMerger: ThreadMerger
 
@@ -53,10 +52,8 @@ private class TestDependencies {
         identityManager.recipientIdentities = [:]
         identityManager.sessionSwitchoverMessages = []
         sessionStore = SignalServiceKit.SessionStore()
-        threadAssociatedDataStore = MockThreadAssociatedDataStore()
         threadStore = MockThreadStore()
         threadMerger = ThreadMerger.forUnitTests(
-            threadAssociatedDataStore: threadAssociatedDataStore,
             threadStore: threadStore,
         )
         recipientMerger = RecipientMergerImpl(
@@ -422,7 +419,6 @@ class RecipientMergerTest: XCTestCase {
                     ))
                     thread.shouldThreadBeVisible = true
                     d.threadStore.insertThread(thread)
-                    d.threadAssociatedDataStore.values[thread.uniqueId] = ThreadAssociatedData(threadUniqueId: thread.uniqueId)
                 }
             }
 

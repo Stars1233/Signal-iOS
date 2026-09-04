@@ -357,6 +357,7 @@ public class GRDBSchemaMigrator {
         case addGroupsPendingRestore
         case deleteObsoleteGroupMembers
         case rebuildInteractionGroupCallEraIdIndex
+        case moveFromThreadAssociatedData
 
         // NOTE: Every time we add a migration id, consider
         // incrementing grdbSchemaVersionLatest.
@@ -389,7 +390,6 @@ public class GRDBSchemaMigrator {
         case dataMigration_removeOversizedGroupAvatars
         case dataMigration_populateGroupMember
         case dataMigration_cullInvalidIdentityKeySendingErrors
-        case dataMigration_moveToThreadAssociatedData
         case dataMigration_reindexGroupMembershipAndMigrateLegacyAvatarDataFixed
         case dataMigration_repairAvatar
         case dataMigration_dropSentStories
@@ -480,11 +480,14 @@ public class GRDBSchemaMigrator {
         // Obsoleted by addGroup.
         case dataMigration_groupIdMapping
         case removeDeadEndGroupThreadIdMappings
+
+        // Obsoleted by moveFromThreadAssociatedData
+        case dataMigration_moveToThreadAssociatedData
 #endif
     }
 
     public static let grdbSchemaVersionDefault: UInt = 0
-    public static let grdbSchemaVersionLatest: UInt = 157
+    public static let grdbSchemaVersionLatest: UInt = 158
 
     private class DatabaseMigratorWrapper {
         // Run with immediate (or disabled) foreign key checks so that pre-existing
@@ -5517,6 +5520,11 @@ public class GRDBSchemaMigrator {
             return .success(())
         }
 
+        migrator.registerMigration(.moveFromThreadAssociatedData) { tx in
+            try moveFromThreadAssociatedData(tx: tx)
+            return .success(())
+        }
+
         // MARK: - Schema Migration Insertion Point
     }
 
@@ -5662,28 +5670,6 @@ public class GRDBSchemaMigrator {
                 arguments: [SDSRecordType.invalidIdentityKeySendingErrorMessage.rawValue],
             )
             return .success(())
-        }
-
-        migrator.registerMigration(.dataMigration_moveToThreadAssociatedData) { transaction in
-            var thrownError: Error?
-            TSThread.anyEnumerate(transaction: transaction) { thread, stop in
-                do {
-                    try ThreadAssociatedData(
-                        threadUniqueId: thread.uniqueId,
-                        isArchived: thread.isArchivedObsolete,
-                        isMarkedUnread: thread.isMarkedUnreadObsolete,
-                        mutedUntilTimestamp: thread.mutedUntilTimestampObsolete,
-                        // audioPlaybackRate and lastVerifiedGroupNameHash didn't exist pre-migration,
-                        // just write the default
-                        audioPlaybackRate: 1,
-                        lastVerifiedGroupNameHash: nil,
-                    ).insert(transaction.database)
-                } catch {
-                    thrownError = error
-                    stop = true
-                }
-            }
-            return thrownError.map { .failure($0) } ?? .success(())
         }
 
         migrator.registerMigration(.dataMigration_reindexGroupMembershipAndMigrateLegacyAvatarDataFixed) { transaction in
@@ -8350,6 +8336,38 @@ public class GRDBSchemaMigrator {
                 arguments: [groupId.serialize(), masterKey.serialize()],
             )
         }
+    }
+
+    static func moveFromThreadAssociatedData(tx: DBWriteTransaction) throws {
+        try tx.database.alter(table: "model_TSThread") {
+            $0.add(column: "audioPlaybackRate", .double).notNull().defaults(to: 1.0)
+        }
+        try tx.database.alter(table: "GroupRecord") {
+            $0.add(column: "lastVerifiedGroupNameHash", .blob)
+        }
+        try tx.database.execute(sql: """
+        UPDATE "model_TSThread"
+        SET "isArchived" = "TAD"."isArchived" IS 1,
+            "isMarkedUnread" = "TAD"."isMarkedUnread" IS 1,
+            "mutedUntilTimestamp" = CAST("TAD"."mutedUntilTimestamp" AS INTEGER),
+            "audioPlaybackRate" = CAST("TAD"."audioPlaybackRate" AS REAL)
+        FROM (SELECT * FROM "thread_associated_data") "TAD"
+        WHERE "model_TSThread"."uniqueId" = "TAD"."threadUniqueId"
+        """)
+        try tx.database.execute(sql: """
+        UPDATE "GroupRecord"
+        SET "lastVerifiedGroupNameHash" = CAST("TAD"."lastVerifiedGroupNameHash" AS BLOB)
+        FROM (
+            SELECT
+                "model_TSThread"."id" "threadId",
+                "thread_associated_data"."lastVerifiedGroupNameHash" "lastVerifiedGroupNameHash"
+            FROM "thread_associated_data", "model_TSThread"
+            WHERE "model_TSThread"."uniqueId" = "thread_associated_data"."threadUniqueId"
+        ) "TAD"
+        WHERE "GroupRecord"."threadId" = "TAD"."threadId"
+        AND "TAD"."lastVerifiedGroupNameHash" IS NOT NULL
+        """)
+        try tx.database.drop(table: "thread_associated_data")
     }
 
     static func dedupeSignalRecipients(tx: DBWriteTransaction) throws {

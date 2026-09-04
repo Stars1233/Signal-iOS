@@ -549,16 +549,12 @@ public class NotificationPresenterImpl: NotificationPresenter {
 
     // MARK: - Notify
 
-    public func isThreadMuted(_ thread: TSThread, transaction: DBReadTransaction) -> Bool {
-        ThreadAssociatedData.fetchOrDefault(for: thread, transaction: transaction).isMuted
-    }
-
     public func canNotify(
         for incomingMessage: TSIncomingMessage,
         thread: TSThread,
         transaction: DBReadTransaction,
     ) -> Bool {
-        if isThreadMuted(thread, transaction: transaction) {
+        if thread.isMuted {
             guard thread.isGroupThread else { return false }
 
             guard let localIdentifiers = tsAccountManager.localIdentifiers(tx: transaction) else {
@@ -654,7 +650,7 @@ public class NotificationPresenterImpl: NotificationPresenter {
             return
         }
 
-        guard !isThreadMuted(thread, transaction: transaction) else { return }
+        guard !thread.isMuted else { return }
 
         // Poll terminate notifications only get displayed if we can include the poll details.
         let previewType = self.previewType(tx: transaction)
@@ -717,7 +713,7 @@ public class NotificationPresenterImpl: NotificationPresenter {
             return
         }
 
-        guard !isThreadMuted(thread, transaction: transaction) else { return }
+        guard !thread.isMuted else { return }
 
         // Poll vote notifications only get displayed if we can include the poll details.
         let previewType = self.previewType(tx: transaction)
@@ -982,7 +978,7 @@ public class NotificationPresenterImpl: NotificationPresenter {
             return
         }
 
-        guard !isThreadMuted(thread, transaction: transaction) else { return }
+        guard !thread.isMuted else { return }
 
         let rawMessageText = releaseNotesMessage.notificationPreviewText(transaction)
         let messageText = rawMessageText.filterStringForDisplay()
@@ -1046,7 +1042,7 @@ public class NotificationPresenterImpl: NotificationPresenter {
             return
         }
 
-        guard !isThreadMuted(thread, transaction: transaction) else { return }
+        guard !thread.isMuted else { return }
 
         // Reaction notifications only get displayed if we can include the reaction
         // details, otherwise we don't disturb the user for a non-message
@@ -1456,7 +1452,7 @@ public class NotificationPresenterImpl: NotificationPresenter {
             return
         }
 
-        guard !isThreadMuted(thread, transaction: transaction) else { return }
+        guard !thread.isMuted else { return }
 
         let previewType = self.previewType(tx: transaction)
 

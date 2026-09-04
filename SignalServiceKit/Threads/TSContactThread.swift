@@ -58,8 +58,8 @@ open class TSContactThread: TSThread {
         uniqueId: String,
         creationDate: Date?,
         editTargetTimestamp: UInt64?,
-        isArchivedObsolete: Bool,
-        isMarkedUnreadObsolete: Bool,
+        isArchived: Bool,
+        isMarkedUnread: Bool,
         lastDraftInteractionRowId: UInt64,
         lastDraftUpdateTimestamp: UInt64,
         lastInteractionRowId: UInt64,
@@ -67,9 +67,10 @@ open class TSContactThread: TSThread {
         shouldNotifyForMentionsWhenMuted: Bool,
         messageDraft: String?,
         messageDraftBodyRanges: MessageBodyRanges?,
-        mutedUntilTimestampObsolete: UInt64,
+        mutedUntilTimestamp: UInt64,
         shouldThreadBeVisible: Bool,
         storyViewMode: TSThreadStoryViewMode,
+        audioPlaybackRate: Float,
         contactUUID: String?,
         contactPhoneNumber: String?,
     ) {
@@ -80,8 +81,8 @@ open class TSContactThread: TSThread {
             uniqueId: uniqueId,
             creationDate: creationDate,
             editTargetTimestamp: editTargetTimestamp,
-            isArchivedObsolete: isArchivedObsolete,
-            isMarkedUnreadObsolete: isMarkedUnreadObsolete,
+            isArchived: isArchived,
+            isMarkedUnread: isMarkedUnread,
             lastDraftInteractionRowId: lastDraftInteractionRowId,
             lastDraftUpdateTimestamp: lastDraftUpdateTimestamp,
             lastInteractionRowId: lastInteractionRowId,
@@ -89,9 +90,10 @@ open class TSContactThread: TSThread {
             shouldNotifyForMentionsWhenMuted: shouldNotifyForMentionsWhenMuted,
             messageDraft: messageDraft,
             messageDraftBodyRanges: messageDraftBodyRanges,
-            mutedUntilTimestampObsolete: mutedUntilTimestampObsolete,
+            mutedUntilTimestamp: mutedUntilTimestamp,
             shouldThreadBeVisible: shouldThreadBeVisible,
             storyViewMode: storyViewMode,
+            audioPlaybackRate: audioPlaybackRate,
         )
     }
 
@@ -111,8 +113,8 @@ open class TSContactThread: TSThread {
             uniqueId: self.uniqueId,
             creationDate: self.creationDate,
             editTargetTimestamp: self.editTargetTimestamp,
-            isArchivedObsolete: self.isArchivedObsolete,
-            isMarkedUnreadObsolete: self.isMarkedUnreadObsolete,
+            isArchived: self.isArchived,
+            isMarkedUnread: self.isMarkedUnread,
             lastDraftInteractionRowId: self.lastDraftInteractionRowId,
             lastDraftUpdateTimestamp: self.lastDraftUpdateTimestamp,
             lastInteractionRowId: self.lastInteractionRowId,
@@ -120,12 +122,17 @@ open class TSContactThread: TSThread {
             shouldNotifyForMentionsWhenMuted: self.shouldNotifyForMentionsWhenMuted,
             messageDraft: self.messageDraft,
             messageDraftBodyRanges: self.messageDraftBodyRanges,
-            mutedUntilTimestampObsolete: self.mutedUntilTimestampObsolete,
+            mutedUntilTimestamp: self.mutedUntilTimestamp,
             shouldThreadBeVisible: self.shouldThreadBeVisible,
             storyViewMode: self.storyViewMode,
+            audioPlaybackRate: self.audioPlaybackRate,
             contactUUID: self.contactUUID,
             contactPhoneNumber: self.contactPhoneNumber,
         )
+    }
+
+    override func recordPendingUpdates(storageServiceManager: any StorageServiceManager) {
+        storageServiceManager.recordPendingUpdates(updatedAddresses: [self.contactAddress])
     }
 
     class func fetchContactThreadViaCache(uniqueId: String, transaction: DBReadTransaction) -> TSContactThread? {

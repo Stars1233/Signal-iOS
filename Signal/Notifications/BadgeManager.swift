@@ -100,7 +100,7 @@ extension BadgeManager: DatabaseChangeDelegate {
     public func databaseChangesDidUpdate(databaseChanges: DatabaseChanges) {
         let badgeMightBeDifferent = (
             databaseChanges.didUpdateInteractions
-                || databaseChanges.didUpdate(tableName: ThreadAssociatedData.databaseTableName)
+                || databaseChanges.didUpdateThreads
                 || databaseChanges.didUpdate(tableName: CallRecord.databaseTableName),
         )
         guard badgeMightBeDifferent else {

@@ -33,7 +33,7 @@ struct ConversationMuteManager {
         case .custom(let endDate):
             endDate.ows_millisecondsSince1970
         case .forever:
-            ThreadAssociatedData.alwaysMutedTimestamp
+            TSThread.alwaysMutedTimestamp
         }
     }
 
@@ -43,7 +43,7 @@ struct ConversationMuteManager {
     ) {
         db.write { transaction in
             for threadViewModel in threadViewModels {
-                threadViewModel.associatedData.updateWith(
+                threadViewModel.threadRecord.updateWith(
                     mutedUntilTimestamp: timestamp,
                     updateStorageService: true,
                     transaction: transaction,

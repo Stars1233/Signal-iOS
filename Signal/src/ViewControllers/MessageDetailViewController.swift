@@ -222,7 +222,6 @@ class MessageDetailViewController: OWSTableViewController2 {
             owsFailDebug("Missing thread.")
             return nil
         }
-        let threadAssociatedData = ThreadAssociatedData.fetchOrDefault(for: thread, transaction: transaction)
 
         let conversationStyle = ConversationStyle(
             type: .messageDetails,
@@ -241,7 +240,6 @@ class MessageDetailViewController: OWSTableViewController2 {
         return CVLoader.buildStandaloneRenderItem(
             interaction: interaction,
             thread: thread,
-            threadAssociatedData: threadAssociatedData,
             conversationStyle: conversationStyle,
             spoilerState: spoilerState,
             groupNameColors: groupNameColors,

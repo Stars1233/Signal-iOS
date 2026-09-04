@@ -230,11 +230,6 @@ public class BackupArchiveChatArchiver: BackupArchiveProtoStreamWriter {
     ) -> ArchiveMultiFrameResult {
         var partialErrors = [ArchiveFrameError]()
 
-        let threadAssociatedData = threadStore.fetchOrDefaultAssociatedData(
-            for: thread.tsThread,
-            tx: context.tx,
-        )
-
         let pinnedThreadOrder = pinnedThreadManager.pinnedThreadOrder(
             forThread: thread.tsThread,
             tx: context.tx,
@@ -250,7 +245,7 @@ public class BackupArchiveChatArchiver: BackupArchiveProtoStreamWriter {
         var chat = BackupProto_Chat()
         chat.id = context.assignChatId(to: thread.tsThread).value
         chat.recipientID = recipientId.value
-        chat.archived = threadAssociatedData.isArchived
+        chat.archived = thread.tsThread.isArchived
         if let pinnedThreadOrder = pinnedThreadOrder.flatMap(UInt32.init(exactly:)) {
             chat.pinnedOrder = pinnedThreadOrder
         }
@@ -258,15 +253,15 @@ public class BackupArchiveChatArchiver: BackupArchiveProtoStreamWriter {
             chat.expirationTimerMs = UInt64(versionedExpireTimerToken.durationSeconds) * 1000
         }
         chat.expireTimerVersion = versionedExpireTimerToken.version
-        if threadAssociatedData.mutedUntilTimestamp > 0 {
-            let muteUntilMs = threadAssociatedData.mutedUntilTimestamp
+        if thread.tsThread.mutedUntilTimestamp > 0 {
+            let muteUntilMs = thread.tsThread.mutedUntilTimestamp
             if BackupArchive.Timestamps.isValid(muteUntilMs) {
                 chat.muteUntilMs = muteUntilMs
             } else {
-                chat.muteUntilMs = ThreadAssociatedData.alwaysMutedTimestamp
+                chat.muteUntilMs = TSThread.alwaysMutedTimestamp
             }
         }
-        chat.markedUnread = threadAssociatedData.isMarkedUnread
+        chat.markedUnread = thread.tsThread.isMarkedUnread
         chat.dontNotifyForMentionsIfMuted = dontNotifyForMentionsIfMuted
 
         let chatStyleResult = chatStyleArchiver.archiveChatStyle(
@@ -382,8 +377,8 @@ public class BackupArchiveChatArchiver: BackupArchiveProtoStreamWriter {
         }
 
         do {
-            try threadStore.createAssociatedData(
-                for: chatThread.tsThread,
+            try threadStore.updateThread(
+                chatThread.tsThread,
                 isArchived: chat.archived,
                 isMarkedUnread: chat.markedUnread,
                 mutedUntilTimestamp: mutedUntilTimestamp,

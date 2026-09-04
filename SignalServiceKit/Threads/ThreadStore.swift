@@ -64,16 +64,9 @@ public protocol ThreadStore {
         tx: DBWriteTransaction,
     )
 
-    /// Note: does not insert any created default associated data into the db.
-    /// (This method only takes a read transaction, so it could not insert even if it wanted to)
-    func fetchOrDefaultAssociatedData(for thread: TSThread, tx: DBReadTransaction) -> ThreadAssociatedData
-
-    func updateAssociatedData(
-        threadAssociatedData: ThreadAssociatedData,
-        isArchived: Bool?,
-        isMarkedUnread: Bool?,
-        mutedUntilTimestamp: UInt64?,
-        audioPlaybackRate: Float?,
+    func updateThread(
+        _ thread: TSThread,
+        isArchived: Bool,
         updateStorageService: Bool,
         tx: DBWriteTransaction,
     )
@@ -119,26 +112,6 @@ extension ThreadStore {
         tx: DBReadTransaction,
     ) -> TSThread? {
         return fetchThread(uniqueId: interaction.uniqueThreadId, tx: tx)
-    }
-
-    public func updateAssociatedData(
-        _ threadAssociatedData: ThreadAssociatedData,
-        isArchived: Bool? = nil,
-        isMarkedUnread: Bool? = nil,
-        mutedUntilTimestamp: UInt64? = nil,
-        audioPlaybackRate: Float? = nil,
-        updateStorageService: Bool,
-        tx: DBWriteTransaction,
-    ) {
-        self.updateAssociatedData(
-            threadAssociatedData: threadAssociatedData,
-            isArchived: isArchived,
-            isMarkedUnread: isMarkedUnread,
-            mutedUntilTimestamp: mutedUntilTimestamp,
-            audioPlaybackRate: audioPlaybackRate,
-            updateStorageService: updateStorageService,
-            tx: tx,
-        )
     }
 }
 
@@ -251,27 +224,8 @@ public class ThreadStoreImpl: ThreadStore {
         thread.updateWithShouldThreadBeVisible(shouldBeVisible, transaction: tx)
     }
 
-    public func fetchOrDefaultAssociatedData(for thread: TSThread, tx: DBReadTransaction) -> ThreadAssociatedData {
-        return ThreadAssociatedData.fetchOrDefault(for: thread, transaction: tx)
-    }
-
-    public func updateAssociatedData(
-        threadAssociatedData: ThreadAssociatedData,
-        isArchived: Bool?,
-        isMarkedUnread: Bool?,
-        mutedUntilTimestamp: UInt64?,
-        audioPlaybackRate: Float?,
-        updateStorageService: Bool,
-        tx: DBWriteTransaction,
-    ) {
-        threadAssociatedData.updateWith(
-            isArchived: isArchived,
-            isMarkedUnread: isMarkedUnread,
-            mutedUntilTimestamp: mutedUntilTimestamp,
-            audioPlaybackRate: audioPlaybackRate,
-            updateStorageService: updateStorageService,
-            transaction: tx,
-        )
+    public func updateThread(_ thread: TSThread, isArchived: Bool, updateStorageService: Bool, tx: DBWriteTransaction) {
+        thread.updateWith(isArchived: isArchived, updateStorageService: updateStorageService, transaction: tx)
     }
 }
 
@@ -416,16 +370,9 @@ public class MockThreadStore: ThreadStore {
         // Unimplemented
     }
 
-    public func fetchOrDefaultAssociatedData(for thread: TSThread, tx: DBReadTransaction) -> ThreadAssociatedData {
-        return ThreadAssociatedData(threadUniqueId: thread.uniqueId)
-    }
-
-    public func updateAssociatedData(
-        threadAssociatedData: ThreadAssociatedData,
-        isArchived: Bool?,
-        isMarkedUnread: Bool?,
-        mutedUntilTimestamp: UInt64?,
-        audioPlaybackRate: Float?,
+    public func updateThread(
+        _ thread: TSThread,
+        isArchived: Bool,
         updateStorageService: Bool,
         tx: DBWriteTransaction,
     ) {

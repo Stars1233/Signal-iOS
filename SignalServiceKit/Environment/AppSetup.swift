@@ -787,7 +787,6 @@ extension AppSetup.GlobalsContinuation {
         )
 
         let groupMemberStore = GroupMemberStoreImpl()
-        let threadAssociatedDataStore = ThreadAssociatedDataStoreImpl()
         let threadReplyInfoStore = ThreadReplyInfoStore()
 
         let wallpaperImageStore = WallpaperImageStoreImpl(
@@ -948,7 +947,6 @@ extension AppSetup.GlobalsContinuation {
             disappearingMessagesConfigurationStore: disappearingMessagesConfigurationStore,
             groupMemberUpdater: groupMemberUpdater,
             lastVisibleInteractionStore: lastVisibleInteractionStore,
-            threadAssociatedDataStore: threadAssociatedDataStore,
             threadReadCache: ThreadRemoverImpl.Wrappers.ThreadReadCache(modelReadCaches.threadReadCache),
             threadReplyInfoStore: threadReplyInfoStore,
             threadStore: threadStore,
@@ -1030,7 +1028,6 @@ extension AppSetup.GlobalsContinuation {
                 profileManager: profileManager,
                 recipientMergeNotifier: RecipientMergeNotifier(),
                 signalServiceAddressCache: signalServiceAddressCache,
-                threadAssociatedDataStore: threadAssociatedDataStore,
                 threadRemover: threadRemover,
                 threadReplyInfoStore: threadReplyInfoStore,
                 threadStore: threadStore,
@@ -1928,7 +1925,6 @@ extension AppSetup.GlobalsContinuation {
             svr: svr,
             svrAuthCredentialManager: svrAuthCredentialManager,
             svrLocalStorage: svrLocalStorage,
-            threadAssociatedDataStore: threadAssociatedDataStore,
             threadReplyInfoStore: threadReplyInfoStore,
             threadDeletionManager: threadDeletionManager,
             threadStore: threadStore,

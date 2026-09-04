@@ -42,7 +42,7 @@ extension ConversationViewController {
     func clearThreadUnreadFlagIfNecessary() {
         if threadViewModel.isMarkedUnread {
             SSKEnvironment.shared.databaseStorageRef.write { transaction in
-                self.threadViewModel.associatedData.updateWith(
+                self.threadViewModel.threadRecord.updateWith(
                     isMarkedUnread: false,
                     updateStorageService: true,
                     transaction: transaction,

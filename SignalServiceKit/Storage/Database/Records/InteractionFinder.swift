@@ -180,14 +180,13 @@ public class InteractionFinder: NSObject {
         SELECT COUNT(interaction.\(interactionColumn: .id))
         FROM \(InteractionRecord.databaseTableName) AS interaction
         \(DEBUG_INDEXED_BY("index_model_TSInteraction_UnreadMessages"))
-        INNER JOIN \(ThreadAssociatedData.databaseTableName) AS associatedData
-        \(DEBUG_INDEXED_BY("index_thread_associated_data_on_threadUniqueId_and_isArchived"))
-            ON associatedData.threadUniqueId = \(interactionColumn: .threadUniqueId)
-        WHERE associatedData.isArchived = "0"
+        INNER JOIN \(TSThread.databaseTableName) AS thread
+            ON thread.uniqueId = \(interactionColumn: .threadUniqueId)
+        WHERE thread.isArchived = 0
         """
 
         if !includeMutedThreads {
-            unreadInteractionQuery += " \(sqlClauseForIgnoringInteractionsWithMutedThread(threadAssociatedDataAlias: "associatedData")) "
+            unreadInteractionQuery += " \(sqlClauseForIgnoringInteractionsWithMutedThread(threadAlias: "thread")) "
         }
 
         unreadInteractionQuery += " AND \(sqlClauseForUnreadInteractionCounts(interactionsAlias: "interaction")) "
@@ -199,15 +198,13 @@ public class InteractionFinder: NSObject {
         var markedUnreadThreadQuery = """
         SELECT COUNT(*)
         FROM \(TSThread.databaseTableName)
-        INNER JOIN \(ThreadAssociatedData.databaseTableName) AS associatedData
-            ON associatedData.threadUniqueId = \(threadColumn: .uniqueId)
-        WHERE associatedData.isMarkedUnread = 1
-        AND associatedData.isArchived = "0"
+        WHERE \(threadColumn: .isMarkedUnread) = 1
+        AND \(threadColumn: .isArchived) = 0
         AND \(threadColumn: .shouldThreadBeVisible) = 1
         """
 
         if !includeMutedThreads {
-            markedUnreadThreadQuery += " \(sqlClauseForIgnoringInteractionsWithMutedThread(threadAssociatedDataAlias: "associatedData")) "
+            markedUnreadThreadQuery += " \(sqlClauseForIgnoringInteractionsWithMutedThread(threadAlias: nil)) "
         }
 
         let markedUnreadCount = failIfThrows {
@@ -1440,11 +1437,17 @@ extension InteractionFinder {
         """
     }
 
-    private static func sqlClauseForIgnoringInteractionsWithMutedThread(threadAssociatedDataAlias: String) -> String {
-        """
+    private static func sqlClauseForIgnoringInteractionsWithMutedThread(threadAlias: String?) -> String {
+        let resolvedThreadAlias: String
+        if let threadAlias {
+            resolvedThreadAlias = "\(threadAlias)."
+        } else {
+            resolvedThreadAlias = ""
+        }
+        return """
         AND (
-            \(threadAssociatedDataAlias).mutedUntilTimestamp <= strftime('%s','now') * 1000
-            OR \(threadAssociatedDataAlias).mutedUntilTimestamp = 0
+            \(resolvedThreadAlias)mutedUntilTimestamp <= strftime('%s','now') * 1000
+            OR \(resolvedThreadAlias)mutedUntilTimestamp = 0
         )
         """
     }

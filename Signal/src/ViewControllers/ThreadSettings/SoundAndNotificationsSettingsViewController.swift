@@ -68,7 +68,7 @@ class SoundAndNotificationsSettingsViewController: OWSTableViewController2 {
 
             let now = Date()
 
-            if self.threadViewModel.mutedUntilTimestamp == ThreadAssociatedData.alwaysMutedTimestamp {
+            if self.threadViewModel.mutedUntilTimestamp == TSThread.alwaysMutedTimestamp {
                 muteStatus = OWSLocalizedString(
                     "CONVERSATION_SETTINGS_MUTED_ALWAYS",
                     comment: "Indicates that this thread is muted forever.",

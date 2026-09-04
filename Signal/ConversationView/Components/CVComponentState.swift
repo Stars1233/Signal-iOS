@@ -1463,7 +1463,6 @@ private extension CVComponentState.Builder {
 
         return CVComponentThreadDetails.buildComponentState(
             thread: thread,
-            threadAssociatedData: threadAssociatedData,
             transaction: transaction,
             avatarBuilder: avatarBuilder,
         )

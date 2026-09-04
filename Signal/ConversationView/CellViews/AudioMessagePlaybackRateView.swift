@@ -237,7 +237,7 @@ class AudioMessagePlaybackRateView: ManualLayoutViewWithLayer {
         reloadGroup.enter()
         SSKEnvironment.shared.databaseStorageRef.asyncWrite(
             block: {
-                itemModel.threadAssociatedData.updateWith(
+                itemModel.thread.updateWith(
                     audioPlaybackRate: newPlaybackRate.rawValue,
                     updateStorageService: true,
                     transaction: $0,

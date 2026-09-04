@@ -53,8 +53,8 @@ open class TSGroupThread: TSThread {
         uniqueId: String,
         creationDate: Date?,
         editTargetTimestamp: UInt64?,
-        isArchivedObsolete: Bool,
-        isMarkedUnreadObsolete: Bool,
+        isArchived: Bool,
+        isMarkedUnread: Bool,
         lastDraftInteractionRowId: UInt64,
         lastDraftUpdateTimestamp: UInt64,
         lastInteractionRowId: UInt64,
@@ -62,9 +62,10 @@ open class TSGroupThread: TSThread {
         shouldNotifyForMentionsWhenMuted: Bool,
         messageDraft: String?,
         messageDraftBodyRanges: MessageBodyRanges?,
-        mutedUntilTimestampObsolete: UInt64,
+        mutedUntilTimestamp: UInt64,
         shouldThreadBeVisible: Bool,
         storyViewMode: TSThreadStoryViewMode,
+        audioPlaybackRate: Float,
         groupModel: TSGroupModel,
     ) {
         self.groupModel = groupModel
@@ -73,8 +74,8 @@ open class TSGroupThread: TSThread {
             uniqueId: uniqueId,
             creationDate: creationDate,
             editTargetTimestamp: editTargetTimestamp,
-            isArchivedObsolete: isArchivedObsolete,
-            isMarkedUnreadObsolete: isMarkedUnreadObsolete,
+            isArchived: isArchived,
+            isMarkedUnread: isMarkedUnread,
             lastDraftInteractionRowId: lastDraftInteractionRowId,
             lastDraftUpdateTimestamp: lastDraftUpdateTimestamp,
             lastInteractionRowId: lastInteractionRowId,
@@ -82,9 +83,10 @@ open class TSGroupThread: TSThread {
             shouldNotifyForMentionsWhenMuted: shouldNotifyForMentionsWhenMuted,
             messageDraft: messageDraft,
             messageDraftBodyRanges: messageDraftBodyRanges,
-            mutedUntilTimestampObsolete: mutedUntilTimestampObsolete,
+            mutedUntilTimestamp: mutedUntilTimestamp,
             shouldThreadBeVisible: shouldThreadBeVisible,
             storyViewMode: storyViewMode,
+            audioPlaybackRate: audioPlaybackRate,
         )
     }
 
@@ -107,8 +109,8 @@ open class TSGroupThread: TSThread {
             uniqueId: self.uniqueId,
             creationDate: self.creationDate,
             editTargetTimestamp: self.editTargetTimestamp,
-            isArchivedObsolete: self.isArchivedObsolete,
-            isMarkedUnreadObsolete: self.isMarkedUnreadObsolete,
+            isArchived: self.isArchived,
+            isMarkedUnread: self.isMarkedUnread,
             lastDraftInteractionRowId: self.lastDraftInteractionRowId,
             lastDraftUpdateTimestamp: self.lastDraftUpdateTimestamp,
             lastInteractionRowId: self.lastInteractionRowId,
@@ -116,11 +118,16 @@ open class TSGroupThread: TSThread {
             shouldNotifyForMentionsWhenMuted: self.shouldNotifyForMentionsWhenMuted,
             messageDraft: self.messageDraft,
             messageDraftBodyRanges: self.messageDraftBodyRanges,
-            mutedUntilTimestampObsolete: self.mutedUntilTimestampObsolete,
+            mutedUntilTimestamp: self.mutedUntilTimestamp,
             shouldThreadBeVisible: self.shouldThreadBeVisible,
             storyViewMode: self.storyViewMode,
+            audioPlaybackRate: self.audioPlaybackRate,
             groupModel: self.groupModel,
         )
+    }
+
+    override func recordPendingUpdates(storageServiceManager: any StorageServiceManager) {
+        storageServiceManager.recordPendingUpdates(groupModel: self.groupModel)
     }
 
     public class func fetchGroupThreadViaCache(uniqueId: String, transaction: DBReadTransaction) -> TSGroupThread? {
@@ -365,14 +372,15 @@ open class TSGroupThread: TSThread {
         groupId: Data,
         secretParamsData: Data = Data(count: 1),
         groupMembers: [SignalServiceAddress] = [],
+        isArchived: Bool = false,
     ) -> TSGroupThread {
         let groupThread = TSGroupThread(
             id: 1,
             uniqueId: UUID().uuidString,
             creationDate: nil,
             editTargetTimestamp: nil,
-            isArchivedObsolete: false,
-            isMarkedUnreadObsolete: false,
+            isArchived: isArchived,
+            isMarkedUnread: false,
             lastDraftInteractionRowId: 0,
             lastDraftUpdateTimestamp: 0,
             lastInteractionRowId: 1,
@@ -380,9 +388,10 @@ open class TSGroupThread: TSThread {
             shouldNotifyForMentionsWhenMuted: true,
             messageDraft: nil,
             messageDraftBodyRanges: nil,
-            mutedUntilTimestampObsolete: 0,
+            mutedUntilTimestamp: 0,
             shouldThreadBeVisible: true,
             storyViewMode: .default,
+            audioPlaybackRate: 1,
             groupModel: TSGroupModelV2(
                 groupId: groupId,
                 name: "Example Group",

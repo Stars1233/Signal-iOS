@@ -20,9 +20,8 @@ public final class TSReleaseNotesThread: TSThread {
         releaseNotes.anyInsert(transaction: transaction)
 
         // Mute release notes thread by default.
-        let threadAssociatedData = ThreadAssociatedData.fetchOrDefault(for: releaseNotes, transaction: transaction)
-        threadAssociatedData.updateWith(
-            mutedUntilTimestamp: ThreadAssociatedData.alwaysMutedTimestamp,
+        releaseNotes.updateWith(
+            mutedUntilTimestamp: TSThread.alwaysMutedTimestamp,
             updateStorageService: false,
             transaction: transaction,
         )
@@ -35,8 +34,8 @@ public final class TSReleaseNotesThread: TSThread {
             uniqueId: self.uniqueId,
             creationDate: self.creationDate,
             editTargetTimestamp: self.editTargetTimestamp,
-            isArchivedObsolete: self.isArchivedObsolete,
-            isMarkedUnreadObsolete: self.isMarkedUnreadObsolete,
+            isArchived: self.isArchived,
+            isMarkedUnread: self.isMarkedUnread,
             lastDraftInteractionRowId: self.lastDraftInteractionRowId,
             lastDraftUpdateTimestamp: self.lastDraftUpdateTimestamp,
             lastInteractionRowId: self.lastInteractionRowId,
@@ -44,10 +43,15 @@ public final class TSReleaseNotesThread: TSThread {
             shouldNotifyForMentionsWhenMuted: self.shouldNotifyForMentionsWhenMuted,
             messageDraft: self.messageDraft,
             messageDraftBodyRanges: self.messageDraftBodyRanges,
-            mutedUntilTimestampObsolete: self.mutedUntilTimestampObsolete,
+            mutedUntilTimestamp: self.mutedUntilTimestamp,
             shouldThreadBeVisible: self.shouldThreadBeVisible,
             storyViewMode: self.storyViewMode,
+            audioPlaybackRate: self.audioPlaybackRate,
         )
+    }
+
+    override func recordPendingUpdates(storageServiceManager: any StorageServiceManager) {
+        storageServiceManager.recordPendingLocalAccountUpdates()
     }
 
     @objc

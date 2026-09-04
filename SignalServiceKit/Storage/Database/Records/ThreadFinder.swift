@@ -132,12 +132,12 @@ public class ThreadFinder {
         let sql = """
         SELECT COUNT(*)
         FROM \(TSThread.databaseTableName)
-        \(threadAssociatedDataJoinClause(isArchived: isArchived))
         WHERE \(threadColumn: .shouldThreadBeVisible) = 1
+        AND \(threadColumn: .isArchived) = ?
         """
 
         return failIfThrows {
-            return try UInt.fetchOne(transaction.database, sql: sql)
+            return try UInt.fetchOne(transaction.database, sql: sql, arguments: [isArchived])
         }.owsFailUnwrap("must exist")
     }
 
@@ -149,8 +149,8 @@ public class ThreadFinder {
         let sql = """
         SELECT *
         FROM \(TSThread.databaseTableName)
-        \(threadAssociatedDataJoinClause(isArchived: isArchived))
         WHERE \(threadColumn: .shouldThreadBeVisible) = 1
+        AND \(threadColumn: .isArchived) = ?
         ORDER BY \(threadColumn: .lastInteractionRowId) DESC
         """
 
@@ -158,6 +158,7 @@ public class ThreadFinder {
             try TSThread.fetchCursor(
                 transaction.database,
                 sql: sql,
+                arguments: [isArchived],
             ).forEach { thread in
                 block(thread)
             }
@@ -387,14 +388,6 @@ public class ThreadFinder {
         return threads
     }
 
-    private func threadAssociatedDataJoinClause(isArchived: Bool) -> String {
-        """
-        INNER JOIN \(ThreadAssociatedData.databaseTableName)
-            ON \(ThreadAssociatedData.databaseTableName).threadUniqueId = \(threadColumnFullyQualified: .uniqueId)
-            AND \(ThreadAssociatedData.databaseTableName).isArchived = \(isArchived ? "1" : "0")
-        """
-    }
-
     // MARK: -
 
     public func visibleInboxThreadUniqueIds(
@@ -406,7 +399,7 @@ public class ThreadFinder {
         case .unread:
             """
             AND (
-                \(ThreadAssociatedData.databaseTableName).isMarkedUnread = 1
+                \(threadColumn: .isMarkedUnread) = 1
                 OR EXISTS (
                     SELECT 1
                     FROM \(InteractionRecord.databaseTableName)
@@ -424,10 +417,8 @@ public class ThreadFinder {
         let sql = """
         SELECT \(threadColumn: .uniqueId)
         FROM \(TSThread.databaseTableName)
-        INNER JOIN \(ThreadAssociatedData.databaseTableName)
-            ON \(ThreadAssociatedData.databaseTableName).threadUniqueId = \(threadColumnFullyQualified: .uniqueId)
-            AND \(ThreadAssociatedData.databaseTableName).isArchived = 0
         WHERE \(threadColumn: .shouldThreadBeVisible) = 1
+        AND \(threadColumn: .isArchived) = 0
         \(inboxFilterClause)
         ORDER BY
             CASE WHEN \(threadColumn: .lastDraftInteractionRowId) > \(threadColumn: .lastInteractionRowId)
@@ -446,8 +437,8 @@ public class ThreadFinder {
         let sql = """
         SELECT \(threadColumn: .uniqueId)
         FROM \(TSThread.databaseTableName)
-        \(threadAssociatedDataJoinClause(isArchived: true))
         WHERE \(threadColumn: .shouldThreadBeVisible) = 1
+        AND \(threadColumn: .isArchived) = 1
         ORDER BY
             CASE WHEN \(threadColumn: .lastDraftInteractionRowId) > \(threadColumn: .lastInteractionRowId)
                 THEN \(threadColumn: .lastDraftInteractionRowId) ELSE \(threadColumn: .lastInteractionRowId)

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
+import CryptoKit
 import Foundation
 public import GRDB
 import LibSignalClient
@@ -38,12 +39,17 @@ public struct GroupRecord: Codable, FetchableRecord, PersistableRecord {
         return Date(timeIntervalSince1970: TimeInterval(self.refreshedAt))
     }
 
+    // The last group name that was set by the local user.
+    // Nil if it has never been set by the local user.
+    private(set) var lastVerifiedGroupNameHash: Data?
+
     enum CodingKeys: String, CodingKey {
         case rowId
         case groupId
         case threadId
         case masterKey
         case refreshedAt
+        case lastVerifiedGroupNameHash
     }
 
     enum Columns {
@@ -52,6 +58,7 @@ public struct GroupRecord: Codable, FetchableRecord, PersistableRecord {
         static let threadId = Column(CodingKeys.threadId.rawValue)
         static let masterKey = Column(CodingKeys.masterKey.rawValue)
         static let refreshedAt = Column(CodingKeys.refreshedAt.rawValue)
+        static let lastVerifiedGroupNameHash = Column(CodingKeys.lastVerifiedGroupNameHash.rawValue)
     }
 
     public init(from decoder: any Decoder) throws {
@@ -61,6 +68,7 @@ public struct GroupRecord: Codable, FetchableRecord, PersistableRecord {
         self.threadId = try container.decodeIfPresent(ThreadId.self, forKey: .threadId)
         self.masterKey = try container.decodeIfPresent(Data.self, forKey: .masterKey).map(GroupMasterKey.init(contents:))
         self.refreshedAt = try container.decode(Int64.self, forKey: .refreshedAt)
+        self.lastVerifiedGroupNameHash = try container.decodeIfPresent(Data.self, forKey: .lastVerifiedGroupNameHash)
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -70,6 +78,7 @@ public struct GroupRecord: Codable, FetchableRecord, PersistableRecord {
         try container.encode(self.threadId, forKey: .threadId)
         try container.encode(self.masterKey?.serialize(), forKey: .masterKey)
         try container.encode(self.refreshedAt, forKey: .refreshedAt)
+        try container.encode(self.lastVerifiedGroupNameHash, forKey: .lastVerifiedGroupNameHash)
     }
 
     static func insertRecord(
@@ -131,5 +140,22 @@ public struct GroupRecord: Codable, FetchableRecord, PersistableRecord {
     static func addingRefreshJitter(toDate date: Date) -> Date {
         let jitter = TimeInterval.random(in: -Constants.refreshJitter...Constants.refreshJitter)
         return date.addingTimeInterval(jitter)
+    }
+
+    // MARK: - Verified Name Hash
+
+    mutating func setLastVerifiedGroupNameHash(_ lastVerifiedGroupNameHash: Data?, tx: DBWriteTransaction) {
+        self.lastVerifiedGroupNameHash = lastVerifiedGroupNameHash
+        failIfThrows { try self.update(tx.database) }
+    }
+
+    static func groupNameVerificationHash(groupName: String) -> Data {
+        var sha = SHA256()
+        sha.update(data: Data(groupName.utf8))
+        return Data(sha.finalize())
+    }
+
+    public func isGroupNameVerified(groupName: String) -> Bool {
+        return self.lastVerifiedGroupNameHash == Self.groupNameVerificationHash(groupName: groupName)
     }
 }

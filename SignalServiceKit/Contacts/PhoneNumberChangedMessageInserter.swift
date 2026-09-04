@@ -9,18 +9,15 @@ import LibSignalClient
 class PhoneNumberChangedMessageInserter: RecipientMergeObserver {
     private let groupMemberStore: GroupMemberStore
     private let interactionStore: InteractionStore
-    private let threadAssociatedDataStore: ThreadAssociatedDataStore
     private let threadStore: ThreadStore
 
     init(
         groupMemberStore: GroupMemberStore,
         interactionStore: InteractionStore,
-        threadAssociatedDataStore: ThreadAssociatedDataStore,
         threadStore: ThreadStore,
     ) {
         self.groupMemberStore = groupMemberStore
         self.interactionStore = interactionStore
-        self.threadAssociatedDataStore = threadAssociatedDataStore
         self.threadStore = threadStore
     }
 
@@ -47,8 +44,7 @@ class PhoneNumberChangedMessageInserter: RecipientMergeObserver {
                 // Skip if thread is soft deleted or otherwise not user visible.
                 return
             }
-            let threadAssociatedData = threadAssociatedDataStore.fetchOrDefault(for: thread, tx: tx)
-            guard !threadAssociatedData.isArchived else {
+            guard !thread.isArchived else {
                 // Skip if thread is archived.
                 return
             }

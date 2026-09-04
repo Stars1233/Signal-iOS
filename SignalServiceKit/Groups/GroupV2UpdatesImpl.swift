@@ -245,7 +245,7 @@ public class GroupV2UpdatesImpl: GroupV2Updates {
 
         var updatedLastVerifiedGroupNameHash: Data?
         if changedGroupModel.shouldUpdateLastVerifiedGroupNameHash {
-            updatedLastVerifiedGroupNameHash = ThreadAssociatedData.groupNameVerificationHash(groupName: changedGroupModel.newGroupModel.groupName)
+            updatedLastVerifiedGroupNameHash = changedGroupModel.newGroupModel.groupName.map(GroupRecord.groupNameVerificationHash(groupName:))
         }
         GroupManager.updateExistingGroupThreadInDatabaseAndCreateInfoMessage(
             groupRecord: &groupRecord,
@@ -524,8 +524,8 @@ public extension GroupV2UpdatesImpl {
             let author = try firstChangeAction.author(groupV2Params: groupV2Params, localIdentifiers: localIdentifiers)
             switch author {
             case .localUser:
-                if let verificationHash = ThreadAssociatedData.groupNameVerificationHash(groupName: firstChangeAction.snapshot?.title) {
-                    lastVerifiedHash = verificationHash
+                if let title = firstChangeAction.snapshot?.title {
+                    lastVerifiedHash = GroupRecord.groupNameVerificationHash(groupName: title)
                 }
             default:
                 break

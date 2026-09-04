@@ -114,8 +114,8 @@ public class GroupManager: NSObject {
                 transaction: tx,
             )
 
-            // Since local user created the group, it's name is verified.
-            let lastVerifiedGroupNameHash = ThreadAssociatedData.groupNameVerificationHash(
+            // Since local user created the group, its name is verified.
+            let lastVerifiedGroupNameHash = GroupRecord.groupNameVerificationHash(
                 groupName: snapshotResponse.groupSnapshot.title,
             )
 
@@ -795,8 +795,6 @@ public class GroupManager: NSObject {
         lastVerifiedGroupNameHash: Data?,
         transaction: DBWriteTransaction,
     ) -> TSGroupThread {
-        let threadAssociatedDataStore = DependenciesBridge.shared.threadAssociatedDataStore
-
         let groupId = failIfThrows { try secretParams.getPublicParams().getGroupIdentifier() }
         if groupRecord.threadId != nil {
             owsFail("Inserting existing group thread: \(groupId)")
@@ -809,11 +807,7 @@ public class GroupManager: NSObject {
         )
 
         if let lastVerifiedGroupNameHash {
-            if let threadAssociatedData = threadAssociatedDataStore.fetch(for: groupThread.uniqueId, tx: transaction) {
-                threadAssociatedData.updateWith(lastVerifiedGroupNameHash: lastVerifiedGroupNameHash, updateStorageService: true, transaction: transaction)
-            } else {
-                owsFailDebug("missing threadAssociatedData for group")
-            }
+            groupRecord.setLastVerifiedGroupNameHash(lastVerifiedGroupNameHash, tx: transaction)
         }
 
         let newDisappearingMessageToken = disappearingMessageToken ?? DisappearingMessageToken.disabledToken
@@ -1103,9 +1097,9 @@ public class GroupManager: NSObject {
         )
 
         if let updatedLastVerifiedGroupNameHash {
-            let threadAssociatedDataStore = DependenciesBridge.shared.threadAssociatedDataStore
-            let threadAssociatedData = threadAssociatedDataStore.fetch(for: groupThread.uniqueId, tx: transaction)
-            threadAssociatedData?.updateWith(lastVerifiedGroupNameHash: updatedLastVerifiedGroupNameHash, updateStorageService: true, transaction: transaction)
+            groupRecord.setLastVerifiedGroupNameHash(updatedLastVerifiedGroupNameHash, tx: transaction)
+            // TODO: We shouldn't update storage service unless we made the change on this device.
+            SSKEnvironment.shared.storageServiceManagerRef.recordPendingUpdates(groupModel: newGroupModel)
         }
 
         let shouldInsertInfoMessages: Bool

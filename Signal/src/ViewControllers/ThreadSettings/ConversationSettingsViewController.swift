@@ -771,7 +771,7 @@ class ConversationSettingsViewController: OWSTableViewController2, BadgeCollecti
             )
         }
 
-        guard threadViewModel.mutedUntilTimestamp != ThreadAssociatedData.alwaysMutedTimestamp else {
+        guard threadViewModel.mutedUntilTimestamp != TSThread.alwaysMutedTimestamp else {
             return OWSLocalizedString(
                 "CONVERSATION_SETTINGS_MUTED_ALWAYS_UNMUTE",
                 comment: "Indicates that this thread is muted forever.",

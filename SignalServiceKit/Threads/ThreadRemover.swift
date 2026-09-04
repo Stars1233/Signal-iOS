@@ -21,7 +21,6 @@ class ThreadRemoverImpl: ThreadRemover {
     private let disappearingMessagesConfigurationStore: DisappearingMessagesConfigurationStore
     private let groupMemberUpdater: any GroupMemberUpdater
     private let lastVisibleInteractionStore: LastVisibleInteractionStore
-    private let threadAssociatedDataStore: ThreadAssociatedDataStore
     private let threadReadCache: Shims.ThreadReadCache
     private let threadReplyInfoStore: ThreadReplyInfoStore
     private let threadStore: ThreadStore
@@ -34,7 +33,6 @@ class ThreadRemoverImpl: ThreadRemover {
         disappearingMessagesConfigurationStore: DisappearingMessagesConfigurationStore,
         groupMemberUpdater: any GroupMemberUpdater,
         lastVisibleInteractionStore: LastVisibleInteractionStore,
-        threadAssociatedDataStore: ThreadAssociatedDataStore,
         threadReadCache: Shims.ThreadReadCache,
         threadReplyInfoStore: ThreadReplyInfoStore,
         threadStore: ThreadStore,
@@ -46,7 +44,6 @@ class ThreadRemoverImpl: ThreadRemover {
         self.disappearingMessagesConfigurationStore = disappearingMessagesConfigurationStore
         self.groupMemberUpdater = groupMemberUpdater
         self.lastVisibleInteractionStore = lastVisibleInteractionStore
-        self.threadAssociatedDataStore = threadAssociatedDataStore
         self.threadReadCache = threadReadCache
         self.threadReplyInfoStore = threadReplyInfoStore
         self.threadStore = threadStore
@@ -59,7 +56,6 @@ class ThreadRemoverImpl: ThreadRemover {
         databaseStorage.updateIdMapping(thread: thread, tx: tx)
         deletedCallRecordStore.deleteRecords(forThreadId: threadId, tx: tx)
         disappearingMessagesConfigurationStore.remove(for: thread, tx: tx)
-        threadAssociatedDataStore.remove(for: thread.uniqueId, tx: tx)
         threadReplyInfoStore.remove(for: thread.uniqueId, tx: tx)
         if thread is TSGroupThread {
             groupMemberUpdater.updateRecords(

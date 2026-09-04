@@ -304,8 +304,6 @@ class MemberLabelViewController: OWSViewController, UITextFieldDelegate {
         let mockMessage = MockIncomingMessage(messageBody: messageBody, thread: mockGroupThread, authorAci: localIdentifiers.aci)
 
         let renderItem = db.read { tx in
-            let threadAssociatedData = ThreadAssociatedData.fetchOrDefault(for: mockGroupThread, ignoreMissing: true, transaction: tx)
-
             let conversationStyle = ConversationStyle(
                 type: .`default`,
                 thread: mockGroupThread,
@@ -318,7 +316,6 @@ class MemberLabelViewController: OWSViewController, UITextFieldDelegate {
             return CVLoader.buildStandaloneRenderItem(
                 interaction: mockMessage,
                 thread: mockGroupThread,
-                threadAssociatedData: threadAssociatedData,
                 conversationStyle: conversationStyle,
                 spoilerState: SpoilerRenderState(),
                 groupNameColors: groupNameColors,

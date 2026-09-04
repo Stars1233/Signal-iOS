@@ -20,6 +20,8 @@ class ThreadFinderTests: XCTestCase {
 
     func buildThreadRecord(
         uniqueID: String,
+        isArchived: Bool,
+        isMarkedUnread: Bool,
         draft: String?,
         lastInteractionRowID: UInt64,
         lastDraftInteractionRowId: UInt64,
@@ -30,8 +32,8 @@ class ThreadFinderTests: XCTestCase {
             uniqueId: uniqueID,
             creationDate: Date.now,
             editTargetTimestamp: nil,
-            isArchivedObsolete: false,
-            isMarkedUnreadObsolete: false,
+            isArchived: isArchived,
+            isMarkedUnread: isMarkedUnread,
             lastDraftInteractionRowId: lastDraftInteractionRowId,
             lastDraftUpdateTimestamp: lastDraftUpdateTimestamp,
             lastInteractionRowId: lastInteractionRowID,
@@ -39,26 +41,12 @@ class ThreadFinderTests: XCTestCase {
             shouldNotifyForMentionsWhenMuted: true,
             messageDraft: draft,
             messageDraftBodyRanges: nil,
-            mutedUntilTimestampObsolete: 0,
+            mutedUntilTimestamp: 0,
             shouldThreadBeVisible: true,
             storyViewMode: .default,
+            audioPlaybackRate: 1,
             contactUUID: nil,
             contactPhoneNumber: nil,
-        )
-    }
-
-    func buildThreadAssociatedData(
-        uniqueID: String,
-        isMarkedUnread: Bool,
-        isArchived: Bool,
-    ) -> ThreadAssociatedData {
-        return ThreadAssociatedData(
-            threadUniqueId: uniqueID,
-            isArchived: isArchived,
-            isMarkedUnread: isMarkedUnread,
-            mutedUntilTimestamp: 0,
-            audioPlaybackRate: 1,
-            lastVerifiedGroupNameHash: nil,
         )
     }
 
@@ -83,17 +71,14 @@ class ThreadFinderTests: XCTestCase {
             for fixture in fixtures {
                 let thread = buildThreadRecord(
                     uniqueID: fixture.uniqueId,
+                    isArchived: fixture.isArchived,
+                    isMarkedUnread: fixture.isMarkedUnread,
                     draft: nil,
                     lastInteractionRowID: fixture.lastInteractionRowId,
                     lastDraftInteractionRowId: 0,
                     lastDraftUpdateTimestamp: 0,
                 )
                 try thread.insert(transaction.database)
-                try buildThreadAssociatedData(
-                    uniqueID: fixture.uniqueId,
-                    isMarkedUnread: fixture.isMarkedUnread,
-                    isArchived: fixture.isArchived,
-                ).insert(transaction.database)
 
                 if let interactionIsRead = fixture.interactionIsRead {
                     let message = TSIncomingMessageBuilder.withDefaultValues(
@@ -125,31 +110,23 @@ class ThreadFinderTests: XCTestCase {
             // New draft.
             try buildThreadRecord(
                 uniqueID: "UUID1",
+                isArchived: chatListType == .archive,
+                isMarkedUnread: chatListType == .unread,
                 draft: "test draft",
                 lastInteractionRowID: 0,
                 lastDraftInteractionRowId: 1,
                 lastDraftUpdateTimestamp: 1,
             ).insert(database)
 
-            try buildThreadAssociatedData(
-                uniqueID: "UUID1",
-                isMarkedUnread: chatListType == .unread,
-                isArchived: chatListType == .archive,
-            ).insert(database)
-
             // Non-draft that has more recent lastInteractionRowID.
             try buildThreadRecord(
                 uniqueID: "UUID2",
+                isArchived: chatListType == .archive,
+                isMarkedUnread: chatListType == .unread,
                 draft: nil,
                 lastInteractionRowID: 1,
                 lastDraftInteractionRowId: 0,
                 lastDraftUpdateTimestamp: 0,
-            ).insert(database)
-
-            try buildThreadAssociatedData(
-                uniqueID: "UUID2",
-                isMarkedUnread: chatListType == .unread,
-                isArchived: chatListType == .archive,
             ).insert(database)
         }
 
@@ -188,31 +165,23 @@ class ThreadFinderTests: XCTestCase {
             // New draft that is not the latest activity on the thread.
             try buildThreadRecord(
                 uniqueID: "UUID1",
+                isArchived: chatListType == .archive,
+                isMarkedUnread: chatListType == .unread,
                 draft: "test draft",
                 lastInteractionRowID: 3,
                 lastDraftInteractionRowId: 1,
                 lastDraftUpdateTimestamp: 1,
             ).insert(database)
 
-            try buildThreadAssociatedData(
-                uniqueID: "UUID1",
-                isMarkedUnread: chatListType == .unread,
-                isArchived: chatListType == .archive,
-            ).insert(database)
-
             // Non-draft that has less recent lastInteractionRowID.
             try buildThreadRecord(
                 uniqueID: "UUID2",
+                isArchived: chatListType == .archive,
+                isMarkedUnread: chatListType == .unread,
                 draft: nil,
                 lastInteractionRowID: 2,
                 lastDraftInteractionRowId: 0,
                 lastDraftUpdateTimestamp: 0,
-            ).insert(database)
-
-            try buildThreadAssociatedData(
-                uniqueID: "UUID2",
-                isMarkedUnread: chatListType == .unread,
-                isArchived: chatListType == .archive,
             ).insert(database)
         }
 
@@ -251,31 +220,23 @@ class ThreadFinderTests: XCTestCase {
             // Thread 1, has a draft after latest TSInteraction, but less recent than UUID2.
             try buildThreadRecord(
                 uniqueID: "UUID1",
+                isArchived: chatListType == .archive,
+                isMarkedUnread: chatListType == .unread,
                 draft: "test draft",
                 lastInteractionRowID: 2,
                 lastDraftInteractionRowId: 2,
                 lastDraftUpdateTimestamp: 1,
             ).insert(database)
 
-            try buildThreadAssociatedData(
-                uniqueID: "UUID1",
-                isMarkedUnread: chatListType == .unread,
-                isArchived: chatListType == .archive,
-            ).insert(database)
-
             // Thread 2, has a more recent draft based on timestamp.
             try buildThreadRecord(
                 uniqueID: "UUID2",
+                isArchived: chatListType == .archive,
+                isMarkedUnread: chatListType == .unread,
                 draft: "test draft",
                 lastInteractionRowID: 1,
                 lastDraftInteractionRowId: 2,
                 lastDraftUpdateTimestamp: 2,
-            ).insert(database)
-
-            try buildThreadAssociatedData(
-                uniqueID: "UUID2",
-                isMarkedUnread: chatListType == .unread,
-                isArchived: chatListType == .archive,
             ).insert(database)
         }
 
@@ -314,31 +275,23 @@ class ThreadFinderTests: XCTestCase {
             // New draft that is not the latest activity on the thread.
             try buildThreadRecord(
                 uniqueID: "UUID1",
+                isArchived: chatListType == .archive,
+                isMarkedUnread: chatListType == .unread,
                 draft: "test draft",
                 lastInteractionRowID: 1,
                 lastDraftInteractionRowId: 2,
                 lastDraftUpdateTimestamp: 100,
             ).insert(database)
 
-            try buildThreadAssociatedData(
-                uniqueID: "UUID1",
-                isMarkedUnread: chatListType == .unread,
-                isArchived: chatListType == .archive,
-            ).insert(database)
-
             // Non-draft that has less recent lastInteractionRowID.
             try buildThreadRecord(
                 uniqueID: "UUID2",
+                isArchived: chatListType == .archive,
+                isMarkedUnread: chatListType == .unread,
                 draft: nil,
                 lastInteractionRowID: 3,
                 lastDraftInteractionRowId: 0,
                 lastDraftUpdateTimestamp: 0,
-            ).insert(database)
-
-            try buildThreadAssociatedData(
-                uniqueID: "UUID2",
-                isMarkedUnread: chatListType == .unread,
-                isArchived: chatListType == .archive,
             ).insert(database)
         }
 

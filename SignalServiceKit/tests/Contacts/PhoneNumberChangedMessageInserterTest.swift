@@ -31,7 +31,11 @@ class PhoneNumberChangedMessageInserterTest: XCTestCase {
 
         let groupWithEveryone = TSGroupThread.forUnitTest(groupId: Randomness.generateRandomBytes(32), groupMembers: [myAddress1, aliceAddress1, bobAddress1])
         let groupWithoutAlice = TSGroupThread.forUnitTest(groupId: Randomness.generateRandomBytes(32), groupMembers: [myAddress1, bobAddress1])
-        let groupArchived = TSGroupThread.forUnitTest(groupId: Randomness.generateRandomBytes(32), groupMembers: [myAddress1, aliceAddress1, bobAddress1])
+        let groupArchived = TSGroupThread.forUnitTest(
+            groupId: Randomness.generateRandomBytes(32),
+            groupMembers: [myAddress1, aliceAddress1, bobAddress1],
+            isArchived: true,
+        )
 
         let myThread = TSContactThread(contactAddress: myAddress1)
         myThread.shouldThreadBeVisible = true
@@ -60,25 +64,11 @@ class PhoneNumberChangedMessageInserterTest: XCTestCase {
             }
         }
 
-        let threadAssociatedDataStore = MockThreadAssociatedDataStore()
-        threadAssociatedDataStore.values = Dictionary(uniqueKeysWithValues: threadStore.threads.map {
-            ($0.uniqueId, ThreadAssociatedData(threadUniqueId: $0.uniqueId))
-        })
-        threadAssociatedDataStore.values[groupArchived.uniqueId] = ThreadAssociatedData(
-            threadUniqueId: groupArchived.uniqueId,
-            isArchived: true,
-            isMarkedUnread: false,
-            mutedUntilTimestamp: 0,
-            audioPlaybackRate: 1,
-            lastVerifiedGroupNameHash: nil,
-        )
-
         let interactionStore = MockInteractionStore()
 
         let mergeObserver = PhoneNumberChangedMessageInserter(
             groupMemberStore: groupMemberStore,
             interactionStore: interactionStore,
-            threadAssociatedDataStore: threadAssociatedDataStore,
             threadStore: threadStore,
         )
 

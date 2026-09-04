@@ -136,7 +136,6 @@ class AudioCell: MediaTileListModeCell {
             return
         }
 
-        let threadAssociatedData = ThreadAssociatedData.fetchOrDefault(for: audioItem.thread, transaction: transaction)
         // Make an itemModel which is needed to play the audio file.
         // This is only used to save the playback rate, which is kind of nuts.
         let threadViewModel = ThreadViewModel(
@@ -174,11 +173,10 @@ class AudioCell: MediaTileListModeCell {
             return
         }
         let itemViewState = CVItemViewState.Builder()
-        itemViewState.audioPlaybackRate = threadAssociatedData.audioPlaybackRate
+        itemViewState.audioPlaybackRate = audioItem.thread.audioPlaybackRate
         let itemModel = CVItemModel(
             interaction: audioItem.interaction,
             thread: audioItem.thread,
-            threadAssociatedData: threadAssociatedData,
             componentState: componentState,
             itemViewState: itemViewState.build(),
             coreState: coreState,

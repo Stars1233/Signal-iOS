@@ -2569,4 +2569,144 @@ struct GRDBSchemaMigratorTest {
             #expect(groupRecords.isEmpty)
         }
     }
+
+    @Test
+    func testMoveFromThreadAssociatedData() throws {
+        let secretParams1 = try GroupSecretParams.generate()
+        let groupId1 = try secretParams1.getPublicParams().getGroupIdentifier()
+
+        let secretParams2 = try GroupSecretParams.generate()
+        let groupId2 = try secretParams2.getPublicParams().getGroupIdentifier()
+
+        let threadUniqueId1 = UUID().uuidString
+        let threadUniqueId2 = UUID().uuidString
+
+        let lastVerifiedGroupNameHash = Data(repeating: 3, count: 32)
+
+        let databaseQueue = DatabaseQueue()
+        try databaseQueue.write { db in
+            try db.execute(sql: """
+            CREATE TABLE "model_TSThread" (
+              "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+              "uniqueId" TEXT NOT NULL UNIQUE ON CONFLICT FAIL,
+              "isArchived" INTEGER NOT NULL,
+              "isMarkedUnread" BOOLEAN NOT NULL DEFAULT 0,
+              "mutedUntilTimestamp" INTEGER NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE "thread_associated_data" (
+              "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+              "threadUniqueId" TEXT NOT NULL UNIQUE ON CONFLICT FAIL,
+              "isArchived" BOOLEAN NOT NULL DEFAULT 0,
+              "isMarkedUnread" BOOLEAN NOT NULL DEFAULT 0,
+              "mutedUntilTimestamp" INTEGER NOT NULL DEFAULT 0,
+              "audioPlaybackRate" DOUBLE NOT NULL DEFAULT 1,
+              "lastVerifiedGroupNameHash" BLOB
+            );
+
+            CREATE TABLE "GroupRecord" (
+              "rowId" INTEGER PRIMARY KEY NOT NULL,
+              "groupId" BLOB NOT NULL UNIQUE,
+              "threadId" BLOB UNIQUE REFERENCES "model_TSThread" (
+                "id"
+              ) ON DELETE SET NULL ON UPDATE CASCADE
+            );
+            """)
+
+            try db.execute(
+                sql: """
+                INSERT INTO "model_TSThread" (
+                    "id", "uniqueId", "isArchived", "isMarkedUnread", "mutedUntilTimestamp"
+                ) VALUES (?, ?, ?, ?, ?)
+                """,
+                arguments: [1, threadUniqueId1, true, true, 1234],
+            )
+
+            try db.execute(
+                sql: """
+                INSERT INTO "model_TSThread" (
+                    "id", "uniqueId", "isArchived", "isMarkedUnread", "mutedUntilTimestamp"
+                ) VALUES (?, ?, ?, ?, ?)
+                """,
+                arguments: [2, threadUniqueId2, false, false, 0],
+            )
+
+            try db.execute(
+                sql: """
+                INSERT INTO "thread_associated_data" (
+                    "id",
+                    "threadUniqueId",
+                    "isArchived",
+                    "isMarkedUnread",
+                    "mutedUntilTimestamp",
+                    "audioPlaybackRate",
+                    "lastVerifiedGroupNameHash"
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                arguments: [3, threadUniqueId2, true, true, 1235, 2.0, lastVerifiedGroupNameHash],
+            )
+
+            try db.execute(
+                sql: """
+                INSERT INTO "GroupRecord" (
+                    "rowId", "groupId", "threadId"
+                ) VALUES (?, ?, ?)
+                """,
+                arguments: [4, groupId1.serialize(), 2],
+            )
+
+            try db.execute(
+                sql: """
+                INSERT INTO "GroupRecord" (
+                    "rowId", "groupId", "threadId"
+                ) VALUES (?, ?, ?)
+                """,
+                arguments: [5, groupId2.serialize(), nil],
+            )
+
+            do {
+                let tx = DBWriteTransaction(database: db)
+                defer { tx.finalizeTransaction() }
+                try GRDBSchemaMigrator.moveFromThreadAssociatedData(tx: tx)
+            }
+
+            var groupRecords = try Row.fetchAll(db, sql: "SELECT * FROM GroupRecord ORDER BY rowId")[...]
+            do {
+                let groupRecord = groupRecords.removeFirst()
+                #expect(groupRecord["rowId"] as Int64 == 4)
+                #expect(groupRecord["groupId"] as Data? == groupId1.serialize())
+                #expect(groupRecord["threadId"] as Int64? == 2)
+                #expect(groupRecord["lastVerifiedGroupNameHash"] as Data? == lastVerifiedGroupNameHash)
+            }
+            do {
+                let groupRecord = groupRecords.removeFirst()
+                #expect(groupRecord["rowId"] as Int64 == 5)
+                #expect(groupRecord["groupId"] as Data? == groupId2.serialize())
+                #expect(groupRecord["threadId"] as Int64? == nil)
+                #expect(groupRecord["lastVerifiedGroupNameHash"] as Data? == nil)
+            }
+            #expect(groupRecords.isEmpty)
+
+            var threadRecords = try Row.fetchAll(db, sql: "SELECT * FROM model_TSThread ORDER BY id")[...]
+            do {
+                let threadRecord = threadRecords.removeFirst()
+                #expect(threadRecord["id"] as Int64 == 1)
+                #expect(threadRecord["uniqueId"] as String? == threadUniqueId1)
+                #expect(threadRecord["isArchived"] as Bool == true)
+                #expect(threadRecord["isMarkedUnread"] as Bool == true)
+                #expect(threadRecord["mutedUntilTimestamp"] as Int64? == 1234)
+                #expect(threadRecord["audioPlaybackRate"] as Double == 1.0)
+            }
+            do {
+                let threadRecord = threadRecords.removeFirst()
+                #expect(threadRecord["id"] as Int64 == 2)
+                #expect(threadRecord["uniqueId"] as String? == threadUniqueId2)
+                #expect(threadRecord["isArchived"] as Bool == true)
+                #expect(threadRecord["isMarkedUnread"] as Bool == true)
+                #expect(threadRecord["mutedUntilTimestamp"] as Int64? == 1235)
+                #expect(threadRecord["audioPlaybackRate"] as Double == 2.0)
+            }
+            #expect(threadRecords.isEmpty)
+        }
+    }
 }

@@ -366,11 +366,9 @@ class StorageServiceContactRecordUpdater: StorageServiceRecordUpdater {
         }
 
         if let thread = TSContactThread.getWithContactAddress(anyAddress, transaction: tx) {
-            let threadAssociatedData = ThreadAssociatedData.fetchOrDefault(for: thread, transaction: tx)
-
-            builder.setArchived(threadAssociatedData.isArchived)
-            builder.setMarkedUnread(threadAssociatedData.isMarkedUnread)
-            builder.setMutedUntilTimestamp(threadAssociatedData.mutedUntilTimestamp)
+            builder.setArchived(thread.isArchived)
+            builder.setMarkedUnread(thread.isMarkedUnread)
+            builder.setMutedUntilTimestamp(thread.mutedUntilTimestamp)
         }
 
         if let aci = contact.aci, let associatedData = StoryFinder.getAssociatedData(forAci: aci, tx: tx) {
@@ -625,18 +623,17 @@ class StorageServiceContactRecordUpdater: StorageServiceRecordUpdater {
         }
 
         let localThread = TSContactThread.getOrCreateThread(withContactAddress: anyAddress, transaction: tx)
-        let localThreadAssociatedData = ThreadAssociatedData.fetchOrDefault(for: localThread, transaction: tx)
 
-        if record.archived != localThreadAssociatedData.isArchived {
-            localThreadAssociatedData.updateWith(isArchived: record.archived, updateStorageService: false, transaction: tx)
+        if record.archived != localThread.isArchived {
+            localThread.updateWith(isArchived: record.archived, updateStorageService: false, transaction: tx)
         }
 
-        if record.markedUnread != localThreadAssociatedData.isMarkedUnread {
-            localThreadAssociatedData.updateWith(isMarkedUnread: record.markedUnread, updateStorageService: false, transaction: tx)
+        if record.markedUnread != localThread.isMarkedUnread {
+            localThread.updateWith(isMarkedUnread: record.markedUnread, updateStorageService: false, transaction: tx)
         }
 
-        if record.mutedUntilTimestamp != localThreadAssociatedData.mutedUntilTimestamp {
-            localThreadAssociatedData.updateWith(mutedUntilTimestamp: record.mutedUntilTimestamp, updateStorageService: false, transaction: tx)
+        if record.mutedUntilTimestamp != localThread.mutedUntilTimestamp {
+            localThread.updateWith(mutedUntilTimestamp: record.mutedUntilTimestamp, updateStorageService: false, transaction: tx)
         }
 
         if let aci = serviceIds.aci {
@@ -1002,15 +999,11 @@ class StorageServiceGroupV2RecordUpdater: StorageServiceRecordUpdater {
             let threadUniqueId = TSGroupThread.threadUniqueId(forThreadId: threadId, tx: transaction),
             let groupThread = TSGroupThread.fetchViaCache(uniqueId: threadUniqueId, transaction: transaction)
         {
-            let threadAssociatedData = ThreadAssociatedData.fetchOrDefault(
-                for: groupThread.uniqueId,
-                ignoreMissing: true,
-                transaction: transaction,
-            )
-            builder.setArchived(threadAssociatedData.isArchived)
-            builder.setMarkedUnread(threadAssociatedData.isMarkedUnread)
-            builder.setMutedUntilTimestamp(threadAssociatedData.mutedUntilTimestamp)
-            if let lastVerifiedGroupNameHash = threadAssociatedData.lastVerifiedGroupNameHash {
+            builder.setArchived(groupThread.isArchived)
+            builder.setMarkedUnread(groupThread.isMarkedUnread)
+            builder.setMutedUntilTimestamp(groupThread.mutedUntilTimestamp)
+            // TODO: Move this out of the `let groupThread` block.
+            if let lastVerifiedGroupNameHash = groupRecord.lastVerifiedGroupNameHash {
                 builder.setVerifiedNameHash(lastVerifiedGroupNameHash)
             }
             builder.setDontNotifyForMentionsIfMuted(!groupThread.shouldNotifyForMentionsWhenMuted)
@@ -1066,7 +1059,7 @@ class StorageServiceGroupV2RecordUpdater: StorageServiceRecordUpdater {
         let groupId = groupContextInfo.groupId
 
         // Insert the GroupRecord immediately, even before we've restored the group.
-        let localRecord = GroupStore().fetchGroupOrInsert(secretParams: groupContextInfo.groupSecretParams, tx: transaction)
+        var localRecord = GroupStore().fetchGroupOrInsert(secretParams: groupContextInfo.groupSecretParams, tx: transaction)
 
         if
             let threadId = localRecord.threadId,
@@ -1088,27 +1081,24 @@ class StorageServiceGroupV2RecordUpdater: StorageServiceRecordUpdater {
                 )
             }
 
-            ThreadAssociatedData.create(for: groupThread.uniqueId, transaction: transaction)
-            let localThreadAssociatedData = ThreadAssociatedData.fetchOrDefault(for: groupThread.uniqueId, transaction: transaction)
-
-            if record.archived != localThreadAssociatedData.isArchived {
-                localThreadAssociatedData.updateWith(isArchived: record.archived, updateStorageService: false, transaction: transaction)
+            if record.archived != groupThread.isArchived {
+                groupThread.updateWith(isArchived: record.archived, updateStorageService: false, transaction: transaction)
             }
 
-            if record.markedUnread != localThreadAssociatedData.isMarkedUnread {
-                localThreadAssociatedData.updateWith(isMarkedUnread: record.markedUnread, updateStorageService: false, transaction: transaction)
+            if record.markedUnread != groupThread.isMarkedUnread {
+                groupThread.updateWith(isMarkedUnread: record.markedUnread, updateStorageService: false, transaction: transaction)
             }
 
-            if record.mutedUntilTimestamp != localThreadAssociatedData.mutedUntilTimestamp {
-                localThreadAssociatedData.updateWith(mutedUntilTimestamp: record.mutedUntilTimestamp, updateStorageService: false, transaction: transaction)
-            }
-
-            if let verifiedHash = record.verifiedNameHash, verifiedHash != localThreadAssociatedData.lastVerifiedGroupNameHash {
-                localThreadAssociatedData.updateWith(lastVerifiedGroupNameHash: verifiedHash, updateStorageService: false, transaction: transaction)
+            if record.mutedUntilTimestamp != groupThread.mutedUntilTimestamp {
+                groupThread.updateWith(mutedUntilTimestamp: record.mutedUntilTimestamp, updateStorageService: false, transaction: transaction)
             }
         } else {
             // Save this and re-apply it after we successfully restore the group.
             groupsV2.restoreGroupFromStorageServiceIfNecessary(groupRecord: record, transaction: transaction)
+        }
+
+        if let verifiedHash = record.verifiedNameHash, verifiedHash != localRecord.lastVerifiedGroupNameHash {
+            localRecord.setLastVerifiedGroupNameHash(verifiedHash, tx: transaction)
         }
 
         // Gather some local contact state to do comparisons against.
@@ -1345,10 +1335,8 @@ class StorageServiceAccountRecordUpdater: StorageServiceRecordUpdater {
         }
 
         if let thread = TSContactThread.getWithContactAddress(localAddress, transaction: transaction) {
-            let threadAssociatedData = ThreadAssociatedData.fetchOrDefault(for: thread, transaction: transaction)
-
-            builder.setNoteToSelfArchived(threadAssociatedData.isArchived)
-            builder.setNoteToSelfMarkedUnread(threadAssociatedData.isMarkedUnread)
+            builder.setNoteToSelfArchived(thread.isArchived)
+            builder.setNoteToSelfMarkedUnread(thread.isMarkedUnread)
         }
 
         let readReceiptsEnabled = OWSReceiptManager.areReadReceiptsEnabled(transaction: transaction)
@@ -1471,13 +1459,12 @@ class StorageServiceAccountRecordUpdater: StorageServiceRecordUpdater {
         builder.setSeenAdminDeleteEducationDialog(adminDeleteManager.adminDeleteEducationReadStatus(tx: transaction))
 
         if let releaseNotesThread = threadStore.fetchThread(uniqueId: TSReleaseNotesThread.releaseNotesUniqueId, tx: transaction) {
-            let threadAssociatedData = ThreadAssociatedData.fetchOrDefault(for: releaseNotesThread, transaction: transaction)
             let isBlocked = blockingManager.isReleaseNotesThreadBlocked(tx: transaction)
-            Logger.info("[ReleaseNotes] uploading to storage service: blocked=\(isBlocked), archived=\(threadAssociatedData.isArchived), mutedUntilTimestamp=\(threadAssociatedData.mutedUntilTimestamp)")
+            Logger.info("[ReleaseNotes] uploading to storage service: blocked=\(isBlocked), archived=\(releaseNotesThread.isArchived), mutedUntilTimestamp=\(releaseNotesThread.mutedUntilTimestamp)")
             builder.setReleaseNotesChatBlocked(isBlocked)
-            builder.setReleaseNotesChatArchived(threadAssociatedData.isArchived)
-            builder.setReleaseNotesChatMarkedUnread(threadAssociatedData.isMarkedUnread)
-            builder.setReleaseNotesChatMutedUntilTimestamp(threadAssociatedData.mutedUntilTimestamp)
+            builder.setReleaseNotesChatArchived(releaseNotesThread.isArchived)
+            builder.setReleaseNotesChatMarkedUnread(releaseNotesThread.isMarkedUnread)
+            builder.setReleaseNotesChatMutedUntilTimestamp(releaseNotesThread.mutedUntilTimestamp)
         }
         return builder.buildInfallibly()
     }
@@ -1608,14 +1595,13 @@ class StorageServiceAccountRecordUpdater: StorageServiceRecordUpdater {
         }
 
         let localThread = TSContactThread.getOrCreateThread(withContactAddress: localAddress, transaction: transaction)
-        let localThreadAssociatedData = ThreadAssociatedData.fetchOrDefault(for: localThread, transaction: transaction)
 
-        if record.noteToSelfArchived != localThreadAssociatedData.isArchived {
-            localThreadAssociatedData.updateWith(isArchived: record.noteToSelfArchived, updateStorageService: false, transaction: transaction)
+        if record.noteToSelfArchived != localThread.isArchived {
+            localThread.updateWith(isArchived: record.noteToSelfArchived, updateStorageService: false, transaction: transaction)
         }
 
-        if record.noteToSelfMarkedUnread != localThreadAssociatedData.isMarkedUnread {
-            localThreadAssociatedData.updateWith(isMarkedUnread: record.noteToSelfMarkedUnread, updateStorageService: false, transaction: transaction)
+        if record.noteToSelfMarkedUnread != localThread.isMarkedUnread {
+            localThread.updateWith(isMarkedUnread: record.noteToSelfMarkedUnread, updateStorageService: false, transaction: transaction)
         }
 
         let localReadReceiptsEnabled = OWSReceiptManager.areReadReceiptsEnabled(transaction: transaction)
@@ -1835,8 +1821,6 @@ class StorageServiceAccountRecordUpdater: StorageServiceRecordUpdater {
             adminDeleteManager.setAdminDeleteEducationRead(tx: transaction, updateStorageService: false)
         }
 
-        let threadAssociatedData = ThreadAssociatedData.fetchOrDefault(for: releaseNotesThread, transaction: transaction)
-
         let localReleaseNotesBlocked = blockingManager.isReleaseNotesThreadBlocked(tx: transaction)
         if
             let newReleaseNotesBlocked = record.releaseNotesChatBlocked,
@@ -1856,36 +1840,34 @@ class StorageServiceAccountRecordUpdater: StorageServiceRecordUpdater {
 
         if
             let recordMutedUntilTimestamp = record.releaseNotesChatMutedUntilTimestamp,
-            recordMutedUntilTimestamp != threadAssociatedData.mutedUntilTimestamp
+            recordMutedUntilTimestamp != releaseNotesThread.mutedUntilTimestamp
         {
-            Logger.info("[ReleaseNotes] mutedUntilTimestamp changing: \(threadAssociatedData.mutedUntilTimestamp) -> \(recordMutedUntilTimestamp)")
+            Logger.info("[ReleaseNotes] mutedUntilTimestamp changing: \(releaseNotesThread.mutedUntilTimestamp) -> \(recordMutedUntilTimestamp)")
             updatedMutedTimestampValue = recordMutedUntilTimestamp
         }
 
         if
             let recordArchived = record.releaseNotesChatArchived,
-            recordArchived != threadAssociatedData.isArchived
+            recordArchived != releaseNotesThread.isArchived
         {
-            Logger.info("[ReleaseNotes] archived changing: \(threadAssociatedData.isArchived) -> \(recordArchived)")
+            Logger.info("[ReleaseNotes] archived changing: \(releaseNotesThread.isArchived) -> \(recordArchived)")
             updatedArchivedValue = recordArchived
         }
 
         if
             let recordUnread = record.releaseNotesChatMarkedUnread,
-            recordUnread != threadAssociatedData.isMarkedUnread
+            recordUnread != releaseNotesThread.isMarkedUnread
         {
             updatedUnreadValue = recordUnread
         }
 
-        if updatedArchivedValue != nil || updatedUnreadValue != nil || updatedMutedTimestampValue != nil {
-            threadAssociatedData.updateWith(
-                isArchived: updatedArchivedValue,
-                isMarkedUnread: updatedUnreadValue,
-                mutedUntilTimestamp: updatedMutedTimestampValue,
-                updateStorageService: false,
-                transaction: transaction,
-            )
-        }
+        releaseNotesThread.updateWith(
+            isArchived: updatedArchivedValue,
+            isMarkedUnread: updatedUnreadValue,
+            mutedUntilTimestamp: updatedMutedTimestampValue,
+            updateStorageService: false,
+            transaction: transaction,
+        )
 
         return .merged(needsUpdate: needsUpdate, ())
     }

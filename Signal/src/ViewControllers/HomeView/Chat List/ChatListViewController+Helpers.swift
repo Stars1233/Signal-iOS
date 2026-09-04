@@ -89,17 +89,13 @@ public extension ChatListViewController {
 
         guard let selectedThread = conversationSplitViewController?.selectedThread else { return }
 
-        let threadAssociatedData = databaseStorage.read { transaction in
-            ThreadAssociatedData.fetchOrDefault(for: selectedThread, transaction: transaction)
-        }
-
-        guard !threadAssociatedData.isArchived else { return }
+        guard !selectedThread.isArchived else { return }
 
         conversationSplitViewController?.closeSelectedConversation(animated: true)
 
         databaseStorage.write { transaction in
             pinnedThreadManager.unpinThread(selectedThread, updateStorageService: true, tx: transaction)
-            threadAssociatedData.updateWith(isArchived: true, updateStorageService: true, transaction: transaction)
+            selectedThread.updateWith(isArchived: true, updateStorageService: true, transaction: transaction)
         }
 
         updateViewState()
@@ -114,16 +110,12 @@ public extension ChatListViewController {
 
         guard let selectedThread = conversationSplitViewController?.selectedThread else { return }
 
-        let threadAssociatedData = databaseStorage.read { transaction in
-            ThreadAssociatedData.fetchOrDefault(for: selectedThread, transaction: transaction)
-        }
-
-        guard threadAssociatedData.isArchived else { return }
+        guard selectedThread.isArchived else { return }
 
         conversationSplitViewController?.closeSelectedConversation(animated: true)
 
         databaseStorage.write { transaction in
-            threadAssociatedData.updateWith(isArchived: false, updateStorageService: true, transaction: transaction)
+            selectedThread.updateWith(isArchived: false, updateStorageService: true, transaction: transaction)
         }
 
         updateViewState()

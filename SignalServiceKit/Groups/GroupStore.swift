@@ -5,10 +5,13 @@
 
 import Foundation
 import GRDB
-import LibSignalClient
+public import LibSignalClient
 
-struct GroupStore {
-    func fetchGroup(forGroupId groupId: GroupIdentifier, tx: DBReadTransaction) -> GroupRecord? {
+public struct GroupStore {
+    public init() {
+    }
+
+    public func fetchGroup(forGroupId groupId: GroupIdentifier, tx: DBReadTransaction) -> GroupRecord? {
         return fetchGroup(forGroupIdData: groupId.serialize(), tx: tx)
     }
 

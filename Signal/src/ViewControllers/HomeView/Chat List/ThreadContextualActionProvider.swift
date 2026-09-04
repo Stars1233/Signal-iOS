@@ -283,7 +283,7 @@ extension ThreadContextualActionProvider where Self: UIViewController {
                     tx: transaction,
                 )
             }
-            threadViewModel.associatedData.updateWith(
+            threadViewModel.threadRecord.updateWith(
                 isArchived: isArchived,
                 updateStorageService: true,
                 transaction: transaction,
@@ -356,7 +356,7 @@ extension ThreadContextualActionProvider where Self: UIViewController {
         AssertIsOnMainThread()
 
         SSKEnvironment.shared.databaseStorageRef.write { transaction in
-            threadViewModel.associatedData.updateWith(isMarkedUnread: true, updateStorageService: true, transaction: transaction)
+            threadViewModel.threadRecord.updateWith(isMarkedUnread: true, updateStorageService: true, transaction: transaction)
         }
     }
 

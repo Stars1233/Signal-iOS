@@ -65,8 +65,7 @@ class InteractionFinderTest: SSKBaseTest {
             _ = makeThread(withUnreadMessages: unarchivedCount, transaction: transaction)
 
             let archivedWithMessages = makeThread(withUnreadMessages: archivedCount, transaction: transaction)
-            ThreadAssociatedData
-                .fetchOrDefault(for: archivedWithMessages, transaction: transaction)
+            archivedWithMessages
                 .updateWith(isArchived: true, updateStorageService: false, transaction: transaction)
         }
 

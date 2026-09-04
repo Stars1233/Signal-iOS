@@ -45,16 +45,16 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
     public let uniqueId: UniqueId
 
     public let creationDate: Date?
-    public let isArchivedObsolete: Bool
+    public internal(set) var isArchived: Bool
     // zero if thread has never had an interaction.
     // The corresponding interaction may have been deleted.
     public internal(set) var lastInteractionRowId: UInt64
     public internal(set) var messageDraft: String?
     public internal(set) var shouldThreadBeVisible: Bool
-    public let isMarkedUnreadObsolete: Bool
+    public internal(set) var isMarkedUnread: Bool
     public private(set) var messageDraftBodyRanges: MessageBodyRanges?
     public private(set) var shouldNotifyForMentionsWhenMuted: Bool
-    public let mutedUntilTimestampObsolete: UInt64
+    public internal(set) var mutedUntilTimestamp: UInt64
     public private(set) var lastSentStoryTimestamp: UInt64?
     public internal(set) var storyViewMode: TSThreadStoryViewMode
     public private(set) var editTargetTimestamp: UInt64?
@@ -65,6 +65,7 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
     // can be used to break ties between threads with the same lastDraftInteractionRowId.
     public internal(set) var lastDraftInteractionRowId: UInt64
     public internal(set) var lastDraftUpdateTimestamp: UInt64
+    public internal(set) var audioPlaybackRate: Float
 
     public enum CodingKeys: String, CodingKey, ColumnExpression {
         case id
@@ -74,8 +75,8 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         case conversationColorNameObsolete = "conversationColorName"
         case creationDate
         case editTargetTimestamp
-        case isArchivedObsolete = "isArchived"
-        case isMarkedUnreadObsolete = "isMarkedUnread"
+        case isArchived
+        case isMarkedUnread
         case lastDraftInteractionRowId
         case lastDraftUpdateTimestamp
         case lastInteractionRowId
@@ -86,9 +87,10 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         case messageDraft
         case messageDraftBodyRanges
         case mutedUntilDateObsolete = "mutedUntilDate"
-        case mutedUntilTimestampObsolete = "mutedUntilTimestamp"
+        case mutedUntilTimestamp
         case shouldThreadBeVisible
         case storyViewMode
+        case audioPlaybackRate
     }
 
     enum MentionNotificationMode: Int64, Codable {
@@ -114,8 +116,8 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         self.uniqueId = try container.decode(String.self, forKey: .uniqueId)
         self.creationDate = try container.decodeIfPresent(TimeInterval.self, forKey: .creationDate).map(Date.init(timeIntervalSince1970:))
         self.editTargetTimestamp = try container.decodeIfPresent(UInt64.self, forKey: .editTargetTimestamp)
-        self.isArchivedObsolete = try container.decode(Bool.self, forKey: .isArchivedObsolete)
-        self.isMarkedUnreadObsolete = try container.decode(Bool.self, forKey: .isMarkedUnreadObsolete)
+        self.isArchived = try container.decode(Bool.self, forKey: .isArchived)
+        self.isMarkedUnread = try container.decode(Bool.self, forKey: .isMarkedUnread)
         self.lastDraftInteractionRowId = try container.decode(UInt64.self, forKey: .lastDraftInteractionRowId)
         self.lastDraftUpdateTimestamp = try container.decode(UInt64.self, forKey: .lastDraftUpdateTimestamp)
         self.lastInteractionRowId = try container.decode(UInt64.self, forKey: .lastInteractionRowId)
@@ -123,9 +125,10 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         self.shouldNotifyForMentionsWhenMuted = try container.decode(MentionNotificationMode.self, forKey: .mentionNotificationMode).shouldNotifyForMentionsWhenMuted
         self.messageDraft = try container.decodeIfPresent(String.self, forKey: .messageDraft)
         self.messageDraftBodyRanges = try container.decodeIfPresent(Data.self, forKey: .messageDraftBodyRanges).map({ try LegacySDSSerializer().deserializeLegacySDSData($0, ofClass: MessageBodyRanges.self) })
-        self.mutedUntilTimestampObsolete = try container.decode(UInt64.self, forKey: .mutedUntilTimestampObsolete)
+        self.mutedUntilTimestamp = UInt64(bitPattern: try container.decode(Int64.self, forKey: .mutedUntilTimestamp))
         self.shouldThreadBeVisible = try container.decode(Bool.self, forKey: .shouldThreadBeVisible)
         self.storyViewMode = TSThreadStoryViewMode(rawValue: try container.decode(UInt.self, forKey: .storyViewMode)) ?? .default
+        self.audioPlaybackRate = try container.decode(Float.self, forKey: .audioPlaybackRate)
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -136,7 +139,8 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         try container.encode("", forKey: .conversationColorNameObsolete)
         try container.encode(self.creationDate?.timeIntervalSince1970, forKey: .creationDate)
         try container.encode(self.editTargetTimestamp, forKey: .editTargetTimestamp)
-        try container.encode(self.isArchivedObsolete, forKey: .isArchivedObsolete)
+        try container.encode(self.isArchived, forKey: .isArchived)
+        try container.encode(self.isMarkedUnread, forKey: .isMarkedUnread)
         try container.encode(self.lastDraftInteractionRowId, forKey: .lastDraftInteractionRowId)
         try container.encode(self.lastDraftUpdateTimestamp, forKey: .lastDraftUpdateTimestamp)
         try container.encode(self.lastInteractionRowId, forKey: .lastInteractionRowId)
@@ -150,9 +154,10 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         let messageDraftBodyRangesData = self.messageDraftBodyRanges.map(LegacySDSSerializer().serializeAsLegacySDSData(_:))
         try container.encode(messageDraftBodyRangesData, forKey: .messageDraftBodyRanges)
         try container.encode(nil as Date?, forKey: .mutedUntilDateObsolete)
-        try container.encode(self.mutedUntilTimestampObsolete, forKey: .mutedUntilTimestampObsolete)
+        try container.encode(Int64(bitPattern: self.mutedUntilTimestamp), forKey: .mutedUntilTimestamp)
         try container.encode(self.shouldThreadBeVisible, forKey: .shouldThreadBeVisible)
         try container.encode(self.storyViewMode.rawValue, forKey: .storyViewMode)
+        try container.encode(self.audioPlaybackRate, forKey: .audioPlaybackRate)
     }
 
     init(
@@ -160,8 +165,8 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         uniqueId: String,
         creationDate: Date?,
         editTargetTimestamp: UInt64?,
-        isArchivedObsolete: Bool,
-        isMarkedUnreadObsolete: Bool,
+        isArchived: Bool,
+        isMarkedUnread: Bool,
         lastDraftInteractionRowId: UInt64,
         lastDraftUpdateTimestamp: UInt64,
         lastInteractionRowId: UInt64,
@@ -169,16 +174,17 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         shouldNotifyForMentionsWhenMuted: Bool,
         messageDraft: String?,
         messageDraftBodyRanges: MessageBodyRanges?,
-        mutedUntilTimestampObsolete: UInt64,
+        mutedUntilTimestamp: UInt64,
         shouldThreadBeVisible: Bool,
         storyViewMode: TSThreadStoryViewMode,
+        audioPlaybackRate: Float,
     ) {
         self.id = id
         self.uniqueId = uniqueId
         self.creationDate = creationDate
         self.editTargetTimestamp = editTargetTimestamp
-        self.isArchivedObsolete = isArchivedObsolete
-        self.isMarkedUnreadObsolete = isMarkedUnreadObsolete
+        self.isArchived = isArchived
+        self.isMarkedUnread = isMarkedUnread
         self.lastDraftInteractionRowId = lastDraftInteractionRowId
         self.lastDraftUpdateTimestamp = lastDraftUpdateTimestamp
         self.lastInteractionRowId = lastInteractionRowId
@@ -186,22 +192,24 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         self.shouldNotifyForMentionsWhenMuted = shouldNotifyForMentionsWhenMuted
         self.messageDraft = messageDraft
         self.messageDraftBodyRanges = messageDraftBodyRanges
-        self.mutedUntilTimestampObsolete = mutedUntilTimestampObsolete
+        self.mutedUntilTimestamp = mutedUntilTimestamp
         self.shouldThreadBeVisible = shouldThreadBeVisible
         self.storyViewMode = storyViewMode
+        self.audioPlaybackRate = audioPlaybackRate
     }
 
     init(uniqueId: String) {
-        self.isArchivedObsolete = false
-        self.isMarkedUnreadObsolete = false
+        self.isArchived = false
+        self.isMarkedUnread = false
         self.lastDraftInteractionRowId = 0
         self.lastDraftUpdateTimestamp = 0
         self.lastInteractionRowId = 0
         self.shouldNotifyForMentionsWhenMuted = NotificationPreferencesManager.Defaults.shouldNotifyForMentionsWhenMuted
         self.messageDraft = nil
-        self.mutedUntilTimestampObsolete = 0
+        self.mutedUntilTimestamp = 0
         self.shouldThreadBeVisible = false
         self.storyViewMode = .default
+        self.audioPlaybackRate = 1
 
         self.uniqueId = uniqueId
         self.creationDate = Date()
@@ -213,8 +221,8 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
             uniqueId: self.uniqueId,
             creationDate: self.creationDate,
             editTargetTimestamp: self.editTargetTimestamp,
-            isArchivedObsolete: self.isArchivedObsolete,
-            isMarkedUnreadObsolete: self.isMarkedUnreadObsolete,
+            isArchived: self.isArchived,
+            isMarkedUnread: self.isMarkedUnread,
             lastDraftInteractionRowId: self.lastDraftInteractionRowId,
             lastDraftUpdateTimestamp: self.lastDraftUpdateTimestamp,
             lastInteractionRowId: self.lastInteractionRowId,
@@ -222,9 +230,10 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
             shouldNotifyForMentionsWhenMuted: self.shouldNotifyForMentionsWhenMuted,
             messageDraft: self.messageDraft,
             messageDraftBodyRanges: self.messageDraftBodyRanges,
-            mutedUntilTimestampObsolete: self.mutedUntilTimestampObsolete,
+            mutedUntilTimestamp: self.mutedUntilTimestamp,
             shouldThreadBeVisible: self.shouldThreadBeVisible,
             storyViewMode: self.storyViewMode,
+            audioPlaybackRate: self.audioPlaybackRate,
         )
     }
 
@@ -234,8 +243,8 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         hasher.combine(self.uniqueId)
         hasher.combine(self.creationDate)
         hasher.combine(self.editTargetTimestamp)
-        hasher.combine(self.isArchivedObsolete)
-        hasher.combine(self.isMarkedUnreadObsolete)
+        hasher.combine(self.isArchived)
+        hasher.combine(self.isMarkedUnread)
         hasher.combine(self.lastDraftInteractionRowId)
         hasher.combine(self.lastDraftUpdateTimestamp)
         hasher.combine(self.lastInteractionRowId)
@@ -243,9 +252,10 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         hasher.combine(self.shouldNotifyForMentionsWhenMuted)
         hasher.combine(self.messageDraft)
         hasher.combine(self.messageDraftBodyRanges)
-        hasher.combine(self.mutedUntilTimestampObsolete)
+        hasher.combine(self.mutedUntilTimestamp)
         hasher.combine(self.shouldThreadBeVisible)
         hasher.combine(self.storyViewMode)
+        hasher.combine(self.audioPlaybackRate)
         return hasher.finalize()
     }
 
@@ -255,8 +265,8 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         guard self.uniqueId == object.uniqueId else { return false }
         guard self.creationDate == object.creationDate else { return false }
         guard self.editTargetTimestamp == object.editTargetTimestamp else { return false }
-        guard self.isArchivedObsolete == object.isArchivedObsolete else { return false }
-        guard self.isMarkedUnreadObsolete == object.isMarkedUnreadObsolete else { return false }
+        guard self.isArchived == object.isArchived else { return false }
+        guard self.isMarkedUnread == object.isMarkedUnread else { return false }
         guard self.lastDraftInteractionRowId == object.lastDraftInteractionRowId else { return false }
         guard self.lastDraftUpdateTimestamp == object.lastDraftUpdateTimestamp else { return false }
         guard self.lastInteractionRowId == object.lastInteractionRowId else { return false }
@@ -264,9 +274,10 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         guard self.shouldNotifyForMentionsWhenMuted == object.shouldNotifyForMentionsWhenMuted else { return false }
         guard self.messageDraft == object.messageDraft else { return false }
         guard self.messageDraftBodyRanges == object.messageDraftBodyRanges else { return false }
-        guard self.mutedUntilTimestampObsolete == object.mutedUntilTimestampObsolete else { return false }
+        guard self.mutedUntilTimestamp == object.mutedUntilTimestamp else { return false }
         guard self.shouldThreadBeVisible == object.shouldThreadBeVisible else { return false }
         guard self.storyViewMode == object.storyViewMode else { return false }
+        guard self.audioPlaybackRate == object.audioPlaybackRate else { return false }
         return true
     }
 
@@ -282,8 +293,6 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
     }
 
     public func anyDidInsert(transaction: DBWriteTransaction) {
-        ThreadAssociatedData.create(for: self.uniqueId, transaction: transaction)
-
         if self.shouldThreadBeVisible, !SSKPreferences.hasSavedThread(transaction: transaction) {
             SSKPreferences.setHasSavedThread(true, transaction: transaction)
         }
@@ -363,6 +372,46 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         return typedThread
     }
 
+    public var isMuted: Bool { mutedUntilTimestamp > Date.ows_millisecondTimestamp() }
+
+    public var mutedUntilDate: Date? {
+        guard mutedUntilTimestamp > 0 else { return nil }
+        return Date(millisecondsSince1970: mutedUntilTimestamp)
+    }
+
+    public static var alwaysMutedTimestamp: UInt64 { UInt64(LLONG_MAX) }
+
+    public func markAllAsRead(updateStorageService: Bool, transaction: DBWriteTransaction) {
+        markAllAsRead(transaction: transaction)
+        updateWith(isMarkedUnread: false, updateStorageService: updateStorageService, transaction: transaction)
+    }
+
+    private func markAllAsRead(transaction: DBWriteTransaction) {
+        let hasPendingMessageRequest = hasPendingMessageRequest(transaction: transaction)
+        let circumstance: OWSReceiptCircumstance = hasPendingMessageRequest
+            ? .onThisDeviceWhilePendingMessageRequest
+            : .onThisDevice
+
+        let finder = InteractionFinder(threadUniqueId: uniqueId)
+        var cursor = finder.fetchAllUnreadMessages(transaction: transaction)
+        do {
+            while let message = try cursor.next() {
+                message.markAsRead(
+                    atTimestamp: Date.ows_millisecondTimestamp(),
+                    thread: self,
+                    circumstance: circumstance,
+                    shouldClearNotifications: true,
+                    transaction: transaction,
+                )
+            }
+        } catch {
+            owsFailDebug("unexpected failure fetching unread messages: \(error)")
+        }
+
+        // Just to be defensive, we'll also check for unread messages.
+        owsAssertDebug(finder.unreadCount(transaction: transaction) == 0)
+    }
+
     // MARK: - updateWith...
 
     public func updateWithDraft(
@@ -440,6 +489,47 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         }
     }
 
+    public func updateWith(
+        isArchived: Bool? = nil,
+        isMarkedUnread: Bool? = nil,
+        mutedUntilTimestamp: UInt64? = nil,
+        audioPlaybackRate: Float? = nil,
+        updateStorageService: Bool,
+        transaction: DBWriteTransaction,
+    ) {
+        guard
+            isArchived != nil
+            || isMarkedUnread != nil
+            || mutedUntilTimestamp != nil
+            || audioPlaybackRate != nil
+        else {
+            return
+        }
+
+        anyUpdate(transaction: transaction) {
+            if let isArchived {
+                $0.isArchived = isArchived
+            }
+            if let isMarkedUnread {
+                $0.isMarkedUnread = isMarkedUnread
+            }
+            if let mutedUntilTimestamp {
+                $0.mutedUntilTimestamp = mutedUntilTimestamp
+            }
+            if let audioPlaybackRate {
+                $0.audioPlaybackRate = audioPlaybackRate
+            }
+        }
+
+        if updateStorageService {
+            recordPendingUpdates(storageServiceManager: SSKEnvironment.shared.storageServiceManagerRef)
+        }
+    }
+
+    func recordPendingUpdates(storageServiceManager: any StorageServiceManager) {
+        owsFailDebug("can't record updates for \(type(of: self))")
+    }
+
     // MARK: -
 
     func updateWithInsertedInteraction(_ interaction: TSInteraction, tx: DBWriteTransaction) {
@@ -468,15 +558,13 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
 
         let interactionRowId = UInt64(interaction.sqliteRowId ?? 0)
         let needsToMarkAsVisible = !shouldThreadBeVisible
-        let threadAssociatedData = ThreadAssociatedData.fetchOrDefault(for: self, transaction: tx)
         let needsToClearArchived = shouldClearArchivedStatusWhenUpdatingWithInteraction(
             interaction,
             wasInteractionInserted: wasInteractionInserted,
-            threadAssociatedData: threadAssociatedData,
             tx: tx,
         )
         let needsToUpdateLastInteractionRowId = interactionRowId > lastInteractionRowId
-        let needsToClearIsMarkedUnread = threadAssociatedData.isMarkedUnread && wasInteractionInserted
+        let needsToClearIsMarkedUnread = self.isMarkedUnread && wasInteractionInserted
         let needsUpdatedRowId = interaction.shouldBumpThreadToTopOfChatList(transaction: tx)
 
         if
@@ -493,7 +581,7 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
                 }
             }
 
-            threadAssociatedData.updateWith(
+            updateWith(
                 isArchived: needsToClearArchived ? false : nil,
                 isMarkedUnread: needsToClearIsMarkedUnread ? false : nil,
                 updateStorageService: true,
@@ -522,10 +610,9 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
     private func shouldClearArchivedStatusWhenUpdatingWithInteraction(
         _ interaction: TSInteraction,
         wasInteractionInserted: Bool,
-        threadAssociatedData: ThreadAssociatedData,
         tx: DBReadTransaction,
     ) -> Bool {
-        var needsToClearArchived = threadAssociatedData.isArchived && wasInteractionInserted
+        var needsToClearArchived = self.isArchived && wasInteractionInserted
 
         // I'm not sure, at the time I am migrating this to Swift, if this is
         // a load-bearing check of some sort. Perhaps in the future, we can
@@ -583,7 +670,7 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         //   current user sent the message, we should clear archived.)
         let wasMessageSentByUs = interaction is TSOutgoingMessage
         if
-            threadAssociatedData.isMuted,
+            self.isMuted,
             SSKPreferences.shouldKeepMutedChatsArchived(transaction: tx),
             !wasMessageSentByUs
         {
