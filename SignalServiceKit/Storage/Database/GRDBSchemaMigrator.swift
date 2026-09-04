@@ -358,6 +358,7 @@ public class GRDBSchemaMigrator {
         case deleteObsoleteGroupMembers
         case rebuildInteractionGroupCallEraIdIndex
         case moveFromThreadAssociatedData
+        case rebuildInteractionStoryReplyIndex
 
         // NOTE: Every time we add a migration id, consider
         // incrementing grdbSchemaVersionLatest.
@@ -5522,6 +5523,11 @@ public class GRDBSchemaMigrator {
 
         migrator.registerMigration(.moveFromThreadAssociatedData) { tx in
             try moveFromThreadAssociatedData(tx: tx)
+            return .success(())
+        }
+
+        migrator.registerMigration(.rebuildInteractionStoryReplyIndex) { tx in
+            try rebuildInteractionStoryReplyIndex(tx: tx)
             return .success(())
         }
 

@@ -337,7 +337,7 @@ public class InteractionFinder: NSObject {
         let sql = """
         SELECT *
         FROM \(InteractionRecord.databaseTableName)
-        \(DEBUG_INDEXED_BY("Interaction_storyReply_partial", or: "index_model_TSInteraction_on_StoryContext"))
+        \(DEBUG_INDEXED_BY("Interaction_storyReply_partial"))
         WHERE \(interactionColumn: .storyTimestamp) = ?
         AND \(interactionColumn: .storyAuthorUuidString) = ?
         AND \(interactionColumn: .isGroupStoryReply) = 1
@@ -372,7 +372,7 @@ public class InteractionFinder: NSObject {
         let sql = """
         SELECT 1
         FROM \(InteractionRecord.databaseTableName)
-        \(DEBUG_INDEXED_BY("Interaction_storyReply_partial", or: "index_model_TSInteraction_on_StoryContext"))
+        \(DEBUG_INDEXED_BY("Interaction_storyReply_partial"))
         WHERE \(interactionColumn: .storyTimestamp) = ?
         AND \(interactionColumn: .storyAuthorUuidString) = ?
         AND \(interactionColumn: .recordType) = \(SDSRecordType.outgoingMessage.rawValue)
@@ -406,7 +406,7 @@ public class InteractionFinder: NSObject {
             let sql: String = """
             SELECT \(interactionColumn: .uniqueId), \(interactionColumn: .id)
             FROM \(InteractionRecord.databaseTableName)
-            \(DEBUG_INDEXED_BY("Interaction_storyReply_partial", or: "index_model_TSInteraction_on_StoryContext"))
+            \(DEBUG_INDEXED_BY("Interaction_storyReply_partial"))
             WHERE \(interactionColumn: .storyTimestamp) = ?
             AND \(interactionColumn: .storyAuthorUuidString) = ?
             AND \(interactionColumn: .isGroupStoryReply) = 1

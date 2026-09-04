@@ -69,18 +69,10 @@ private struct LazyIndexMigrator {
                 return Set(try String.fetchAll(db, sql: "SELECT name FROM sqlite_master WHERE type = 'index'"))
             }
             let lazilyRemovedIndexes = [
-                "index_model_TSInteraction_on_StoryContext",
                 "index_model_TSInteraction_ConversationLoadInteractionCount",
                 "index_model_TSInteraction_ConversationLoadInteractionDistance",
             ]
             if !indexes.isDisjoint(with: lazilyRemovedIndexes) {
-                return true
-            }
-
-            let lazilyInsertedIndexes = [
-                "Interaction_storyReply_partial",
-            ]
-            if !indexes.isSuperset(of: lazilyInsertedIndexes) {
                 return true
             }
 
@@ -93,12 +85,6 @@ private struct LazyIndexMigrator {
 
     func run() async throws {
         // Must be idempotent.
-
-        try Task.checkCancellation()
-        await databaseStorage.awaitableWrite { tx in
-            logger.info("Rebuilding story message index.")
-            try! GRDBSchemaMigrator.rebuildInteractionStoryReplyIndex(tx: tx)
-        }
 
         try Task.checkCancellation()
         await databaseStorage.awaitableWrite { tx in
