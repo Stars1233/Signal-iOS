@@ -17,6 +17,7 @@ public struct TSRequest: CustomDebugStringConvertible {
 
     public enum Body {
         case parameters([String: Any])
+        case encodable(any Encodable)
         case data(Data)
 
         static func encodedParameters(_ parameters: [String: Any]) throws -> Data {
@@ -220,7 +221,7 @@ public struct TSRequest: CustomDebugStringConvertible {
 #if TESTABLE_BUILD
     var parameters: [String: Any] {
         switch body {
-        case .data:
+        case .data, .encodable:
             fatalError()
         case .parameters(let bodyParameters):
             return bodyParameters
