@@ -18,11 +18,24 @@ public protocol BadgeCountFetcher {
 
 class BadgeCountFetcherImpl: BadgeCountFetcher {
     func fetchBadgeCount(tx: DBReadTransaction) -> BadgeCount {
-        let unreadInteractionCount = InteractionFinder.unreadCountInAllThreads(transaction: tx)
+        let badgeCountType: BadgeCountType
+        if BuildFlags.improvedNotifications {
+            badgeCountType = DependenciesBridge.shared.notificationPreferencesManager.badgeCountType(tx: tx)
+        } else {
+            badgeCountType = .unreadMessages
+        }
+
+        let unreadChatCount: UInt
+        switch badgeCountType {
+        case .unreadMessages:
+            unreadChatCount = InteractionFinder.unreadCountInAllThreads(transaction: tx)
+        case .unreadChats:
+            unreadChatCount = InteractionFinder.unreadThreadCountInAllThreads(transaction: tx)
+        }
         let unreadMissedCallCount = DependenciesBridge.shared.callRecordMissedCallManager.countUnreadMissedCalls(tx: tx)
 
         return BadgeCount(
-            unreadChatCount: unreadInteractionCount,
+            unreadChatCount: unreadChatCount,
             unreadCallsCount: unreadMissedCallCount,
         )
     }

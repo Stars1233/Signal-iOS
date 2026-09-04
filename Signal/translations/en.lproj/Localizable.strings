@@ -9043,8 +9043,20 @@
 /* Title for settings activity */
 "SETTINGS_NAV_BAR_TITLE" = "Settings";
 
+/* Label for the setting controlling whether the app icon badge counts unread messages or unread chats. */
+"SETTINGS_NOTIFICATION_BADGE_COUNT" = "Badge Count";
+
+/* Explanation for the setting controlling whether the app icon badge counts unread messages or unread chats. */
+"SETTINGS_NOTIFICATION_BADGE_COUNT_FOOTER" = "Select if the badge count displays the number of unread messages or the number of unread chats";
+
 /* A setting controlling whether muted conversations are shown in the badge count */
 "SETTINGS_NOTIFICATION_BADGE_COUNT_INCLUDES_MUTED_CONVERSATIONS" = "Include Muted Chats";
+
+/* Label for the option that makes the app icon badge show the number of unread chats. */
+"SETTINGS_NOTIFICATION_BADGE_COUNT_UNREAD_CHATS" = "Unread Chats";
+
+/* Label for the option that makes the app icon badge show the number of unread messages. */
+"SETTINGS_NOTIFICATION_BADGE_COUNT_UNREAD_MESSAGES" = "Unread Messages";
 
 /* table section footer */
 "SETTINGS_NOTIFICATION_CONTENT_DESCRIPTION" = "Call and Message notifications can appear while your phone is locked.";

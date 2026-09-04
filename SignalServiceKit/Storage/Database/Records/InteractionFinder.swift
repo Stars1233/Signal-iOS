@@ -234,6 +234,41 @@ public class InteractionFinder: NSObject {
         return UInt(result)
     }
 
+    public class func unreadThreadCountInAllThreads(transaction: DBReadTransaction) -> UInt {
+        failIfThrows {
+            let includeMutedThreads = DependenciesBridge.shared.notificationPreferencesManager
+                .includeMutedThreadsInBadgeCount(tx: transaction)
+
+            var unreadThreadQuery = """
+            SELECT COUNT(*)
+            FROM \(TSThread.databaseTableName)
+            WHERE \(threadColumn: .isArchived) = 0
+            AND \(threadColumn: .shouldThreadBeVisible) = 1
+            """
+
+            if !includeMutedThreads {
+                unreadThreadQuery += " \(sqlClauseForIgnoringInteractionsWithMutedThread()) "
+            }
+
+            unreadThreadQuery += """
+             AND (
+                \(threadColumn: .isMarkedUnread) = 1
+                OR EXISTS (
+                    SELECT 1
+                    FROM \(InteractionRecord.databaseTableName) AS interaction
+                    \(DEBUG_INDEXED_BY("index_model_TSInteraction_UnreadMessages"))
+                    WHERE interaction.\(interactionColumn: .threadUniqueId) = \(threadColumnFullyQualified: .uniqueId)
+                    AND \(sqlClauseForUnreadInteractionCounts())
+                )
+            )
+            """
+
+            let unreadThreadCount = try UInt.fetchOne(transaction.database, sql: unreadThreadQuery)
+
+            return unreadThreadCount.owsFailUnwrap("SELECT COUNT(*) should always return a value")
+        }
+    }
+
     // MARK: -
 
     public class func nextExpiringInteraction(

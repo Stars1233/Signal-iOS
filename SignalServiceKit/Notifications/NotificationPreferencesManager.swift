@@ -20,6 +20,26 @@ public enum NotificationType: UInt {
     }
 }
 
+public enum BadgeCountType: Int64, CaseIterable {
+    case unreadMessages = 0
+    case unreadChats = 1
+
+    public var title: String {
+        switch self {
+        case .unreadMessages:
+            return OWSLocalizedString(
+                "SETTINGS_NOTIFICATION_BADGE_COUNT_UNREAD_MESSAGES",
+                comment: "Label for the option that makes the app icon badge show the number of unread messages.",
+            )
+        case .unreadChats:
+            return OWSLocalizedString(
+                "SETTINGS_NOTIFICATION_BADGE_COUNT_UNREAD_CHATS",
+                comment: "Label for the option that makes the app icon badge show the number of unread chats.",
+            )
+        }
+    }
+}
+
 public struct NotificationPreferencesManager {
     public enum Defaults {
         public static let globalNotificationSound = Sound.standard(.note)
@@ -28,6 +48,7 @@ public struct NotificationPreferencesManager {
         static let messageSentSound = true
         static let shouldNotifyOfNewAccounts = false
         static let includeMutedThreadsInBadgeCount = false
+        static let badgeCountType: BadgeCountType = .unreadMessages
         public static let shouldNotifyForMentionsWhenMuted = true
         static let areReactionNotificationsEnabled = true
     }
@@ -38,6 +59,7 @@ public struct NotificationPreferencesManager {
         static let messageSentSound = "MessageSentSound"
         static let shouldNotifyOfNewAccounts = "NotifyOfNewAccounts"
         static let includeMutedThreadsInBadgeCount = "IncludeMutedThreadsInBadgeCount"
+        static let badgeCountType = "BadgeCountType"
         static let globalNotificationSound = "GlobalNotificationSound"
         static let areReactionNotificationsEnabled = "ReactionNotificationsEnabled"
     }
@@ -103,6 +125,15 @@ public struct NotificationPreferencesManager {
 
     public func setIncludeMutedThreadsInBadgeCount(_ value: Bool, tx: DBWriteTransaction) {
         kvStore.writeValue(value, forKey: Key.includeMutedThreadsInBadgeCount, tx: tx)
+    }
+
+    public func badgeCountType(tx: DBReadTransaction) -> BadgeCountType {
+        let rawValue = kvStore.fetchValue(Int64.self, forKey: Key.badgeCountType, tx: tx)
+        return rawValue.flatMap(BadgeCountType.init(rawValue:)) ?? Defaults.badgeCountType
+    }
+
+    public func setBadgeCountType(_ value: BadgeCountType, tx: DBWriteTransaction) {
+        kvStore.writeValue(value.rawValue, forKey: Key.badgeCountType, tx: tx)
     }
 
     // MARK: - Notification sound

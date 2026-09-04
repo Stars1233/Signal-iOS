@@ -145,18 +145,34 @@ class NotificationSettingsViewController: OWSTableViewController2 {
     }
 
     private func buildAppBadgeSection() -> OWSTableSection {
+        let db = DependenciesBridge.shared.db
         let appBadgeSection = OWSTableSection()
         appBadgeSection.headerTitle = OWSLocalizedString(
             "SETTINGS_NOTIFICATIONS_APP_BADGE_SECTION",
             comment: "Header for the section of notification settings controlling the app icon's badge.",
         )
+        if BuildFlags.improvedNotifications {
+            appBadgeSection.add(.disclosureItem(
+                withText: OWSLocalizedString(
+                    "SETTINGS_NOTIFICATION_BADGE_COUNT",
+                    comment: "Label for the setting controlling whether the app icon badge counts unread messages or unread chats.",
+                ),
+                accessoryText: db.read { tx in
+                    DependenciesBridge.shared.notificationPreferencesManager.badgeCountType(tx: tx).title
+                },
+                actionBlock: { [weak self] in
+                    let vc = NotificationSettingsBadgeCountViewController()
+                    self?.navigationController?.pushViewController(vc, animated: true)
+                },
+            ))
+        }
         appBadgeSection.add(.switch(
             withText: OWSLocalizedString(
                 "SETTINGS_NOTIFICATION_BADGE_COUNT_INCLUDES_MUTED_CONVERSATIONS",
                 comment: "A setting controlling whether muted conversations are shown in the badge count",
             ),
             isOn: {
-                DependenciesBridge.shared.db.read { tx in
+                db.read { tx in
                     DependenciesBridge.shared.notificationPreferencesManager.includeMutedThreadsInBadgeCount(tx: tx)
                 }
             },

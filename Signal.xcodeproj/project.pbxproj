@@ -1687,6 +1687,7 @@
 		887889A52476E999001B5FCF /* PinConfirmationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887889A42476E999001B5FCF /* PinConfirmationViewController.swift */; };
 		887B380825F0355700685845 /* ChatsSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887B380725F0355700685845 /* ChatsSettingsViewController.swift */; };
 		887B380A25F0427F00685845 /* NotificationSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887B380925F0427F00685845 /* NotificationSettingsViewController.swift */; };
+		AB0C401C2E5BADCE00A1B2C3 /* NotificationSettingsBadgeCountViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0C401B2E5BADCE00A1B2C3 /* NotificationSettingsBadgeCountViewController.swift */; };
 		887B380D25F042BE00685845 /* NotificationSettingsContentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887B380C25F042BE00685845 /* NotificationSettingsContentViewController.swift */; };
 		887B380F25F056FD00685845 /* NotificationSettingsSoundViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887B380E25F056FD00685845 /* NotificationSettingsSoundViewController.swift */; };
 		887B381125F05F3100685845 /* PrivacySettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887B381025F05F3100685845 /* PrivacySettingsViewController.swift */; };
@@ -5987,6 +5988,7 @@
 		887889A42476E999001B5FCF /* PinConfirmationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinConfirmationViewController.swift; sourceTree = "<group>"; };
 		887B380725F0355700685845 /* ChatsSettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatsSettingsViewController.swift; sourceTree = "<group>"; };
 		887B380925F0427F00685845 /* NotificationSettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsViewController.swift; sourceTree = "<group>"; };
+		AB0C401B2E5BADCE00A1B2C3 /* NotificationSettingsBadgeCountViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsBadgeCountViewController.swift; sourceTree = "<group>"; };
 		887B380C25F042BE00685845 /* NotificationSettingsContentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsContentViewController.swift; sourceTree = "<group>"; };
 		887B380E25F056FD00685845 /* NotificationSettingsSoundViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsSoundViewController.swift; sourceTree = "<group>"; };
 		887B381025F05F3100685845 /* PrivacySettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacySettingsViewController.swift; sourceTree = "<group>"; };
@@ -11568,6 +11570,7 @@
 		887B380B25F042A300685845 /* Notifications */ = {
 			isa = PBXGroup;
 			children = (
+				AB0C401B2E5BADCE00A1B2C3 /* NotificationSettingsBadgeCountViewController.swift */,
 				887B380C25F042BE00685845 /* NotificationSettingsContentViewController.swift */,
 				887B380E25F056FD00685845 /* NotificationSettingsSoundViewController.swift */,
 				887B380925F0427F00685845 /* NotificationSettingsViewController.swift */,
@@ -18960,6 +18963,7 @@
 				D9EB006F2FE0730300F81AD0 /* NoAutofillSecureEntryTextField.swift in Sources */,
 				88D23D1223CEBFB200B0E74B /* NotificationActionHandler.swift in Sources */,
 				8806EF19248DBD7200E764C7 /* NotificationPermissionReminderMegaphone.swift in Sources */,
+				AB0C401C2E5BADCE00A1B2C3 /* NotificationSettingsBadgeCountViewController.swift in Sources */,
 				887B380D25F042BE00685845 /* NotificationSettingsContentViewController.swift in Sources */,
 				887B380F25F056FD00685845 /* NotificationSettingsSoundViewController.swift in Sources */,
 				887B380A25F0427F00685845 /* NotificationSettingsViewController.swift in Sources */,
