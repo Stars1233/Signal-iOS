@@ -260,20 +260,29 @@ final class CallLinkViewController: OWSTableViewController2, DatabaseChangeDeleg
     }
 
     private func createCallLinkRecord() -> Int64 {
-        let rowId = SSKEnvironment.shared.databaseStorageRef.write { tx in
+        let databaseStorage = SSKEnvironment.shared.databaseStorageRef
+        let messageSenderJobQueue = SSKEnvironment.shared.messageSenderJobQueueRef
+        let storageServiceManager = SSKEnvironment.shared.storageServiceManagerRef
+        let tsAccountManager = DependenciesBridge.shared.tsAccountManager
+        let rowId = databaseStorage.write { tx in
             var callLinkRecord: CallLinkRecord
             (callLinkRecord, _) = callLinkStore.fetchOrInsert(rootKey: callLink.rootKey, tx: tx)
-            callLinkRecord.adminPasskey = adminPasskey!
-            callLinkRecord.updateState(callLinkState!)
+            callLinkRecord.adminPasskey = adminPasskey.owsFailUnwrap("must have passkey")
+            callLinkRecord.updateState(callLinkState.owsFailUnwrap("must have state"))
             callLinkStore.update(callLinkRecord, tx: tx)
 
             CallLinkUpdateMessageSender(
-                messageSenderJobQueue: SSKEnvironment.shared.messageSenderJobQueueRef,
-            ).sendCallLinkUpdateMessage(rootKey: callLink.rootKey, adminPasskey: adminPasskey, tx: tx)
+                messageSenderJobQueue: messageSenderJobQueue,
+            ).sendCallLinkUpdateMessage(
+                rootKey: callLink.rootKey,
+                adminPasskey: adminPasskey,
+                localIdentifiers: tsAccountManager.mustBeRegisteredState(tx: tx).localIdentifiers,
+                tx: tx,
+            )
 
             return callLinkRecord.id
         }
-        SSKEnvironment.shared.storageServiceManagerRef.recordPendingUpdates(callLinkRootKeys: [callLink.rootKey])
+        storageServiceManager.recordPendingUpdates(callLinkRootKeys: [callLink.rootKey])
         return rowId
     }
 

@@ -286,8 +286,9 @@ final class CallService: CallServiceStateObserver, CallServiceStateDelegate {
                 callLinkCall: call,
                 adHocCallRecordManager: adHocCallRecordManager,
                 callLinkStore: callLinkStore,
-                messageSenderJobQueue: messageSenderJobQueue,
                 db: db,
+                messageSenderJobQueue: messageSenderJobQueue,
+                tsAccountManager: tsAccountManager,
             )
             call.addObserver(self, syncStateImmediately: true)
         }

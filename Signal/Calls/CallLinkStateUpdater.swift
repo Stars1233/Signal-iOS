@@ -55,7 +55,7 @@ actor CallLinkStateUpdater {
     /// user never joins.
     func updateExclusively(
         rootKey: CallLinkRootKey,
-        updateAndFetch: (CallLinkAuthCredential) async throws -> SignalServiceKit.CallLinkState,
+        updateAndFetch: (CallLinkAuthCredential, RegisteredState) async throws -> SignalServiceKit.CallLinkState,
     ) async throws -> SignalServiceKit.CallLinkState {
         return try await _updateExclusively(rootKey: rootKey, updateAndFetch: updateAndFetch)!.get()
     }
@@ -68,7 +68,7 @@ actor CallLinkStateUpdater {
 
     private func _updateExclusively(
         rootKey: CallLinkRootKey,
-        updateAndFetch: (CallLinkAuthCredential) async throws -> SignalServiceKit.CallLinkState?,
+        updateAndFetch: (CallLinkAuthCredential, RegisteredState) async throws -> SignalServiceKit.CallLinkState?,
     ) async throws -> Result<SignalServiceKit.CallLinkState, CallLinkNotFoundError>? {
         let roomId = rootKey.deriveRoomId()
 
@@ -94,7 +94,7 @@ actor CallLinkStateUpdater {
             return callLinkStore.fetch(roomId: roomId, tx: tx)
         }
         let authCredential = try await authCredentialManager.fetchCallLinkAuthCredential(localIdentifiers: registeredState.localIdentifiers)
-        let updateResult = await Result { try await updateAndFetch(authCredential) }
+        let updateResult = await Result { try await updateAndFetch(authCredential, registeredState) }
 
         let updateAction: UpdateAction
         let returnResult: Result<SignalServiceKit.CallLinkState, CallLinkNotFoundError>?
@@ -154,7 +154,7 @@ actor CallLinkStateUpdater {
     /// Many callers will want access to the `CallLinkState`, and they can use
     /// `try readCallLink(...).get()` to gloss over this distinction.
     func readCallLink(rootKey: CallLinkRootKey) async throws -> Result<SignalServiceKit.CallLinkState, CallLinkNotFoundError> {
-        return try await _updateExclusively(rootKey: rootKey, updateAndFetch: { authCredential in
+        return try await _updateExclusively(rootKey: rootKey, updateAndFetch: { authCredential, _ in
             return try await callLinkFetcher.readCallLink(rootKey, authCredential: authCredential)
         })!
     }
@@ -162,7 +162,7 @@ actor CallLinkStateUpdater {
     func deleteCallLink(rootKey: CallLinkRootKey, adminPasskey: Data) async throws {
         _ = try await _updateExclusively(
             rootKey: rootKey,
-            updateAndFetch: { authCredential in
+            updateAndFetch: { authCredential, _ in
                 try await callLinkManager.deleteCallLink(rootKey: rootKey, adminPasskey: adminPasskey, authCredential: authCredential)
                 return nil
             },
