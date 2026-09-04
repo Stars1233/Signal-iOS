@@ -24,7 +24,7 @@ actor CallLinkStateUpdater {
     private let db: any DB
     private let tsAccountManager: any TSAccountManager
 
-    private var pendingUpdates: [Data: [CheckedContinuation<Void, Never>]]
+    private let updateQueue = KeyedConcurrentTaskQueue<Data>(concurrentLimitPerKey: 1)
 
     init(
         authCredentialManager: any AuthCredentialManager,
@@ -44,8 +44,6 @@ actor CallLinkStateUpdater {
         self.callRecordStore = callRecordStore
         self.db = db
         self.tsAccountManager = tsAccountManager
-
-        self.pendingUpdates = [:]
     }
 
     /// Runs `updateAndFetch` and persists the returned value.
@@ -71,24 +69,16 @@ actor CallLinkStateUpdater {
         updateAndFetch: (CallLinkAuthCredential, RegisteredState) async throws -> SignalServiceKit.CallLinkState?,
     ) async throws -> Result<SignalServiceKit.CallLinkState, CallLinkNotFoundError>? {
         let roomId = rootKey.deriveRoomId()
-
-        await withCheckedContinuation { continuation in
-            if pendingUpdates[roomId] == nil {
-                pendingUpdates[roomId] = []
-                continuation.resume()
-            } else {
-                pendingUpdates[roomId]!.append(continuation)
-            }
+        return try await updateQueue.runWithThrowingTask(forKey: roomId) {
+            return try await __updateExclusively(roomId: roomId, rootKey: rootKey, updateAndFetch: updateAndFetch)
         }
-        defer {
-            if let nextUpdate = pendingUpdates[roomId]!.first {
-                pendingUpdates[roomId] = Array(pendingUpdates[roomId]!.dropFirst())
-                nextUpdate.resume()
-            } else {
-                pendingUpdates[roomId] = nil
-            }
-        }
+    }
 
+    private func __updateExclusively(
+        roomId: Data,
+        rootKey: CallLinkRootKey,
+        updateAndFetch: (CallLinkAuthCredential, RegisteredState) async throws -> SignalServiceKit.CallLinkState?,
+    ) async throws -> Result<SignalServiceKit.CallLinkState, CallLinkNotFoundError>? {
         let registeredState = try tsAccountManager.registeredStateWithMaybeSneakyTransaction()
         let oldRecord = db.read { tx -> CallLinkRecord? in
             return callLinkStore.fetch(roomId: roomId, tx: tx)
