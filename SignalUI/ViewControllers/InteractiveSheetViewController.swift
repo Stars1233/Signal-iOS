@@ -66,7 +66,7 @@ open class InteractiveSheetViewController: OWSViewController {
     /// Allows taps above the sheet to pass through to the parent.
     open var canInteractWithParent: Bool { false }
 
-    open var sheetBackgroundColor: UIColor { Theme.actionSheetBackgroundColor }
+    open var sheetBackgroundColor: UIColor { UIColor.Signal.background }
     open var handleBackgroundColor: UIColor { UIColor.Signal.primaryFill }
 
     /// Override to `true` to make the content appear on a glass background on
