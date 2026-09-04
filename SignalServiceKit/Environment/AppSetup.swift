@@ -727,8 +727,6 @@ extension AppSetup.GlobalsContinuation {
             storageServiceManager: storageServiceManager,
         )
 
-        let badgeCountFetcher = BadgeCountFetcherImpl()
-
         let identityManager = OWSIdentityManagerImpl(
             appReadiness: appReadiness,
             db: db,
@@ -866,6 +864,11 @@ extension AppSetup.GlobalsContinuation {
             deletedCallRecordExpirationJob: deletedCallRecordExpirationJob,
             deletedCallRecordStore: deletedCallRecordStore,
             threadStore: threadStore,
+        )
+
+        let badgeCountFetcher = BadgeCountFetcher(
+            notificationPreferencesManager: notificationPreferencesManager,
+            callRecordMissedCallManager: callRecordMissedCallManager,
         )
 
         let deleteForMeOutgoingSyncMessageManager = DeleteForMeOutgoingSyncMessageManagerImpl(

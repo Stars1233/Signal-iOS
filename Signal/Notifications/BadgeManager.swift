@@ -23,7 +23,7 @@ public class BadgeManager {
     }
 
     public convenience init(
-        badgeCountFetcher: any BadgeCountFetcher,
+        badgeCountFetcher: BadgeCountFetcher,
         databaseStorage: SDSDatabaseStorage,
     ) {
         self.init(
