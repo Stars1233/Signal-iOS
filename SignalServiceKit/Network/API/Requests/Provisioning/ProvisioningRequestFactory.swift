@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import LibSignalClient
 
 public enum ProvisioningRequestFactory {
 
@@ -27,28 +28,29 @@ public enum ProvisioningRequestFactory {
         urlComponents.percentEncodedPath = urlPathComponents.percentEncoded
         let url = urlComponents.url!
 
-        let jsonEncoder = JSONEncoder()
-        let accountAttributesData = try! jsonEncoder.encode(attributes)
-        let accountAttributesDict = try! JSONSerialization.jsonObject(with: accountAttributesData, options: .fragmentsAllowed) as! [String: Any]
+        let request = LinkDeviceRequest(
+            verificationCode: verificationCode,
+            accountAttributes: attributes,
+            aciSignedPreKey: OWSRequestFactory.SignedPreKey(prekeyBundles.aci.signedPreKey),
+            aciPqLastResortPreKey: OWSRequestFactory.KyberPreKey(prekeyBundles.aci.lastResortPreKey),
+            pniSignedPreKey: OWSRequestFactory.SignedPreKey(prekeyBundles.pni.signedPreKey),
+            pniPqLastResortPreKey: OWSRequestFactory.KyberPreKey(prekeyBundles.pni.lastResortPreKey),
+            apnToken: apnRegistrationId,
+        )
 
-        var parameters: [String: Any] = [
-            "verificationCode": verificationCode,
-            "accountAttributes": accountAttributesDict,
-            "aciSignedPreKey": OWSRequestFactory.signedPreKeyRequestParameters(prekeyBundles.aci.signedPreKey),
-            "pniSignedPreKey": OWSRequestFactory.signedPreKeyRequestParameters(prekeyBundles.pni.signedPreKey),
-            "aciPqLastResortPreKey": OWSRequestFactory.pqPreKeyRequestParameters(prekeyBundles.aci.lastResortPreKey),
-            "pniPqLastResortPreKey": OWSRequestFactory.pqPreKeyRequestParameters(prekeyBundles.pni.lastResortPreKey),
-        ]
-
-        if let apnRegistrationId {
-            let apnRegistrationIdData = try! jsonEncoder.encode(apnRegistrationId)
-            let apnRegistrationIdDict = try! JSONSerialization.jsonObject(with: apnRegistrationIdData, options: .fragmentsAllowed) as! [String: Any]
-            parameters["apnToken"] = apnRegistrationIdDict
-        }
-
-        var result = TSRequest(url: url, method: "PUT", parameters: parameters)
+        var result = TSRequest(url: url, method: "PUT", body: .encodable(request))
         // The "verify code" request handles auth differently.
         result.auth = .registration((username: phoneNumber, password: authPassword))
         return result
+    }
+
+    private struct LinkDeviceRequest: Encodable {
+        var verificationCode: String
+        var accountAttributes: AccountAttributes
+        var aciSignedPreKey: OWSRequestFactory.SignedPreKey
+        var aciPqLastResortPreKey: OWSRequestFactory.KyberPreKey
+        var pniSignedPreKey: OWSRequestFactory.SignedPreKey
+        var pniPqLastResortPreKey: OWSRequestFactory.KyberPreKey
+        var apnToken: RegistrationRequestFactory.ApnRegistrationId?
     }
 }

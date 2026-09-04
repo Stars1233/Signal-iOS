@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import LibSignalClient
 
 public enum RegistrationRequestFactory {
 
@@ -257,38 +258,44 @@ public enum RegistrationRequestFactory {
         urlComponents.percentEncodedPath = urlPathComponents.percentEncoded
         let url = urlComponents.url!
 
-        let jsonEncoder = JSONEncoder()
-        let accountAttributesData = try! jsonEncoder.encode(accountAttributes)
-        let accountAttributesDict = try! JSONSerialization.jsonObject(with: accountAttributesData, options: .fragmentsAllowed) as! [String: Any]
+        var request = RegistrationRequest(
+            accountAttributes: accountAttributes,
+            skipDeviceTransfer: skipDeviceTransfer,
+            aciIdentityKey: OWSRequestFactory.IdentityKey(prekeyBundles.aci.identityKeyPair.keyPair.identityKey),
+            aciSignedPreKey: OWSRequestFactory.SignedPreKey(prekeyBundles.aci.signedPreKey),
+            aciPqLastResortPreKey: OWSRequestFactory.KyberPreKey(prekeyBundles.aci.lastResortPreKey),
+            pniIdentityKey: OWSRequestFactory.IdentityKey(prekeyBundles.pni.identityKeyPair.keyPair.identityKey),
+            pniSignedPreKey: OWSRequestFactory.SignedPreKey(prekeyBundles.pni.signedPreKey),
+            pniPqLastResortPreKey: OWSRequestFactory.KyberPreKey(prekeyBundles.pni.lastResortPreKey),
+            apnToken: apnRegistrationId,
+        )
 
-        var parameters: [String: Any] = [
-            "accountAttributes": accountAttributesDict,
-            "skipDeviceTransfer": skipDeviceTransfer,
-            "aciIdentityKey": prekeyBundles.aci.identityKeyPair.keyPair.publicKey.serialize().base64EncodedStringWithoutPadding(),
-            "pniIdentityKey": prekeyBundles.pni.identityKeyPair.keyPair.publicKey.serialize().base64EncodedStringWithoutPadding(),
-            "aciSignedPreKey": OWSRequestFactory.signedPreKeyRequestParameters(prekeyBundles.aci.signedPreKey),
-            "pniSignedPreKey": OWSRequestFactory.signedPreKeyRequestParameters(prekeyBundles.pni.signedPreKey),
-            "aciPqLastResortPreKey": OWSRequestFactory.pqPreKeyRequestParameters(prekeyBundles.aci.lastResortPreKey),
-            "pniPqLastResortPreKey": OWSRequestFactory.pqPreKeyRequestParameters(prekeyBundles.pni.lastResortPreKey),
-        ]
         switch verificationMethod {
         case .sessionId(let sessionId):
-            parameters["sessionId"] = sessionId
+            request.sessionId = sessionId
         case .recoveryPassword(let recoveryPassword):
-            parameters["recoveryPassword"] = recoveryPassword.canonicalStringRepresentation
+            request.recoveryPassword = OWSRequestFactory.RegistrationRecoveryPassword(recoveryPassword)
         }
 
-        if let apnRegistrationId {
-            let apnRegistrationIdData = try! jsonEncoder.encode(apnRegistrationId)
-            let apnRegistrationIdDict = try! JSONSerialization.jsonObject(with: apnRegistrationIdData, options: .fragmentsAllowed) as! [String: Any]
-            parameters["apnToken"] = apnRegistrationIdDict
-        }
-
-        var result = TSRequest(url: url, method: "POST", parameters: parameters, logger: logger)
+        var result = TSRequest(url: url, method: "POST", body: .encodable(request), logger: logger)
         // As odd as this is, it is to spec.
         result.auth = .registration((username: e164.stringValue, password: authPassword))
         result.headers["X-Signal-Agent"] = "OWI"
         return result
+    }
+
+    struct RegistrationRequest: Encodable {
+        var sessionId: String?
+        var recoveryPassword: OWSRequestFactory.RegistrationRecoveryPassword?
+        var accountAttributes: AccountAttributes
+        var skipDeviceTransfer: Bool
+        var aciIdentityKey: OWSRequestFactory.IdentityKey
+        var aciSignedPreKey: OWSRequestFactory.SignedPreKey
+        var aciPqLastResortPreKey: OWSRequestFactory.KyberPreKey
+        var pniIdentityKey: OWSRequestFactory.IdentityKey
+        var pniSignedPreKey: OWSRequestFactory.SignedPreKey
+        var pniPqLastResortPreKey: OWSRequestFactory.KyberPreKey
+        var apnToken: ApnRegistrationId?
     }
 
     /// Update the phone number on an account.
@@ -313,27 +320,40 @@ public enum RegistrationRequestFactory {
         urlComponents.percentEncodedPath = urlPathComponents.percentEncoded
         let url = urlComponents.url!
 
-        var parameters: [String: Any] = [
-            "number": e164.stringValue,
-        ]
-        switch verificationMethod {
-        case .sessionId(let sessionId):
-            parameters["sessionId"] = sessionId
-        case .recoveryPassword(let recoveryPassword):
-            parameters["recoveryPassword"] = recoveryPassword.canonicalStringRepresentation
-        }
-        if let reglockToken {
-            parameters["reglock"] = reglockToken.canonicalStringRepresentation
-        }
-
-        parameters.merge(
-            pniChangeNumberParameters.requestParameters(),
-            uniquingKeysWith: { _, _ in
-                owsFail("Unexpectedly encountered duplicate keys!", logger: logger)
+        var request = ChangeNumberRequest(
+            number: e164,
+            reglock: reglockToken.map { OWSRequestFactory.RegistrationLock($0) },
+            pniIdentityKey: OWSRequestFactory.IdentityKey(pniChangeNumberParameters.pniIdentityKey),
+            devicePniSignedPrekeys: pniChangeNumberParameters.devicePniSignedPreKeys.mapKeys(injectiveTransform: { "\($0)" }).mapValues {
+                return OWSRequestFactory.SignedPreKey($0)
             },
+            devicePniPqLastResortPrekeys: pniChangeNumberParameters.devicePniPqLastResortPreKeys.mapKeys(injectiveTransform: { "\($0)" }).mapValues {
+                return OWSRequestFactory.KyberPreKey($0)
+            },
+            deviceMessages: pniChangeNumberParameters.deviceMessages,
+            pniRegistrationIds: pniChangeNumberParameters.pniRegistrationIds.mapKeys(injectiveTransform: { "\($0)" }),
         )
 
-        return TSRequest(url: url, method: "PUT", parameters: parameters, logger: logger)
+        switch verificationMethod {
+        case .sessionId(let sessionId):
+            request.sessionId = sessionId
+        case .recoveryPassword(let recoveryPassword):
+            request.recoveryPassword = OWSRequestFactory.RegistrationRecoveryPassword(recoveryPassword)
+        }
+
+        return TSRequest(url: url, method: "PUT", body: .encodable(request), logger: logger)
+    }
+
+    private struct ChangeNumberRequest: Encodable {
+        var number: E164
+        var sessionId: String?
+        var recoveryPassword: OWSRequestFactory.RegistrationRecoveryPassword?
+        var reglock: OWSRequestFactory.RegistrationLock?
+        var pniIdentityKey: OWSRequestFactory.IdentityKey
+        var devicePniSignedPrekeys: [String: OWSRequestFactory.SignedPreKey]
+        var devicePniPqLastResortPrekeys: [String: OWSRequestFactory.KyberPreKey]
+        var deviceMessages: [DeviceMessage]
+        var pniRegistrationIds: [String: UInt32]
     }
 
     // MARK: - Helpers

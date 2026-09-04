@@ -221,8 +221,10 @@ public struct TSRequest: CustomDebugStringConvertible {
 #if TESTABLE_BUILD
     var parameters: [String: Any] {
         switch body {
-        case .data, .encodable:
+        case .data:
             fatalError()
+        case .encodable(let bodyValue):
+            return try! JSONSerialization.jsonObject(with: try JSONEncoder().encode(bodyValue)) as! [String: Any]
         case .parameters(let bodyParameters):
             return bodyParameters
         }
