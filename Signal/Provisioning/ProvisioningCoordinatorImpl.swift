@@ -600,7 +600,7 @@ class ProvisioningCoordinatorImpl: ProvisioningCoordinator {
 
         let rawVerifyDeviceResponse = await Self.Service.makeVerifySecondaryDeviceRequest(
             verificationCode: provisionMessage.provisioningCode,
-            phoneNumber: provisionMessage.phoneNumber,
+            aci: provisionMessage.aci,
             authPassword: serverAuthToken,
             accountAttributes: accountAttributes,
             apnRegistrationId: apnRegistrationId,

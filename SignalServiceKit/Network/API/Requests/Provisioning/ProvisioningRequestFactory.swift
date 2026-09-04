@@ -4,20 +4,19 @@
 //
 
 import Foundation
-import LibSignalClient
+public import LibSignalClient
 
 public enum ProvisioningRequestFactory {
 
     public static func verifySecondaryDeviceRequest(
         verificationCode: String,
-        phoneNumber: String,
+        aci: Aci,
         authPassword: String,
         attributes: AccountAttributes,
         apnRegistrationId: RegistrationRequestFactory.ApnRegistrationId?,
         prekeyBundles: RegistrationPreKeyUploadBundles,
     ) -> TSRequest {
         owsAssertDebug(!verificationCode.isEmpty)
-        owsAssertDebug(!phoneNumber.isEmpty)
         owsAssertDebug((apnRegistrationId != nil) != attributes.isManualMessageFetchEnabled)
 
         let urlPathComponents = URLPathComponents(
@@ -40,7 +39,7 @@ public enum ProvisioningRequestFactory {
 
         var result = TSRequest(url: url, method: "PUT", body: .encodable(request))
         // The "verify code" request handles auth differently.
-        result.auth = .registration((username: phoneNumber, password: authPassword))
+        result.auth = .registration((username: aci.serviceIdString, password: authPassword))
         return result
     }
 

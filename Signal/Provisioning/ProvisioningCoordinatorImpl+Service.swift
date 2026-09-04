@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import LibSignalClient
 import SignalServiceKit
 
 extension ProvisioningCoordinatorImpl {
@@ -19,7 +20,7 @@ extension ProvisioningCoordinatorImpl {
 
         static func makeVerifySecondaryDeviceRequest(
             verificationCode: String,
-            phoneNumber: String,
+            aci: Aci,
             authPassword: String,
             accountAttributes: AccountAttributes,
             apnRegistrationId: RegistrationRequestFactory.ApnRegistrationId?,
@@ -28,7 +29,7 @@ extension ProvisioningCoordinatorImpl {
         ) async -> VerifySecondaryDeviceResponse {
             let request = ProvisioningRequestFactory.verifySecondaryDeviceRequest(
                 verificationCode: verificationCode,
-                phoneNumber: phoneNumber,
+                aci: aci,
                 authPassword: authPassword,
                 attributes: accountAttributes,
                 apnRegistrationId: apnRegistrationId,
