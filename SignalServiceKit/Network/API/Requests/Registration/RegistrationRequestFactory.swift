@@ -270,7 +270,6 @@ public enum RegistrationRequestFactory {
             "pniSignedPreKey": OWSRequestFactory.signedPreKeyRequestParameters(prekeyBundles.pni.signedPreKey),
             "aciPqLastResortPreKey": OWSRequestFactory.pqPreKeyRequestParameters(prekeyBundles.aci.lastResortPreKey),
             "pniPqLastResortPreKey": OWSRequestFactory.pqPreKeyRequestParameters(prekeyBundles.pni.lastResortPreKey),
-            "requireAtomic": true,
         ]
         switch verificationMethod {
         case .sessionId(let sessionId):
