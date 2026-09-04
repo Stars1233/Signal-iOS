@@ -33,6 +33,8 @@ class LinkPreviewAttachmentViewController: InteractiveSheetViewController {
 
     private let linkPreviewPanel = LinkPreviewPanel()
 
+    private static let textFieldHeight: CGFloat = 40
+
     private let textField: UITextField = {
         let textField = UITextField()
         textField.autocapitalizationType = .none
@@ -57,16 +59,26 @@ class LinkPreviewAttachmentViewController: InteractiveSheetViewController {
         let view = PillView()
         view.backgroundColor = .ows_gray80
         view.addSubview(textField)
-        textField.autoPinEdgesToSuperviewEdges(with: UIEdgeInsets(hMargin: 16, vMargin: 7))
+        textField.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            view.heightAnchor.constraint(greaterThanOrEqualToConstant: Self.textFieldHeight),
+
+            textField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            textField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8),
+            textField.topAnchor.constraint(greaterThanOrEqualTo: view.topAnchor),
+            textField.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+        ])
         return view
     }()
 
-    private let doneButton: UIButton = {
-        let button = RoundMediaButton(image: Theme.iconImage(.checkmark), backgroundStyle: .solid(.Signal.accent))
-        button.layoutMargins = .zero
-        button.ows_contentEdgeInsets = UIEdgeInsets(margin: 10)
-        button.layoutMargins = UIEdgeInsets(margin: 4)
-        button.setContentHuggingHigh()
+    private lazy var doneButton: UIButton = {
+        let button = UIButton(
+            configuration: .tintedRoundMedia(image: Theme.iconImage(.checkmark), size: Self.textFieldHeight),
+            primaryAction: UIAction { [weak self] _ in
+                self?.doneButtonPressed()
+            },
+        )
+        button.accessibilityLabel = CommonStrings.doneButton
         return button
     }()
 
@@ -110,10 +122,6 @@ class LinkPreviewAttachmentViewController: InteractiveSheetViewController {
         textField.addAction(
             UIAction { [weak self] _ in self?.textDidChange() },
             for: .editingChanged,
-        )
-        doneButton.addAction(
-            UIAction { [weak self] _ in self?.doneButtonPressed() },
-            for: .primaryActionTriggered,
         )
 
         if let initialLinkPreview = linkPreviewFetchState.linkPreviewDraftIfLoaded {
