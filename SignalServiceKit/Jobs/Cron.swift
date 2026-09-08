@@ -375,15 +375,19 @@ public class Cron {
         }
         if mostRecentAppVersion != self.appVersion.wrappedValue.rawValue {
             await self.db.awaitableWrite { tx in
-                self.resetMostRecentDates(tx: tx)
+                self._resetMostRecentDates(isAppUpgrade: true, tx: tx)
                 self.metadataStore.writeValue(self.appVersion.wrappedValue.rawValue, forKey: appVersionKey, tx: tx)
             }
         }
     }
 
     public func resetMostRecentDates(tx: DBWriteTransaction) {
+        _resetMostRecentDates(isAppUpgrade: false, tx: tx)
+    }
+
+    private func _resetMostRecentDates(isAppUpgrade: Bool, tx: DBWriteTransaction) {
         for key in dateStore.fetchKeys(tx: tx) {
-            if let uniqueKey = UniqueKey(rawValue: key), !uniqueKey.shouldRunOnAppUpgrade {
+            if let uniqueKey = UniqueKey(rawValue: key), isAppUpgrade, !uniqueKey.shouldRunOnAppUpgrade {
                 continue
             }
             dateStore.removeValue(forKey: key, tx: tx)
