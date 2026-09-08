@@ -50,6 +50,8 @@ public struct NotificationPreferencesManager {
         static let includeMutedThreadsInBadgeCount = false
         static let badgeCountType: BadgeCountType = .unreadMessages
         public static let shouldNotifyForMentionsWhenMuted = true
+        static let notifyForCallsWhenMuted = false
+        static let notifyForRepliesWhenMuted = true
         static let areReactionNotificationsEnabled = true
     }
 
@@ -62,6 +64,9 @@ public struct NotificationPreferencesManager {
         static let badgeCountType = "BadgeCountType"
         static let globalNotificationSound = "GlobalNotificationSound"
         static let areReactionNotificationsEnabled = "ReactionNotificationsEnabled"
+        static let notifyForRepliesWhenMuted = "NotifyForRepliesWhenMuted"
+        static let notifyForMentionsWhenMuted = "NotifyForMentionsWhenMuted"
+        static let notifyForCallsWhenMuted = "NotifyForCallsWhenMuted"
     }
 
     private let kvStore = NewKeyValueStore(collection: "NotificationPreferences")
@@ -154,31 +159,161 @@ public struct NotificationPreferencesManager {
         kvStore.writeValue(sound.id, forKey: Key.globalNotificationSound, tx: tx)
     }
 
+    // MARK: - While muted
+
+    public func defaultNotifyForCallsWhenMuted(tx: DBReadTransaction) -> Bool {
+        kvStore.fetchValue(Bool.self, forKey: Key.notifyForCallsWhenMuted, tx: tx) ?? Defaults.notifyForCallsWhenMuted
+    }
+
+    public func setDefaultNotifyForCallsWhenMuted(_ value: Bool, tx: DBWriteTransaction) {
+        kvStore.writeValue(value, forKey: Key.notifyForCallsWhenMuted, tx: tx)
+    }
+
+    public func notifyForCallsWhenMuted(thread: TSThread, tx: DBReadTransaction) -> Bool {
+        thread.shouldNotifyForCallsWhenMuted ?? defaultNotifyForCallsWhenMuted(tx: tx)
+    }
+
+    /// `nil` inherits the default
+    public func setNotifyForCallsWhenMuted(_ value: Bool?, thread: TSThread, tx: DBWriteTransaction) {
+        thread.updateWithShouldNotifyForCallsWhenMuted(value, transaction: tx)
+        // [Notifications] TODO: Storage Service sync
+    }
+
+    // MARK: -
+
+    public func defaultNotifyForMentionsWhenMuted(tx: DBReadTransaction) -> Bool {
+        kvStore.fetchValue(Bool.self, forKey: Key.notifyForMentionsWhenMuted, tx: tx) ?? Defaults.shouldNotifyForMentionsWhenMuted
+    }
+
+    public func setDefaultNotifyForMentionsWhenMuted(_ value: Bool, tx: DBWriteTransaction) {
+        kvStore.writeValue(value, forKey: Key.notifyForMentionsWhenMuted, tx: tx)
+    }
+
+    public func notifyForMentionsWhenMuted(thread: TSThread, tx: DBReadTransaction) -> Bool {
+        thread.shouldNotifyForMentionsWhenMuted ?? defaultNotifyForMentionsWhenMuted(tx: tx)
+    }
+
+    /// `nil` inherits the default
+    public func setNotifyForMentionsWhenMuted(_ value: Bool?, thread: TSThread, tx: DBWriteTransaction) {
+        thread.updateWithShouldNotifyForMentionsWhenMuted(value, transaction: tx)
+        // [Notifications] TODO: Storage Service sync
+    }
+
+    // MARK: -
+
+    public func defaultNotifyForRepliesWhenMuted(tx: DBReadTransaction) -> Bool {
+        kvStore.fetchValue(Bool.self, forKey: Key.notifyForRepliesWhenMuted, tx: tx) ?? Defaults.notifyForRepliesWhenMuted
+    }
+
+    public func setDefaultNotifyForRepliesWhenMuted(_ value: Bool, tx: DBWriteTransaction) {
+        kvStore.writeValue(value, forKey: Key.notifyForRepliesWhenMuted, tx: tx)
+    }
+
+    public func notifyForRepliesWhenMuted(thread: TSThread, tx: DBReadTransaction) -> Bool {
+        thread.shouldNotifyForRepliesWhenMuted ?? defaultNotifyForRepliesWhenMuted(tx: tx)
+    }
+
+    /// `nil` inherits the default
+    public func setNotifyForRepliesWhenMuted(_ value: Bool?, thread: TSThread, tx: DBWriteTransaction) {
+        thread.updateWithShouldNotifyForRepliesWhenMuted(value, transaction: tx)
+        // [Notifications] TODO: Storage Service sync
+    }
+
+    // MARK: -
+
+    public static let whileMutedCallsTitle = OWSLocalizedString(
+        "SETTINGS_WHILE_MUTED_CALLS",
+        comment: "Label for the switch controlling whether calls ring or notify in muted chats.",
+    )
+
+    public static let whileMutedMentionsTitle = OWSLocalizedString(
+        "SETTINGS_WHILE_MUTED_MENTIONS",
+        comment: "Label for the switch controlling whether mentions of you notify in muted chats.",
+    )
+
+    public static let whileMutedRepliesTitle = OWSLocalizedString(
+        "SETTINGS_WHILE_MUTED_REPLIES",
+        comment: "Label for the switch controlling whether replies to your messages notify in muted chats.",
+    )
+
+    public func whileMutedEnabledString(thread: TSThread? = nil, tx: DBReadTransaction) -> String {
+        let notifyForCalls = if let thread {
+            notifyForCallsWhenMuted(thread: thread, tx: tx)
+        } else {
+            defaultNotifyForCallsWhenMuted(tx: tx)
+        }
+        let notifyForMentions = if let thread {
+            notifyForMentionsWhenMuted(thread: thread, tx: tx)
+        } else {
+            defaultNotifyForMentionsWhenMuted(tx: tx)
+        }
+        let notifyForReplies = if let thread {
+            notifyForRepliesWhenMuted(thread: thread, tx: tx)
+        } else {
+            defaultNotifyForRepliesWhenMuted(tx: tx)
+        }
+
+        var enabledSettingNames = [String]()
+        if notifyForCalls {
+            enabledSettingNames.append(Self.whileMutedCallsTitle)
+        }
+        if thread?.isGroupThread ?? true {
+            if notifyForMentions {
+                enabledSettingNames.append(Self.whileMutedMentionsTitle)
+            }
+            if notifyForReplies {
+                enabledSettingNames.append(Self.whileMutedRepliesTitle)
+            }
+        }
+
+        if enabledSettingNames.isEmpty {
+            return CommonStrings.switchOff
+        }
+
+        return enabledSettingNames.formatted(.list(type: .and, width: .narrow))
+    }
+
     // MARK: - Reset
 
     public func resetAll(tx: DBWriteTransaction) {
         kvStore.removeAll(tx: tx)
         Sounds.resetThreadNotificationSounds(tx: tx)
         setGlobalNotificationSound(Defaults.globalNotificationSound, tx: tx)
-        resetPerChatMentionPreferences(tx: tx)
+        resetPerChatNotificationPreferences(tx: tx)
     }
 
-    private func resetPerChatMentionPreferences(tx: DBWriteTransaction) {
+    private func resetPerChatNotificationPreferences(tx: DBWriteTransaction) {
         // Save threads to avoid mutation with cursor open
         var threads: [TSThread] = []
         ThreadFinder().enumerateNonStoryThreads(tx: tx) { thread in
-            if thread.shouldNotifyForMentionsWhenMuted != Defaults.shouldNotifyForMentionsWhenMuted {
+            if
+                thread.shouldNotifyForMentionsWhenMutedLegacy != Defaults.shouldNotifyForMentionsWhenMuted
+                || thread.shouldNotifyForMentionsWhenMuted != nil
+                || thread.shouldNotifyForRepliesWhenMuted != nil
+                || thread.shouldNotifyForCallsWhenMuted != nil
+            {
                 threads.append(thread)
             }
             return true
         }
 
         for thread in threads {
-            thread.updateWithShouldNotifyForMentionsWhenMuted(
-                Defaults.shouldNotifyForMentionsWhenMuted,
-                wasLocallyInitiated: true,
-                transaction: tx,
-            )
+            if thread.shouldNotifyForMentionsWhenMutedLegacy != Defaults.shouldNotifyForMentionsWhenMuted {
+                thread.updateWithShouldNotifyForMentionsWhenMutedLegacy(
+                    Defaults.shouldNotifyForMentionsWhenMuted,
+                    wasLocallyInitiated: true,
+                    transaction: tx,
+                )
+            }
+            if thread.shouldNotifyForMentionsWhenMuted != nil {
+                setNotifyForMentionsWhenMuted(nil, thread: thread, tx: tx)
+            }
+            if thread.shouldNotifyForRepliesWhenMuted != nil {
+                setNotifyForRepliesWhenMuted(nil, thread: thread, tx: tx)
+            }
+            if thread.shouldNotifyForCallsWhenMuted != nil {
+                setNotifyForCallsWhenMuted(nil, thread: thread, tx: tx)
+            }
         }
     }
 }

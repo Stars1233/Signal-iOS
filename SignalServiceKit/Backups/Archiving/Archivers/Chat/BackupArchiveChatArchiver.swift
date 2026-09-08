@@ -240,7 +240,7 @@ public class BackupArchiveChatArchiver: BackupArchiveProtoStreamWriter {
             tx: context.tx,
         ).asVersionedToken
 
-        let dontNotifyForMentionsIfMuted = !thread.tsThread.shouldNotifyForMentionsWhenMuted
+        let dontNotifyForMentionsIfMuted = !thread.tsThread.shouldNotifyForMentionsWhenMutedLegacy
 
         var chat = BackupProto_Chat()
         chat.id = context.assignChatId(to: thread.tsThread).value

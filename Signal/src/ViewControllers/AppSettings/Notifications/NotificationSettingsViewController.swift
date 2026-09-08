@@ -114,6 +114,18 @@ class NotificationSettingsViewController: OWSTableViewController2 {
                 self?.navigationController?.pushViewController(vc, animated: true)
             },
         ))
+        if BuildFlags.improvedNotifications {
+            notificationsSection.add(.disclosureItem(
+                withText: NotificationSettingsWhileMutedViewController.titleString,
+                accessoryText: DependenciesBridge.shared.db.read { tx in
+                    DependenciesBridge.shared.notificationPreferencesManager.whileMutedEnabledString(tx: tx)
+                },
+                actionBlock: { [weak self] in
+                    let vc = NotificationSettingsWhileMutedViewController()
+                    self?.navigationController?.pushViewController(vc, animated: true)
+                },
+            ))
+        }
         return notificationsSection
     }
 

@@ -53,7 +53,12 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
     public internal(set) var shouldThreadBeVisible: Bool
     public internal(set) var isMarkedUnread: Bool
     public private(set) var messageDraftBodyRanges: MessageBodyRanges?
-    public private(set) var shouldNotifyForMentionsWhenMuted: Bool
+    // [Notifications] TODO: Remove
+    public private(set) var shouldNotifyForMentionsWhenMutedLegacy: Bool
+    /// `nil` inherits NotificationPreferencesManager's default
+    public private(set) var shouldNotifyForMentionsWhenMuted: Bool?
+    public private(set) var shouldNotifyForRepliesWhenMuted: Bool?
+    public private(set) var shouldNotifyForCallsWhenMuted: Bool?
     public internal(set) var mutedUntilTimestamp: UInt64
     public private(set) var lastSentStoryTimestamp: UInt64?
     public internal(set) var storyViewMode: TSThreadStoryViewMode
@@ -88,6 +93,9 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         case messageDraftBodyRanges
         case mutedUntilDateObsolete = "mutedUntilDate"
         case mutedUntilTimestamp
+        case shouldNotifyForCallsWhenMuted
+        case shouldNotifyForMentionsWhenMuted
+        case shouldNotifyForRepliesWhenMuted
         case shouldThreadBeVisible
         case storyViewMode
         case audioPlaybackRate
@@ -122,10 +130,13 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         self.lastDraftUpdateTimestamp = try container.decode(UInt64.self, forKey: .lastDraftUpdateTimestamp)
         self.lastInteractionRowId = try container.decode(UInt64.self, forKey: .lastInteractionRowId)
         self.lastSentStoryTimestamp = try container.decodeIfPresent(UInt64.self, forKey: .lastSentStoryTimestamp)
-        self.shouldNotifyForMentionsWhenMuted = try container.decode(MentionNotificationMode.self, forKey: .mentionNotificationMode).shouldNotifyForMentionsWhenMuted
+        self.shouldNotifyForMentionsWhenMutedLegacy = try container.decode(MentionNotificationMode.self, forKey: .mentionNotificationMode).shouldNotifyForMentionsWhenMuted
         self.messageDraft = try container.decodeIfPresent(String.self, forKey: .messageDraft)
         self.messageDraftBodyRanges = try container.decodeIfPresent(Data.self, forKey: .messageDraftBodyRanges).map({ try LegacySDSSerializer().deserializeLegacySDSData($0, ofClass: MessageBodyRanges.self) })
         self.mutedUntilTimestamp = UInt64(bitPattern: try container.decode(Int64.self, forKey: .mutedUntilTimestamp))
+        self.shouldNotifyForCallsWhenMuted = try container.decodeIfPresent(Bool.self, forKey: .shouldNotifyForCallsWhenMuted)
+        self.shouldNotifyForMentionsWhenMuted = try container.decodeIfPresent(Bool.self, forKey: .shouldNotifyForMentionsWhenMuted)
+        self.shouldNotifyForRepliesWhenMuted = try container.decodeIfPresent(Bool.self, forKey: .shouldNotifyForRepliesWhenMuted)
         self.shouldThreadBeVisible = try container.decode(Bool.self, forKey: .shouldThreadBeVisible)
         self.storyViewMode = TSThreadStoryViewMode(rawValue: try container.decode(UInt.self, forKey: .storyViewMode)) ?? .default
         self.audioPlaybackRate = try container.decode(Float.self, forKey: .audioPlaybackRate)
@@ -148,13 +159,16 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         try container.encode(0 as UInt64, forKey: .lastVisibleSortIdObsolete)
         try container.encode(0 as Double, forKey: .lastVisibleSortIdOnScreenPercentageObsolete)
         let mentionNotificationMode: MentionNotificationMode
-        mentionNotificationMode = self.shouldNotifyForMentionsWhenMuted ? .notifyWhenMuted : .doNotNotifyWhenMuted
+        mentionNotificationMode = self.shouldNotifyForMentionsWhenMutedLegacy ? .notifyWhenMuted : .doNotNotifyWhenMuted
         try container.encode(mentionNotificationMode, forKey: .mentionNotificationMode)
         try container.encode(self.messageDraft, forKey: .messageDraft)
         let messageDraftBodyRangesData = self.messageDraftBodyRanges.map(LegacySDSSerializer().serializeAsLegacySDSData(_:))
         try container.encode(messageDraftBodyRangesData, forKey: .messageDraftBodyRanges)
         try container.encode(nil as Date?, forKey: .mutedUntilDateObsolete)
         try container.encode(Int64(bitPattern: self.mutedUntilTimestamp), forKey: .mutedUntilTimestamp)
+        try container.encode(self.shouldNotifyForCallsWhenMuted, forKey: .shouldNotifyForCallsWhenMuted)
+        try container.encode(self.shouldNotifyForMentionsWhenMuted, forKey: .shouldNotifyForMentionsWhenMuted)
+        try container.encode(self.shouldNotifyForRepliesWhenMuted, forKey: .shouldNotifyForRepliesWhenMuted)
         try container.encode(self.shouldThreadBeVisible, forKey: .shouldThreadBeVisible)
         try container.encode(self.storyViewMode.rawValue, forKey: .storyViewMode)
         try container.encode(self.audioPlaybackRate, forKey: .audioPlaybackRate)
@@ -171,7 +185,10 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         lastDraftUpdateTimestamp: UInt64,
         lastInteractionRowId: UInt64,
         lastSentStoryTimestamp: UInt64?,
-        shouldNotifyForMentionsWhenMuted: Bool,
+        shouldNotifyForMentionsWhenMutedLegacy: Bool,
+        shouldNotifyForMentionsWhenMuted: Bool?,
+        shouldNotifyForRepliesWhenMuted: Bool?,
+        shouldNotifyForCallsWhenMuted: Bool?,
         messageDraft: String?,
         messageDraftBodyRanges: MessageBodyRanges?,
         mutedUntilTimestamp: UInt64,
@@ -189,7 +206,10 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         self.lastDraftUpdateTimestamp = lastDraftUpdateTimestamp
         self.lastInteractionRowId = lastInteractionRowId
         self.lastSentStoryTimestamp = lastSentStoryTimestamp
+        self.shouldNotifyForMentionsWhenMutedLegacy = shouldNotifyForMentionsWhenMutedLegacy
         self.shouldNotifyForMentionsWhenMuted = shouldNotifyForMentionsWhenMuted
+        self.shouldNotifyForRepliesWhenMuted = shouldNotifyForRepliesWhenMuted
+        self.shouldNotifyForCallsWhenMuted = shouldNotifyForCallsWhenMuted
         self.messageDraft = messageDraft
         self.messageDraftBodyRanges = messageDraftBodyRanges
         self.mutedUntilTimestamp = mutedUntilTimestamp
@@ -204,7 +224,10 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         self.lastDraftInteractionRowId = 0
         self.lastDraftUpdateTimestamp = 0
         self.lastInteractionRowId = 0
-        self.shouldNotifyForMentionsWhenMuted = NotificationPreferencesManager.Defaults.shouldNotifyForMentionsWhenMuted
+        self.shouldNotifyForMentionsWhenMutedLegacy = NotificationPreferencesManager.Defaults.shouldNotifyForMentionsWhenMuted
+        self.shouldNotifyForMentionsWhenMuted = nil
+        self.shouldNotifyForRepliesWhenMuted = nil
+        self.shouldNotifyForCallsWhenMuted = nil
         self.messageDraft = nil
         self.mutedUntilTimestamp = 0
         self.shouldThreadBeVisible = false
@@ -227,7 +250,10 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
             lastDraftUpdateTimestamp: self.lastDraftUpdateTimestamp,
             lastInteractionRowId: self.lastInteractionRowId,
             lastSentStoryTimestamp: self.lastSentStoryTimestamp,
+            shouldNotifyForMentionsWhenMutedLegacy: self.shouldNotifyForMentionsWhenMutedLegacy,
             shouldNotifyForMentionsWhenMuted: self.shouldNotifyForMentionsWhenMuted,
+            shouldNotifyForRepliesWhenMuted: self.shouldNotifyForRepliesWhenMuted,
+            shouldNotifyForCallsWhenMuted: self.shouldNotifyForCallsWhenMuted,
             messageDraft: self.messageDraft,
             messageDraftBodyRanges: self.messageDraftBodyRanges,
             mutedUntilTimestamp: self.mutedUntilTimestamp,
@@ -249,7 +275,10 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         hasher.combine(self.lastDraftUpdateTimestamp)
         hasher.combine(self.lastInteractionRowId)
         hasher.combine(self.lastSentStoryTimestamp)
+        hasher.combine(self.shouldNotifyForMentionsWhenMutedLegacy)
         hasher.combine(self.shouldNotifyForMentionsWhenMuted)
+        hasher.combine(self.shouldNotifyForRepliesWhenMuted)
+        hasher.combine(self.shouldNotifyForCallsWhenMuted)
         hasher.combine(self.messageDraft)
         hasher.combine(self.messageDraftBodyRanges)
         hasher.combine(self.mutedUntilTimestamp)
@@ -271,7 +300,10 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         guard self.lastDraftUpdateTimestamp == object.lastDraftUpdateTimestamp else { return false }
         guard self.lastInteractionRowId == object.lastInteractionRowId else { return false }
         guard self.lastSentStoryTimestamp == object.lastSentStoryTimestamp else { return false }
+        guard self.shouldNotifyForMentionsWhenMutedLegacy == object.shouldNotifyForMentionsWhenMutedLegacy else { return false }
         guard self.shouldNotifyForMentionsWhenMuted == object.shouldNotifyForMentionsWhenMuted else { return false }
+        guard self.shouldNotifyForRepliesWhenMuted == object.shouldNotifyForRepliesWhenMuted else { return false }
+        guard self.shouldNotifyForCallsWhenMuted == object.shouldNotifyForCallsWhenMuted else { return false }
         guard self.messageDraft == object.messageDraft else { return false }
         guard self.messageDraftBodyRanges == object.messageDraftBodyRanges else { return false }
         guard self.mutedUntilTimestamp == object.mutedUntilTimestamp else { return false }
@@ -448,13 +480,13 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
         }
     }
 
-    public func updateWithShouldNotifyForMentionsWhenMuted(
-        _ shouldNotifyForMentionsWhenMuted: Bool,
+    public func updateWithShouldNotifyForMentionsWhenMutedLegacy(
+        _ shouldNotifyForMentionsWhenMutedLegacy: Bool,
         wasLocallyInitiated: Bool,
         transaction tx: DBWriteTransaction,
     ) {
         anyUpdate(transaction: tx) { thread in
-            thread.shouldNotifyForMentionsWhenMuted = shouldNotifyForMentionsWhenMuted
+            thread.shouldNotifyForMentionsWhenMutedLegacy = shouldNotifyForMentionsWhenMutedLegacy
         }
 
         if
@@ -465,6 +497,33 @@ open class TSThread: NSObject, SDSCodableModel, InheritableRecord {
             SSKEnvironment.shared.storageServiceManagerRef.recordPendingUpdates(
                 groupModel: groupThread.groupModel,
             )
+        }
+    }
+
+    func updateWithShouldNotifyForRepliesWhenMuted(
+        _ shouldNotifyForRepliesWhenMuted: Bool?,
+        transaction tx: DBWriteTransaction,
+    ) {
+        anyUpdate(transaction: tx) { thread in
+            thread.shouldNotifyForRepliesWhenMuted = shouldNotifyForRepliesWhenMuted
+        }
+    }
+
+    func updateWithShouldNotifyForMentionsWhenMuted(
+        _ shouldNotifyForMentionsWhenMuted: Bool?,
+        transaction tx: DBWriteTransaction,
+    ) {
+        anyUpdate(transaction: tx) { thread in
+            thread.shouldNotifyForMentionsWhenMuted = shouldNotifyForMentionsWhenMuted
+        }
+    }
+
+    func updateWithShouldNotifyForCallsWhenMuted(
+        _ shouldNotifyForCallsWhenMuted: Bool?,
+        transaction tx: DBWriteTransaction,
+    ) {
+        anyUpdate(transaction: tx) { thread in
+            thread.shouldNotifyForCallsWhenMuted = shouldNotifyForCallsWhenMuted
         }
     }
 

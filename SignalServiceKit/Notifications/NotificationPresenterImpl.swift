@@ -393,6 +393,15 @@ public class NotificationPresenterImpl: NotificationPresenter {
         tx: DBReadTransaction,
     ) {
         let thread = notificationInfo.thread
+
+        if
+            BuildFlags.improvedNotifications,
+            thread.isMuted,
+            !notificationPreferencesManager.notifyForCallsWhenMuted(thread: thread, tx: tx)
+        {
+            return
+        }
+
         let callPreview = fetchCallPreview(thread: .individualThread(thread), tx: tx)
 
         let timestampClassification = TimestampClassification(timestamp)
@@ -563,12 +572,28 @@ public class NotificationPresenterImpl: NotificationPresenter {
             }
 
             let mentionedAcis = MentionFinder.mentionedAcis(for: incomingMessage, tx: transaction)
+            let localUserIsMentioned = mentionedAcis.contains(localIdentifiers.aci)
             let localUserIsQuoted = incomingMessage.quotedMessage?.authorAddress.isEqualToAddress(localIdentifiers.aciAddress) ?? false
-            guard mentionedAcis.contains(localIdentifiers.aci) || localUserIsQuoted else {
-                return false
+
+            let notifyForMentions = if BuildFlags.improvedNotifications {
+                notificationPreferencesManager.notifyForMentionsWhenMuted(thread: thread, tx: transaction)
+            } else {
+                thread.shouldNotifyForMentionsWhenMutedLegacy
             }
 
-            return thread.shouldNotifyForMentionsWhenMuted
+            if localUserIsMentioned, notifyForMentions {
+                return true
+            }
+
+            if localUserIsQuoted {
+                if BuildFlags.improvedNotifications {
+                    return notificationPreferencesManager.notifyForRepliesWhenMuted(thread: thread, tx: transaction)
+                } else {
+                    return thread.shouldNotifyForMentionsWhenMutedLegacy
+                }
+            }
+
+            return false
         } else if incomingMessage.isGroupStoryReply {
             guard
                 let storyTimestamp = incomingMessage.storyTimestamp?.uint64Value,

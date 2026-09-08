@@ -359,6 +359,8 @@ public class GRDBSchemaMigrator {
         case rebuildInteractionGroupCallEraIdIndex
         case moveFromThreadAssociatedData
         case rebuildInteractionStoryReplyIndex
+        case addShouldNotifyWhenMutedColumns
+        case preserveCallsWhenMutedForExistingUsers
 
         // NOTE: Every time we add a migration id, consider
         // incrementing grdbSchemaVersionLatest.
@@ -488,7 +490,7 @@ public class GRDBSchemaMigrator {
     }
 
     public static let grdbSchemaVersionDefault: UInt = 0
-    public static let grdbSchemaVersionLatest: UInt = 158
+    public static let grdbSchemaVersionLatest: UInt = 159
 
     private class DatabaseMigratorWrapper {
         // Run with immediate (or disabled) foreign key checks so that pre-existing
@@ -5531,6 +5533,16 @@ public class GRDBSchemaMigrator {
             return .success(())
         }
 
+        migrator.registerMigration(.addShouldNotifyWhenMutedColumns) { tx in
+            try addShouldNotifyWhenMutedColumns(tx: tx)
+            return .success(())
+        }
+
+        migrator.registerMigration(.preserveCallsWhenMutedForExistingUsers) { tx in
+            try preserveCallsWhenMutedForExistingUsers(tx: tx)
+            return .success(())
+        }
+
         // MARK: - Schema Migration Insertion Point
     }
 
@@ -8374,6 +8386,26 @@ public class GRDBSchemaMigrator {
         AND "TAD"."lastVerifiedGroupNameHash" IS NOT NULL
         """)
         try tx.database.drop(table: "thread_associated_data")
+    }
+
+    static func addShouldNotifyWhenMutedColumns(tx: DBWriteTransaction) throws {
+        try tx.database.alter(table: "model_TSThread") {
+            $0.add(column: "shouldNotifyForRepliesWhenMuted", .boolean)
+            $0.add(column: "shouldNotifyForMentionsWhenMuted", .boolean)
+            $0.add(column: "shouldNotifyForCallsWhenMuted", .boolean)
+        }
+    }
+
+    // The product-preferred behavior is to have muted chats mute calls, but
+    // that wasn't how it worked before the preference was added, so preserve
+    // behavior for existing users so as to not change it under their feet
+    static func preserveCallsWhenMutedForExistingUsers(tx: DBWriteTransaction) throws {
+        guard try hasAnyAccountManagerState(tx: tx) else { return }
+
+        try tx.database.execute(sql: """
+        INSERT INTO keyvalue (key, collection, value)
+        VALUES ('NotifyForCallsWhenMuted', 'NotificationPreferences', 1)
+        """)
     }
 
     static func dedupeSignalRecipients(tx: DBWriteTransaction) throws {

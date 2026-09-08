@@ -1006,7 +1006,7 @@ class StorageServiceGroupV2RecordUpdater: StorageServiceRecordUpdater {
             if let lastVerifiedGroupNameHash = groupRecord.lastVerifiedGroupNameHash {
                 builder.setVerifiedNameHash(lastVerifiedGroupNameHash)
             }
-            builder.setDontNotifyForMentionsIfMuted(!groupThread.shouldNotifyForMentionsWhenMuted)
+            builder.setDontNotifyForMentionsIfMuted(!groupThread.shouldNotifyForMentionsWhenMutedLegacy)
             builder.setStorySendMode(groupThread.storyViewMode.storageServiceMode)
         } else if
             let enqueuedRecord = groupsV2.groupRecordPendingStorageServiceRestore(
@@ -1071,10 +1071,10 @@ class StorageServiceGroupV2RecordUpdater: StorageServiceRecordUpdater {
                 groupThread.updateWithStoryViewMode(.init(storageServiceMode: record.storySendMode), transaction: transaction)
             }
 
-            let localShouldNotifyForMentionsWhenMuted = groupThread.shouldNotifyForMentionsWhenMuted
+            let localShouldNotifyForMentionsWhenMuted = groupThread.shouldNotifyForMentionsWhenMutedLegacy
             let remoteShouldNotifyForMentionsWhenMuted = !record.dontNotifyForMentionsIfMuted
             if localShouldNotifyForMentionsWhenMuted != remoteShouldNotifyForMentionsWhenMuted {
-                groupThread.updateWithShouldNotifyForMentionsWhenMuted(
+                groupThread.updateWithShouldNotifyForMentionsWhenMutedLegacy(
                     remoteShouldNotifyForMentionsWhenMuted,
                     wasLocallyInitiated: false,
                     transaction: transaction,

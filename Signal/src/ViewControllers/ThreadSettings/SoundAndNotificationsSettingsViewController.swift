@@ -25,6 +25,12 @@ class SoundAndNotificationsSettingsViewController: OWSTableViewController2 {
         updateTableContents()
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+
+        updateTableContents()
+    }
+
     func updateTableContents() {
         let contents = OWSTableContents()
 
@@ -139,7 +145,38 @@ class SoundAndNotificationsSettingsViewController: OWSTableViewController2 {
             return cell
         }))
 
-        if threadViewModel.threadRecord.allowsMentionSend {
+        if BuildFlags.improvedNotifications {
+            let notificationPreferencesManager = DependenciesBridge.shared.notificationPreferencesManager
+            let db = DependenciesBridge.shared.db
+            section.add(OWSTableItem(
+                customCellBlock: { [weak self] in
+                    guard let self else {
+                        return OWSTableItem.newCell()
+                    }
+
+                    let cell = OWSTableItem.buildCell(
+                        icon: .settingsNotifications,
+                        itemName: NotificationSettingsWhileMutedViewController.titleString,
+                        accessoryText: db.read { tx in
+                            notificationPreferencesManager.whileMutedEnabledString(
+                                thread: self.threadViewModel.threadRecord,
+                                tx: tx,
+                            )
+                        },
+                        accessoryType: .disclosureIndicator,
+                    )
+
+                    return cell
+                },
+                actionBlock: { [weak self] in
+                    guard let self else { return }
+                    let vc = NotificationSettingsWhileMutedViewController(thread: self.threadViewModel.threadRecord)
+                    self.navigationController?.pushViewController(vc, animated: true)
+                },
+            ))
+        }
+
+        if !BuildFlags.improvedNotifications, threadViewModel.threadRecord.allowsMentionSend {
             section.add(OWSTableItem(
                 customCellBlock: { [weak self] in
                     guard let self else {
@@ -154,7 +191,7 @@ class SoundAndNotificationsSettingsViewController: OWSTableViewController2 {
                             comment: "label for 'mentions' cell in conversation settings",
                         ),
                         accessoryText: self.nameForShouldNotifyForMentionsWhenMuted(
-                            self.threadViewModel.threadRecord.shouldNotifyForMentionsWhenMuted,
+                            self.threadViewModel.threadRecord.shouldNotifyForMentionsWhenMutedLegacy,
                         ),
                         accessoryType: .disclosureIndicator,
                     )
@@ -202,7 +239,7 @@ class SoundAndNotificationsSettingsViewController: OWSTableViewController2 {
 
     private func setShouldNotifyForMentionsWhenMuted(_ value: Bool) {
         SSKEnvironment.shared.databaseStorageRef.write { transaction in
-            self.threadViewModel.threadRecord.updateWithShouldNotifyForMentionsWhenMuted(value, wasLocallyInitiated: true, transaction: transaction)
+            self.threadViewModel.threadRecord.updateWithShouldNotifyForMentionsWhenMutedLegacy(value, wasLocallyInitiated: true, transaction: transaction)
         }
 
         updateTableContents()

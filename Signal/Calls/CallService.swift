@@ -1666,6 +1666,15 @@ extension CallService: CallManagerDelegate {
                 return .cancel
             }
 
+            if
+                BuildFlags.improvedNotifications,
+                thread.isMuted,
+                !DependenciesBridge.shared.notificationPreferencesManager.notifyForCallsWhenMuted(thread: thread, tx: transaction)
+            {
+                Logger.info("silently ignoring group ring \(ringId) due to mute settings")
+                return .cancel
+            }
+
             do {
                 if try CancelledGroupRing.exists(transaction.database, key: ringId) {
                     return .cancel
