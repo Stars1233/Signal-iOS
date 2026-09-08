@@ -683,9 +683,6 @@ extension BackupArchive {
                 case groupUpdateMessageInNonGroupChat
                 /// A `BackupProto_GroupChangeChatUpdate` ChatItem without any updates!
                 case emptyGroupUpdates
-                /// A `BackupProto_GroupSequenceOfRequestsAndCancelsUpdate` where
-                /// the requester is the local user, which isn't allowed.
-                case sequenceOfRequestsAndCancelsWithLocalAci
 
                 /// A profile key for the local user that could not be parsed into a valid aes256 key
                 case invalidLocalProfileKey
@@ -936,7 +933,6 @@ extension BackupArchive {
                     .failedToBuildGV2GroupModel,
                     .groupUpdateMessageInNonGroupChat,
                     .emptyGroupUpdates,
-                    .sequenceOfRequestsAndCancelsWithLocalAci,
                     .invalidLocalProfileKey,
                     .invalidLocalUsernameLink,
                     .individualCallNotInContactThread,
@@ -1052,7 +1048,6 @@ extension BackupArchive {
                     .failedToBuildGV2GroupModel,
                     .groupUpdateMessageInNonGroupChat,
                     .emptyGroupUpdates,
-                    .sequenceOfRequestsAndCancelsWithLocalAci,
                     .invalidLocalProfileKey,
                     .invalidLocalUsernameLink,
                     .individualCallNotInContactThread,
