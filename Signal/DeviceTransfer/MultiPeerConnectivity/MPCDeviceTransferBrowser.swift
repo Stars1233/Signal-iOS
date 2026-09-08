@@ -21,7 +21,7 @@ class MPCDeviceTransferBrowser:
         let certificateHash: Data
     }
 
-    let identity: SecIdentity?
+    let identity: SecIdentity
     let browser: MCNearbyServiceBrowser
     let peerId: MPCDeviceTransferPeer
 
@@ -49,7 +49,7 @@ class MPCDeviceTransferBrowser:
         )
 
         self.peerId = MPCDeviceTransferPeer(displayName: UUID().uuidString)
-        self.identity = try? SelfSignedIdentity.create(name: "OutgoingDeviceTransfer", validForDays: 1)
+        self.identity = try SelfSignedIdentity.create(name: "OutgoingDeviceTransfer", validForDays: 1)
         browser = MCNearbyServiceBrowser(
             peer: peerId.mcPeerID,
             serviceType: DeviceTransfer.Constants.newDeviceServiceIdentifier,
@@ -156,15 +156,6 @@ class MPCDeviceTransferBrowser:
 
     @MainActor
     func invitePeer(peerID newDevicePeerID: MCPeerID) {
-        guard let identity else {
-            lock.withLock {
-                inviteContinuation.take()?.resume(
-                    throwing: OWSAssertionError("Could not create identity for browser"),
-                )
-            }
-            return
-        }
-
         let session = MPCDeviceTransferSession(
             identity: identity,
             peerID: peerId.mcPeerID,

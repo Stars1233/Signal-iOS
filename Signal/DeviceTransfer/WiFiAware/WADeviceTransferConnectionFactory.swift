@@ -8,11 +8,14 @@ import SignalServiceKit
 
 @available(iOS 26.0, *)
 struct WADeviceTransferConnectionFactory: DeviceTransfer.ConnectionFactory {
-    func buildOutgoingConnection(tsAccountManager: TSAccountManager, deviceTransferURL: URL) -> any DeviceTransfer.OutgoingConnection {
-        return WADeviceTransferOutgoingConnection()
+    func buildOutgoingConnection(tsAccountManager: TSAccountManager, deviceTransferURL: URL) throws -> any DeviceTransfer.OutgoingConnection {
+        return try WADeviceTransferOutgoingConnection(
+            tsAccountManager: tsAccountManager,
+            deviceTransferURL: deviceTransferURL,
+        )
     }
 
-    func buildIncomingConnection(tsAccountManager: TSAccountManager) -> any DeviceTransfer.IncomingConnection {
-        return WADeviceTransferIncomingConnection()
+    func buildIncomingConnection(tsAccountManager: TSAccountManager) throws -> any DeviceTransfer.IncomingConnection {
+        return try WADeviceTransferIncomingConnection()
     }
 }

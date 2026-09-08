@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
+import CryptoKit
 import Foundation
 import Network
 import SignalServiceKit
@@ -16,7 +17,18 @@ class WADeviceTransferOutgoingConnection: DeviceTransfer.OutgoingConnection {
     let discoveredPeerStream: AsyncThrowingStream<[any DeviceTransfer.Peer], any Error>
     private let discoveredPeerTask: Task<Void, Never>
 
-    init() {
+    let identity: SecIdentity
+    var expectedCertificateHash: Data
+
+    init(
+        tsAccountManager: TSAccountManager,
+        deviceTransferURL: URL,
+    ) throws {
+        self.identity = try SelfSignedIdentity.create(name: "OutgoingDeviceTransfer", validForDays: 1)
+        self.expectedCertificateHash = try Self.parseTransferURL(
+            deviceTransferURL,
+            tsAccountManager: tsAccountManager,
+        )
         (self.discoveredPeerStream, self.discoveredPeerTask) = WiFiAware.createPeerDiscoveryObserver(logger: logger)
     }
 
@@ -64,6 +76,10 @@ class WADeviceTransferOutgoingConnection: DeviceTransfer.OutgoingConnection {
             return .continue
         }
 
+        guard let secIdentity = sec_identity_create(identity) else {
+            throw OWSAssertionError("Unexpected identity format")
+        }
+
         logger.info("Connecting")
         let connection = NetworkConnection(
             to: endpoint,
@@ -73,7 +89,25 @@ class WADeviceTransferOutgoingConnection: DeviceTransfer.OutgoingConnection {
                     sending: WiFiAware.NetworkEvent.self,
                     using: NetworkJSONCoder(),
                 ) {
-                    TCP().keepalive(idleTimeInSeconds: 10, count: 30, intervalInSeconds: 5)
+                    TLS() {
+                        TCP().keepalive(idleTimeInSeconds: 10, count: 30, intervalInSeconds: 5)
+                    }
+                    .localIdentity(secIdentity)
+                    .certificateValidator { [weak self] _, trust in
+                        let secTrust = sec_trust_copy_ref(trust).takeRetainedValue()
+                        guard
+                            let self,
+                            let chain = SecTrustCopyCertificateChain(secTrust) as? [SecCertificate],
+                            let leaf = chain.first
+                        else {
+                            return false
+                        }
+                        let certificateData = SecCertificateCopyData(leaf) as Data
+                        let certificateHash = Data(SHA256.hash(data: certificateData))
+                        let certificateIsTrusted = self.expectedCertificateHash.ows_constantTimeIsEqual(to: certificateHash)
+
+                        return certificateIsTrusted
+                    }
                 }
             }
             .wifiAware { $0.performanceMode = WiFiAware.Constants.appPerformanceMode }
@@ -86,4 +120,47 @@ class WADeviceTransferOutgoingConnection: DeviceTransfer.OutgoingConnection {
 
     func stop(error: Error?) {
     }
+
+    @MainActor
+    private static func parseTransferURL(
+        _ url: URL,
+        tsAccountManager: TSAccountManager,
+    ) throws -> Data {
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false), let queryItems = components.queryItems else {
+            throw OWSAssertionError("Invalid url")
+        }
+
+        let queryItemsDictionary = [String: String](uniqueKeysWithValues: queryItems.compactMap { item in
+            guard let value = item.value else { return nil }
+            return (item.name, value)
+        })
+
+        guard
+            let version = queryItemsDictionary[DeviceTransfer.UrlConstants.versionKey],
+            Int(version) == DeviceTransfer.UrlConstants.currentTransferVersion
+        else {
+            throw DeviceTransfer.Error.unsupportedVersion
+        }
+
+        let currentMode: DeviceTransfer.Mode = tsAccountManager
+            .registrationStateWithMaybeSneakyTransaction.isPrimaryDevice == true ? .primary : .linked
+
+        guard
+            let rawMode = queryItemsDictionary[DeviceTransfer.UrlConstants.transferModeKey],
+            rawMode == currentMode.rawValue
+        else {
+            throw DeviceTransfer.Error.modeMismatch
+        }
+
+        guard
+            let base64CertificateHash = queryItemsDictionary[DeviceTransfer.UrlConstants.certificateHashKey],
+            let uriDecodedHash = base64CertificateHash.removingPercentEncoding,
+            let certificateHash = Data(base64Encoded: uriDecodedHash)
+        else {
+            throw OWSAssertionError("failed to decode certificate hash")
+        }
+
+        return certificateHash
+    }
+
 }

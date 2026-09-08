@@ -20,7 +20,15 @@ class WADeviceTransferIncomingConnection: DeviceTransfer.IncomingConnection {
     /// Internal peer stream broacaster monitored by this class for connection management
     private let peers: AsyncStreamBroadcast<[any DeviceTransfer.Peer]>
 
-    init() {
+    let identity: SecIdentity
+    let secIdentity: sec_identity_t
+
+    init() throws {
+        self.identity = try SelfSignedIdentity.create(name: "IncomingDeviceTransfer", validForDays: 1)
+        guard let secIdentity = sec_identity_create(identity) else {
+            throw OWSAssertionError("Unexpected identity format")
+        }
+        self.secIdentity = secIdentity
         let (internalPeerStream, peerTask) = WiFiAware.createPeerDiscoveryObserver(logger: logger)
         self.discoveredPeerTask = peerTask
         let peers = AsyncStreamBroadcast<[any DeviceTransfer.Peer]>(initialValue: [])
@@ -47,6 +55,8 @@ class WADeviceTransferIncomingConnection: DeviceTransfer.IncomingConnection {
         let queryItems = [
             DeviceTransfer.UrlConstants.versionKey: String(DeviceTransfer.UrlConstants.currentTransferVersion),
             DeviceTransfer.UrlConstants.transferModeKey: mode.rawValue,
+            DeviceTransfer.UrlConstants.certificateHashKey:
+                try identity.computeCertificateHash().base64EncodedString().encodeURIComponent ?? "",
         ]
         components.queryItems = queryItems.map { URLQueryItem(name: $0.key, value: $0.value) }
         return components.url!
@@ -111,7 +121,7 @@ class WADeviceTransferIncomingConnection: DeviceTransfer.IncomingConnection {
         allowedDevices: WAPublisherListener.Devices,
     ) async throws -> DeviceTransfer.Session {
         let continuation = CancellableContinuation<DeviceTransfer.Session>()
-        listenerTask.set(Task { [logger] in
+        listenerTask.set(Task { [logger, secIdentity] in
             logger.info("Open connection")
             try await NetworkListener(
                 for: .wifiAware(
@@ -126,11 +136,16 @@ class WADeviceTransferIncomingConnection: DeviceTransfer.IncomingConnection {
                         sending: WiFiAware.NetworkEvent.self,
                         using: NetworkJSONCoder(),
                     ) {
-                        TCP().keepalive(idleTimeInSeconds: 10, count: 30, intervalInSeconds: 5)
+                        TLS() {
+                            TCP().keepalive(
+                                idleTimeInSeconds: 10,
+                                count: 30,
+                                intervalInSeconds: 5,
+                            )
+                        }
+                        .localIdentity(secIdentity)
                     }
-                }
-                .wifiAware { $0.performanceMode = WiFiAware.Constants.appPerformanceMode }
-                .serviceClass(WiFiAware.Constants.appServiceClass),
+                },
             ).onStateUpdate { _, state in
                 switch state {
                 case .setup:

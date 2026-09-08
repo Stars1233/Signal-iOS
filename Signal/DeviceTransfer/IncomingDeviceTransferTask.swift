@@ -45,12 +45,12 @@ class IncomingDeviceTransferTask {
         deviceTransferConnectionFactory: DeviceTransfer.ConnectionFactory,
         registrationStateChangeManager: RegistrationStateChangeManager,
         tsAccountManager: TSAccountManager,
-    ) {
+    ) throws {
         self.db = db
         self.deviceSleepManager = deviceSleepManager
         self.registrationStateChangeManager = registrationStateChangeManager
         self.deviceTransferRestore = deviceTransferRestore
-        self.newDeviceServiceAdvertiser = deviceTransferConnectionFactory.buildIncomingConnection(
+        self.newDeviceServiceAdvertiser = try deviceTransferConnectionFactory.buildIncomingConnection(
             tsAccountManager: tsAccountManager,
         )
 

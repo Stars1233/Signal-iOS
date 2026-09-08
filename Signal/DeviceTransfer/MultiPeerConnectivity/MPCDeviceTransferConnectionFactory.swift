@@ -12,7 +12,7 @@ struct MPCDeviceTransferConnectionFactory: DeviceTransfer.ConnectionFactory {
     }
 
     @MainActor
-    func buildIncomingConnection(tsAccountManager: TSAccountManager) -> any DeviceTransfer.IncomingConnection {
-        MPCDeviceTransferAdvertiser(tsAccountManager: tsAccountManager)
+    func buildIncomingConnection(tsAccountManager: TSAccountManager) throws -> any DeviceTransfer.IncomingConnection {
+        try MPCDeviceTransferAdvertiser(tsAccountManager: tsAccountManager)
     }
 }

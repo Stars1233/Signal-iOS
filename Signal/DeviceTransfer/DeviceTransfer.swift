@@ -216,7 +216,7 @@ enum DeviceTransfer {
         @MainActor
         func buildOutgoingConnection(tsAccountManager: TSAccountManager, deviceTransferURL: URL) throws -> OutgoingConnection
         @MainActor
-        func buildIncomingConnection(tsAccountManager: TSAccountManager) -> IncomingConnection
+        func buildIncomingConnection(tsAccountManager: TSAccountManager) throws -> IncomingConnection
     }
 
     @MainActor

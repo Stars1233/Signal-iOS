@@ -20,7 +20,7 @@ class MPCDeviceTransferAdvertiser:
     // will verify this identity via the QR code
     // We don't actually need to generate an identity for the old device, the new device
     // doesn't verify this information. We do it anyway, for consistency.
-    let identity: SecIdentity?
+    let identity: SecIdentity
 
     private let lock = UnfairLock()
     private var session: MPCDeviceTransferSession?
@@ -32,10 +32,10 @@ class MPCDeviceTransferAdvertiser:
     let discoveredPeerStream: AsyncThrowingStream<[any DeviceTransfer.Peer], Error>
 
     @MainActor
-    init(tsAccountManager: TSAccountManager) {
+    init(tsAccountManager: TSAccountManager) throws {
         self.tsAccountManager = tsAccountManager
         self.peerId = MPCDeviceTransferPeer(displayName: UUID().uuidString)
-        self.identity = try? SelfSignedIdentity.create(name: "IncomingDeviceTransfer", validForDays: 1)
+        self.identity = try SelfSignedIdentity.create(name: "IncomingDeviceTransfer", validForDays: 1)
         advertiser = MCNearbyServiceAdvertiser(
             peer: peerId.mcPeerID,
             discoveryInfo: nil,
@@ -48,9 +48,6 @@ class MPCDeviceTransferAdvertiser:
 
     @MainActor
     func start(mode: DeviceTransfer.Mode) throws -> URL {
-        guard let identity else {
-            throw OWSAssertionError("Could not create identity for advertiser")
-        }
         advertiser.startAdvertisingPeer()
         return try Self.urlForTransfer(identity: identity, localPeerId: peerId, mode: mode)
     }
@@ -120,13 +117,6 @@ class MPCDeviceTransferAdvertiser:
         peerId: MCPeerID,
         invitationHandler: @escaping (Bool, MCSession?) -> Void,
     ) {
-        guard let identity else {
-            invitationHandler(false, nil)
-            connectionContinuation.take()?.resume(
-                throwing: OWSAssertionError("Could not create identity for advertiser"),
-            )
-            return
-        }
         Logger.info("Accepting invitation from old device \(peerId)")
         lock.withLock {
             if let connectionContinuation = connectionContinuation.take() {

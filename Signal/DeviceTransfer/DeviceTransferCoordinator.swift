@@ -92,7 +92,7 @@ public class DeviceTransferCoordinator: Equatable {
         restoreMode: DeviceTransfer.Mode,
         tsAccountManager: TSAccountManager,
         supportsWifiAware: Bool,
-    ) {
+    ) throws {
         self.quickRestoreManager = quickRestoreManager
         self.restoreMethodToken = restoreMethodToken
         self.restoreMode = restoreMode
@@ -109,7 +109,7 @@ public class DeviceTransferCoordinator: Equatable {
             factory = MPCDeviceTransferConnectionFactory()
         }
 
-        self.incomingDeviceTransferTask = IncomingDeviceTransferTask(
+        self.incomingDeviceTransferTask = try IncomingDeviceTransferTask(
             db: db,
             deviceSleepManager: deviceSleepManager,
             deviceTransferRestore: deviceTransferRestore,

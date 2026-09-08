@@ -1917,18 +1917,22 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         switch persistedState.restoreMethod {
         case .deviceTransfer:
             if let restoreToken = registrationMessage.restoreMethodToken {
-                let deviceTransferCoordinator = DeviceTransferCoordinator(
-                    db: deps.db,
-                    deviceSleepManager: deps.deviceSleepManager,
-                    deviceTransferRestore: deps.deviceTransferRestore,
-                    quickRestoreManager: deps.quickRestoreManager,
-                    registrationStateChangeManager: deps.registrationStateChangeManager,
-                    restoreMethodToken: restoreToken,
-                    restoreMode: .primary,
-                    tsAccountManager: deps.tsAccountManager,
-                    supportsWifiAware: useWifiAware,
-                )
-                return .deviceTransfer(deviceTransferCoordinator)
+                do {
+                    let deviceTransferCoordinator = try DeviceTransferCoordinator(
+                        db: deps.db,
+                        deviceSleepManager: deps.deviceSleepManager,
+                        deviceTransferRestore: deps.deviceTransferRestore,
+                        quickRestoreManager: deps.quickRestoreManager,
+                        registrationStateChangeManager: deps.registrationStateChangeManager,
+                        restoreMethodToken: restoreToken,
+                        restoreMode: .primary,
+                        tsAccountManager: deps.tsAccountManager,
+                        supportsWifiAware: useWifiAware,
+                    )
+                    return .deviceTransfer(deviceTransferCoordinator)
+                } catch {
+                    return .showErrorSheet(.genericError)
+                }
             } else {
                 return .scanQuickRegistrationQrCode
             }

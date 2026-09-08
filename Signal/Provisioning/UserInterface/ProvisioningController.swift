@@ -267,7 +267,7 @@ class ProvisioningController: NSObject {
                 return false
             }()
 
-            let transferState = DeviceTransferCoordinator(
+            let transferState = try DeviceTransferCoordinator(
                 db: DependenciesBridge.shared.db,
                 deviceSleepManager: DependenciesBridge.shared.deviceSleepManager,
                 deviceTransferRestore: AppEnvironment.shared.deviceTransferRestore,
