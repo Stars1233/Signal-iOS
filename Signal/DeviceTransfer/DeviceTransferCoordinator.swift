@@ -21,6 +21,8 @@ public class DeviceTransferCoordinator: Equatable {
 
     private var discoveredPeersListenerTask: Task<Void, Error>?
 
+    var onTransferStart: (() -> Void) = { }
+
     @MainActor
     var pairedPeerStream: AsyncThrowingStream<any DeviceTransfer.Peer, Error> {
         incomingDeviceTransferTask.pairedPeerStream
@@ -169,7 +171,11 @@ public class DeviceTransferCoordinator: Equatable {
         }
     }
 
+    private let hasTransferStarted = AtomicValue(false, lock: .init())
     private func updateStatus(value: Double) {
+        if !hasTransferStarted.swap(true) {
+            onTransferStart()
+        }
         transferStatusViewModel.state = .transferring(value)
     }
 

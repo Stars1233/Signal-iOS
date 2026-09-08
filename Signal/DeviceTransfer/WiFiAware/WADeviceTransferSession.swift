@@ -34,7 +34,9 @@ class WADeviceTransferSession: DeviceTransfer.Session {
     var messages: AsyncThrowingStream<DeviceTransfer.SessionMessage, Error>
     private let messageSink: AsyncThrowingStream<DeviceTransfer.SessionMessage, Error>.Continuation
 
-    init(connection: WiFiAwareConnection) throws {
+    private let cancellableContinuation = CancellableContinuation<Void>()
+
+    init(connection: WiFiAwareConnection) {
         self.connection = connection
         (self.messages, self.messageSink) = AsyncThrowingStream.makeStream(of: DeviceTransfer.SessionMessage.self)
         self.receiverTask = Task {
@@ -64,6 +66,7 @@ class WADeviceTransferSession: DeviceTransfer.Session {
     }
 
     func disconnect(error: Error?) {
+        cancellableContinuation.resume(with: error.map { .failure($0) } ?? .success(()))
         self.messageSink.finish(throwing: error)
         self.receiverTask?.cancel()
         self.receiverTask = nil
@@ -76,6 +79,10 @@ class WADeviceTransferSession: DeviceTransfer.Session {
                 Logger.error("Error closing file \(file.fileUrl): \(error)")
             }
         }
+    }
+
+    func waitForCompletion() async throws {
+        try await cancellableContinuation.wait()
     }
 
     func send(message: DeviceTransfer.Message) throws {

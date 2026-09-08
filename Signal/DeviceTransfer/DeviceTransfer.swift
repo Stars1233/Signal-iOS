@@ -160,8 +160,12 @@ enum DeviceTransfer {
             updatedPeerListStream: AsyncThrowingStream<[any Peer], Swift.Error>,
             boundListenerTask: Task<Void, Swift.Error>,
         ) {
-            let (pairedPeerStream, pairedPeerSink) = AsyncThrowingStream<any Peer, Swift.Error>.makeStream()
-            let (updatedPeerListStream, updatedPeerListSink) = AsyncThrowingStream<[any Peer], Swift.Error>.makeStream()
+            let (pairedPeerStream, pairedPeerSink) = AsyncThrowingStream<any Peer, Swift.Error>.makeStream(
+                bufferingPolicy: .bufferingNewest(1),
+            )
+            let (updatedPeerListStream, updatedPeerListSink) = AsyncThrowingStream<[any Peer], Swift.Error>.makeStream(
+                bufferingPolicy: .bufferingNewest(1),
+            )
             let task = Task {
                 var knownPeerList: [Int: any Peer]?
                 for try await peers in discoveredPeerStream {
@@ -192,7 +196,7 @@ enum DeviceTransfer {
         case finishResource(String, URL)
     }
 
-    protocol Peer: Identifiable {
+    protocol Peer: Identifiable, Hashable {
         var id: Int { get }
         var displayName: String { get }
     }

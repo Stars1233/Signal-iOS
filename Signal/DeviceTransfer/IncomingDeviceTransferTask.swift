@@ -36,6 +36,7 @@ class IncomingDeviceTransferTask {
     let pairedPeerStream: AsyncThrowingStream<any DeviceTransfer.Peer, Error>
     let discoveredPeerStream: AsyncThrowingStream<[any DeviceTransfer.Peer], Error>
     private var pairedPeerListenTask: Task<Void, Error>?
+    private var waitForConnectionTask: Task<any DeviceTransfer.Session, Error>?
 
     init(
         db: DB,
@@ -63,6 +64,12 @@ class IncomingDeviceTransferTask {
         )
     }
 
+    deinit {
+        pairedPeerListenTask.take()?.cancel()
+        messagesReceiverTask.take()?.cancel()
+        waitForConnectionTask.take()?.cancel()
+    }
+
     // MARK: - Public methods
 
     func start(mode: DeviceTransfer.Mode) async throws -> URL {
@@ -79,14 +86,26 @@ class IncomingDeviceTransferTask {
         initializeProgressBlock: ((Progress) -> Void)? = nil,
     ) async throws {
         logger.info("Waiting for connection")
-        let session = try await newDeviceServiceAdvertiser.waitForConnection(peer: peer)
+
+        let task = Task { [newDeviceServiceAdvertiser] in
+            try await newDeviceServiceAdvertiser.waitForConnection(peer: peer)
+        }
+        self.waitForConnectionTask = task
+        defer { self.waitForConnectionTask = nil }
+
+        let session = try await withTaskCancellationHandler {
+            try await task.value
+        } onCancel: {
+            task.cancel()
+        }
+
         self.session = session
         self.initializeProgressBlock = initializeProgressBlock
 
         notificationObservers.append(
             NotificationCenter.default.addObserver(
                 name: .OWSApplicationDidEnterBackground,
-                block: didEnterBackground(_:),
+                block: { [weak self] in self?.didEnterBackground($0) },
             ),
         )
 
@@ -98,35 +117,35 @@ class IncomingDeviceTransferTask {
         }
 
         logger.info("Start listening for transfer messages")
-        messagesReceiverTask = Task {
+        messagesReceiverTask = Task { [weak self] in
             do {
                 for try await message in session.messages {
                     switch message {
                     case .message(let message):
-                        try processMessage(message: message, session: session)
+                        try self?.processMessage(message: message, session: session)
                     case .startResource(let fileName, _, let progress):
-                        try startReceiving(fileName: fileName, session: session, progress: progress)
+                        try self?.startReceiving(fileName: fileName, session: session, progress: progress)
                     case .finishResource(let fileName, let localUrl):
-                        try finishReceiving(fileName: fileName, localUrl: localUrl)
+                        try self?.finishReceiving(fileName: fileName, localUrl: localUrl)
                     }
                 }
             } catch {
-                if let transferFinishedContinuation {
-                    transferFinishedContinuation.resume(throwing: error)
-                    self.transferFinishedContinuation = nil
+                if let continuation = self?.transferFinishedContinuation.take() {
+                    continuation.resume(throwing: error)
                 } else {
                     throw error
                 }
             }
         }
 
-        try await withCheckedThrowingContinuation { continuation in
-            self.transferFinishedContinuation = continuation
+        try await withCheckedThrowingContinuation { [weak self] continuation in
+            self?.transferFinishedContinuation = continuation
         }
     }
 
     @MainActor
     func cancelTransferFromOldDevice() {
+        waitForConnectionTask?.cancel()
         stopTransfer(error: CancellationError())
     }
 

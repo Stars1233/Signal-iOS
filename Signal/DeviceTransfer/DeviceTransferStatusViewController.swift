@@ -12,7 +12,7 @@ import WiFiAware
 
 // MARK: - DeviceTransferStatusViewController
 
-class DeviceTransferStatusViewController: HostingController<TransferStatusView> {
+class DeviceTransferStatusViewController: HostingController<TransferWrapperView> {
     override var prefersNavigationBarHidden: Bool { true }
 
     private let coordinator: DeviceTransferCoordinator
@@ -21,32 +21,30 @@ class DeviceTransferStatusViewController: HostingController<TransferStatusView> 
     init(coordinator: DeviceTransferCoordinator) {
         self.coordinator = coordinator
 
-        let transferStatusView = TransferStatusView(
-            viewModel: coordinator.transferStatusViewModel,
-            isNewDevice: true,
+        super.init(
+            wrappedView: TransferWrapperView(
+                viewModel: coordinator.transferStatusViewModel,
+                isNewDevice: true,
+            ),
         )
-        coordinator.transferStatusViewModel.onPeerSelected = { [weak coordinator] peer in
-            Task { [weak coordinator] in
-                guard let coordinator else { return }
-                do {
-                    try await coordinator.waitForTransferFromPeer(peer: peer)
-                } catch {
-                    coordinator.onFailure(error)
-                }
-            }
-        }
-
-        super.init(wrappedView: transferStatusView)
 
         self.pairedPeerListenTask = Task { [weak self] in
             for try await _ in coordinator.pairedPeerStream {
-                self?.presentedViewController?.dismiss(animated: true)
+                guard let vc = self?.presentedViewController else { return }
+                vc.dismiss(animated: true)
+                self?.presentContinueOnOtherDevicePrompt()
             }
         }
 
         coordinator.confirmCancellation = { [weak self] in
             guard let self else { return true }
             return await self.confirmCancellation()
+        }
+
+        coordinator.onTransferStart = { [weak self] in
+            if let vc = self?.presentedViewController {
+                vc.dismiss(animated: true)
+            }
         }
 
         coordinator.onSuccess = { [weak self] in
@@ -120,18 +118,204 @@ class DeviceTransferStatusViewController: HostingController<TransferStatusView> 
         Task {
             do {
                 try await coordinator.reportTransferMethodChoice()
-                if
-                    #available(iOS 26.0, *),
-                    coordinator.transferStatusViewModel.supportsWifiAware
-                {
-                    // no-op
-                } else {
-                    try await coordinator.waitForTransferFromPeer(peer: nil)
-                }
+                try await coordinator.waitForTransferFromPeer(peer: nil)
             } catch {
                 coordinator.onFailure(error)
             }
         }
+    }
+
+    private func presentContinueOnOtherDevicePrompt() {
+        let sheet = HeroSheetViewController(
+            hero: .image(UIImage(resource: .otherTransferDevice)),
+            title: OWSLocalizedString(
+                "INCOMING_DEVICE_TRANSFER_CONTINUE_TITLE",
+                comment: "Title of prompt notifying device transfer will continue on other device.",
+            ),
+            body: HeroSheetViewController.Body([.text(.plain(OWSLocalizedString(
+                "INCOMING_DEVICE_TRANSFER_CONTINUE_BODY",
+                comment: "Body of prompt notifying device transfer will continue on other device.",
+            )))]),
+            primary: .hero(.animation(named: "circular_indeterminate", height: 60)),
+            secondary: .button(.dismissing(title: CommonStrings.cancelButton)),
+        )
+        present(sheet, animated: true)
+    }
+}
+
+struct TransferWrapperView: View {
+    @ObservedObject var viewModel: TransferStatusViewModel
+    var isNewDevice: Bool
+
+    var body: some View {
+        if
+            #available(iOS 26.0, *),
+            viewModel.supportsWifiAware
+        {
+            switch viewModel.state {
+            case .idle, .starting:
+                TransferPairingView(viewModel: viewModel, isNewDevice: isNewDevice)
+            case .cancelled, .connecting, .done, .error, .transferring:
+                TransferStatusView(viewModel: viewModel, isNewDevice: isNewDevice)
+            }
+        } else {
+            TransferStatusView(viewModel: viewModel, isNewDevice: isNewDevice)
+        }
+    }
+}
+
+@available(iOS 26.0, *)
+struct TransferPairingView: View {
+    @ObservedObject var viewModel: TransferStatusViewModel
+    var isNewDevice: Bool
+
+    func title(isNewDevice: Bool) -> some View {
+        let titleText: String
+        if isNewDevice {
+            titleText = OWSLocalizedString(
+                "DEVICE_TRANSFER_PAIR_NEW_DEVICE_TITLE",
+                comment: "Title of the device transfer screen for pairing a new device, from the new device",
+            )
+        } else {
+            titleText = OWSLocalizedString(
+                "DEVICE_TRANSFER_PAIR_OLD_DEVICE_TITLE",
+                comment: "Title of the device transfer screen for pairing a new device, from the old device",
+            )
+        }
+        return Text(titleText)
+            .font(.title.weight(.semibold))
+            .multilineTextAlignment(.center)
+    }
+
+    func body(isNewDevice: Bool) -> some View {
+        let bodyText: String
+        if isNewDevice {
+            bodyText = OWSLocalizedString(
+                "DEVICE_TRANSFER_PAIR_NEW_DEVICE_MESSAGE",
+                comment: "Body of the device transfer screen for pairing a new device, from the new device",
+            )
+        } else {
+            bodyText = OWSLocalizedString(
+                "DEVICE_TRANSFER_PAIR_OLD_DEVICE_MESSAGE",
+                comment: "Body of the device transfer screen for pairing a new device, from the old device",
+            )
+        }
+        return Text(bodyText)
+            .font(.body)
+            .foregroundStyle(Color.Signal.secondaryLabel)
+            .multilineTextAlignment(.center)
+    }
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Image("device-transfer")
+                .padding(.top, 32)
+            title(isNewDevice: isNewDevice)
+                .padding(.top, 8)
+                .padding(.horizontal, 8)
+            body(isNewDevice: isNewDevice)
+                .padding(.top, 8)
+                .padding(.bottom, 24)
+                .padding(.horizontal, 8)
+            TutorialStack(isNewDevice: isNewDevice)
+            Spacer()
+            if !isNewDevice {
+                DevicePicker(
+                    .wifiAware(
+                        .connecting(
+                            to: .userSpecifiedDevices,
+                            from: .deviceTransferService,
+                        ),
+                    ),
+                ) { endpoint in
+                    viewModel.onPeerSelected(WADeviceTransferPeer(pairedDevice: endpoint.device))
+                } label: {
+                    Button(OWSLocalizedString(
+                        "DEVICE_TRANSFER_STATUS_OLD_DEVICE_PAIR_DEVICE",
+                        comment: "Title for paring an new device to transfer to.",
+                    )) {}
+                        .buttonStyle(Registration.UI.LargePrimaryButtonStyle())
+                        .allowsHitTesting(false) // necessary to let touches pass to DevicePicker
+                } fallback: {}
+            } else {
+                DevicePairingView(
+                    .wifiAware(
+                        .connecting(
+                            to: .deviceTransferService,
+                            from: .allPairedDevices,
+                        ),
+                    ),
+                ) {
+                    Button(OWSLocalizedString(
+                        "DEVICE_TRANSFER_STATUS_NEW_DEVICE_PAIR_DEVICE",
+                        comment: "Title for paring an old device to transfer to.",
+                    )) {}
+                        .buttonStyle(Registration.UI.LargePrimaryButtonStyle())
+                        .allowsHitTesting(false) // necessary to let touches pass to DevicePairingView
+                } fallback: {}
+            }
+            Button(CommonStrings.cancelButton) {
+                Task {
+                    await viewModel.propmtUserToCancelTransfer()
+                }
+            }
+            .buttonStyle(Registration.UI.LargeSecondaryButtonStyle())
+            .padding(.bottom, 32)
+        }
+        .padding(.horizontal, 32)
+    }
+}
+
+private struct TutorialStack: View {
+    var isNewDevice: Bool
+    var body: some View {
+        VStack(alignment: .leading, spacing: 32) {
+            Label(
+                OWSLocalizedString(
+                    "DEVICE_TRANSFER_TUTORIAL_ENABLE_WIFI_MESSAGE",
+                    comment: "Message informing the user to enable wifi and bluetooth on device",
+                ),
+                image: "wifi",
+            )
+            .fixedSize(horizontal: false, vertical: true)
+            if isNewDevice {
+                Label(
+                    OWSLocalizedString(
+                        "DEVICE_TRANSFER_TUTORIAL_TAP_PAIR_DEVICE_MESSAGE",
+                        comment: "Message informing the user to tap on the pair device button",
+                    ),
+                    image: "tap-hand",
+                )
+                .fixedSize(horizontal: false, vertical: true)
+                Label(
+                    OWSLocalizedString(
+                        "DEVICE_TRANSFER_TUTORIAL_CONTINUE_OLD_DEVICE_MESSAGE",
+                        comment: "Message informing the user to continue on the old device",
+                    ),
+                    image: "device-phone",
+                )
+                .fixedSize(horizontal: false, vertical: true)
+            } else {
+                Label(
+                    OWSLocalizedString(
+                        "DEVICE_TRANSFER_TUTORIAL_TAP_PAIR_NEW_DEVICE_MESSAGE",
+                        comment: "Message informing the user to tap on the pair device button",
+                    ),
+                    image: "tap-hand",
+                )
+                .fixedSize(horizontal: false, vertical: true)
+                Label(
+                    OWSLocalizedString(
+                        "DEVICE_TRANSFER_TUTORIAL_SELECT_NEW_DEVICE_MESSAGE",
+                        comment: "Message informing the user to select the new device when prompted",
+                    ),
+                    image: "device-phone",
+                )
+                .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .foregroundStyle(.secondary)
+        .padding(.horizontal, 12)
     }
 }
 
@@ -162,51 +346,6 @@ struct TransferStatusView: View {
                 Text(indefinite.message(isNewDevice: isNewDevice, supportsWifiAware: useWiFiAware))
                     .font(.body)
                     .foregroundStyle(Color.Signal.secondaryLabel)
-
-                if
-                    #available(iOS 26.0, *),
-                    viewModel.supportsWifiAware,
-                    case .starting = indefinite,
-                    viewModel.selectedPeer == nil
-                {
-                    List(viewModel.discoveredPeers, id: \.id) { device in
-                        Button(action: {
-                            // Start the outgoing transfer
-                            viewModel.selectedPeer = device
-                            viewModel.onPeerSelected(device)
-                        }) { Text(device.displayName) }
-                    }
-
-                    if !isNewDevice {
-                        DevicePicker(
-                            .wifiAware(
-                                .connecting(
-                                    to: .userSpecifiedDevices,
-                                    from: .deviceTransferService,
-                                ),
-                            ),
-                        ) { endpoint in
-                            viewModel.onPeerSelected(WADeviceTransferPeer(pairedDevice: endpoint.device))
-                        } label: {
-                            AddDeviceButton()
-                        } fallback: {
-                            AddDeviceButton(fallback: true)
-                        }
-                    } else {
-                        DevicePairingView(
-                            .wifiAware(
-                                .connecting(
-                                    to: .deviceTransferService,
-                                    from: .allPairedDevices,
-                                ),
-                            ),
-                        ) {
-                            AddDeviceButton()
-                        } fallback: {
-                            AddDeviceButton(fallback: true)
-                        }
-                    }
-                }
                 Spacer()
                 Button(CommonStrings.cancelButton) {
                     Task {
@@ -300,31 +439,12 @@ struct TransferStatusView: View {
             .opacity(0.7)
         }
 }
-#endif
 
-struct AddDeviceButton: View {
-    let fallback: Bool
-
-    init(fallback: Bool = false) {
-        self.fallback = fallback
-    }
-
-    var body: some View {
-        HStack {
-            if fallback {
-                Image(systemName: "xmark.circle")
-                Text("Unavailable")
-            } else {
-                Text(OWSLocalizedString(
-                    "DEVICE_TRANSFER_STATUS_NEW_DEVICE_PAIR_DEVICE",
-                    comment: "Title for paring an old device to transfer to.",
-                ))
-                .font(.body)
-                .foregroundStyle(Color.Signal.secondaryLabel)
-                .padding(.vertical, 12)
-                .padding(.horizontal, 24)
-                .overlay(RoundedRectangle(cornerRadius: 10).stroke(.tint, lineWidth: 1.5))
-            }
-        }
-    }
+@available(iOS 26, *)
+#Preview {
+    let viewModel = TransferStatusViewModel()
+    viewModel.cancelTransferBlock = { print("onCancel") }
+    viewModel.onSuccess = { print("onSuccess") }
+    return TransferPairingView(viewModel: viewModel, isNewDevice: true)
 }
+#endif

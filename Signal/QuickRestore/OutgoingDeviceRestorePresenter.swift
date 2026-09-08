@@ -257,15 +257,28 @@ class OutgoingDeviceRestorePresenter: OutgoingDeviceRestoreInitialPresenter {
                 if selectedPeer == nil {
                     viewModel.transferStatusViewModel.onPeerDiscovered = { [weak self] peer in
                         self?.logger.info("Peer discovered")
+                        // Only run this if ddwe have the pairing UI presented
+                        guard self?.presentingViewController?.presentedViewController != nil else { return }
                         Task {
                             await self?.dismissSystemModalIfPresented(presentingViewController: presentingViewController)
+                            await self?.presentTransferConfirmationSheet(
+                                peer: peer,
+                                presentingViewController: presentingViewController,
+                            ) {
+                                self?.viewModel?.waitForPeerContinuation.swap(nil)?.resume(returning: peer)
+                            }
                         }
                     }
                     viewModel.transferStatusViewModel.onPeerSelected = { [weak self] peer in
                         self?.logger.info("Peer selected")
                         Task {
                             await self?.dismissSystemModalIfPresented(presentingViewController: presentingViewController)
-                            self?.viewModel?.waitForPeerContinuation.swap(nil)?.resume(returning: peer)
+                            await self?.presentTransferConfirmationSheet(
+                                peer: peer,
+                                presentingViewController: presentingViewController,
+                            ) {
+                                self?.viewModel?.waitForPeerContinuation.swap(nil)?.resume(returning: peer)
+                            }
                         }
                     }
                 }
@@ -315,6 +328,39 @@ class OutgoingDeviceRestorePresenter: OutgoingDeviceRestoreInitialPresenter {
                 presentingViewController: presentingViewController,
             )
         }
+    }
+
+    @MainActor
+    private func presentTransferConfirmationSheet(
+        peer: any DeviceTransfer.Peer,
+        presentingViewController: UIViewController?,
+        completion: @escaping () -> Void,
+    ) async {
+        let format = OWSLocalizedString(
+            "OUTGOING_DEVICE_TRANSFER_CONFIRM_TITLE",
+            comment: "Title of prompt confirming the start of device transfer.",
+        )
+        let sheet = HeroSheetViewController(
+            hero: .image(UIImage(resource: .transferConfirm)),
+            title: String.localizedStringWithFormat(format, peer.displayName),
+            body: OWSLocalizedString(
+                "OUTGOING_DEVICE_TRANSFER_CONFIRM_BODY",
+                comment: "Body of prompt confirming the start of device transfer.",
+            ),
+            primaryButton: HeroSheetViewController.Button(
+                title: OWSLocalizedString(
+                    "OUTGOING_DEVICE_TRANSFER_START_TRANSFER_ACTION",
+                    comment: "Action prompt confirming the start of device transfer.",
+                ),
+                action: { sheet in
+                    sheet.dismiss(animated: true) {
+                        completion()
+                    }
+                },
+            ),
+            secondaryButton: .dismissing(title: CommonStrings.cancelButton),
+        )
+        await presentingViewController?.presentedViewController?.awaitablePresent(sheet, animated: true)
     }
 
     @MainActor

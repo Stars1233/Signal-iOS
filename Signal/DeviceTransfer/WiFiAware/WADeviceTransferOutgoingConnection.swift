@@ -14,14 +14,14 @@ class WADeviceTransferOutgoingConnection: DeviceTransfer.OutgoingConnection {
     let selectedPeer: (any DeviceTransfer.Peer)? = nil
 
     let discoveredPeerStream: AsyncThrowingStream<[any DeviceTransfer.Peer], any Error>
-    private var discoveredPeerTask: Task<Void, Never>?
+    private let discoveredPeerTask: Task<Void, Never>
 
     init() {
         (self.discoveredPeerStream, self.discoveredPeerTask) = WiFiAware.createPeerDiscoveryObserver(logger: logger)
     }
 
     deinit {
-        discoveredPeerTask.take()?.cancel()
+        discoveredPeerTask.cancel()
     }
 
     func connect(peer: any DeviceTransfer.Peer) async throws -> any DeviceTransfer.Session {
@@ -81,7 +81,7 @@ class WADeviceTransferOutgoingConnection: DeviceTransfer.OutgoingConnection {
         )
 
         logger.debug("Connected to endpoint")
-        return try WADeviceTransferSession(connection: connection)
+        return WADeviceTransferSession(connection: connection)
     }
 
     func stop(error: Error?) {
