@@ -30,16 +30,10 @@ public struct VersionedProfileRequest {
 public class VersionedProfilesImpl: VersionedProfiles {
 
     private enum CredentialStore {
-        private static let deprecatedCredentialStore = KeyValueStore(collection: "VersionedProfiles.credentialStore")
-
         private static let expiringCredentialStore = KeyValueStore(collection: "VersionedProfilesImpl.expiringCredentialStore")
 
         private static func storeKey(for aci: Aci) -> String {
             return aci.serviceIdUppercaseString
-        }
-
-        static func dropDeprecatedCredentialsIfNecessary(transaction: DBWriteTransaction) {
-            deprecatedCredentialStore.removeAll(transaction: transaction)
         }
 
         static func getValidCredential(
@@ -97,14 +91,7 @@ public class VersionedProfilesImpl: VersionedProfiles {
 
     // MARK: - Init
 
-    public init(appReadiness: AppReadiness) {
-        appReadiness.runNowOrWhenMainAppDidBecomeReadyAsync {
-            // Once we think all clients in the world have migrated to expiring
-            // credentials we can remove this.
-            SSKEnvironment.shared.databaseStorageRef.asyncWrite { transaction in
-                CredentialStore.dropDeprecatedCredentialsIfNecessary(transaction: transaction)
-            }
-        }
+    public init() {
     }
 
     // MARK: -

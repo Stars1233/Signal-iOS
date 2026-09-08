@@ -358,6 +358,7 @@ public struct KeyValueStoreDeleter {
     private static let deprecatedCollections: [String] = [
         "AvatarDefaultColorStorageServiceMigrator",
         "BackupArchiveErrorPresenterImpl",
+        "BackupRequestManager",
         "CallLinkAuthCredential",
         "ChangePhoneNumber",
         "ContactsManagerCache.allContacts",
@@ -377,6 +378,7 @@ public struct KeyValueStoreDeleter {
         "IncrementalMessageTSAttachmentMigrator",
         "KeyTransparencyManager",
         "LearnMyOwnPniManagerImpl",
+        "LinkAndSyncManagerImpl",
         "MasterKeyOneTimeSyncManager",
         "MessageBackupErrorPresenterImpl",
         "MultiFingerprintVC",
@@ -402,6 +404,7 @@ public struct KeyValueStoreDeleter {
         "TSStorageManagerSessionStoreCollection",
         "TSStorageManagerSignedPreKeyStoreCollection",
         "UsernameValidation",
+        "VersionedProfiles.credentialStore",
         "arePaymentsEnabledForUserStore",
         "groupRefreshStore",
         "kOWS2FAManager_Collection",

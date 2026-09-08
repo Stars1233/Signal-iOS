@@ -336,7 +336,7 @@ extension AppSetup.GlobalsContinuation {
             db: databaseStorage,
             tsAccountManager: tsAccountManager,
         )
-        let versionedProfiles = testDependencies.versionedProfiles ?? VersionedProfilesImpl(appReadiness: appReadiness)
+        let versionedProfiles = testDependencies.versionedProfiles ?? VersionedProfilesImpl()
 
         let lastVisibleInteractionStore = LastVisibleInteractionStore()
         let usernameLookupManager = UsernameLookupManagerImpl(
