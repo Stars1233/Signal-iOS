@@ -73,7 +73,7 @@ class BackupArchiveReactionArchiver: BackupArchiveProtoStreamWriter {
         context: BackupArchive.RecipientRestoringContext,
     ) -> BackupArchive.RestoreInteractionResult<Void> {
         var reactionErrors = [BackupArchive.RestoreFrameError]()
-        for reaction in reactions {
+        for reaction in reactions.sorted(by: { $0.sortOrder < $1.sortOrder }) {
             let reactorAddress = context[reaction.authorRecipientId]
 
             switch reactorAddress {
