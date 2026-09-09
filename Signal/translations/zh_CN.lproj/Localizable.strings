@@ -125,10 +125,10 @@
 "ADD_USER_TO_PROFILE_WHITELIST_OFFER" = "是否与该用户分享您的个人资料？";
 
 /* Message shown in an action sheet when attempting to rotate AEP, but local backups is enabled. */
-"AEP_MANAGER_LOCAL_BACKUPS_DISABLE_REQUIRED" = "You must disable On-Device Backups before proceeding.";
+"AEP_MANAGER_LOCAL_BACKUPS_DISABLE_REQUIRED" = "您必须先禁用设备本地备份才能继续操作。";
 
 /* Button in an action sheet that takes the user to On-Device Backup settings. */
-"AEP_MANAGER_ON_DEVICE_BACKUP_SETTINGS_BUTTON" = "On-Device Backup Settings";
+"AEP_MANAGER_ON_DEVICE_BACKUP_SETTINGS_BUTTON" = "设备本地备份设置";
 
 /* generic button text to acknowledge that the corresponding text was read. */
 "ALERT_ACTION_ACKNOWLEDGE" = "知道了";
@@ -1026,6 +1026,9 @@
 
 /* Label for a menu item explaining when the user's last backup occurred. */
 "BACKUP_SETTINGS_ENABLED_LAST_BACKUP_LABEL" = "上次备份";
+
+/* Label for a cell on the backups landing page explaining when the user's last backup occurred. */
+"BACKUP_SETTINGS_ENABLED_LAST_BACKUP_LABEL_LANDING_PAGE" = "Last backup";
 
 /* Text explaining that the user's last backup was in the past. Embeds 1:{{ the date of the backup }} and 2:{{ the time of the backup }}. */
 "BACKUP_SETTINGS_ENABLED_LAST_BACKUP_PAST_FORMAT" = "%1$@ 在 %2$@";
@@ -2138,16 +2141,16 @@
 "CHAT_LIST_LOCAL_FILE_BACKUP_RESTORE_PROGRESS_VIEW_TITLE" = "正在恢复附件";
 
 /* Progress label showing the amount uploaded out of the total. Embeds {{ %1$@ bytes uploaded, %2$@ total bytes to upload }}. */
-"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS_FORMAT" = "%1$@ of %2$@";
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS_FORMAT" = "%1$@ / %2$@";
 
 /* Title label shown in the chat list backup progress view while backup attachments are being uploaded. */
-"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS_TITLE" = "Copying attachments";
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS_TITLE" = "正在复制附件";
 
 /* Title label shown in the chat list local file backup progress view while the attachments are being prepared */
-"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_ATTACHMENTS" = "Preparing attachments";
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_ATTACHMENTS" = "正在准备附件";
 
 /* Title label shown in the chat list local file backup progress view while the backup file is being prepared. */
-"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_BACKUP" = "Preparing backup";
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_BACKUP" = "正在准备备份";
 
 /* Message shown in the chat list when the chat list is empty. */
 "CHAT_LIST_NO_CHATS_SUBTITLE" = "最近的聊天将会在这里显示。";
@@ -3163,6 +3166,18 @@
 /* An error indicating the user must update their device before trying to transfer. */
 "DEVICE_TRANSFER_ERROR_UNSUPPORTED_VERSION" = "将 Signal 更新到最新版本并重试";
 
+/* Body of the device transfer screen for pairing a new device, from the new device */
+"DEVICE_TRANSFER_PAIR_NEW_DEVICE_MESSAGE" = "To transfer your account, pair this device with your old device";
+
+/* Title of the device transfer screen for pairing a new device, from the new device */
+"DEVICE_TRANSFER_PAIR_NEW_DEVICE_TITLE" = "Pair With Your New Device";
+
+/* Body of the device transfer screen for pairing a new device, from the old device */
+"DEVICE_TRANSFER_PAIR_OLD_DEVICE_MESSAGE" = "To transfer your account, pair this device with your new device";
+
+/* Title of the device transfer screen for pairing a new device, from the old device */
+"DEVICE_TRANSFER_PAIR_OLD_DEVICE_TITLE" = "Pair With Your Old Device";
+
 /* The explanation on the view that shows receiving progress */
 "DEVICE_TRANSFER_RECEIVING_EXPLANATION" = "请确保两个设备足够靠近。不要关闭设备并保证 Signal 运行。迁移是点对点加密的。";
 
@@ -3182,7 +3197,7 @@
 "DEVICE_TRANSFER_STATUS_NEW_DEVICE_CONNECTING_WIFI_AWARE_MESSAGE" = "请将您的旧设备放在附近，并确保已启用 Wi-Fi 和蓝牙。从旧设备的设备列表中选择此设备。如果此设备未在旧设备中显示，请选择下方的“配对新设备”。";
 
 /* Title for paring an old device to transfer to. */
-"DEVICE_TRANSFER_STATUS_NEW_DEVICE_PAIR_DEVICE" = "配对新设备";
+"DEVICE_TRANSFER_STATUS_NEW_DEVICE_PAIR_DEVICE" = "Pair This device";
 
 /* Status message on new device when transfer is starting. */
 "DEVICE_TRANSFER_STATUS_NEW_DEVICE_STARTING" = "正在等待连接到旧设备…";
@@ -3211,6 +3226,9 @@
 /* Description message on old device displayed during device connection when using WiFiAware. */
 "DEVICE_TRANSFER_STATUS_OLD_DEVICE_CONNECTING_WIFI_AWARE_MESSAGE" = "请将您的新设备放在附近，并确保已启用 Wi-Fi 和蓝牙。";
 
+/* Title for paring an new device to transfer to. */
+"DEVICE_TRANSFER_STATUS_OLD_DEVICE_PAIR_DEVICE" = "Pair With New device";
+
 /* Status message on old device when transfer is starting. */
 "DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING" = "正在等待连接到新设备…";
 
@@ -3219,6 +3237,21 @@
 
 /* Description message on old device displayed during device discovery when using WiFiAware. */
 "DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING_WIFI_AWARE_MESSAGE" = "从下方的已配对设备列表中选择新设备。如果新设备不显示，请选择“配对新设备”以开始此流程。";
+
+/* Message informing the user to continue on the old device */
+"DEVICE_TRANSFER_TUTORIAL_CONTINUE_OLD_DEVICE_MESSAGE" = "Continue on your old device";
+
+/* Message informing the user to enable wifi and bluetooth on device */
+"DEVICE_TRANSFER_TUTORIAL_ENABLE_WIFI_MESSAGE" = "Enable Wifi and Bluetooth on both devices";
+
+/* Message informing the user to select the new device when prompted */
+"DEVICE_TRANSFER_TUTORIAL_SELECT_NEW_DEVICE_MESSAGE" = "Select your new device when prompted";
+
+/* Message informing the user to tap on the pair device button */
+"DEVICE_TRANSFER_TUTORIAL_TAP_PAIR_DEVICE_MESSAGE" = "Tap “Pair This Device” below";
+
+/* Message informing the user to tap on the pair device button */
+"DEVICE_TRANSFER_TUTORIAL_TAP_PAIR_NEW_DEVICE_MESSAGE" = "Tap “Pair With New Decvice” below";
 
 /* table cell label in conversation settings */
 "DISAPPEARING_MESSAGES" = "阅后即焚";
@@ -5056,6 +5089,12 @@
 /* Label reminding the user that they are in archive mode, and that chats are unarchived when they receive a new message. */
 "INBOX_VIEW_ARCHIVE_MODE_REMINDER" = "当收到新消息时，已存档的聊天记录将会移动到收件箱。";
 
+/* Body of prompt notifying device transfer will continue on other device. */
+"INCOMING_DEVICE_TRANSFER_CONTINUE_BODY" = "Continue transferring your account on your other device.";
+
+/* Title of prompt notifying device transfer will continue on other device. */
+"INCOMING_DEVICE_TRANSFER_CONTINUE_TITLE" = "Continue on your other device";
+
 /* info message text in conversation view */
 "INCOMING_VIDEO_CALL" = "视频来电";
 
@@ -6751,6 +6790,15 @@
 /* Title of prompt notifying device transfer completed. */
 "OUTGOING_DEVICE_TRANSFER_COMPLETE_TITLE" = "转移完成";
 
+/* Body of prompt confirming the start of device transfer. */
+"OUTGOING_DEVICE_TRANSFER_CONFIRM_BODY" = "Your account will be transferred to a new device. This device will be able to see your groups and contacts, access your chats, and send messages in your name.";
+
+/* Title of prompt confirming the start of device transfer. */
+"OUTGOING_DEVICE_TRANSFER_CONFIRM_TITLE" = "Transfer Account to \"%1$@\"?";
+
+/* Action prompt confirming the start of device transfer. */
+"OUTGOING_DEVICE_TRANSFER_START_TRANSFER_ACTION" = "Start Transfer";
+
 /* info message text in conversation view */
 "OUTGOING_MISSED_VIDEO_CALL" = "未接视频通话";
 
@@ -8078,10 +8126,10 @@
 "REGISTRATION_PROVIDER_FAILURE_MESSAGE_TRANSIENT" = "我们无法给您的手机号码发送短信。请稍等几分钟后重试。";
 
 /* Message for a button in the registration flow that allows restoring from a local backup */
-"REGISTRATION_RESTORE_FROM_LOCAL_BACKUP_BUTTON_MESSAGE" = "Restore your account and messages from a folder saved on your device";
+"REGISTRATION_RESTORE_FROM_LOCAL_BACKUP_BUTTON_MESSAGE" = "从保存在您设备上的文件夹中恢复您的账户和消息";
 
 /* Title for a button in the registration flow that allows restoring from a local backup */
-"REGISTRATION_RESTORE_FROM_LOCAL_BACKUP_BUTTON_TITLE" = "Restore On-Device Backup";
+"REGISTRATION_RESTORE_FROM_LOCAL_BACKUP_BUTTON_TITLE" = "恢复本地备份";
 
 /* Third step in directions for how to make a backup */
 "REGISTRATION_RESTORE_METHOD_MAKE_BACKUP_TUTORIAL_ENABLE_BACKUPS" = "启用备份然后等待备份完成";
@@ -8584,6 +8632,12 @@
 /* Button text to select all in any list selection mode */
 "SELECT_ALL" = "全选";
 
+/* Placeholder text for the search bar on the 'Select Contact' view */
+"SELECT_CONTACT_FOR_SHARING_SEARCH_BAR_PLACEHOLDER" = "Search";
+
+/* Title for the 'Select Contact' view */
+"SELECT_CONTACT_FOR_SHARING_VIEW_TITLE" = "Select Contact";
+
 /* No comment provided by engineer. */
 "SEND_AGAIN_BUTTON" = "重新发送";
 
@@ -8975,7 +9029,7 @@
 "SETTINGS_LOCAL_FILE_BACKUPS_LOCAL_BACKUP_IN_PROGRESS_MESSAGE" = "由于本机正在使用设备本地备份，因此 Signal 安全备份无法执行。请稍后再试。";
 
 /* Label for a progress bar while attachments are being copied for an on-device backup. Embeds 1:{{%1$@ completed bytes copied, %2$@ total bytes to copy, %3$@ percentage complete }}. */
-"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS" = "Copying attachments %1$@ of %2$@ (%3$@)";
+"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS" = "正在复制 %1$@/%2$@ 的附件 (%3$@)";
 
 /* Label for a progress bar while the attachments are being prepared for an on-device backup. Embeds 1:{{ percentage complete }}. */
 "SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_ATTACHMENTS" = "正在准备附件（%1$@）";
@@ -8996,13 +9050,13 @@
 "SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF" = "关闭并删除备份";
 
 /* Button for an action sheet asking the user to confirm they would like to turn off local backups */
-"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_BUTTON" = "Turn Off and Delete";
+"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_BUTTON" = "关闭和删除";
 
 /* Message for an action sheet asking the user to confirm they would like to turn off local backups */
-"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_MESSAGE" = "Your backup will be deleted and no new backups will be made.";
+"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_MESSAGE" = "您的备份将被删除，并且不会创建新的备份。";
 
 /* Title for an action sheet asking the user to confirm they would like to turn off local backups */
-"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_TITLE" = "Turn Off and Delete Backup?";
+"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_TITLE" = "要关闭并删除备份？";
 
 /* Message shown on an action sheet when a user's backup fails to delete. Embeds {{ local file backup location }} */
 "SETTINGS_LOCAL_FILE_BACKUPS_TURNING_OFF_ERROR_MESSAGE_FORMAT" = "由于发生错误，您的备份无法删除。您必须手动删除备份文件夹。操作方法：在文件应用中前往“%1$@”，然后手动删除备份文件夹和其中的内容。系统不会创建新的备份。";
@@ -9043,8 +9097,20 @@
 /* Title for settings activity */
 "SETTINGS_NAV_BAR_TITLE" = "设置";
 
+/* Label for the setting controlling whether the app icon badge counts unread messages or unread chats. */
+"SETTINGS_NOTIFICATION_BADGE_COUNT" = "Badge Count";
+
+/* Explanation for the setting controlling whether the app icon badge counts unread messages or unread chats. */
+"SETTINGS_NOTIFICATION_BADGE_COUNT_FOOTER" = "Select if the badge count displays the number of unread messages or the number of unread chats";
+
 /* A setting controlling whether muted conversations are shown in the badge count */
 "SETTINGS_NOTIFICATION_BADGE_COUNT_INCLUDES_MUTED_CONVERSATIONS" = "包含静音聊天";
+
+/* Label for the option that makes the app icon badge show the number of unread chats. */
+"SETTINGS_NOTIFICATION_BADGE_COUNT_UNREAD_CHATS" = "Unread Chats";
+
+/* Label for the option that makes the app icon badge show the number of unread messages. */
+"SETTINGS_NOTIFICATION_BADGE_COUNT_UNREAD_MESSAGES" = "Unread Messages";
 
 /* table section footer */
 "SETTINGS_NOTIFICATION_CONTENT_DESCRIPTION" = "手机锁定时可显示通话和消息通知。";
@@ -9744,6 +9810,36 @@
 
 /* No comment provided by engineer. */
 "SETTINGS_VERSION" = "版本";
+
+/* Title for the settings page controlling which notifications are still shown for muted chats. Also used as the label for the rows that link to this page. */
+"SETTINGS_WHILE_MUTED" = "While Muted";
+
+/* Label for the switch controlling whether calls ring or notify in muted chats. */
+"SETTINGS_WHILE_MUTED_CALLS" = "Calls";
+
+/* Explanation for the switch controlling whether calls ring or notify while this chat is muted. */
+"SETTINGS_WHILE_MUTED_CALLS_CHAT_FOOTER" = "Ring or notify when a call is started while this chat is muted.";
+
+/* Explanation for the switch controlling whether calls ring or notify in muted chats. */
+"SETTINGS_WHILE_MUTED_CALLS_FOOTER" = "Ring or notify when a call is started in muted chats.";
+
+/* Label for the switch controlling whether mentions of you notify in muted chats. */
+"SETTINGS_WHILE_MUTED_MENTIONS" = "Mentions";
+
+/* Explanation for the switch controlling whether mentions of you notify while this chat is muted. */
+"SETTINGS_WHILE_MUTED_MENTIONS_CHAT_FOOTER" = "Notify when you are mentioned while this chat is muted.";
+
+/* Explanation for the switch controlling whether mentions of you notify in muted chats. */
+"SETTINGS_WHILE_MUTED_MENTIONS_FOOTER" = "Notify when you are mentioned in muted chats.";
+
+/* Label for the switch controlling whether replies to your messages notify in muted chats. */
+"SETTINGS_WHILE_MUTED_REPLIES" = "Replies";
+
+/* Explanation for the switch controlling whether replies to your messages notify while this chat is muted. */
+"SETTINGS_WHILE_MUTED_REPLIES_CHAT_FOOTER" = "Notify when someone replies to your message while this chat is muted.";
+
+/* Explanation for the switch controlling whether replies to your messages notify in muted chats. */
+"SETTINGS_WHILE_MUTED_REPLIES_FOOTER" = "Notify when someone replies to your message in muted chats.";
 
 /* action sheet item to open native mail app */
 "SHARE_ACTION_MAIL" = "Email";

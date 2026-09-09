@@ -125,10 +125,10 @@
 "ADD_USER_TO_PROFILE_WHITELIST_OFFER" = "या वापरकर्त्यासोबत आपल्याला आपली प्रोफाईल सामायिक करायला आवडेल का?";
 
 /* Message shown in an action sheet when attempting to rotate AEP, but local backups is enabled. */
-"AEP_MANAGER_LOCAL_BACKUPS_DISABLE_REQUIRED" = "You must disable On-Device Backups before proceeding.";
+"AEP_MANAGER_LOCAL_BACKUPS_DISABLE_REQUIRED" = "तुम्ही पुढे जाण्यापूर्वी डिव्हाईसवरील बॅकअप्स बंद करणे आवश्यक आहे.";
 
 /* Button in an action sheet that takes the user to On-Device Backup settings. */
-"AEP_MANAGER_ON_DEVICE_BACKUP_SETTINGS_BUTTON" = "On-Device Backup Settings";
+"AEP_MANAGER_ON_DEVICE_BACKUP_SETTINGS_BUTTON" = "डिव्हाईसवरील बॅकअप सेटिंग्ज";
 
 /* generic button text to acknowledge that the corresponding text was read. */
 "ALERT_ACTION_ACKNOWLEDGE" = "कळले";
@@ -1026,6 +1026,9 @@
 
 /* Label for a menu item explaining when the user's last backup occurred. */
 "BACKUP_SETTINGS_ENABLED_LAST_BACKUP_LABEL" = "शेवटचा बॅकअप";
+
+/* Label for a cell on the backups landing page explaining when the user's last backup occurred. */
+"BACKUP_SETTINGS_ENABLED_LAST_BACKUP_LABEL_LANDING_PAGE" = "Last backup";
 
 /* Text explaining that the user's last backup was in the past. Embeds 1:{{ the date of the backup }} and 2:{{ the time of the backup }}. */
 "BACKUP_SETTINGS_ENABLED_LAST_BACKUP_PAST_FORMAT" = "%2$@ वर %1$@";
@@ -2138,16 +2141,16 @@
 "CHAT_LIST_LOCAL_FILE_BACKUP_RESTORE_PROGRESS_VIEW_TITLE" = "अटॅचमेंट्स रीस्टोर होत आहेत";
 
 /* Progress label showing the amount uploaded out of the total. Embeds {{ %1$@ bytes uploaded, %2$@ total bytes to upload }}. */
-"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS_FORMAT" = "%1$@ of %2$@";
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS_FORMAT" = "%1$@ पैकी %2$@";
 
 /* Title label shown in the chat list backup progress view while backup attachments are being uploaded. */
-"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS_TITLE" = "Copying attachments";
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS_TITLE" = "अटॅचमेंट्स कॉपी होत आहेत";
 
 /* Title label shown in the chat list local file backup progress view while the attachments are being prepared */
-"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_ATTACHMENTS" = "Preparing attachments";
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_ATTACHMENTS" = "अटॅचमेंट्स तयार होत आहेत";
 
 /* Title label shown in the chat list local file backup progress view while the backup file is being prepared. */
-"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_BACKUP" = "Preparing backup";
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_BACKUP" = "बॅकअपची तयारी करत आहे";
 
 /* Message shown in the chat list when the chat list is empty. */
 "CHAT_LIST_NO_CHATS_SUBTITLE" = "अलीकडील चॅट्स येथे दिसून येतील.";
@@ -3163,6 +3166,18 @@
 /* An error indicating the user must update their device before trying to transfer. */
 "DEVICE_TRANSFER_ERROR_UNSUPPORTED_VERSION" = "Signal च्या नवीनतम आवृत्ती वर अद्यतनित करा आणि पुन्हा प्रयत्न करा";
 
+/* Body of the device transfer screen for pairing a new device, from the new device */
+"DEVICE_TRANSFER_PAIR_NEW_DEVICE_MESSAGE" = "To transfer your account, pair this device with your old device";
+
+/* Title of the device transfer screen for pairing a new device, from the new device */
+"DEVICE_TRANSFER_PAIR_NEW_DEVICE_TITLE" = "Pair With Your New Device";
+
+/* Body of the device transfer screen for pairing a new device, from the old device */
+"DEVICE_TRANSFER_PAIR_OLD_DEVICE_MESSAGE" = "To transfer your account, pair this device with your new device";
+
+/* Title of the device transfer screen for pairing a new device, from the old device */
+"DEVICE_TRANSFER_PAIR_OLD_DEVICE_TITLE" = "Pair With Your Old Device";
+
 /* The explanation on the view that shows receiving progress */
 "DEVICE_TRANSFER_RECEIVING_EXPLANATION" = "दोन्ही डिव्हाईस ऐकमेकांच्या जवळ ठेवा. कुठलाही डिव्हाईस बंद करू नका आणि Signal उघडे ठेवा. स्थानांतरण हे एंड-टू-एंड एन्क्रिप्टेड असतात.";
 
@@ -3182,7 +3197,7 @@
 "DEVICE_TRANSFER_STATUS_NEW_DEVICE_CONNECTING_WIFI_AWARE_MESSAGE" = "तुमचा जुना डिव्हाईस जवळ आणा, आणि Wi-Fi आणि Bluetooth चालू केल्याची खात्री करा. जुन्या डिव्हाईसवरील डिव्हाईसेसच्या यादीमधून हा डिव्हाईस निवडा.  जर जुन्या डिव्हाईसवर डिव्हाईस दिसत नसेल, तर खाली 'नवीन डिव्हाईस निवडा'.";
 
 /* Title for paring an old device to transfer to. */
-"DEVICE_TRANSFER_STATUS_NEW_DEVICE_PAIR_DEVICE" = "एक नवीन डिव्हाईस पेअर करा";
+"DEVICE_TRANSFER_STATUS_NEW_DEVICE_PAIR_DEVICE" = "Pair This device";
 
 /* Status message on new device when transfer is starting. */
 "DEVICE_TRANSFER_STATUS_NEW_DEVICE_STARTING" = "जुन्या डिव्हाईसला कनेक्ट करण्याची प्रतीक्षा करत आहे...";
@@ -3211,6 +3226,9 @@
 /* Description message on old device displayed during device connection when using WiFiAware. */
 "DEVICE_TRANSFER_STATUS_OLD_DEVICE_CONNECTING_WIFI_AWARE_MESSAGE" = "तुमचा नवा डिव्हाईस जवळ आणा, आणि Wi-Fi आणि Bluetooth चालू केल्याची खात्री करा.";
 
+/* Title for paring an new device to transfer to. */
+"DEVICE_TRANSFER_STATUS_OLD_DEVICE_PAIR_DEVICE" = "Pair With New device";
+
 /* Status message on old device when transfer is starting. */
 "DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING" = "नवीन डिव्हाईसला कनेक्ट करण्याच्या प्रतीक्षेत...";
 
@@ -3219,6 +3237,21 @@
 
 /* Description message on old device displayed during device discovery when using WiFiAware. */
 "DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING_WIFI_AWARE_MESSAGE" = "पेअर केलेल्या डिव्हाईसेसच्या यादीमधून नवीन डिव्हाईस निवडा. जर नवीन डिव्हाईस दिसत नसेल, तर प्रक्रिया सुरु करण्यासाठी 'एक नवीन डिव्हाईस पेअर करा'.";
+
+/* Message informing the user to continue on the old device */
+"DEVICE_TRANSFER_TUTORIAL_CONTINUE_OLD_DEVICE_MESSAGE" = "Continue on your old device";
+
+/* Message informing the user to enable wifi and bluetooth on device */
+"DEVICE_TRANSFER_TUTORIAL_ENABLE_WIFI_MESSAGE" = "Enable Wifi and Bluetooth on both devices";
+
+/* Message informing the user to select the new device when prompted */
+"DEVICE_TRANSFER_TUTORIAL_SELECT_NEW_DEVICE_MESSAGE" = "Select your new device when prompted";
+
+/* Message informing the user to tap on the pair device button */
+"DEVICE_TRANSFER_TUTORIAL_TAP_PAIR_DEVICE_MESSAGE" = "Tap “Pair This Device” below";
+
+/* Message informing the user to tap on the pair device button */
+"DEVICE_TRANSFER_TUTORIAL_TAP_PAIR_NEW_DEVICE_MESSAGE" = "Tap “Pair With New Decvice” below";
 
 /* table cell label in conversation settings */
 "DISAPPEARING_MESSAGES" = "हरवणारे संदेश";
@@ -5056,6 +5089,12 @@
 /* Label reminding the user that they are in archive mode, and that chats are unarchived when they receive a new message. */
 "INBOX_VIEW_ARCHIVE_MODE_REMINDER" = "नवीन संदेश येईल तेव्हा आर्काईव्ह केलेले चॅट्स इनबॉक्समध्ये हलवले जातील.";
 
+/* Body of prompt notifying device transfer will continue on other device. */
+"INCOMING_DEVICE_TRANSFER_CONTINUE_BODY" = "Continue transferring your account on your other device.";
+
+/* Title of prompt notifying device transfer will continue on other device. */
+"INCOMING_DEVICE_TRANSFER_CONTINUE_TITLE" = "Continue on your other device";
+
 /* info message text in conversation view */
 "INCOMING_VIDEO_CALL" = "येणारा व्हिडिओ कॉल";
 
@@ -6751,6 +6790,15 @@
 /* Title of prompt notifying device transfer completed. */
 "OUTGOING_DEVICE_TRANSFER_COMPLETE_TITLE" = "स्थानांतरण पूर्ण झाले";
 
+/* Body of prompt confirming the start of device transfer. */
+"OUTGOING_DEVICE_TRANSFER_CONFIRM_BODY" = "Your account will be transferred to a new device. This device will be able to see your groups and contacts, access your chats, and send messages in your name.";
+
+/* Title of prompt confirming the start of device transfer. */
+"OUTGOING_DEVICE_TRANSFER_CONFIRM_TITLE" = "Transfer Account to \"%1$@\"?";
+
+/* Action prompt confirming the start of device transfer. */
+"OUTGOING_DEVICE_TRANSFER_START_TRANSFER_ACTION" = "Start Transfer";
+
 /* info message text in conversation view */
 "OUTGOING_MISSED_VIDEO_CALL" = "अनुत्तरित व्हिडिओ कॉल";
 
@@ -6779,7 +6827,7 @@
 "OVERSIZE_TEXT_UNAVAILABLE_SHEET_TITLE" = "पूर्ण संदेश उपलब्ध नाही";
 
 /* The name of the Signal app, used as the title for an entry in a user's password manager for their Signal Recovery Key. Should be localized with the same value as the app's name in the iOS App Store. */
-"PASSWORD_MANAGER_SIGNAL_APP_NAME" = "Signal Private Messenger";
+"PASSWORD_MANAGER_SIGNAL_APP_NAME" = "Signal - खासगी मेसेंजर";
 
 /* Header title for bank payment details screen */
 "PAYMENT_DETAILS_BANK_TITLE" = "बँक हस्तांतरण";
@@ -8078,10 +8126,10 @@
 "REGISTRATION_PROVIDER_FAILURE_MESSAGE_TRANSIENT" = "आम्हाला तुमच्या क्रमांकावर SMS पाठवता येत नाहीये. कृपया काही मिनिटांनी पुन्हा प्रयत्न करा.";
 
 /* Message for a button in the registration flow that allows restoring from a local backup */
-"REGISTRATION_RESTORE_FROM_LOCAL_BACKUP_BUTTON_MESSAGE" = "Restore your account and messages from a folder saved on your device";
+"REGISTRATION_RESTORE_FROM_LOCAL_BACKUP_BUTTON_MESSAGE" = "तुमच्या डिव्हाईसवर जतन केलेल्या एका फोल्डरमधून तुमचे खाते आणि संदेश परत मिळवा";
 
 /* Title for a button in the registration flow that allows restoring from a local backup */
-"REGISTRATION_RESTORE_FROM_LOCAL_BACKUP_BUTTON_TITLE" = "Restore On-Device Backup";
+"REGISTRATION_RESTORE_FROM_LOCAL_BACKUP_BUTTON_TITLE" = "डिव्हाईस वरील बॅकअप परत मिळवा";
 
 /* Third step in directions for how to make a backup */
 "REGISTRATION_RESTORE_METHOD_MAKE_BACKUP_TUTORIAL_ENABLE_BACKUPS" = "बॅकअप्स सक्षम करा आणि आपला बॅकअप पूर्ण होईपर्यंत वाट पाहा";
@@ -8584,6 +8632,12 @@
 /* Button text to select all in any list selection mode */
 "SELECT_ALL" = "सर्व निवडा";
 
+/* Placeholder text for the search bar on the 'Select Contact' view */
+"SELECT_CONTACT_FOR_SHARING_SEARCH_BAR_PLACEHOLDER" = "Search";
+
+/* Title for the 'Select Contact' view */
+"SELECT_CONTACT_FOR_SHARING_VIEW_TITLE" = "Select Contact";
+
 /* No comment provided by engineer. */
 "SEND_AGAIN_BUTTON" = "पुन्हा पाठवा";
 
@@ -8975,7 +9029,7 @@
 "SETTINGS_LOCAL_FILE_BACKUPS_LOCAL_BACKUP_IN_PROGRESS_MESSAGE" = "Signal सिक्युअर बॅकअप प्रक्रिया चालू असल्याने डिव्हाईसवरील बॅकअप घेता येणार नाही. नंतर पुन्हा प्रयत्न करा.";
 
 /* Label for a progress bar while attachments are being copied for an on-device backup. Embeds 1:{{%1$@ completed bytes copied, %2$@ total bytes to copy, %3$@ percentage complete }}. */
-"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS" = "Copying attachments %1$@ of %2$@ (%3$@)";
+"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS" = "%2$@ पैकी %1$@ अटॅचमेंट्स कॉपी होत आहेत (%3$@)";
 
 /* Label for a progress bar while the attachments are being prepared for an on-device backup. Embeds 1:{{ percentage complete }}. */
 "SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_ATTACHMENTS" = "अटॅचमेंट्स तयार होत आहेत (%1$@)";
@@ -8996,13 +9050,13 @@
 "SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF" = "बंद करा आणि बॅकअप हटवा";
 
 /* Button for an action sheet asking the user to confirm they would like to turn off local backups */
-"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_BUTTON" = "Turn Off and Delete";
+"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_BUTTON" = "बंद करा आणि हटवा";
 
 /* Message for an action sheet asking the user to confirm they would like to turn off local backups */
-"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_MESSAGE" = "Your backup will be deleted and no new backups will be made.";
+"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_MESSAGE" = "तुमचा बॅकअप हटवला जाईल आणि कोणताही नवीन बॅकअप तयार केला जाणार नाही.";
 
 /* Title for an action sheet asking the user to confirm they would like to turn off local backups */
-"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_TITLE" = "Turn Off and Delete Backup?";
+"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_TITLE" = "बॅकअप बंद करायचा आणि हटवायचा का?";
 
 /* Message shown on an action sheet when a user's backup fails to delete. Embeds {{ local file backup location }} */
 "SETTINGS_LOCAL_FILE_BACKUPS_TURNING_OFF_ERROR_MESSAGE_FORMAT" = "तुमचा बॅकअप एका त्रुटीमुळे हटवता आला नाही. तुम्ही हा फोल्डर स्वतः हटवायला हवा. फाईल्स ॲप मध्ये, \"%1$@\" वर जा, आणि हा फोल्डर व त्यामधील बाबी स्वतः हटवा. कोणतेही नवे बॅकअप्स तयार केले जाणार नाहीत.";
@@ -9043,8 +9097,20 @@
 /* Title for settings activity */
 "SETTINGS_NAV_BAR_TITLE" = "सेटिंग";
 
+/* Label for the setting controlling whether the app icon badge counts unread messages or unread chats. */
+"SETTINGS_NOTIFICATION_BADGE_COUNT" = "Badge Count";
+
+/* Explanation for the setting controlling whether the app icon badge counts unread messages or unread chats. */
+"SETTINGS_NOTIFICATION_BADGE_COUNT_FOOTER" = "Select if the badge count displays the number of unread messages or the number of unread chats";
+
 /* A setting controlling whether muted conversations are shown in the badge count */
 "SETTINGS_NOTIFICATION_BADGE_COUNT_INCLUDES_MUTED_CONVERSATIONS" = "मूक केलेल्या चॅटचा समावेश करा";
+
+/* Label for the option that makes the app icon badge show the number of unread chats. */
+"SETTINGS_NOTIFICATION_BADGE_COUNT_UNREAD_CHATS" = "Unread Chats";
+
+/* Label for the option that makes the app icon badge show the number of unread messages. */
+"SETTINGS_NOTIFICATION_BADGE_COUNT_UNREAD_MESSAGES" = "Unread Messages";
 
 /* table section footer */
 "SETTINGS_NOTIFICATION_CONTENT_DESCRIPTION" = "आपला फोन लॉक असल्यावर कॉल आणि संदेश सूचना दिसू शकतात.";
@@ -9744,6 +9810,36 @@
 
 /* No comment provided by engineer. */
 "SETTINGS_VERSION" = "आवृत्ती";
+
+/* Title for the settings page controlling which notifications are still shown for muted chats. Also used as the label for the rows that link to this page. */
+"SETTINGS_WHILE_MUTED" = "While Muted";
+
+/* Label for the switch controlling whether calls ring or notify in muted chats. */
+"SETTINGS_WHILE_MUTED_CALLS" = "Calls";
+
+/* Explanation for the switch controlling whether calls ring or notify while this chat is muted. */
+"SETTINGS_WHILE_MUTED_CALLS_CHAT_FOOTER" = "Ring or notify when a call is started while this chat is muted.";
+
+/* Explanation for the switch controlling whether calls ring or notify in muted chats. */
+"SETTINGS_WHILE_MUTED_CALLS_FOOTER" = "Ring or notify when a call is started in muted chats.";
+
+/* Label for the switch controlling whether mentions of you notify in muted chats. */
+"SETTINGS_WHILE_MUTED_MENTIONS" = "Mentions";
+
+/* Explanation for the switch controlling whether mentions of you notify while this chat is muted. */
+"SETTINGS_WHILE_MUTED_MENTIONS_CHAT_FOOTER" = "Notify when you are mentioned while this chat is muted.";
+
+/* Explanation for the switch controlling whether mentions of you notify in muted chats. */
+"SETTINGS_WHILE_MUTED_MENTIONS_FOOTER" = "Notify when you are mentioned in muted chats.";
+
+/* Label for the switch controlling whether replies to your messages notify in muted chats. */
+"SETTINGS_WHILE_MUTED_REPLIES" = "Replies";
+
+/* Explanation for the switch controlling whether replies to your messages notify while this chat is muted. */
+"SETTINGS_WHILE_MUTED_REPLIES_CHAT_FOOTER" = "Notify when someone replies to your message while this chat is muted.";
+
+/* Explanation for the switch controlling whether replies to your messages notify in muted chats. */
+"SETTINGS_WHILE_MUTED_REPLIES_FOOTER" = "Notify when someone replies to your message in muted chats.";
 
 /* action sheet item to open native mail app */
 "SHARE_ACTION_MAIL" = "मेल";

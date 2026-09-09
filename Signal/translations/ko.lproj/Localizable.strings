@@ -125,10 +125,10 @@
 "ADD_USER_TO_PROFILE_WHITELIST_OFFER" = "이 사용자에게 내 프로필을 공유하시겠어요?";
 
 /* Message shown in an action sheet when attempting to rotate AEP, but local backups is enabled. */
-"AEP_MANAGER_LOCAL_BACKUPS_DISABLE_REQUIRED" = "You must disable On-Device Backups before proceeding.";
+"AEP_MANAGER_LOCAL_BACKUPS_DISABLE_REQUIRED" = "진행하기 전 기기 내 백업을 비활성화해야 합니다.";
 
 /* Button in an action sheet that takes the user to On-Device Backup settings. */
-"AEP_MANAGER_ON_DEVICE_BACKUP_SETTINGS_BUTTON" = "On-Device Backup Settings";
+"AEP_MANAGER_ON_DEVICE_BACKUP_SETTINGS_BUTTON" = "기기 내 백업 설정";
 
 /* generic button text to acknowledge that the corresponding text was read. */
 "ALERT_ACTION_ACKNOWLEDGE" = "확인";
@@ -1026,6 +1026,9 @@
 
 /* Label for a menu item explaining when the user's last backup occurred. */
 "BACKUP_SETTINGS_ENABLED_LAST_BACKUP_LABEL" = "마지막 백업";
+
+/* Label for a cell on the backups landing page explaining when the user's last backup occurred. */
+"BACKUP_SETTINGS_ENABLED_LAST_BACKUP_LABEL_LANDING_PAGE" = "Last backup";
 
 /* Text explaining that the user's last backup was in the past. Embeds 1:{{ the date of the backup }} and 2:{{ the time of the backup }}. */
 "BACKUP_SETTINGS_ENABLED_LAST_BACKUP_PAST_FORMAT" = "%1$@ %2$@";
@@ -2138,16 +2141,16 @@
 "CHAT_LIST_LOCAL_FILE_BACKUP_RESTORE_PROGRESS_VIEW_TITLE" = "첨부 파일 복원 중";
 
 /* Progress label showing the amount uploaded out of the total. Embeds {{ %1$@ bytes uploaded, %2$@ total bytes to upload }}. */
-"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS_FORMAT" = "%1$@ of %2$@";
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS_FORMAT" = "%2$@ 중 %1$@";
 
 /* Title label shown in the chat list backup progress view while backup attachments are being uploaded. */
-"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS_TITLE" = "Copying attachments";
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS_TITLE" = "첨부 파일 복사 중";
 
 /* Title label shown in the chat list local file backup progress view while the attachments are being prepared */
-"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_ATTACHMENTS" = "Preparing attachments";
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_ATTACHMENTS" = "첨부 파일 준비 중";
 
 /* Title label shown in the chat list local file backup progress view while the backup file is being prepared. */
-"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_BACKUP" = "Preparing backup";
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_BACKUP" = "백업 준비 중";
 
 /* Message shown in the chat list when the chat list is empty. */
 "CHAT_LIST_NO_CHATS_SUBTITLE" = "여기에 최근 대화가 표시됩니다.";
@@ -3163,6 +3166,18 @@
 /* An error indicating the user must update their device before trying to transfer. */
 "DEVICE_TRANSFER_ERROR_UNSUPPORTED_VERSION" = "최신 Signal 버전으로 업데이트한 후 다시 시도해 주세요.";
 
+/* Body of the device transfer screen for pairing a new device, from the new device */
+"DEVICE_TRANSFER_PAIR_NEW_DEVICE_MESSAGE" = "To transfer your account, pair this device with your old device";
+
+/* Title of the device transfer screen for pairing a new device, from the new device */
+"DEVICE_TRANSFER_PAIR_NEW_DEVICE_TITLE" = "Pair With Your New Device";
+
+/* Body of the device transfer screen for pairing a new device, from the old device */
+"DEVICE_TRANSFER_PAIR_OLD_DEVICE_MESSAGE" = "To transfer your account, pair this device with your new device";
+
+/* Title of the device transfer screen for pairing a new device, from the old device */
+"DEVICE_TRANSFER_PAIR_OLD_DEVICE_TITLE" = "Pair With Your Old Device";
+
 /* The explanation on the view that shows receiving progress */
 "DEVICE_TRANSFER_RECEIVING_EXPLANATION" = "두 기기를 서로 가까이 두고 Signal을 계속 열어 두세요. 모든 과정은 종단간 암호화로 안전하게 보호됩니다.";
 
@@ -3182,7 +3197,7 @@
 "DEVICE_TRANSFER_STATUS_NEW_DEVICE_CONNECTING_WIFI_AWARE_MESSAGE" = "이전 기기를 가까이 두고 Wi-Fi와 블루투스가 켜져 있는지 확인하세요. 이전 기기의 기기 목록에서 이 기기를 선택합니다.  목록에 표시되지 않으면 아래에서 '새 기기 페어링하기'를 선택하세요.";
 
 /* Title for paring an old device to transfer to. */
-"DEVICE_TRANSFER_STATUS_NEW_DEVICE_PAIR_DEVICE" = "새 기기 페어링하기";
+"DEVICE_TRANSFER_STATUS_NEW_DEVICE_PAIR_DEVICE" = "Pair This device";
 
 /* Status message on new device when transfer is starting. */
 "DEVICE_TRANSFER_STATUS_NEW_DEVICE_STARTING" = "이전 기기 연결 대기 중…";
@@ -3211,6 +3226,9 @@
 /* Description message on old device displayed during device connection when using WiFiAware. */
 "DEVICE_TRANSFER_STATUS_OLD_DEVICE_CONNECTING_WIFI_AWARE_MESSAGE" = "새 기기를 가까이 두고 Wi-Fi와 Bluetooth가 켜져 있는지 확인하세요.";
 
+/* Title for paring an new device to transfer to. */
+"DEVICE_TRANSFER_STATUS_OLD_DEVICE_PAIR_DEVICE" = "Pair With New device";
+
 /* Status message on old device when transfer is starting. */
 "DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING" = "새 기기 연결 대기 중…";
 
@@ -3219,6 +3237,21 @@
 
 /* Description message on old device displayed during device discovery when using WiFiAware. */
 "DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING_WIFI_AWARE_MESSAGE" = "아래 페어링된 기기 목록에서 새 기기를 선택하세요. 새 기기가 보이지 않으면 '새 기기 페어링하기'를 선택하여 시작하세요.";
+
+/* Message informing the user to continue on the old device */
+"DEVICE_TRANSFER_TUTORIAL_CONTINUE_OLD_DEVICE_MESSAGE" = "Continue on your old device";
+
+/* Message informing the user to enable wifi and bluetooth on device */
+"DEVICE_TRANSFER_TUTORIAL_ENABLE_WIFI_MESSAGE" = "Enable Wifi and Bluetooth on both devices";
+
+/* Message informing the user to select the new device when prompted */
+"DEVICE_TRANSFER_TUTORIAL_SELECT_NEW_DEVICE_MESSAGE" = "Select your new device when prompted";
+
+/* Message informing the user to tap on the pair device button */
+"DEVICE_TRANSFER_TUTORIAL_TAP_PAIR_DEVICE_MESSAGE" = "Tap “Pair This Device” below";
+
+/* Message informing the user to tap on the pair device button */
+"DEVICE_TRANSFER_TUTORIAL_TAP_PAIR_NEW_DEVICE_MESSAGE" = "Tap “Pair With New Decvice” below";
 
 /* table cell label in conversation settings */
 "DISAPPEARING_MESSAGES" = "자동 삭제 메시지";
@@ -4994,7 +5027,7 @@
 "IMAGE_EDITOR_BLUR_TOAST" = "다른 얼굴 또는 영역을 그려서 흐림 처리하세요";
 
 /* Momentarily shown to the user when attempting to select more images than is allowed. Embeds {{max number of items}} that can be shared. */
-"IMAGE_PICKER_CAN_SELECT_NO_MORE_TOAST_FORMAT" = "항목 %1$@개를 초과하여 공유할 수 없습니다.";
+"IMAGE_PICKER_CAN_SELECT_NO_MORE_TOAST_FORMAT" = "항목은 최대 %1$@개까지 공유할 수 있습니다.";
 
 /* alert title */
 "IMAGE_PICKER_FAILED_TO_PROCESS_ATTACHMENTS" = "첨부 파일을 선택할 수 없습니다.";
@@ -5055,6 +5088,12 @@
 
 /* Label reminding the user that they are in archive mode, and that chats are unarchived when they receive a new message. */
 "INBOX_VIEW_ARCHIVE_MODE_REMINDER" = "새 메시지가 도착하면 보관한 대화가 받은 편지함으로 이동합니다.";
+
+/* Body of prompt notifying device transfer will continue on other device. */
+"INCOMING_DEVICE_TRANSFER_CONTINUE_BODY" = "Continue transferring your account on your other device.";
+
+/* Title of prompt notifying device transfer will continue on other device. */
+"INCOMING_DEVICE_TRANSFER_CONTINUE_TITLE" = "Continue on your other device";
 
 /* info message text in conversation view */
 "INCOMING_VIDEO_CALL" = "수신 영상 통화";
@@ -6751,6 +6790,15 @@
 /* Title of prompt notifying device transfer completed. */
 "OUTGOING_DEVICE_TRANSFER_COMPLETE_TITLE" = "이전 완료";
 
+/* Body of prompt confirming the start of device transfer. */
+"OUTGOING_DEVICE_TRANSFER_CONFIRM_BODY" = "Your account will be transferred to a new device. This device will be able to see your groups and contacts, access your chats, and send messages in your name.";
+
+/* Title of prompt confirming the start of device transfer. */
+"OUTGOING_DEVICE_TRANSFER_CONFIRM_TITLE" = "Transfer Account to \"%1$@\"?";
+
+/* Action prompt confirming the start of device transfer. */
+"OUTGOING_DEVICE_TRANSFER_START_TRANSFER_ACTION" = "Start Transfer";
+
 /* info message text in conversation view */
 "OUTGOING_MISSED_VIDEO_CALL" = "미응답 영상 통화";
 
@@ -6779,7 +6827,7 @@
 "OVERSIZE_TEXT_UNAVAILABLE_SHEET_TITLE" = "전체 메시지를 사용할 수 없음";
 
 /* The name of the Signal app, used as the title for an entry in a user's password manager for their Signal Recovery Key. Should be localized with the same value as the app's name in the iOS App Store. */
-"PASSWORD_MANAGER_SIGNAL_APP_NAME" = "Signal Private Messenger";
+"PASSWORD_MANAGER_SIGNAL_APP_NAME" = "Signal - 안전한 메신저";
 
 /* Header title for bank payment details screen */
 "PAYMENT_DETAILS_BANK_TITLE" = "계좌 이체";
@@ -8078,10 +8126,10 @@
 "REGISTRATION_PROVIDER_FAILURE_MESSAGE_TRANSIENT" = "해당 전화번호에 SMS를 전송할 수 없습니다. 몇 분 정도 기다렸다가 다시 시도해 주세요.";
 
 /* Message for a button in the registration flow that allows restoring from a local backup */
-"REGISTRATION_RESTORE_FROM_LOCAL_BACKUP_BUTTON_MESSAGE" = "Restore your account and messages from a folder saved on your device";
+"REGISTRATION_RESTORE_FROM_LOCAL_BACKUP_BUTTON_MESSAGE" = "기기에 저장한 폴더에서 계정 및 메시지 복구하기";
 
 /* Title for a button in the registration flow that allows restoring from a local backup */
-"REGISTRATION_RESTORE_FROM_LOCAL_BACKUP_BUTTON_TITLE" = "Restore On-Device Backup";
+"REGISTRATION_RESTORE_FROM_LOCAL_BACKUP_BUTTON_TITLE" = "기기 내 백업 복원";
 
 /* Third step in directions for how to make a backup */
 "REGISTRATION_RESTORE_METHOD_MAKE_BACKUP_TUTORIAL_ENABLE_BACKUPS" = "백업을 활성화하고 백업이 완료될까지 기다립니다";
@@ -8584,6 +8632,12 @@
 /* Button text to select all in any list selection mode */
 "SELECT_ALL" = "모두 선택";
 
+/* Placeholder text for the search bar on the 'Select Contact' view */
+"SELECT_CONTACT_FOR_SHARING_SEARCH_BAR_PLACEHOLDER" = "Search";
+
+/* Title for the 'Select Contact' view */
+"SELECT_CONTACT_FOR_SHARING_VIEW_TITLE" = "Select Contact";
+
 /* No comment provided by engineer. */
 "SEND_AGAIN_BUTTON" = "다시 보내기";
 
@@ -8975,7 +9029,7 @@
 "SETTINGS_LOCAL_FILE_BACKUPS_LOCAL_BACKUP_IN_PROGRESS_MESSAGE" = "기기 내 백업이 진행 중이므로 Signal 안전 백업을 실행할 수 없습니다. 나중에 다시 시도하세요.";
 
 /* Label for a progress bar while attachments are being copied for an on-device backup. Embeds 1:{{%1$@ completed bytes copied, %2$@ total bytes to copy, %3$@ percentage complete }}. */
-"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS" = "Copying attachments %1$@ of %2$@ (%3$@)";
+"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS" = "첨부 파일 %1$@/%2$@ 복사 중(%3$@)";
 
 /* Label for a progress bar while the attachments are being prepared for an on-device backup. Embeds 1:{{ percentage complete }}. */
 "SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_ATTACHMENTS" = "첨부 파일 준비 중(%1$@)";
@@ -8996,13 +9050,13 @@
 "SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF" = "백업 끄기 및 삭제";
 
 /* Button for an action sheet asking the user to confirm they would like to turn off local backups */
-"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_BUTTON" = "Turn Off and Delete";
+"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_BUTTON" = "끄기 및 삭제";
 
 /* Message for an action sheet asking the user to confirm they would like to turn off local backups */
-"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_MESSAGE" = "Your backup will be deleted and no new backups will be made.";
+"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_MESSAGE" = "백업이 삭제되고 새로운 백업이 생성되지 않습니다.";
 
 /* Title for an action sheet asking the user to confirm they would like to turn off local backups */
-"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_TITLE" = "Turn Off and Delete Backup?";
+"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_TITLE" = "백업을 끄고 삭제할까요?";
 
 /* Message shown on an action sheet when a user's backup fails to delete. Embeds {{ local file backup location }} */
 "SETTINGS_LOCAL_FILE_BACKUPS_TURNING_OFF_ERROR_MESSAGE_FORMAT" = "오류가 발생하여 백업을 삭제하지 못했습니다. 파일 앱의 “%1$@” 경로로 이동하여 해당 폴더와 내용을 직접 삭제해 주세요. 새로운 백업은 생성되지 않습니다.";
@@ -9043,8 +9097,20 @@
 /* Title for settings activity */
 "SETTINGS_NAV_BAR_TITLE" = "설정";
 
+/* Label for the setting controlling whether the app icon badge counts unread messages or unread chats. */
+"SETTINGS_NOTIFICATION_BADGE_COUNT" = "Badge Count";
+
+/* Explanation for the setting controlling whether the app icon badge counts unread messages or unread chats. */
+"SETTINGS_NOTIFICATION_BADGE_COUNT_FOOTER" = "Select if the badge count displays the number of unread messages or the number of unread chats";
+
 /* A setting controlling whether muted conversations are shown in the badge count */
 "SETTINGS_NOTIFICATION_BADGE_COUNT_INCLUDES_MUTED_CONVERSATIONS" = "알림을 끈 대화 포함";
+
+/* Label for the option that makes the app icon badge show the number of unread chats. */
+"SETTINGS_NOTIFICATION_BADGE_COUNT_UNREAD_CHATS" = "Unread Chats";
+
+/* Label for the option that makes the app icon badge show the number of unread messages. */
+"SETTINGS_NOTIFICATION_BADGE_COUNT_UNREAD_MESSAGES" = "Unread Messages";
 
 /* table section footer */
 "SETTINGS_NOTIFICATION_CONTENT_DESCRIPTION" = "휴대전화가 잠겨 있는 동안 통화 및 메시지 알림이 나타날 수 있습니다.";
@@ -9745,6 +9811,36 @@
 /* No comment provided by engineer. */
 "SETTINGS_VERSION" = "버전";
 
+/* Title for the settings page controlling which notifications are still shown for muted chats. Also used as the label for the rows that link to this page. */
+"SETTINGS_WHILE_MUTED" = "While Muted";
+
+/* Label for the switch controlling whether calls ring or notify in muted chats. */
+"SETTINGS_WHILE_MUTED_CALLS" = "Calls";
+
+/* Explanation for the switch controlling whether calls ring or notify while this chat is muted. */
+"SETTINGS_WHILE_MUTED_CALLS_CHAT_FOOTER" = "Ring or notify when a call is started while this chat is muted.";
+
+/* Explanation for the switch controlling whether calls ring or notify in muted chats. */
+"SETTINGS_WHILE_MUTED_CALLS_FOOTER" = "Ring or notify when a call is started in muted chats.";
+
+/* Label for the switch controlling whether mentions of you notify in muted chats. */
+"SETTINGS_WHILE_MUTED_MENTIONS" = "Mentions";
+
+/* Explanation for the switch controlling whether mentions of you notify while this chat is muted. */
+"SETTINGS_WHILE_MUTED_MENTIONS_CHAT_FOOTER" = "Notify when you are mentioned while this chat is muted.";
+
+/* Explanation for the switch controlling whether mentions of you notify in muted chats. */
+"SETTINGS_WHILE_MUTED_MENTIONS_FOOTER" = "Notify when you are mentioned in muted chats.";
+
+/* Label for the switch controlling whether replies to your messages notify in muted chats. */
+"SETTINGS_WHILE_MUTED_REPLIES" = "Replies";
+
+/* Explanation for the switch controlling whether replies to your messages notify while this chat is muted. */
+"SETTINGS_WHILE_MUTED_REPLIES_CHAT_FOOTER" = "Notify when someone replies to your message while this chat is muted.";
+
+/* Explanation for the switch controlling whether replies to your messages notify in muted chats. */
+"SETTINGS_WHILE_MUTED_REPLIES_FOOTER" = "Notify when someone replies to your message in muted chats.";
+
 /* action sheet item to open native mail app */
 "SHARE_ACTION_MAIL" = "메일";
 
@@ -9953,7 +10049,7 @@
 "STORIES_NO_REPLIES_SUBTITLE" = "이 그룹의 모든 구성원이 답장을 볼 수 있습니다.";
 
 /* Indicates that this story has no replies yet */
-"STORIES_NO_REPLIES_YET" = "회신 없음";
+"STORIES_NO_REPLIES_YET" = "아직 받은 답장이 없어요";
 
 /* Message shown in the Stories tab when the list is empty. */
 "STORIES_NO_STORIES_SUBTITLE" = "여기에 새 업데이트가 표시됩니다.";
@@ -9962,7 +10058,7 @@
 "STORIES_NO_STORIES_TITLE" = "스토리 없음";
 
 /* Indicates that this story has no views yet */
-"STORIES_NO_VIEWS_YET" = "아직 아무도 조회 안 함";
+"STORIES_NO_VIEWS_YET" = "아직 조회한 사람이 없어요";
 
 /* Section footer for the 'replies & reactions' section in stories settings */
 "STORIES_REPLIES_AND_REACTIONS_FOOTER" = "내 스토리를 볼 수 있는 사용자의 공감 및 답장 허용";

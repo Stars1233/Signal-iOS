@@ -125,10 +125,10 @@
 "ADD_USER_TO_PROFILE_WHITELIST_OFFER" = "Bạn có muốn chia sẻ hồ sơ với người này?";
 
 /* Message shown in an action sheet when attempting to rotate AEP, but local backups is enabled. */
-"AEP_MANAGER_LOCAL_BACKUPS_DISABLE_REQUIRED" = "You must disable On-Device Backups before proceeding.";
+"AEP_MANAGER_LOCAL_BACKUPS_DISABLE_REQUIRED" = "Bạn phải tắt tính năng Sao lưu trên thiết bị trước khi tiếp tục.";
 
 /* Button in an action sheet that takes the user to On-Device Backup settings. */
-"AEP_MANAGER_ON_DEVICE_BACKUP_SETTINGS_BUTTON" = "On-Device Backup Settings";
+"AEP_MANAGER_ON_DEVICE_BACKUP_SETTINGS_BUTTON" = "Cài đặt sao lưu trên thiết bị";
 
 /* generic button text to acknowledge that the corresponding text was read. */
 "ALERT_ACTION_ACKNOWLEDGE" = "Đã cài đặt xong";
@@ -1026,6 +1026,9 @@
 
 /* Label for a menu item explaining when the user's last backup occurred. */
 "BACKUP_SETTINGS_ENABLED_LAST_BACKUP_LABEL" = "Bản sao lưu gần nhất";
+
+/* Label for a cell on the backups landing page explaining when the user's last backup occurred. */
+"BACKUP_SETTINGS_ENABLED_LAST_BACKUP_LABEL_LANDING_PAGE" = "Last backup";
 
 /* Text explaining that the user's last backup was in the past. Embeds 1:{{ the date of the backup }} and 2:{{ the time of the backup }}. */
 "BACKUP_SETTINGS_ENABLED_LAST_BACKUP_PAST_FORMAT" = "%1$@ vào lúc %2$@";
@@ -2138,16 +2141,16 @@
 "CHAT_LIST_LOCAL_FILE_BACKUP_RESTORE_PROGRESS_VIEW_TITLE" = "Đang khôi phục tập tin đính kèm";
 
 /* Progress label showing the amount uploaded out of the total. Embeds {{ %1$@ bytes uploaded, %2$@ total bytes to upload }}. */
-"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS_FORMAT" = "%1$@ of %2$@";
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS_FORMAT" = "%1$@ trên tổng số %2$@";
 
 /* Title label shown in the chat list backup progress view while backup attachments are being uploaded. */
-"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS_TITLE" = "Copying attachments";
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS_TITLE" = "Đang sao chép tập tin đính kèm";
 
 /* Title label shown in the chat list local file backup progress view while the attachments are being prepared */
-"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_ATTACHMENTS" = "Preparing attachments";
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_ATTACHMENTS" = "Đang chuẩn bị các tập tin đính kèm";
 
 /* Title label shown in the chat list local file backup progress view while the backup file is being prepared. */
-"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_BACKUP" = "Preparing backup";
+"CHAT_LIST_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_BACKUP" = "Đang chuẩn bị bản sao lưu";
 
 /* Message shown in the chat list when the chat list is empty. */
 "CHAT_LIST_NO_CHATS_SUBTITLE" = "Các cuộc trò chuyện gần nhất sẽ hiển thị ở đây.";
@@ -3163,6 +3166,18 @@
 /* An error indicating the user must update their device before trying to transfer. */
 "DEVICE_TRANSFER_ERROR_UNSUPPORTED_VERSION" = "Cập nhật phiên bản mới nhất của Signal và thử lại";
 
+/* Body of the device transfer screen for pairing a new device, from the new device */
+"DEVICE_TRANSFER_PAIR_NEW_DEVICE_MESSAGE" = "To transfer your account, pair this device with your old device";
+
+/* Title of the device transfer screen for pairing a new device, from the new device */
+"DEVICE_TRANSFER_PAIR_NEW_DEVICE_TITLE" = "Pair With Your New Device";
+
+/* Body of the device transfer screen for pairing a new device, from the old device */
+"DEVICE_TRANSFER_PAIR_OLD_DEVICE_MESSAGE" = "To transfer your account, pair this device with your new device";
+
+/* Title of the device transfer screen for pairing a new device, from the old device */
+"DEVICE_TRANSFER_PAIR_OLD_DEVICE_TITLE" = "Pair With Your Old Device";
+
 /* The explanation on the view that shows receiving progress */
 "DEVICE_TRANSFER_RECEIVING_EXPLANATION" = "Để cả hai thiết bị gần nhau. Đừng tắt nguồn thiết bị nào và để mở ứng dụng Signal. Quá trình chuyển dữ liệu được bảo mật hai chiều.";
 
@@ -3182,7 +3197,7 @@
 "DEVICE_TRANSFER_STATUS_NEW_DEVICE_CONNECTING_WIFI_AWARE_MESSAGE" = "Đặt thiết bị cũ của bạn ở gần và đảm bảo Wi-Fi và Bluetooth trên thiết bị này đã được bật. Chọn thiết bị này từ danh sách các thiết bị trên thiết bị cũ.  Nếu thiết bị không hiển thị trên thiết bị cũ, hãy chọn \"Ghép nối thiết bị mới\" bên dưới.";
 
 /* Title for paring an old device to transfer to. */
-"DEVICE_TRANSFER_STATUS_NEW_DEVICE_PAIR_DEVICE" = "Ghép nối thiết bị mới";
+"DEVICE_TRANSFER_STATUS_NEW_DEVICE_PAIR_DEVICE" = "Pair This device";
 
 /* Status message on new device when transfer is starting. */
 "DEVICE_TRANSFER_STATUS_NEW_DEVICE_STARTING" = "Đang chờ để kết nối đến thiết bị cũ…";
@@ -3211,6 +3226,9 @@
 /* Description message on old device displayed during device connection when using WiFiAware. */
 "DEVICE_TRANSFER_STATUS_OLD_DEVICE_CONNECTING_WIFI_AWARE_MESSAGE" = "Đặt thiết bị mới của bạn ở gần và đảm bảo Wi-Fi và Bluetooth trên thiết bị này đã được bật.";
 
+/* Title for paring an new device to transfer to. */
+"DEVICE_TRANSFER_STATUS_OLD_DEVICE_PAIR_DEVICE" = "Pair With New device";
+
 /* Status message on old device when transfer is starting. */
 "DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING" = "Đang chờ để kết nối đến thiết bị mới…";
 
@@ -3219,6 +3237,21 @@
 
 /* Description message on old device displayed during device discovery when using WiFiAware. */
 "DEVICE_TRANSFER_STATUS_OLD_DEVICE_STARTING_WIFI_AWARE_MESSAGE" = "Chọn thiết bị mới từ danh sách các thiết bị đã ghép nối bên dưới. Nếu thiết bị mới không hiển thị, hãy chọn \"Ghép nối thiết bị mới\" để bắt đầu quá trình.";
+
+/* Message informing the user to continue on the old device */
+"DEVICE_TRANSFER_TUTORIAL_CONTINUE_OLD_DEVICE_MESSAGE" = "Continue on your old device";
+
+/* Message informing the user to enable wifi and bluetooth on device */
+"DEVICE_TRANSFER_TUTORIAL_ENABLE_WIFI_MESSAGE" = "Enable Wifi and Bluetooth on both devices";
+
+/* Message informing the user to select the new device when prompted */
+"DEVICE_TRANSFER_TUTORIAL_SELECT_NEW_DEVICE_MESSAGE" = "Select your new device when prompted";
+
+/* Message informing the user to tap on the pair device button */
+"DEVICE_TRANSFER_TUTORIAL_TAP_PAIR_DEVICE_MESSAGE" = "Tap “Pair This Device” below";
+
+/* Message informing the user to tap on the pair device button */
+"DEVICE_TRANSFER_TUTORIAL_TAP_PAIR_NEW_DEVICE_MESSAGE" = "Tap “Pair With New Decvice” below";
 
 /* table cell label in conversation settings */
 "DISAPPEARING_MESSAGES" = "Tin nhắn tự hủy";
@@ -5056,6 +5089,12 @@
 /* Label reminding the user that they are in archive mode, and that chats are unarchived when they receive a new message. */
 "INBOX_VIEW_ARCHIVE_MODE_REMINDER" = "Các cuộc trò chuyện đã lưu trữ sẽ được chuyển sang Hộp tin nhắn đến khi có một tin nhắn mới được gửi đến.";
 
+/* Body of prompt notifying device transfer will continue on other device. */
+"INCOMING_DEVICE_TRANSFER_CONTINUE_BODY" = "Continue transferring your account on your other device.";
+
+/* Title of prompt notifying device transfer will continue on other device. */
+"INCOMING_DEVICE_TRANSFER_CONTINUE_TITLE" = "Continue on your other device";
+
 /* info message text in conversation view */
 "INCOMING_VIDEO_CALL" = "Cuộc gọi video đến";
 
@@ -6751,6 +6790,15 @@
 /* Title of prompt notifying device transfer completed. */
 "OUTGOING_DEVICE_TRANSFER_COMPLETE_TITLE" = "Chuyển hoàn tất";
 
+/* Body of prompt confirming the start of device transfer. */
+"OUTGOING_DEVICE_TRANSFER_CONFIRM_BODY" = "Your account will be transferred to a new device. This device will be able to see your groups and contacts, access your chats, and send messages in your name.";
+
+/* Title of prompt confirming the start of device transfer. */
+"OUTGOING_DEVICE_TRANSFER_CONFIRM_TITLE" = "Transfer Account to \"%1$@\"?";
+
+/* Action prompt confirming the start of device transfer. */
+"OUTGOING_DEVICE_TRANSFER_START_TRANSFER_ACTION" = "Start Transfer";
+
 /* info message text in conversation view */
 "OUTGOING_MISSED_VIDEO_CALL" = "Cuộc gọi video không được trả lời";
 
@@ -8078,10 +8126,10 @@
 "REGISTRATION_PROVIDER_FAILURE_MESSAGE_TRANSIENT" = "Chúng tôi không thể gửi tin nhắn SMS đến số điện thoại của bạn. Vui lòng thử lại trong ít phút nữa.";
 
 /* Message for a button in the registration flow that allows restoring from a local backup */
-"REGISTRATION_RESTORE_FROM_LOCAL_BACKUP_BUTTON_MESSAGE" = "Restore your account and messages from a folder saved on your device";
+"REGISTRATION_RESTORE_FROM_LOCAL_BACKUP_BUTTON_MESSAGE" = "Khôi phục tài khoản và tin nhắn từ thư mục được lưu trên thiết bị của bạn";
 
 /* Title for a button in the registration flow that allows restoring from a local backup */
-"REGISTRATION_RESTORE_FROM_LOCAL_BACKUP_BUTTON_TITLE" = "Restore On-Device Backup";
+"REGISTRATION_RESTORE_FROM_LOCAL_BACKUP_BUTTON_TITLE" = "Khôi phục bản sao lưu trên thiết bị";
 
 /* Third step in directions for how to make a backup */
 "REGISTRATION_RESTORE_METHOD_MAKE_BACKUP_TUTORIAL_ENABLE_BACKUPS" = "Bật sao lưu và chờ quá trình sao lưu hoàn tất";
@@ -8584,6 +8632,12 @@
 /* Button text to select all in any list selection mode */
 "SELECT_ALL" = "Chọn Tất cả";
 
+/* Placeholder text for the search bar on the 'Select Contact' view */
+"SELECT_CONTACT_FOR_SHARING_SEARCH_BAR_PLACEHOLDER" = "Search";
+
+/* Title for the 'Select Contact' view */
+"SELECT_CONTACT_FOR_SHARING_VIEW_TITLE" = "Select Contact";
+
 /* No comment provided by engineer. */
 "SEND_AGAIN_BUTTON" = "Gửi lại";
 
@@ -8975,7 +9029,7 @@
 "SETTINGS_LOCAL_FILE_BACKUPS_LOCAL_BACKUP_IN_PROGRESS_MESSAGE" = "Không thể thực hiện Sao lưu bảo mật Signal vì một quá trình sao lưu trên thiết bị đang diễn ra. Thử lại sau.";
 
 /* Label for a progress bar while attachments are being copied for an on-device backup. Embeds 1:{{%1$@ completed bytes copied, %2$@ total bytes to copy, %3$@ percentage complete }}. */
-"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS" = "Copying attachments %1$@ of %2$@ (%3$@)";
+"SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_COPYING_ATTACHMENTS" = "Đang sao chép tập tin đính kèm %1$@ trong số %2$@ (%3$@)";
 
 /* Label for a progress bar while the attachments are being prepared for an on-device backup. Embeds 1:{{ percentage complete }}. */
 "SETTINGS_LOCAL_FILE_BACKUPS_PROGRESS_PREPARING_ATTACHMENTS" = "Đang chuẩn bị tập tin đính kèm (%1$@)";
@@ -8996,13 +9050,13 @@
 "SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF" = "Tắt & Xóa bản sao lưu";
 
 /* Button for an action sheet asking the user to confirm they would like to turn off local backups */
-"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_BUTTON" = "Turn Off and Delete";
+"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_BUTTON" = "Tắt và xóa";
 
 /* Message for an action sheet asking the user to confirm they would like to turn off local backups */
-"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_MESSAGE" = "Your backup will be deleted and no new backups will be made.";
+"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_MESSAGE" = "Bản sao lưu của bạn sẽ được xóa và các bản sao lưu mới sẽ không được tạo nữa.";
 
 /* Title for an action sheet asking the user to confirm they would like to turn off local backups */
-"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_TITLE" = "Turn Off and Delete Backup?";
+"SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF_CONFIRMATION_TITLE" = "Tắt và xóa bản sao lưu?";
 
 /* Message shown on an action sheet when a user's backup fails to delete. Embeds {{ local file backup location }} */
 "SETTINGS_LOCAL_FILE_BACKUPS_TURNING_OFF_ERROR_MESSAGE_FORMAT" = "Không thể xóa bản sao lưu của bạn do có lỗi. Bạn phải xóa thủ công thư mục đó. Trong ứng dụng Files, đến \"%1$@\" và xóa thủ công thư mục cùng các nội dung bên trong. Các bản sao lưu mới sẽ không được tạo nữa.";
@@ -9043,8 +9097,20 @@
 /* Title for settings activity */
 "SETTINGS_NAV_BAR_TITLE" = "Cài đặt";
 
+/* Label for the setting controlling whether the app icon badge counts unread messages or unread chats. */
+"SETTINGS_NOTIFICATION_BADGE_COUNT" = "Badge Count";
+
+/* Explanation for the setting controlling whether the app icon badge counts unread messages or unread chats. */
+"SETTINGS_NOTIFICATION_BADGE_COUNT_FOOTER" = "Select if the badge count displays the number of unread messages or the number of unread chats";
+
 /* A setting controlling whether muted conversations are shown in the badge count */
 "SETTINGS_NOTIFICATION_BADGE_COUNT_INCLUDES_MUTED_CONVERSATIONS" = "Bao gồm cuộc trò chuyện đã tắt tiếng";
+
+/* Label for the option that makes the app icon badge show the number of unread chats. */
+"SETTINGS_NOTIFICATION_BADGE_COUNT_UNREAD_CHATS" = "Unread Chats";
+
+/* Label for the option that makes the app icon badge show the number of unread messages. */
+"SETTINGS_NOTIFICATION_BADGE_COUNT_UNREAD_MESSAGES" = "Unread Messages";
 
 /* table section footer */
 "SETTINGS_NOTIFICATION_CONTENT_DESCRIPTION" = "Thông báo Cuộc gọi và Tin nhắn có thể xuất hiện khi điện thoại của bạn đang khoá.";
@@ -9744,6 +9810,36 @@
 
 /* No comment provided by engineer. */
 "SETTINGS_VERSION" = "Phiên bản";
+
+/* Title for the settings page controlling which notifications are still shown for muted chats. Also used as the label for the rows that link to this page. */
+"SETTINGS_WHILE_MUTED" = "While Muted";
+
+/* Label for the switch controlling whether calls ring or notify in muted chats. */
+"SETTINGS_WHILE_MUTED_CALLS" = "Calls";
+
+/* Explanation for the switch controlling whether calls ring or notify while this chat is muted. */
+"SETTINGS_WHILE_MUTED_CALLS_CHAT_FOOTER" = "Ring or notify when a call is started while this chat is muted.";
+
+/* Explanation for the switch controlling whether calls ring or notify in muted chats. */
+"SETTINGS_WHILE_MUTED_CALLS_FOOTER" = "Ring or notify when a call is started in muted chats.";
+
+/* Label for the switch controlling whether mentions of you notify in muted chats. */
+"SETTINGS_WHILE_MUTED_MENTIONS" = "Mentions";
+
+/* Explanation for the switch controlling whether mentions of you notify while this chat is muted. */
+"SETTINGS_WHILE_MUTED_MENTIONS_CHAT_FOOTER" = "Notify when you are mentioned while this chat is muted.";
+
+/* Explanation for the switch controlling whether mentions of you notify in muted chats. */
+"SETTINGS_WHILE_MUTED_MENTIONS_FOOTER" = "Notify when you are mentioned in muted chats.";
+
+/* Label for the switch controlling whether replies to your messages notify in muted chats. */
+"SETTINGS_WHILE_MUTED_REPLIES" = "Replies";
+
+/* Explanation for the switch controlling whether replies to your messages notify while this chat is muted. */
+"SETTINGS_WHILE_MUTED_REPLIES_CHAT_FOOTER" = "Notify when someone replies to your message while this chat is muted.";
+
+/* Explanation for the switch controlling whether replies to your messages notify in muted chats. */
+"SETTINGS_WHILE_MUTED_REPLIES_FOOTER" = "Notify when someone replies to your message in muted chats.";
 
 /* action sheet item to open native mail app */
 "SHARE_ACTION_MAIL" = "Thư";
