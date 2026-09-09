@@ -45,6 +45,7 @@ public class RecipientPickerViewController: OWSViewController, OWSNavigationChil
     public var shouldShowAlphabetSlider = true
     public var shouldShowNewGroup = false
     public var findByPhoneNumberButtonTitle: String?
+    public var searchBarPlaceholderTitle: String?
 
     // MARK: Signal Connections
 
@@ -133,7 +134,7 @@ public class RecipientPickerViewController: OWSViewController, OWSNavigationChil
         controller.obscuresBackgroundDuringPresentation = false
         controller.hidesNavigationBarDuringPresentation = false
         controller.searchResultsUpdater = self
-        controller.searchBar.placeholder = OWSLocalizedString(
+        controller.searchBar.placeholder = searchBarPlaceholderTitle ?? OWSLocalizedString(
             "SEARCH_BY_NAME_OR_USERNAME_OR_NUMBER_PLACEHOLDER_TEXT",
             comment: "Placeholder text indicating the user can search for contacts by name, username, or phone number.",
         )

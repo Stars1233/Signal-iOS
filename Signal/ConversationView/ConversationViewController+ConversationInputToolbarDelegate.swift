@@ -630,15 +630,22 @@ private extension ConversationViewController {
         SUIEnvironment.shared.contactsViewHelperRef.checkReadAuthorization(
             purpose: .share,
             performWhenAllowed: {
-                let contactsPicker = ContactPickerViewController(allowsMultipleSelection: false, subtitleCellType: .none)
-                contactsPicker.delegate = self
-                contactsPicker.title = OWSLocalizedString(
-                    "CONTACT_PICKER_TITLE",
-                    comment: "navbar title for contact picker when sharing a contact",
-                )
-                let sheet = OWSNavigationController(rootViewController: contactsPicker)
-                sheet.presentationController?.delegate = self
-                self.presentFormSheet(sheet, animated: true)
+                if BuildFlags.accountIdentifierSharing {
+                    let contactsPicker = SelectContactForSharingViewController()
+                    let sheet = OWSNavigationController(rootViewController: contactsPicker)
+                    sheet.presentationController?.delegate = self
+                    self.presentFormSheet(sheet, animated: true)
+                } else {
+                    let contactsPicker = ContactPickerViewController(allowsMultipleSelection: false, subtitleCellType: .none)
+                    contactsPicker.delegate = self
+                    contactsPicker.title = OWSLocalizedString(
+                        "CONTACT_PICKER_TITLE",
+                        comment: "navbar title for contact picker when sharing a contact",
+                    )
+                    let sheet = OWSNavigationController(rootViewController: contactsPicker)
+                    sheet.presentationController?.delegate = self
+                    self.presentFormSheet(sheet, animated: true)
+                }
             },
             presentErrorFrom: self,
         )

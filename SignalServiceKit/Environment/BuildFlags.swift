@@ -82,6 +82,9 @@ public enum BuildFlags {
 
     /// New notification settings. Don't enable until Storage Service is integrated
     public static let improvedNotifications = build <= .dev
+
+    /// The ability to share account identifiers when sharing contacts.
+    public static let accountIdentifierSharing = false
 }
 
 // MARK: -
