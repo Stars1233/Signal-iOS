@@ -1406,14 +1406,14 @@ private class CustomColorPreviewView: UIView {
 
     // MARK: - Tooltip
 
-    private static let keyValueStore = KeyValueStore(collection: "CustomColorPreviewView")
+    private static let keyValueStore = NewKeyValueStore(collection: "CustomColorPreviewView")
     private static let tooltipWasDismissedKey = "tooltipWasDismissed"
 
     private var customColorTooltip: CustomColorTooltip?
 
     fileprivate func dismissTooltip() {
         SSKEnvironment.shared.databaseStorageRef.write { transaction in
-            Self.keyValueStore.setBool(true, key: Self.tooltipWasDismissedKey, transaction: transaction)
+            Self.keyValueStore.writeValue(true, forKey: Self.tooltipWasDismissedKey, tx: transaction)
         }
         hideTooltip()
     }
@@ -1425,7 +1425,7 @@ private class CustomColorPreviewView: UIView {
 
     private func ensureTooltip() {
         let shouldShowTooltip = SSKEnvironment.shared.databaseStorageRef.read { transaction in
-            !Self.keyValueStore.getBool(Self.tooltipWasDismissedKey, defaultValue: false, transaction: transaction)
+            !(Self.keyValueStore.fetchValue(Bool.self, forKey: Self.tooltipWasDismissedKey, tx: transaction) ?? false)
         }
         let isShowingTooltip = customColorTooltip != nil
         guard shouldShowTooltip != isShowingTooltip else {

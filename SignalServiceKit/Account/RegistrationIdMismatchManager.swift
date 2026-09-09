@@ -12,13 +12,12 @@ public protocol RegistrationIdMismatchManager {
 public class RegistrationIdMismatchManagerImpl: RegistrationIdMismatchManager {
 
     private enum Constants {
-        static let collection = "RegistrationIdMismatchManagerImpl"
         static let hasRecordedSuspectedIssue = "hasRecordedSuspectedIssue"
         static let haveRegistrationIdsBeenChecked = "haveRegistrationIdsBeenChecked"
     }
 
     private let db: DB
-    private let kvStore: KeyValueStore = KeyValueStore(collection: Constants.collection)
+    private let kvStore = NewKeyValueStore(collection: "RegistrationIdMismatchManagerImpl")
     private let tsAccountManager: TSAccountManager
     private let udManager: OWSUDManager
     public init(db: DB, tsAccountManager: TSAccountManager, udManager: OWSUDManager) {
@@ -30,7 +29,7 @@ public class RegistrationIdMismatchManagerImpl: RegistrationIdMismatchManager {
     public func validateRegistrationIds() async {
         guard
             !db.read(block: {
-                kvStore.getBool(Constants.haveRegistrationIdsBeenChecked, defaultValue: false, transaction: $0)
+                kvStore.fetchValue(Bool.self, forKey: Constants.haveRegistrationIdsBeenChecked, tx: $0) ?? false
             })
         else {
             return
@@ -57,7 +56,7 @@ public class RegistrationIdMismatchManagerImpl: RegistrationIdMismatchManager {
             }
 
             await db.awaitableWrite {
-                kvStore.setBool(true, key: Constants.haveRegistrationIdsBeenChecked, transaction: $0)
+                kvStore.writeValue(true, forKey: Constants.haveRegistrationIdsBeenChecked, tx: $0)
             }
         } catch {
             owsFailDebug("Failed to validate registration IDs: \(error)")
@@ -118,7 +117,7 @@ public class RegistrationIdMismatchManagerImpl: RegistrationIdMismatchManager {
             // update local state to match remote
             Logger.warn("Updating local \(identity) registrationId to match remote.")
             self.tsAccountManager.setRegistrationId(registrationId, for: identity, tx: $0)
-            self.kvStore.setBool(true, key: Constants.hasRecordedSuspectedIssue, transaction: $0)
+            self.kvStore.writeValue(true, forKey: Constants.hasRecordedSuspectedIssue, tx: $0)
         }
     }
 }

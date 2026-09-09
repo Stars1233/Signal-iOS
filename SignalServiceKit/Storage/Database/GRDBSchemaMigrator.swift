@@ -361,6 +361,7 @@ public class GRDBSchemaMigrator {
         case rebuildInteractionStoryReplyIndex
         case addShouldNotifyWhenMutedColumns
         case preserveCallsWhenMutedForExistingUsers
+        case migrateSomeKeyValueStores
 
         // NOTE: Every time we add a migration id, consider
         // incrementing grdbSchemaVersionLatest.
@@ -490,7 +491,7 @@ public class GRDBSchemaMigrator {
     }
 
     public static let grdbSchemaVersionDefault: UInt = 0
-    public static let grdbSchemaVersionLatest: UInt = 159
+    public static let grdbSchemaVersionLatest: UInt = 160
 
     private class DatabaseMigratorWrapper {
         // Run with immediate (or disabled) foreign key checks so that pre-existing
@@ -5540,6 +5541,96 @@ public class GRDBSchemaMigrator {
 
         migrator.registerMigration(.preserveCallsWhenMutedForExistingUsers) { tx in
             try preserveCallsWhenMutedForExistingUsers(tx: tx)
+            return .success(())
+        }
+
+        migrator.registerMigration(.migrateSomeKeyValueStores) { tx in
+            do {
+                let migrator = KeyValueStoreMigrator(collection: "BackupBGProcessingTaskRunner")
+                try migrator.migrateDate("lastCompletionDate", tx: tx)
+            }
+            do {
+                let migrator = KeyValueStoreMigrator(collection: "BackupDisablingManager")
+                try migrator.migrateString("aepBeingRotated", tx: tx)
+                try migrator.migrateBool("remoteDisablingFailed", tx: tx)
+            }
+            do {
+                let migrator = KeyValueStoreMigrator(collection: "FlipCameraButton")
+                try migrator.migrateBool("tooltipWasSeen", tx: tx)
+            }
+            do {
+                let migrator = KeyValueStoreMigrator(collection: "GroupCallViewController")
+                try migrator.migrateBool("didUserSwipeToSpeakerView", tx: tx)
+                try migrator.migrateBool("didUserSwipeToScreenShare", tx: tx)
+            }
+            do {
+                let migrator = KeyValueStoreMigrator(collection: "DoubleTapToEdit")
+                try migrator.migrateBool("hasSeenOnboarding", tx: tx)
+            }
+            do {
+                let migrator = KeyValueStoreMigrator(collection: "AttachmentSaving")
+                try migrator.migrateBool("shouldShowSaveMediaActionSheet", tx: tx)
+            }
+            do {
+                let migrator = KeyValueStoreMigrator(collection: "ComposeSupportEmailOperation")
+                try migrator.migrateDate("lastChallengeDateKey", tx: tx)
+            }
+            do {
+                let migrator = KeyValueStoreMigrator(collection: "PaymentSettings")
+                try migrator.migrateBool("PaymentsSavePassphraseShown", tx: tx)
+                try migrator.migrateBool("PaymentsSavePassphraseHelpCardEnabled", tx: tx)
+                try migrator.migrateBool("hasReviewedPassphrase", tx: tx)
+            }
+            do {
+                let migrator = KeyValueStoreMigrator(collection: "paymentsHelpCardStore")
+                try migrator.fetchKeys(tx: tx).forEach { try migrator.migrateString($0, tx: tx) }
+            }
+            do {
+                let migrator = KeyValueStoreMigrator(collection: "ChatListFilterStore")
+                try migrator.migrateInt64("inboxFilter", tx: tx)
+            }
+            do {
+                let migrator = KeyValueStoreMigrator(collection: "FailedNSELaunches")
+                try migrator.migrateInt64("promptCount", tx: tx)
+                try migrator.migrateDate("mostRecentPromptDate", tx: tx)
+            }
+            do {
+                let migrator = KeyValueStoreMigrator(collection: "SendPaymentView")
+                try migrator.migrateBool("wasLastPaymentInFiat", tx: tx)
+            }
+            do {
+                let migrator = KeyValueStoreMigrator(collection: "ChatColorPicker")
+                try migrator.migrateBool("tooltipWasDismissed", tx: tx)
+            }
+            do {
+                let migrator = KeyValueStoreMigrator(collection: "CustomColorPreviewView")
+                try migrator.migrateBool("tooltipWasDismissed", tx: tx)
+            }
+            do {
+                let migrator = KeyValueStoreMigrator(collection: "GetStartedBannerViewController")
+                try migrator.fetchKeys(tx: tx).forEach { try migrator.migrateBool($0, tx: tx) }
+            }
+            do {
+                let migrator = KeyValueStoreMigrator(collection: "FullTextSearchOptimizer")
+                try migrator.migrateInt64("version", tx: tx)
+            }
+            do {
+                let migrator = KeyValueStoreMigrator(collection: "RecipientPicker.contactAccess")
+                try migrator.migrateBool("shouldShowNotAllowedReminder", tx: tx)
+            }
+            do {
+                let migrator = KeyValueStoreMigrator(collection: "AccountEntropyPool")
+                try migrator.migrateString("aep", tx: tx)
+            }
+            do {
+                let migrator = KeyValueStoreMigrator(collection: "RegistrationIdMismatchManagerImpl")
+                try migrator.migrateBool("haveRegistrationIdsBeenChecked", tx: tx)
+                try migrator.migrateBool("hasRecordedSuspectedIssue", tx: tx)
+            }
+            do {
+                let migrator = KeyValueStoreMigrator(collection: "BackupOversizeTextCacheStore")
+                try migrator.migrateInt64("lastRestoredRowIdKey", tx: tx)
+            }
             return .success(())
         }
 

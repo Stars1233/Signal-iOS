@@ -333,6 +333,10 @@ struct KeyValueStoreMigrator {
         return try migrateKey(key, withValueOfType: NSNumber.self, toNewValue: { Int64($0.uint32Value) }, tx: tx)
     }
 
+    func migrateInt64(_ key: String, tx: DBWriteTransaction) throws {
+        return try migrateKey(key, withValueOfType: NSNumber.self, toNewValue: { $0.int64Value }, tx: tx)
+    }
+
     func migrateUInt64(_ key: String, tx: DBWriteTransaction) throws {
         return try migrateKey(key, withValueOfType: NSNumber.self, toNewValue: { Int64(bitPattern: $0.uint64Value) }, tx: tx)
     }

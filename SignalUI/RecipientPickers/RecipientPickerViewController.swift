@@ -848,18 +848,18 @@ extension RecipientPickerViewController {
         })
     }
 
-    private static let keyValueStore = KeyValueStore(collection: "RecipientPicker.contactAccess")
+    private static let keyValueStore = NewKeyValueStore(collection: "RecipientPicker.contactAccess")
     private static let showNotAllowedReminderKey = "shouldShowNotAllowedReminder"
 
     private func shouldShowContactAccessNotAllowedReminderItemWithSneakyTransaction() -> Bool {
         SSKEnvironment.shared.databaseStorageRef.read {
-            Self.keyValueStore.getBool(Self.showNotAllowedReminderKey, defaultValue: true, transaction: $0)
+            Self.keyValueStore.fetchValue(Bool.self, forKey: Self.showNotAllowedReminderKey, tx: $0) ?? true
         }
     }
 
     private func hideShowContactAccessNotAllowedReminderItem() {
         SSKEnvironment.shared.databaseStorageRef.write {
-            Self.keyValueStore.setBool(false, key: Self.showNotAllowedReminderKey, transaction: $0)
+            Self.keyValueStore.writeValue(false, forKey: Self.showNotAllowedReminderKey, tx: $0)
         }
         reloadContent()
     }
