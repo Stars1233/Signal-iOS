@@ -73,17 +73,81 @@ extension ConversationViewController {
 
     public var unreadCountViewDiameter: CGFloat { 16 }
 
-    private func joinGroupCallButtonConfiguration(title: String) -> UIButton.Configuration {
-        var config = UIButton.Configuration.borderedProminent()
-        config.title = title
-        config.attributedTitle?.font = .dynamicTypeSubheadlineClamped.semibold()
-        config.image = if #available(iOS 26, *) { .videoFill } else { .videoFill20 }
-        config.imagePlacement = .leading
-        config.imagePadding = 4
-        config.baseForegroundColor = .white
-        config.baseBackgroundColor = .Signal.green
-        config.cornerStyle = .capsule
-        return config
+    private class JoinGroupCallButton: UIButton {
+
+        private var verticalMarginConstraint: NSLayoutConstraint?
+        private let iconImageView = UIImageView()
+
+        init(title: String, primaryAction: UIAction) {
+            super.init(frame: .zero)
+
+            addAction(primaryAction, for: .primaryActionTriggered)
+
+            iconImageView.image = if #available(iOS 26, *) { .videoFill } else { .videoFill20 }
+            iconImageView.tintColor = .white
+
+            let titleLabel = UILabel()
+            titleLabel.text = title
+            titleLabel.font = .dynamicTypeSubheadlineClamped.semibold()
+            titleLabel.textColor = .white
+
+            let stackView = UIStackView(arrangedSubviews: [iconImageView, titleLabel])
+            stackView.spacing = 4
+            stackView.alignment = .center
+            stackView.translatesAutoresizingMaskIntoConstraints = false
+
+            let buttonContentView: UIView
+            if #available(iOS 26, *) {
+                buttonContentView = UIView()
+            } else {
+                buttonContentView = PillView()
+                buttonContentView.backgroundColor = .Signal.green
+            }
+
+            buttonContentView.isUserInteractionEnabled = false
+            buttonContentView.translatesAutoresizingMaskIntoConstraints = false
+            buttonContentView.addSubview(stackView)
+            // We're keeping the reference to this constraint to update it for compact vertical size classes.
+            verticalMarginConstraint = stackView.topAnchor.constraint(equalTo: buttonContentView.topAnchor)
+            NSLayoutConstraint.activate([
+                verticalMarginConstraint!,
+                stackView.centerYAnchor.constraint(equalTo: buttonContentView.centerYAnchor),
+
+                // Can't use layout margins here because UIKit will mess those up during portrait-landscape rotation.
+                stackView.leadingAnchor.constraint(equalTo: buttonContentView.leadingAnchor, constant: 12),
+                stackView.centerXAnchor.constraint(equalTo: buttonContentView.centerXAnchor),
+            ])
+
+            addSubview(buttonContentView)
+            NSLayoutConstraint.activate([
+                buttonContentView.topAnchor.constraint(equalTo: topAnchor, constant: 2),
+                buttonContentView.leadingAnchor.constraint(equalTo: leadingAnchor),
+                buttonContentView.trailingAnchor.constraint(equalTo: trailingAnchor),
+                buttonContentView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -2),
+            ])
+
+            updateLayoutForCurrentTraitCollection()
+        }
+
+        required init?(coder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
+        }
+
+        override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+            super.traitCollectionDidChange(previousTraitCollection)
+            if traitCollection.verticalSizeClass != previousTraitCollection?.verticalSizeClass {
+                updateLayoutForCurrentTraitCollection()
+            }
+        }
+
+        private func updateLayoutForCurrentTraitCollection() {
+            // iOS 26 doesn't shrink navigation bar vertically.
+            guard #unavailable(iOS 26), let verticalMarginConstraint else { return }
+
+            let isVerticallyCompact = traitCollection.verticalSizeClass == .compact
+            iconImageView.image = isVerticallyCompact ? .videoFillCompact : .videoFill20
+            verticalMarginConstraint.constant = isVerticallyCompact ? 4 : 8
+        }
     }
 
     public func updateBarButtonItems() {
@@ -135,11 +199,9 @@ extension ConversationViewController {
                                 comment: "Button to return to current group call",
                             )
                             : CallStrings.joinCallPillButtonTitle
-                        videoCallButton.customView = UIButton(
-                            configuration: joinGroupCallButtonConfiguration(title: buttonTitle),
-                            primaryAction: UIAction { [weak self] _ in
-                                self?.showGroupLobbyOrActiveCall()
-                            },
+                        videoCallButton.customView = JoinGroupCallButton(
+                            title: buttonTitle,
+                            primaryAction: UIAction { [weak self] _ in self?.showGroupLobbyOrActiveCall() },
                         )
 
                         if #available(iOS 26, *) {
