@@ -21,7 +21,7 @@ class BackupArchiveReactionArchiver: BackupArchiveProtoStreamWriter {
         _ message: TSMessage,
         context: BackupArchive.RecipientArchivingContext,
     ) -> BackupArchive.ArchiveInteractionResult<[BackupProto_Reaction]> {
-        let reactions = reactionStore.allReactions(message: message, context: context)
+        let reactions = reactionStore.allReactions(message: message, context: context).reversed()
 
         var errors = [ArchiveFrameError]()
         var reactionProtos = [BackupProto_Reaction]()
